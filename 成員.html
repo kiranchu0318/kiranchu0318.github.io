@@ -1,0 +1,1441 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>成員權限管理系統</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    /* 流暢的轉場與淡入效果 */
+    .fade-in {
+      animation: fadeIn 0.2s ease-in-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    /* 自訂捲軸樣式 */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+  </style>
+    <link rel="stylesheet" href="shared-ui.css">
+</head>
+<body class="min-h-screen p-4 md:p-8 flex justify-center items-start font-sans text-slate-800">
+
+  <!-- === 主畫面容器 === -->
+  <div class="w-full max-w-5xl flex flex-col gap-6">
+    
+    <!-- 頂部標頭與新增按鈕 (成員管理標題字級為精緻的 text-lg) -->
+    <div class="flex justify-between items-center">
+      <h1 class="ui-page-title">成員管理</h1>
+      <button
+        onclick="handleCreateClick()"
+        class="ui-btn ui-btn-primary"
+      >
+        <i data-lucide="plus" class="w-4 h-4 mr-1.5"></i>
+        新增成員
+      </button>
+    </div>
+
+    <!-- 頂部篩選頁籤卡片 (比照請假頁簽樣式) -->
+    <div class="bg-white border border-slate-200/80 rounded-xl p-4 shadow-sm flex flex-wrap gap-3 select-none">
+      <button onclick="switchTab('all')" id="tab-all" class="px-5 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer">
+        全部成員
+      </button>
+      <button onclick="switchTab('active')" id="tab-active" class="px-5 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer">
+        啟用
+      </button>
+      <button onclick="switchTab('inactive')" id="tab-inactive" class="px-5 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer">
+        禁用
+      </button>
+    </div>
+
+    <!-- 成員列表卡片 -->
+    <div class="bg-white border border-slate-200/80 shadow-sm rounded-xl overflow-hidden flex flex-col">
+      
+      <!-- 卡片標頭：成員列表與搜尋 -->
+      <div class="bg-[#fafbfc] border-b border-slate-200/80 px-5 py-4 flex flex-col sm:flex-row justify-between items-center gap-3">
+        <div class="flex items-center gap-2">
+          <h2 class="text-base font-bold text-slate-800">成員列表</h2>
+          <span id="search-tag" class="hidden text-xs bg-blue-50 text-blue-600 border border-blue-100 rounded px-2 py-0.5 font-medium">搜尋中</span>
+        </div>
+        <div class="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-end">
+          <div class="text-sm font-semibold text-slate-600">
+            成員總計：<span id="total-members-badge" class="text-[#4A90E2] font-bold">-</span> 人
+          </div>
+          <!-- 輕量化快速搜尋框 -->
+          <div class="ui-search w-48">
+            <i data-lucide="search" class="w-3.5 h-3.5"></i>
+            <input
+              id="search-input"
+              type="text"
+              placeholder="請輸入名稱或工號..."
+              oninput="handleSearch(this.value)"
+              class="ui-input ui-search-input"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- 表格區域 -->
+      <div class="overflow-x-auto">
+        <table class="ui-table text-center table-fixed">
+          <thead>
+            <tr>
+              <th class="w-[20%]">工號</th>
+              <th class="w-[40%]">名稱</th>
+              <th class="w-[20%]">狀態</th>
+              <th class="w-[20%]">操作</th>
+            </tr>
+          </thead>
+          <tbody id="member-table-body" class="text-sm text-slate-700">
+            <!-- 動態渲染成員內容 -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- 成員列表底部分頁 -->
+      <div class="p-4 px-6 border-t border-slate-200 bg-[#fbfcfd] flex flex-col sm:flex-row justify-between items-center gap-4">
+        <div id="total-count-label" class="text-xs text-slate-500 font-medium">
+          共 - 筆記錄
+        </div>
+
+        <!-- 分頁控制組 -->
+        <div id="pagination-container" class="flex items-center gap-1 select-none">
+          <!-- 動態分頁按鈕 -->
+        </div>
+
+        <!-- 右側功能按鈕組 -->
+        <div class="flex flex-wrap gap-2">
+          <button class="ui-btn ui-btn-secondary ui-btn-sm">
+            匯出 Excel
+          </button>
+          <button class="ui-btn ui-btn-secondary ui-btn-sm">
+            匯出資料
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- === 1. 檢視詳情彈窗 === -->
+  <div id="view-modal" class="fixed inset-0 bg-black bg-opacity-40 hidden justify-center items-center z-50 p-4">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-5xl flex flex-col overflow-hidden max-h-[90vh] animate-in fade-in duration-200">
+      <div class="flex justify-between items-center p-5 border-b border-slate-200 bg-white">
+        <h2 class="text-lg font-bold text-slate-800">檢視詳情</h2>
+        <button onclick="closeViewModal()" class="text-slate-400 hover:text-slate-600 transition-colors cursor-pointer">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <div class="p-6 overflow-y-auto bg-slate-50 flex-grow">
+        <div class="border border-slate-200 rounded-lg overflow-hidden bg-white shadow-sm">
+          <table class="ui-table text-center">
+            <thead>
+              <tr>
+                <th class="w-1/4">事業部</th>
+                <th class="w-1/4">項目</th>
+                <th class="w-1/4">分公司</th>
+                <th class="w-1/4">職稱</th>
+              </tr>
+            </thead>
+            <tbody id="view-modal-table-body">
+              <!-- 動態渲染詳細內容 -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="flex justify-end p-4 border-t border-slate-200 bg-white gap-3">
+        <button onclick="closeViewModal()" class="ui-btn ui-btn-primary">
+          關閉
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- === 2. 新增成員/修改設定彈窗 === -->
+  <div id="edit-modal" class="fixed inset-0 bg-black bg-opacity-40 hidden justify-center items-center z-50 p-4">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-6xl flex flex-col overflow-hidden h-[800px] max-h-[95vh] animate-in fade-in zoom-in-95 duration-200">
+      
+      <div class="flex justify-between items-center p-5 border-b border-slate-200 bg-[#fafbfc]">
+        <h2 id="edit-modal-title" class="text-lg font-bold text-slate-800">修改設定</h2>
+        <button onclick="closeEditModal()" class="text-slate-400 hover:text-slate-600 transition-colors cursor-pointer">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="flex-grow overflow-y-auto p-6 flex flex-col md:flex-row gap-6">
+        
+        <!-- 左側欄：基本資料與群組屬性 -->
+        <div class="flex-[1.2] space-y-4">
+          <div class="flex items-center">
+            <label class="w-28 text-slate-700 text-sm font-semibold">工號*</label>
+            <div class="flex-1" id="member-id-input-container">
+              <!-- 動態插入工號 Input -->
+            </div>
+          </div>
+          <div class="flex items-center">
+            <label class="w-28 text-slate-700 text-sm font-semibold">姓名</label>
+            <input id="input-member-name" type="text" placeholder="請輸入姓名" class="ui-input flex-1" />
+          </div>
+          <div class="flex items-center">
+            <label class="w-28 text-slate-700 text-sm font-semibold">狀態</label>
+            <select id="input-member-status" class="ui-select flex-1">
+              <option value="啟用">啟用</option>
+              <option value="禁用">禁用</option>
+            </select>
+          </div>
+          <div class="flex items-center pt-2">
+            <label class="w-28 text-slate-700 text-sm font-semibold">文件建立設定</label>
+            <input type="checkbox" id="input-member-file-config" class="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500 cursor-pointer" />
+          </div>
+
+          <!-- 地區 -->
+          <div class="flex items-start pt-2">
+            <label class="w-28 text-slate-700 text-sm font-semibold mt-1.5">地區</label>
+            <div class="flex-1">
+              <div id="selected-regions-container" class="flex flex-wrap gap-1.5 mb-2"></div>
+              <div class="relative" id="region-dropdown-container">
+                <button onclick="toggleRegionDropdown(event)" class="bg-[#64748b] hover:bg-[#475569] text-white rounded-lg px-4 py-1.5 text-xs font-semibold flex items-center transition-colors shadow-sm focus:outline-none cursor-pointer">
+                  <i data-lucide="plus" class="w-3.5 h-3.5 mr-1"></i> 新增
+                </button>
+                <div id="region-dropdown" class="absolute top-full left-0 mt-1.5 w-[320px] bg-white border border-slate-200 rounded-lg shadow-lg z-10 hidden flex-col overflow-hidden">
+                  <div id="region-options" class="max-h-64 overflow-y-auto p-3 grid grid-cols-5 gap-2"></div>
+                  <div class="p-3 border-t border-slate-100 bg-slate-50">
+                    <input id="region-search" type="text" placeholder="搜尋地區..." oninput="handleRegionSearch(this.value)" class="w-full border border-slate-200 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-blue-500 bg-white" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 主地區 -->
+          <div class="flex items-center pt-1">
+            <label class="w-28 text-slate-700 text-sm font-semibold">主地區</label>
+            <div class="flex-1 relative" id="main-region-dropdown-container">
+              <div onclick="toggleMainRegionDropdown(event)" class="w-full border border-slate-300 rounded-lg px-3 py-1.5 text-sm bg-white cursor-pointer flex justify-between items-center transition-colors hover:border-slate-400">
+                <span id="selected-main-region-text" class="text-slate-700 text-sm">無選項</span>
+                <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400"></i>
+              </div>
+              <div id="main-region-dropdown" class="absolute top-full left-0 mt-1.5 w-[320px] bg-white border border-slate-200 rounded-lg shadow-lg z-10 hidden flex-col overflow-hidden">
+                <div id="main-region-options" class="max-h-64 overflow-y-auto p-3 grid grid-cols-5 gap-2"></div>
+                <div class="p-3 border-t border-slate-100 bg-slate-50">
+                  <input id="main-region-search" type="text" placeholder="搜尋地區..." oninput="handleMainRegionSearch(this.value)" class="w-full border border-slate-200 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-blue-500 bg-white" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 項目 -->
+          <div class="flex items-start pt-2">
+            <label class="w-28 text-slate-700 text-sm font-semibold mt-1.5">項目</label>
+            <div class="flex-1 relative" id="project-dropdown-container">
+              <div class="border border-slate-200 rounded-lg p-3 bg-white shadow-sm">
+                <div id="selected-projects-container" class="flex flex-wrap gap-1.5 mb-2.5"></div>
+                <button onclick="toggleProjectDropdown(event)" class="w-full bg-[#64748b] hover:bg-[#475569] text-white rounded-lg py-1.5 text-xs font-semibold flex justify-center items-center transition-colors shadow-sm focus:outline-none cursor-pointer">
+                  <i data-lucide="plus" class="w-3.5 h-3.5 mr-1"></i>新增
+                </button>
+              </div>
+              <div id="project-dropdown" class="absolute top-full left-0 mt-1.5 w-[320px] bg-white border border-slate-200 rounded-lg shadow-lg z-10 hidden flex-col overflow-hidden">
+                <div id="project-options" class="max-h-64 overflow-y-auto p-3 grid grid-cols-4 gap-2"></div>
+                <div class="p-3 border-t border-slate-100 bg-slate-50">
+                  <input id="project-search" type="text" placeholder="搜尋項目..." oninput="handleProjectSearch(this.value)" class="w-full border border-slate-200 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-blue-500 bg-white" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- OA類型 -->
+          <div class="flex items-start pt-2">
+            <label class="w-28 text-slate-700 text-sm font-semibold mt-1.5">OA類型</label>
+            <div class="flex-1 relative" id="oa-dropdown-container">
+              <div class="border border-slate-200 rounded-lg p-3 bg-white shadow-sm">
+                <div id="selected-oa-container" class="flex flex-wrap gap-1.5 mb-2.5"></div>
+                <button onclick="toggleOADropdown(event)" class="w-full bg-[#64748b] hover:bg-[#475569] text-white rounded-lg py-1.5 text-xs font-semibold flex justify-center items-center transition-colors shadow-sm focus:outline-none cursor-pointer">
+                  <i data-lucide="plus" class="w-3.5 h-3.5 mr-1"></i>新增
+                </button>
+              </div>
+              <div id="oa-dropdown" class="absolute top-full left-0 mt-1.5 w-[320px] bg-white border border-slate-200 rounded-lg shadow-lg z-10 hidden flex-col overflow-hidden">
+                <div id="oa-options" class="max-h-64 overflow-y-auto p-3 grid grid-cols-3 gap-2"></div>
+                <div class="p-3 border-t border-slate-100 bg-slate-50">
+                  <input id="oa-search" type="text" placeholder="搜尋OA類型..." oninput="handleOASearch(this.value)" class="w-full border border-slate-200 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-blue-500 bg-white" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 文件類型 -->
+          <div class="flex items-start pt-2">
+            <label class="w-28 text-slate-700 text-sm font-semibold mt-1.5">文件類型</label>
+            <div class="flex-1 relative" id="doc-dropdown-container">
+              <div class="border border-slate-200 rounded-lg p-3 bg-white shadow-sm">
+                <div id="selected-doc-container" class="flex flex-wrap gap-1.5 mb-2.5"></div>
+                <button onclick="toggleDocDropdown(event)" class="w-full bg-[#64748b] hover:bg-[#475569] text-white rounded-lg py-1.5 text-xs font-semibold flex justify-center items-center transition-colors shadow-sm focus:outline-none cursor-pointer">
+                  <i data-lucide="plus" class="w-3.5 h-3.5 mr-1"></i>新增
+                </button>
+              </div>
+              <div id="doc-dropdown" class="absolute top-full left-0 mt-1.5 w-[320px] bg-white border border-slate-200 rounded-lg shadow-lg z-20 hidden flex-col overflow-hidden">
+                <div id="doc-options" class="max-h-64 overflow-y-auto p-3 grid grid-cols-3 gap-2"></div>
+                <div class="p-3 border-t border-slate-100 bg-slate-50">
+                  <input id="doc-search" type="text" placeholder="搜尋文件類型..." oninput="handleDocSearch(this.value)" class="w-full border border-slate-200 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-blue-500 bg-white" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="hidden md:block w-px bg-slate-200"></div>
+
+        <!-- 中間欄：設定職稱 (選中項目高亮與紫色左邊條風格) -->
+        <div class="flex-[0.9] space-y-4">
+          <label class="text-slate-800 text-base font-bold mb-3 block border-b border-slate-100 pb-2 select-none">設定職稱</label>
+          <div id="configured-roles-list" class="flex flex-col gap-1.5 mb-3 max-h-[460px] overflow-y-auto pr-1">
+            <!-- 動態職稱列表 -->
+          </div>
+          
+          <div class="relative" id="role-dropdown-container">
+            <button onclick="toggleRoleDropdown(event)" class="w-full bg-[#64748b] hover:bg-[#475569] text-white rounded-lg py-2 text-sm font-semibold flex justify-center items-center transition-colors shadow-sm focus:outline-none cursor-pointer">
+              <i data-lucide="plus" class="w-4 h-4 mr-1.5"></i>新增職稱
+            </button>
+            <div id="role-dropdown" class="absolute top-full left-0 mt-1.5 w-full bg-white border border-slate-200 rounded-lg shadow-xl z-20 hidden flex-col overflow-hidden">
+              <div class="p-2 border-b border-slate-100 bg-slate-50">
+                <input id="role-search" type="text" placeholder="搜尋職稱庫..." oninput="handleRoleSearch(this.value)" class="w-full border border-slate-200 rounded-md px-2.5 py-1.5 text-xs focus:outline-none bg-white" />
+              </div>
+              <div id="role-options" class="max-h-60 overflow-y-auto p-1.5 flex flex-col gap-0.5 bg-white"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="hidden md:block w-px bg-slate-200"></div>
+
+        <!-- 右側欄：專屬設定與存取設定 -->
+        <div id="active-role-settings-panel" class="flex-[1.2] flex flex-col bg-slate-50 -my-6 -mr-6 p-6 overflow-hidden h-full">
+          <!-- 根據是否有選中職稱動態渲染權限配置 -->
+        </div>
+
+      </div>
+
+      <!-- 彈窗底部 -->
+      <div class="flex justify-between items-center p-4 border-t border-slate-200 bg-white relative z-10">
+        <div id="modal-error-message" class="text-rose-600 text-sm font-semibold flex items-center gap-1 select-none">
+          <!-- 錯誤訊息提示 -->
+        </div>
+        <div class="flex gap-3">
+          <button onclick="handleSaveSettings()" class="ui-btn ui-btn-primary">保存設定</button>
+          <button onclick="closeEditModal()" class="ui-btn ui-btn-secondary">取消</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- === 3. 刪除確認彈窗 === -->
+  <div id="delete-confirm-modal" class="fixed inset-0 bg-black bg-opacity-40 hidden justify-center items-center z-50 p-4">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in duration-200">
+      <div class="p-6 text-center">
+        <div class="w-16 h-16 rounded-full bg-rose-50 flex items-center justify-center mx-auto mb-4">
+          <i data-lucide="x" class="text-rose-500 w-8 h-8"></i>
+        </div>
+        <h3 class="text-lg font-bold text-slate-800 mb-2">確認要刪除此成員嗎？</h3>
+        <p class="text-slate-500 text-sm mb-6 leading-relaxed">
+          您即將刪除成員 <span id="delete-member-name" class="font-semibold text-slate-800">-</span> (工號: <span id="delete-member-id">-</span>)。<br />
+          此動作將無法復原，請確認是否繼續。
+        </p>
+        <div class="flex justify-center gap-3">
+          <button onclick="handleConfirmDelete()" class="ui-btn ui-btn-danger">
+            確認刪除
+          </button>
+          <button onclick="handleCancelDelete()" class="ui-btn ui-btn-secondary">
+            取消
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- === 全域 JavaScript 邏輯區 === -->
+  <script>
+    // 初始模擬資料
+    let membersList = [
+      { 
+        id: '101383', 
+        name: 'KKKKK', 
+        status: '啟用',
+        regions: ['D', 'F', 'IM'],
+        mainRegion: '',
+        projects: ['API', 'OPS', 'YI'],
+        oaTypes: [],
+        docTypes: [],
+        configuredRoles: [
+          { name: '[特例] 六字部...', permissions: ['記帳下載'], accessRegions: [], memo: '' },
+          { name: '[特例] 行政負責代表', permissions: ['費用會計下載'], accessRegions: [], memo: '' },
+          { name: '[特例] 人力資源中心', permissions: ['文件下載'], accessRegions: [], memo: '' },
+          { name: '[特例] 董事長', permissions: ['資金專員下載'], accessRegions: [], memo: '' }
+        ]
+      },
+      { 
+        id: '1', 
+        name: '1', 
+        status: '啟用',
+        regions: ['D', 'F'],
+        mainRegion: 'D',
+        projects: ['API'],
+        oaTypes: ['行政'],
+        docTypes: ['公告'],
+        configuredRoles: [
+          { name: '[地區] T1資產', permissions: ['確認付款權限', '付款監控'], accessRegions: ['D', 'F', 'IM', 'T2'], memo: '' }
+        ]
+      },
+      { id: '100003', name: 'Helena B', status: '啟用', regions: ['D', 'F'], mainRegion: '', projects: [], oaTypes: [], docTypes: [], configuredRoles: [] },
+      { id: '100004', name: 'Alan GT', status: '禁用', regions: ['D'], mainRegion: '', projects: [], oaTypes: [], docTypes: [], configuredRoles: [] },
+      { id: '100005', name: 'Charles H', status: '啟用', regions: ['F'], mainRegion: '', projects: [], oaTypes: [], docTypes: [], configuredRoles: [] },
+      { id: '100007', name: 'ROSE GT', status: '啟用', regions: ['D', 'F', 'IM'], mainRegion: '', projects: [], oaTypes: [], docTypes: [], configuredRoles: [] },
+      { id: '100008', name: 'Jett S', status: '禁用', regions: ['D', 'F', 'IM'], mainRegion: '', projects: [], oaTypes: [], docTypes: [], configuredRoles: [] },
+      { id: '100009', name: 'Killian A (G)', status: '啟用', regions: ['D', 'F', 'IM'], mainRegion: '', projects: [], oaTypes: [], docTypes: [], configuredRoles: [] },
+      { id: '100011', name: 'Preston GT3', status: '啟用', regions: ['D', 'F', 'IM'], mainRegion: '', projects: [], oaTypes: [], docTypes: [], configuredRoles: [] },
+      { id: '100013', name: 'Albert', status: '啟用', regions: ['D', 'F', 'IM'], mainRegion: '', projects: [], oaTypes: [], docTypes: [], configuredRoles: [] },
+    ];
+
+    // 分頁、頁籤與過濾篩選狀態
+    let activeTab = 'all'; // 'all' | 'active' | 'inactive'
+    let searchTerm = '';
+    let currentPage = 1;
+    const itemsPerPage = 5;
+
+    // 彈窗與各項下拉選單狀態
+    let modalMode = 'create'; // 'create' | 'edit'
+    let editingMemberId = null;
+    let modalError = '';
+
+    // 暫存資料狀態 (用於 Modal 內部)
+    let tempMemberId = '';
+    let tempMemberName = '';
+    let tempMemberStatus = '啟用';
+    let tempFileConfig = false;
+    let tempRegions = [];
+    let tempMainRegion = '';
+    let tempProjects = [];
+    let tempOATypes = [];
+    let tempDocTypes = [];
+    let tempConfiguredRoles = [];
+    let activeRoleName = null;
+
+    // 各類下拉選單過濾關鍵字
+    let regionSearchTerm = '';
+    let mainRegionSearchTerm = '';
+    let projectSearchTerm = '';
+    let oaSearchTerm = '';
+    let docSearchTerm = '';
+    let roleSearchTerm = '';
+    let permissionSearchTerm = '';
+    let accessRegionSearchTerm = '';
+
+    // 選項常數庫
+    const allRegions = ['D', 'F', 'IM', 'J', 'K', 'M', 'S', 'T1', 'T2', 'T3', 'T4', 'THQ', 'U'];
+    const allProjects = ['API', 'OPS', 'YI', 'DEV', 'QA', 'UAT', 'PROD', 'DB', 'UI', 'UX'];
+    const allOATypes = ['行政', '人事', '財務', '採購', '資訊', '法務', '業務', '行銷'];
+    const allDocTypes = ['公告', '辦法', '表單', '手冊', '外來文件', '合約', '技術文件', '專案文件'];
+    const allRoles = [
+      '[特例] 六字部...', '[特例] 行政負責代表', '[特例] 人力資源中心', '[特例] 財務負責人', '[特例] 董事長', '[特例] 營運中心',
+      '[事業部] 費用記帳', '[事業部] 財務負責人', '[事業部] 內審', '[事業部] 抄送內審', '[事業部] 投資管理',
+      '[地區] 業務主管', '[地區] T1資產', '[地區] 運營專員'
+    ];
+    const allPermissions = [
+      '記帳下載', '費用會計下載', '文件下載', '資金專員下載', '確認付款權限', '實時編輯審批線', '付款監控', '提交申請', '資產管理(檢視)'
+    ];
+
+    // 刪除對象與檢視對象
+    let memberToDelete = null;
+    let viewingMember = null;
+
+    // 初始化載入
+    window.onload = function () {
+      renderAll();
+      
+      // 全域點擊，點擊空白處自動關閉對應選單
+      window.addEventListener('mousedown', function (e) {
+        if (!document.getElementById('region-dropdown-container').contains(e.target)) {
+          hideElement('region-dropdown');
+        }
+        if (!document.getElementById('main-region-dropdown-container').contains(e.target)) {
+          hideElement('main-region-dropdown');
+        }
+        if (!document.getElementById('project-dropdown-container').contains(e.target)) {
+          hideElement('project-dropdown');
+        }
+        if (!document.getElementById('oa-dropdown-container').contains(e.target)) {
+          hideElement('oa-dropdown');
+        }
+        if (!document.getElementById('doc-dropdown-container').contains(e.target)) {
+          hideElement('doc-dropdown');
+        }
+        if (!document.getElementById('role-dropdown-container').contains(e.target)) {
+          hideElement('role-dropdown');
+        }
+        const accContainer = document.getElementById('access-region-dropdown-container');
+        if (accContainer && !accContainer.contains(e.target)) {
+          hideElement('access-region-dropdown');
+        }
+      });
+    };
+
+    // 顯示、隱藏、切換元素輔助函式
+    function showElement(id) {
+      const el = document.getElementById(id);
+      if (el) {
+        el.classList.remove('hidden');
+        if (id.includes('modal')) el.classList.add('flex');
+      }
+    }
+    function hideElement(id) {
+      const el = document.getElementById(id);
+      if (el) {
+        el.classList.add('hidden');
+        if (id.includes('modal')) el.classList.remove('flex');
+      }
+    }
+    function toggleElement(id) {
+      const el = document.getElementById(id);
+      if (el) {
+        el.classList.toggle('hidden');
+      }
+    }
+
+    // === 主表格搜尋與頁籤切換邏輯 ===
+    function handleSearch(val) {
+      searchTerm = val;
+      currentPage = 1;
+      const searchTag = document.getElementById('search-tag');
+      if (val.trim()) {
+        searchTag.classList.remove('hidden');
+      } else {
+        searchTag.classList.add('hidden');
+      }
+      renderAll();
+    }
+
+    // 頁籤切換
+    function switchTab(tabName) {
+      activeTab = tabName;
+      currentPage = 1;
+      renderAll();
+    }
+
+    // === 主頁面渲染函數 ===
+    function renderAll() {
+      renderTabs();
+      renderTable();
+      renderPagination();
+      document.getElementById('total-members-badge').innerText = membersList.length;
+      lucide.createIcons();
+    }
+
+    // 渲染頁籤外觀 (完全比照高質感淡紫藍色狀態)
+    function renderTabs() {
+      const tabs = ['all', 'active', 'inactive'];
+      tabs.forEach(tab => {
+        const btn = document.getElementById(`tab-${tab}`);
+        if (btn) {
+          if (activeTab === tab) {
+            btn.className = "px-5 py-2 rounded-lg text-sm font-bold transition-all bg-[#f5f7ff] text-[#4A90E2] border border-blue-100 shadow-sm cursor-pointer";
+          } else {
+            btn.className = "px-5 py-2 rounded-lg text-sm font-semibold transition-all bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-800 cursor-pointer";
+          }
+        }
+      });
+    }
+
+    // 渲染主成員列表 (狀態徽章高質感橢圓圓角)
+    function renderTable() {
+      const tbody = document.getElementById('member-table-body');
+      tbody.innerHTML = '';
+
+      // 1. 頁籤過濾
+      let filtered = membersList;
+      if (activeTab === 'active') {
+        filtered = membersList.filter(m => m.status === '啟用');
+      } else if (activeTab === 'inactive') {
+        filtered = membersList.filter(m => m.status === '禁用');
+      }
+
+      // 2. 關鍵字過濾
+      if (searchTerm.trim()) {
+        filtered = filtered.filter(m => 
+          m.id.includes(searchTerm) || m.name.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+      }
+
+      // 3. 處理分頁
+      const paginated = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+      // 更新總筆數標記
+      document.getElementById('total-count-label').innerText = `共 ${filtered.length} 筆記錄`;
+
+      if (paginated.length > 0) {
+        paginated.forEach(member => {
+          const tr = document.createElement('tr');
+          tr.className = 'border-b border-slate-100 hover:bg-[#fafbfc]/40 transition-colors';
+          
+          const isStatusActive = member.status === '啟用';
+          const statusBadge = isStatusActive
+            ? `<span class="ui-badge ui-badge-success">啟用</span>`
+            : `<span class="ui-badge ui-badge-danger">禁用</span>`;
+
+          tr.innerHTML = `
+            <td class="py-4 text-slate-800 text-sm font-semibold">${member.id}</td>
+            <td class="py-4 text-slate-800 text-sm">${member.name}</td>
+            <td class="py-4">${statusBadge}</td>
+            <td class="py-4">
+              <div class="flex items-center justify-center gap-2">
+                <button onclick="handleViewClick('${member.id}')" class="ui-btn ui-btn-secondary ui-btn-sm">檢視</button>
+                <button onclick="handleEditClick('${member.id}')" class="ui-btn ui-btn-secondary ui-btn-sm">編輯</button>
+                <button onclick="handleDeleteClick('${member.id}')" class="ui-btn ui-btn-sm text-rose-600 border border-rose-200 hover:bg-rose-50">刪除</button>
+              </div>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } else {
+        tbody.innerHTML = `
+          <tr>
+            <td colSpan="4" class="py-16 text-slate-400 text-sm italic">
+              找不到符合篩選條件的成員
+            </td>
+          </tr>
+        `;
+      }
+    }
+
+    // 渲染分頁元件 (對應紫羅蘭色高亮頁碼與箭頭樣式)
+    function renderPagination() {
+      const container = document.getElementById('pagination-container');
+      container.innerHTML = '';
+
+      let filtered = membersList;
+      if (activeTab === 'active') {
+        filtered = membersList.filter(m => m.status === '啟用');
+      } else if (activeTab === 'inactive') {
+        filtered = membersList.filter(m => m.status === '禁用');
+      }
+
+      if (searchTerm.trim()) {
+        filtered = filtered.filter(m => 
+          m.id.includes(searchTerm) || m.name.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+      }
+
+      const totalPages = Math.max(Math.ceil(filtered.length / itemsPerPage), 1);
+
+      // 第一頁按鈕 «
+      const firstBtn = document.createElement('button');
+      firstBtn.className = `ui-page-btn`;
+      firstBtn.innerText = '«';
+      firstBtn.disabled = currentPage === 1;
+      firstBtn.onclick = () => { currentPage = 1; renderAll(); };
+      container.appendChild(firstBtn);
+
+      // 上一頁按鈕 ‹
+      const prevBtn = document.createElement('button');
+      prevBtn.className = `ui-page-btn`;
+      prevBtn.innerText = '‹';
+      prevBtn.disabled = currentPage === 1;
+      prevBtn.onclick = () => { currentPage = Math.max(currentPage - 1, 1); renderAll(); };
+      container.appendChild(prevBtn);
+
+      // 頁碼 (目前頁面以深紫羅蘭色圓角矩形標示)
+      for (let i = 1; i <= totalPages; i++) {
+        const pageBtn = document.createElement('button');
+        const isActive = currentPage === i;
+        pageBtn.className = `ui-page-btn ${isActive ? 'is-active' : ''}`;
+        pageBtn.innerText = i;
+        pageBtn.onclick = () => { currentPage = i; renderAll(); };
+        container.appendChild(pageBtn);
+      }
+
+      // 下一頁按鈕 ›
+      const nextBtn = document.createElement('button');
+      nextBtn.className = `ui-page-btn`;
+      nextBtn.innerText = '›';
+      nextBtn.disabled = currentPage === totalPages;
+      nextBtn.onclick = () => { currentPage = Math.min(currentPage + 1, totalPages); renderAll(); };
+      container.appendChild(nextBtn);
+
+      // 最末頁按鈕 »
+      const lastBtn = document.createElement('button');
+      lastBtn.className = `ui-page-btn`;
+      lastBtn.innerText = '»';
+      lastBtn.disabled = currentPage === totalPages;
+      lastBtn.onclick = () => { currentPage = totalPages; renderAll(); };
+      container.appendChild(lastBtn);
+    }
+
+    // === 檢視詳情彈窗處理 ===
+    function handleViewClick(id) {
+      viewingMember = membersList.find(m => m.id === id);
+      const tbody = document.getElementById('view-modal-table-body');
+      tbody.innerHTML = '';
+
+      const oaText = viewingMember.oaTypes && viewingMember.oaTypes.length > 0 ? viewingMember.oaTypes.join(', ') : '-';
+      const projText = viewingMember.projects && viewingMember.projects.length > 0 ? viewingMember.projects.join(', ') : '-';
+      const regText = viewingMember.regions && viewingMember.regions.length > 0 ? viewingMember.regions.join(', ') : '-';
+
+      let rolesMarkup = '<span class="text-slate-400 italic">無職稱</span>';
+      if (viewingMember.configuredRoles && viewingMember.configuredRoles.length > 0) {
+        rolesMarkup = viewingMember.configuredRoles.map(r => `
+          <span class="font-semibold text-slate-800 bg-slate-50 border border-slate-100 rounded px-2.5 py-1 w-full text-center truncate max-w-[200px]">
+            ${r.name}
+          </span>
+        `).join('');
+      }
+
+      tbody.innerHTML = `
+        <tr class="text-sm text-slate-800 align-middle">
+          <td class="font-medium text-slate-700">${oaText}</td>
+          <td class="font-medium text-slate-700">${projText}</td>
+          <td class="font-medium text-slate-700">${regText}</td>
+          <td>
+            <div class="flex flex-col gap-1.5 justify-center items-center">
+              ${rolesMarkup}
+            </div>
+          </td>
+        </tr>
+      `;
+
+      showElement('view-modal');
+      lucide.createIcons();
+    }
+
+    function closeViewModal() {
+      hideElement('view-modal');
+    }
+
+    // === 刪除成員彈窗處理 ===
+    function handleDeleteClick(memberId) {
+      memberToDelete = membersList.find(m => m.id === memberId);
+      document.getElementById('delete-member-name').innerText = memberToDelete.name;
+      document.getElementById('delete-member-id').innerText = memberToDelete.id;
+      showElement('delete-confirm-modal');
+    }
+
+    function handleConfirmDelete() {
+      if (memberToDelete) {
+        membersList = membersList.filter(m => m.id !== memberToDelete.id);
+        const totalPages = Math.ceil(membersList.length / itemsPerPage);
+        if (currentPage > totalPages && totalPages > 0) {
+          currentPage = totalPages;
+        }
+        hideElement('delete-confirm-modal');
+        renderAll();
+      }
+    }
+
+    function handleCancelDelete() {
+      hideElement('delete-confirm-modal');
+      memberToDelete = null;
+    }
+
+    // === 新增/修改彈窗與細部互動處理 ===
+    function handleCreateClick() {
+      modalMode = 'create';
+      editingMemberId = null;
+      modalError = '';
+
+      tempMemberId = '';
+      tempMemberName = '';
+      tempMemberStatus = '啟用';
+      tempFileConfig = false;
+      tempRegions = ['D', 'F', 'IM'];
+      tempMainRegion = '';
+      tempProjects = [];
+      tempOATypes = [];
+      tempDocTypes = [];
+      tempConfiguredRoles = [];
+      activeRoleName = null;
+
+      initEditModalUI();
+      showElement('edit-modal');
+    }
+
+    function handleEditClick(memberId) {
+      modalMode = 'edit';
+      editingMemberId = memberId;
+      modalError = '';
+
+      const member = membersList.find(m => m.id === memberId);
+      tempMemberId = member.id;
+      tempMemberName = member.name;
+      tempMemberStatus = member.status || '啟用';
+      tempFileConfig = member.fileConfig || false;
+      tempRegions = [...(member.regions || [])];
+      tempMainRegion = member.mainRegion || '';
+      tempProjects = [...(member.projects || [])];
+      tempOATypes = [...(member.oaTypes || [])];
+      tempDocTypes = [...(member.docTypes || [])];
+      tempConfiguredRoles = JSON.parse(JSON.stringify(member.configuredRoles || []));
+      activeRoleName = tempConfiguredRoles.length > 0 ? tempConfiguredRoles[0].name : null;
+
+      initEditModalUI();
+      showElement('edit-modal');
+    }
+
+    function closeEditModal() {
+      hideElement('edit-modal');
+    }
+
+    // 重置或初始化 Modal UI 內部節點
+    function initEditModalUI() {
+      document.getElementById('edit-modal-title').innerText = modalMode === 'create' ? '新增成員' : '修改設定';
+      
+      // 處理工號輸入框 (新增可編輯，修改則鎖定)
+      const idContainer = document.getElementById('member-id-input-container');
+      if (modalMode === 'create') {
+        idContainer.innerHTML = `
+          <input id="input-member-id" type="text" value="${tempMemberId}" oninput="tempMemberId = this.value; modalError=''; renderModalErrorMessage();" placeholder="請輸入工號（唯一值）" class="w-full border border-slate-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all bg-white" />
+        `;
+      } else {
+        idContainer.innerHTML = `
+          <input type="text" value="${tempMemberId}" disabled class="w-full border border-slate-200 rounded-lg px-3 py-1.5 bg-slate-100 text-slate-500 text-sm cursor-not-allowed" />
+        `;
+      }
+
+      document.getElementById('input-member-name').value = tempMemberName;
+      document.getElementById('input-member-name').oninput = function(e) {
+        tempMemberName = e.target.value;
+      };
+
+      document.getElementById('input-member-status').value = tempMemberStatus;
+      document.getElementById('input-member-status').onchange = function(e) {
+        tempMemberStatus = e.target.value;
+      };
+
+      document.getElementById('input-member-file-config').checked = tempFileConfig;
+      document.getElementById('input-member-file-config').onchange = function(e) {
+        tempFileConfig = e.target.checked;
+      };
+
+      // 搜尋條件重置
+      regionSearchTerm = '';
+      mainRegionSearchTerm = '';
+      projectSearchTerm = '';
+      oaSearchTerm = '';
+      docSearchTerm = '';
+      roleSearchTerm = '';
+      permissionSearchTerm = '';
+      accessRegionSearchTerm = '';
+
+      renderModalComponents();
+    }
+
+    // 渲染 Modal 內部的所有子元件
+    function renderModalComponents() {
+      renderSelectedRegions();
+      renderSelectedMainRegion();
+      renderSelectedProjects();
+      renderSelectedOATypes();
+      renderSelectedDocTypes();
+      renderConfiguredRolesList();
+      renderActiveRolePanel();
+      renderModalErrorMessage();
+      lucide.createIcons();
+    }
+
+    // 錯誤訊息更新
+    function renderModalErrorMessage() {
+      const errBox = document.getElementById('modal-error-message');
+      if (modalError) {
+        errBox.innerHTML = `
+          <i data-lucide="alert-circle" class="w-4 h-4 text-rose-600"></i>
+          <span>${modalError}</span>
+        `;
+        lucide.createIcons();
+      } else {
+        errBox.innerHTML = '';
+      }
+    }
+
+    // === 地區 (Regions) ===
+    function toggleRegionDropdown(e) {
+      e.stopPropagation();
+      toggleElement('region-dropdown');
+      renderRegionOptions();
+    }
+    function renderSelectedRegions() {
+      const container = document.getElementById('selected-regions-container');
+      container.innerHTML = '';
+      tempRegions.forEach(r => {
+        const tag = document.createElement('div');
+        tag.className = 'border border-slate-200 rounded-md px-2.5 py-1 text-xs bg-slate-50 flex items-center gap-1.5 font-medium';
+        tag.innerHTML = `
+          <span>${r}</span>
+          <i data-lucide="x" onclick="removeRegion('${r}')" class="w-3.5 h-3.5 text-slate-400 cursor-pointer hover:text-slate-600 transition-colors"></i>
+        `;
+        container.appendChild(tag);
+      });
+      lucide.createIcons();
+    }
+    function renderRegionOptions() {
+      const grid = document.getElementById('region-options');
+      grid.innerHTML = '';
+      allRegions
+        .filter(r => !tempRegions.includes(r))
+        .filter(r => r.toLowerCase().includes(regionSearchTerm.toLowerCase()))
+        .forEach(r => {
+          const item = document.createElement('div');
+          item.className = 'py-1.5 hover:bg-slate-50 cursor-pointer text-sm text-slate-700 text-center rounded-md font-semibold border border-transparent hover:border-slate-200/60';
+          item.innerText = r;
+          item.onclick = () => {
+            tempRegions.push(r);
+            renderModalComponents();
+            renderRegionOptions();
+          };
+          grid.appendChild(item);
+        });
+    }
+    function handleRegionSearch(val) {
+      regionSearchTerm = val;
+      renderRegionOptions();
+    }
+    function removeRegion(r) {
+      tempRegions = tempRegions.filter(item => item !== r);
+      if (tempMainRegion === r) tempMainRegion = '';
+      renderModalComponents();
+    }
+
+    // === 主地區 (Main Region) ===
+    function toggleMainRegionDropdown(e) {
+      e.stopPropagation();
+      toggleElement('main-region-dropdown');
+      renderMainRegionOptions();
+    }
+    function renderSelectedMainRegion() {
+      document.getElementById('selected-main-region-text').innerText = tempMainRegion || '無選項';
+    }
+    function renderMainRegionOptions() {
+      const grid = document.getElementById('main-region-options');
+      grid.innerHTML = '';
+      
+      const noOpt = document.createElement('div');
+      noOpt.className = 'py-1.5 hover:bg-slate-50 cursor-pointer text-sm text-slate-500 col-span-5 pl-2 font-semibold border border-transparent hover:border-slate-100 rounded-md';
+      noOpt.innerText = '無選項';
+      noOpt.onclick = () => {
+        tempMainRegion = '';
+        hideElement('main-region-dropdown');
+        renderModalComponents();
+      };
+      grid.appendChild(noOpt);
+
+      tempRegions
+        .filter(r => r.toLowerCase().includes(mainRegionSearchTerm.toLowerCase()))
+        .forEach(r => {
+          const item = document.createElement('div');
+          item.className = 'py-1.5 hover:bg-slate-50 cursor-pointer text-sm text-slate-700 text-center rounded-md font-semibold border border-transparent hover:border-slate-100';
+          item.innerText = r;
+          item.onclick = () => {
+            tempMainRegion = r;
+            hideElement('main-region-dropdown');
+            renderModalComponents();
+          };
+          grid.appendChild(item);
+        });
+    }
+    function handleMainRegionSearch(val) {
+      mainRegionSearchTerm = val;
+      renderMainRegionOptions();
+    }
+
+    // === 項目 (Projects) ===
+    function toggleProjectDropdown(e) {
+      e.stopPropagation();
+      toggleElement('project-dropdown');
+      renderProjectOptions();
+    }
+    function renderSelectedProjects() {
+      const container = document.getElementById('selected-projects-container');
+      container.innerHTML = '';
+      if (tempProjects.length === 0) {
+        container.innerHTML = `<div class="text-slate-400 text-sm mb-2.5 pl-1 italic">無選項</div>`;
+      } else {
+        tempProjects.forEach(p => {
+          const tag = document.createElement('div');
+          tag.className = 'border border-slate-200 rounded-md px-2.5 py-1 text-xs bg-slate-50 flex items-center gap-1.5 font-medium';
+          tag.innerHTML = `
+            <span>${p}</span>
+            <i data-lucide="x" onclick="removeProject('${p}')" class="w-3.5 h-3.5 text-slate-400 cursor-pointer hover:text-slate-600 transition-colors"></i>
+          `;
+          container.appendChild(tag);
+        });
+      }
+      lucide.createIcons();
+    }
+    function renderProjectOptions() {
+      const grid = document.getElementById('project-options');
+      grid.innerHTML = '';
+      allProjects
+        .filter(p => !tempProjects.includes(p))
+        .filter(p => p.toLowerCase().includes(projectSearchTerm.toLowerCase()))
+        .forEach(p => {
+          const item = document.createElement('div');
+          item.className = 'py-1.5 hover:bg-slate-50 cursor-pointer text-center rounded-md text-xs font-semibold transition-colors border border-transparent hover:border-slate-100';
+          item.innerText = p;
+          item.onclick = () => {
+            tempProjects.push(p);
+            renderModalComponents();
+            renderProjectOptions();
+          };
+          grid.appendChild(item);
+        });
+    }
+    function handleProjectSearch(val) {
+      projectSearchTerm = val;
+      renderProjectOptions();
+    }
+    function removeProject(p) {
+      tempProjects = tempProjects.filter(item => item !== p);
+      renderModalComponents();
+    }
+
+    // === OA 類型 ===
+    function toggleOADropdown(e) {
+      e.stopPropagation();
+      toggleElement('oa-dropdown');
+      renderOAOptions();
+    }
+    function renderSelectedOATypes() {
+      const container = document.getElementById('selected-oa-container');
+      container.innerHTML = '';
+      if (tempOATypes.length === 0) {
+        container.innerHTML = `<div class="text-slate-400 text-sm mb-2.5 pl-1 italic">無選項</div>`;
+      } else {
+        tempOATypes.forEach(oa => {
+          const tag = document.createElement('div');
+          tag.className = 'border border-slate-200 rounded-md px-2.5 py-1 text-xs bg-slate-50 flex items-center gap-1.5 font-medium';
+          tag.innerHTML = `
+            <span>${oa}</span>
+            <i data-lucide="x" onclick="removeOA('${oa}')" class="w-3.5 h-3.5 text-slate-400 cursor-pointer hover:text-slate-600"></i>
+          `;
+          container.appendChild(tag);
+        });
+      }
+      lucide.createIcons();
+    }
+    function renderOAOptions() {
+      const grid = document.getElementById('oa-options');
+      grid.innerHTML = '';
+      allOATypes
+        .filter(oa => !tempOATypes.includes(oa))
+        .filter(oa => oa.toLowerCase().includes(oaSearchTerm.toLowerCase()))
+        .forEach(oa => {
+          const item = document.createElement('div');
+          item.className = 'py-1.5 hover:bg-slate-50 cursor-pointer text-center rounded-md text-xs font-semibold transition-colors border border-transparent hover:border-slate-100';
+          item.innerText = oa;
+          item.onclick = () => {
+            tempOATypes.push(oa);
+            renderModalComponents();
+            renderOAOptions();
+          };
+          grid.appendChild(item);
+        });
+    }
+    function handleOASearch(val) {
+      oaSearchTerm = val;
+      renderOAOptions();
+    }
+    function removeOA(oa) {
+      tempOATypes = tempOATypes.filter(item => item !== oa);
+      renderModalComponents();
+    }
+
+    // === 文件類型 ===
+    function toggleDocDropdown(e) {
+      e.stopPropagation();
+      toggleElement('doc-dropdown');
+      renderDocOptions();
+    }
+    function renderSelectedDocTypes() {
+      const container = document.getElementById('selected-doc-container');
+      container.innerHTML = '';
+      if (tempDocTypes.length === 0) {
+        container.innerHTML = `<div class="text-slate-400 text-sm mb-2.5 pl-1 italic">無選項</div>`;
+      } else {
+        tempDocTypes.forEach(doc => {
+          const tag = document.createElement('div');
+          tag.className = 'border border-slate-200 rounded-md px-2.5 py-1 text-xs bg-slate-50 flex items-center gap-1.5 font-medium';
+          tag.innerHTML = `
+            <span>${doc}</span>
+            <i data-lucide="x" onclick="removeDoc('${doc}')" class="w-3.5 h-3.5 text-slate-400 cursor-pointer hover:text-slate-600"></i>
+          `;
+          container.appendChild(tag);
+        });
+      }
+      lucide.createIcons();
+    }
+    function renderDocOptions() {
+      const grid = document.getElementById('doc-options');
+      grid.innerHTML = '';
+      allDocTypes
+        .filter(d => !tempDocTypes.includes(d))
+        .filter(d => d.toLowerCase().includes(docSearchTerm.toLowerCase()))
+        .forEach(d => {
+          const item = document.createElement('div');
+          item.className = 'py-1.5 hover:bg-slate-50 cursor-pointer text-center rounded-md text-xs font-semibold transition-colors border border-transparent hover:border-slate-100 truncate';
+          item.innerText = d;
+          item.onclick = () => {
+            tempDocTypes.push(d);
+            renderModalComponents();
+            renderDocOptions();
+          };
+          grid.appendChild(item);
+        });
+    }
+    function handleDocSearch(val) {
+      docSearchTerm = val;
+      renderDocOptions();
+    }
+    function removeDoc(d) {
+      tempDocTypes = tempDocTypes.filter(item => item !== d);
+      renderModalComponents();
+    }
+
+    // === 設定職稱 (中間欄列表，選中項目高亮與紫色左邊條風格) ===
+    function toggleRoleDropdown(e) {
+      e.stopPropagation();
+      toggleElement('role-dropdown');
+      renderRoleOptions();
+    }
+    function renderConfiguredRolesList() {
+      const list = document.getElementById('configured-roles-list');
+      list.innerHTML = '';
+      if (tempConfiguredRoles.length === 0) {
+        list.innerHTML = `<div class="text-slate-400 text-sm italic py-8 text-center bg-slate-50 border border-dashed border-slate-200 rounded-lg">尚未設定任何職稱</div>`;
+      } else {
+        tempConfiguredRoles.forEach(role => {
+          const isSelected = activeRoleName === role.name;
+          const item = document.createElement('div');
+          item.className = `group rounded-r-lg py-3 px-3.5 text-sm flex items-center justify-between cursor-pointer border-y border-r transition-all relative ${
+            isSelected 
+              ? 'bg-[#f5f7ff] border-y-slate-200 border-r-slate-200 text-[#4A90E2] font-semibold' 
+              : 'bg-white border-transparent text-slate-700 hover:bg-slate-50 hover:text-slate-950'
+          }`;
+          item.onclick = () => {
+            activeRoleName = role.name;
+            renderModalComponents();
+          };
+
+          item.innerHTML = `
+            ${isSelected ? '<div class="absolute left-0 top-0 bottom-0 w-[4px] bg-[#4A90E2]"></div>' : ''}
+            <span class="truncate flex-1 font-medium">${role.name}</span>
+            <div class="flex items-center gap-1">
+              ${isSelected ? '<i data-lucide="check-circle-2" class="w-4 h-4 text-[#4A90E2] mr-1 flex-shrink-0"></i>' : ''}
+              <i data-lucide="x" onclick="removeRole(event, '${role.name}')" class="w-4 h-4 text-slate-400 hover:text-red-500 opacity-40 group-hover:opacity-100 transition-opacity flex-shrink-0 cursor-pointer"></i>
+            </div>
+          `;
+          list.appendChild(item);
+        });
+      }
+      lucide.createIcons();
+    }
+    function renderRoleOptions() {
+      const container = document.getElementById('role-options');
+      container.innerHTML = '';
+      const filtered = allRoles
+        .filter(r => !tempConfiguredRoles.some(cr => cr.name === r))
+        .filter(r => r.toLowerCase().includes(roleSearchTerm.toLowerCase()));
+
+      if (filtered.length > 0) {
+        filtered.forEach(r => {
+          const item = document.createElement('div');
+          item.className = 'py-2 px-3 hover:bg-slate-50 cursor-pointer text-sm text-slate-700 rounded-md font-medium transition-colors';
+          item.innerText = r;
+          item.onclick = () => {
+            handleAddRole(r);
+            hideElement('role-dropdown');
+            roleSearchTerm = '';
+            document.getElementById('role-search').value = '';
+          };
+          container.appendChild(item);
+        });
+      } else {
+        container.innerHTML = `<div class="text-slate-400 text-xs text-center py-4">無可用職稱</div>`;
+      }
+    }
+    function handleRoleSearch(val) {
+      roleSearchTerm = val;
+      renderRoleOptions();
+    }
+    function removeRole(e, name) {
+      e.stopPropagation();
+      tempConfiguredRoles = tempConfiguredRoles.filter(r => r.name !== name);
+      if (activeRoleName === name) {
+        activeRoleName = tempConfiguredRoles.length > 0 ? tempConfiguredRoles[0].name : null;
+      }
+      renderModalComponents();
+    }
+
+    // === 右側專屬設定面板 (Master-Detail，無選取時還原高質感向量 Empty State) ===
+    function renderActiveRolePanel() {
+      const panel = document.getElementById('active-role-settings-panel');
+      const activeRole = tempConfiguredRoles.find(r => r.name === activeRoleName);
+
+      if (!activeRole) {
+        panel.className = "flex-[1.2] flex flex-col bg-slate-50 -my-6 -mr-6 p-6 overflow-hidden h-full";
+        panel.innerHTML = `
+          <div class="flex-1 flex flex-col items-center justify-center text-center p-8 bg-white border border-slate-200/80 rounded-xl h-full shadow-sm animate-in fade-in duration-300">
+            <div class="w-24 h-24 rounded-full bg-[#f5f7ff] flex items-center justify-center relative mb-5">
+              <div class="absolute inset-0 rounded-full border border-blue-100/50 animate-ping opacity-60"></div>
+              <svg width="44" height="44" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" class="text-[#818cf8]">
+                <path d="M10 18L16 24L22 12" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+                <path d="M10 32L16 38L22 26" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+                <path d="M28 18H42" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" />
+                <path d="M28 32H42" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+            </div>
+            <h3 class="text-slate-800 text-lg font-bold tracking-tight">請選擇或新增職稱</h3>
+            <p class="text-slate-400 text-xs mt-2 max-w-[280px] leading-relaxed select-none">
+              點擊左側列表即可查看或設定對應的專屬權限與可存取地區
+            </p>
+          </div>
+        `;
+        return;
+      }
+
+      panel.className = "flex-[1.2] flex flex-col bg-slate-50 -my-6 -mr-6 p-6";
+      
+      // 判斷是否為地區，決定是否顯示地區綁定
+      const showRegionSetting = activeRole.name.startsWith('[地區]');
+      
+      let regionsMarkup = '';
+      if (showRegionSetting) {
+        const regionTags = activeRole.accessRegions.length === 0 
+          ? `<div class="text-slate-400 text-xs mb-2 px-1 italic">尚未設定任何可存取地區</div>`
+          : activeRole.accessRegions.map(reg => `
+              <div class="border border-slate-200 rounded-md px-2 py-0.5 text-xs bg-blue-50/50 text-blue-700 flex items-center gap-1.5 font-semibold">
+                <span>${reg}</span>
+                <i data-lucide="x" onclick="removeAccessRegion('${reg}')" class="text-blue-400 cursor-pointer hover:text-blue-700 transition-colors"></i>
+              </div>
+            `).join('');
+
+        regionsMarkup = `
+          <div class="mt-4 pt-3.5 border-t border-slate-200">
+            <label class="text-sm font-bold mb-2 block text-slate-700">可存取地區 (依職稱與分公司綁定)</label>
+            <div class="border border-slate-200 rounded-lg p-2.5 bg-white shadow-sm">
+              <div class="flex flex-wrap gap-1.5 mb-2.5">
+                ${regionTags}
+              </div>
+              <div class="relative" id="access-region-dropdown-container">
+                <button onclick="toggleAccessRegionDropdown(event)" class="w-full bg-[#64748b] hover:bg-[#475569] text-white rounded-lg py-1.5 text-xs font-semibold flex justify-center items-center transition-colors shadow-sm focus:outline-none cursor-pointer">
+                  <i data-lucide="plus" class="w-3 h-3 mr-1"></i>新增存取地區
+                </button>
+                <div id="access-region-dropdown" class="absolute top-full mt-1.5 left-0 w-full bg-white border border-slate-200 rounded-lg shadow-xl z-20 hidden flex-col p-2.5">
+                  <div class="p-1 border-b border-slate-100 mb-2">
+                    <input id="access-region-search" type="text" placeholder="搜尋存取地區..." oninput="handleAccessRegionSearch(this.value)" class="w-full border border-slate-200 rounded-md px-2 py-1 text-xs focus:outline-none bg-white" />
+                  </div>
+                  <div id="access-region-options" class="max-h-36 overflow-y-auto grid grid-cols-4 gap-1.5">
+                    <!-- 存取地區選項 -->
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      const filteredPerms = allPermissions.filter(perm => perm.toLowerCase().includes(permissionSearchTerm.toLowerCase()));
+      const isAllChecked = activeRole.permissions.length === allPermissions.length;
+
+      let permsMarkup = '';
+      if (filteredPerms.length > 0) {
+        permsMarkup = filteredPerms.map(perm => {
+          const checked = activeRole.permissions.includes(perm);
+          return `
+            <label class="flex items-center text-sm cursor-pointer hover:bg-slate-50 p-1 rounded-md transition-colors text-slate-700">
+              <input type="checkbox" ${checked ? 'checked' : ''} onchange="togglePermission('${perm}', this.checked)" class="mr-3 w-4 h-4 accent-blue-600 cursor-pointer rounded border-slate-300" />
+              <span>${perm}</span>
+            </label>
+          `;
+        }).join('');
+      } else {
+        permsMarkup = `<div class="text-slate-400 text-xs text-center py-6">找不到任何相符的權限</div>`;
+      }
+
+      panel.innerHTML = `
+        <div class="flex flex-col h-full fade-in">
+          <h3 class="text-base font-bold text-[#1a3b8c] mb-1">專屬設定</h3>
+          <p class="text-sm text-gray-600 mb-4 bg-blue-100/50 px-3 py-1.5 rounded inline-block w-fit font-medium border border-blue-100">
+            目前編輯：<span class="text-blue-700 font-semibold">${activeRole.name}</span>
+          </p>
+
+          <!-- 獨立權限配置 -->
+          <div class="flex flex-col flex-1 border rounded-lg bg-white overflow-hidden shadow-sm">
+            <div class="px-3.5 py-3 border-b bg-slate-50 flex justify-between items-center border-slate-200">
+              <span class="text-sm font-bold text-slate-700">權限配置</span>
+              <span 
+                onclick="toggleSelectAllPermissions(${isAllChecked})"
+                class="text-xs font-bold cursor-pointer transition-colors select-none ${isAllChecked ? 'text-red-500 hover:text-red-600' : 'text-[#449b44] hover:text-green-700'}"
+              >
+                ${isAllChecked ? 'Deselect All' : 'Select All'}
+              </span>
+            </div>
+            <div class="p-4 flex-1 overflow-y-auto flex flex-col gap-3">
+              ${permsMarkup}
+            </div>
+            <div class="p-2 border-t relative bg-slate-50 border-slate-200">
+              <i data-lucide="search" class="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+              <input id="permission-search" type="text" placeholder="搜尋權限..." value="${permissionSearchTerm}" oninput="handlePermissionSearch(this.value)" class="w-full border border-slate-200 rounded-lg pl-8 pr-3 py-1.5 text-xs bg-white focus:outline-none" />
+            </div>
+          </div>
+
+          <!-- 存取地區 -->
+          ${regionsMarkup}
+        </div>
+      `;
+
+      if (showRegionSetting) {
+        renderAccessRegionOptions();
+      }
+      lucide.createIcons();
+    }
+
+    // 權限配置 Select All / Deselect All
+    function toggleSelectAllPermissions(isAllChecked) {
+      const activeRole = tempConfiguredRoles.find(r => r.name === activeRoleName);
+      if (activeRole) {
+        if (isAllChecked) {
+          activeRole.permissions = [];
+        } else {
+          activeRole.permissions = [...allPermissions];
+        }
+        renderModalComponents();
+      }
+    }
+
+    // 權限 Checkbox 切換
+    function togglePermission(perm, checked) {
+      const activeRole = tempConfiguredRoles.find(r => r.name === activeRoleName);
+      if (activeRole) {
+        if (checked) {
+          if (!activeRole.permissions.includes(perm)) {
+            activeRole.permissions.push(perm);
+          }
+        } else {
+          activeRole.permissions = activeRole.permissions.filter(p => p !== perm);
+        }
+        renderModalComponents();
+      }
+    }
+
+    // 權限過濾
+    function handlePermissionSearch(val) {
+      permissionSearchTerm = val;
+      renderActiveRolePanel();
+      document.getElementById('permission-search').focus();
+    }
+
+    // 可存取地區下拉顯示
+    function toggleAccessRegionDropdown(e) {
+      e.stopPropagation();
+      toggleElement('access-region-dropdown');
+      renderAccessRegionOptions();
+    }
+
+    function renderAccessRegionOptions() {
+      const grid = document.getElementById('access-region-options');
+      if (!grid) return;
+      grid.innerHTML = '';
+      const activeRole = tempConfiguredRoles.find(r => r.name === activeRoleName);
+
+      allRegions
+        .filter(r => !activeRole.accessRegions.includes(r))
+        .filter(r => r.toLowerCase().includes(accessRegionSearchTerm.toLowerCase()))
+        .forEach(r => {
+          const item = document.createElement('div');
+          item.className = 'py-1.5 hover:bg-slate-50 text-center cursor-pointer rounded text-xs font-semibold text-slate-700 border border-transparent hover:border-slate-100';
+          item.innerText = r;
+          item.onclick = () => {
+            activeRole.accessRegions.push(r);
+            accessRegionSearchTerm = '';
+            renderModalComponents();
+          };
+          grid.appendChild(item);
+        });
+    }
+
+    function handleAccessRegionSearch(val) {
+      accessRegionSearchTerm = val;
+      renderAccessRegionOptions();
+    }
+
+    function removeAccessRegion(reg) {
+      const activeRole = tempConfiguredRoles.find(r => r.name === activeRoleName);
+      if (activeRole) {
+        activeRole.accessRegions = activeRole.accessRegions.filter(r => r !== reg);
+        renderModalComponents();
+      }
+    }
+
+    // === 保存成員與修改邏輯 ===
+    function handleSaveSettings() {
+      modalError = '';
+
+      if (modalMode === 'create') {
+        if (!tempMemberId.trim()) {
+          modalError = '工號為必填欄位，請輸入工號。';
+          renderModalErrorMessage();
+          return;
+        }
+
+        const isDuplicate = membersList.some(m => m.id.trim() === tempMemberId.trim());
+        if (isDuplicate) {
+          modalError = `此工號「${tempMemberId}」已存在，請使用其他工號。`;
+          renderModalErrorMessage();
+          return;
+        }
+
+        const newMember = {
+          id: tempMemberId.trim(),
+          name: tempMemberName.trim() || '未命名',
+          status: tempMemberStatus,
+          fileConfig: tempFileConfig,
+          regions: [...tempRegions],
+          mainRegion: tempMainRegion,
+          projects: [...tempProjects],
+          oaTypes: [...tempOATypes],
+          docTypes: [...tempDocTypes],
+          configuredRoles: JSON.parse(JSON.stringify(tempConfiguredRoles))
+        };
+
+        membersList.unshift(newMember);
+      } else {
+        membersList = membersList.map(m => m.id === editingMemberId ? {
+          ...m,
+          name: tempMemberName.trim() || '未命名',
+          status: tempMemberStatus,
+          fileConfig: tempFileConfig,
+          regions: [...tempRegions],
+          mainRegion: tempMainRegion,
+          projects: [...tempProjects],
+          oaTypes: [...tempOATypes],
+          docTypes: [...tempDocTypes],
+          configuredRoles: JSON.parse(JSON.stringify(tempConfiguredRoles))
+        } : m);
+      }
+
+      closeEditModal();
+      renderAll();
+    }
+  </script>
+</body>
+</html>

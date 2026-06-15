@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>手機版首頁</title>
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 Lucide 圖標庫 -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- 共用 UI 元件樣式庫 -->
+    <link rel="stylesheet" href="shared-ui.css">
+    <style>
+        /* 手機外框（桌機檢視時置中為手機畫面；真手機則滿版） */
+        .phone {
+            width: 100%;
+            max-width: 440px;
+            margin: 0 auto;
+            min-height: 100vh;
+            background-color: #F4F6F8;
+            position: relative;
+            box-shadow: 0 0 0 1px rgba(0,0,0,0.03);
+        }
+
+        /* 區塊小標題 */
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9375rem;
+            font-weight: 700;
+            color: #1F2937;
+            margin-bottom: 0.75rem;
+        }
+
+        /* 簽核詳情滑出面板 */
+        .sheet {
+            position: fixed;
+            inset: 0;
+            max-width: 440px;
+            margin: 0 auto;
+            background: #F4F6F8;
+            transform: translateX(100%);
+            visibility: hidden;                 /* 關閉時完全隱藏，避免桌機寬螢幕露出 */
+            transition: transform .3s cubic-bezier(.4,0,.2,1), visibility 0s linear .3s;
+            z-index: 60;
+            display: flex;
+            flex-direction: column;
+        }
+        .sheet.open {
+            transform: translateX(0);
+            visibility: visible;
+            transition: transform .3s cubic-bezier(.4,0,.2,1), visibility 0s;
+        }
+
+        /* Toast 動畫 */
+        @keyframes slideInUp { from { transform: translateY(120%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .toast-enter { animation: slideInUp .3s ease-out forwards; }
+
+        /* 卡片點擊回饋 */
+        .tap-card:active { transform: scale(0.985); }
+        .tap-card { transition: transform .12s ease; }
+    </style>
+</head>
+<body>
+<div class="phone pb-8">
+
+    <!-- 頂部問候列 -->
+    <header class="bg-[#4A90E2] text-white px-5 pt-3 pb-9 rounded-b-3xl relative overflow-hidden">
+        <div class="absolute right-[-30px] top-[-30px] w-40 h-40 bg-white/10 rounded-full"></div>
+        <div class="absolute right-12 bottom-[-40px] w-28 h-28 bg-white/10 rounded-full"></div>
+
+        <!-- 返回主系統 -->
+        <button onclick="window.location.href='index.html'" class="relative z-10 inline-flex items-center gap-1 text-white/90 hover:text-white text-[13px] font-medium mb-3 -ml-1 px-1 py-0.5 rounded transition-colors active:opacity-70">
+            <i data-lucide="arrow-left" class="w-4 h-4"></i>
+            返回主系統
+        </button>
+
+        <div class="flex items-center gap-3 relative z-10">
+            <img src="https://ui-avatars.com/api/?name=100001&background=ffffff&color=4A90E2&bold=true" class="w-10 h-10 rounded-full border-2 border-white/70 shadow-sm">
+            <div>
+                <div class="text-[15px] font-bold leading-tight">早安，100001 👋</div>
+                <div id="greet-date" class="text-[12px] text-white/80 mt-0.5">加載中…</div>
+            </div>
+        </div>
+    </header>
+
+    <main class="px-4 -mt-5 relative z-10 space-y-3.5">
+
+        <!-- 1. 上下班打卡 -->
+        <section class="ui-card p-4 tap-card">
+            <div class="flex items-center justify-between mb-2.5">
+                <div class="section-title mb-0">
+                    <i data-lucide="fingerprint" class="w-[18px] h-[18px] text-[#4A90E2]"></i>
+                    上下班打卡
+                </div>
+                <span class="inline-flex items-center gap-1 text-[12px] text-gray-400">
+                    <i data-lucide="map-pin" class="w-3.5 h-3.5"></i> 台北總部
+                </span>
+            </div>
+
+            <!-- 即時時鐘 + 上/下班時間 同列 -->
+            <div class="flex items-center gap-3 mb-3">
+                <div id="clock-time" class="text-[30px] font-bold text-[#4A90E2] tracking-tight leading-none shrink-0" style="font-variant-numeric: tabular-nums;">--:--:--</div>
+                <div class="flex-1 flex bg-gray-50 rounded-xl border border-gray-100 overflow-hidden">
+                    <div class="flex-1 flex flex-col items-center py-1.5">
+                        <span class="text-[11px] text-gray-500">上班</span>
+                        <span id="in-time" class="text-[14px] font-bold text-gray-400">未打卡</span>
+                    </div>
+                    <div class="w-px bg-gray-200"></div>
+                    <div class="flex-1 flex flex-col items-center py-1.5">
+                        <span class="text-[11px] text-gray-500">下班</span>
+                        <span id="out-time" class="text-[14px] font-bold text-gray-400">未打卡</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 打卡按鈕 -->
+            <div class="flex gap-3">
+                <button id="btn-in" class="ui-btn ui-btn-primary flex-1 py-2.5">
+                    <i data-lucide="log-in" class="w-[18px] h-[18px]"></i>
+                    上班打卡
+                </button>
+                <button id="btn-out" class="ui-btn ui-btn-secondary flex-1 py-2.5">
+                    <i data-lucide="log-out" class="w-[18px] h-[18px]"></i>
+                    下班打卡
+                </button>
+            </div>
+        </section>
+
+        <!-- 2. 外出紀錄 -->
+        <section class="ui-card p-4">
+            <div class="flex items-center justify-between mb-2.5">
+                <div class="section-title mb-0">
+                    <i data-lucide="footprints" class="w-[18px] h-[18px] text-[#4A90E2]"></i>
+                    外出紀錄
+                </div>
+                <div class="flex gap-2">
+                    <button id="btn-go-out" class="ui-btn ui-btn-primary ui-btn-sm">
+                        <i data-lucide="door-open" class="w-4 h-4"></i> 外出
+                    </button>
+                    <button id="btn-return" class="ui-btn ui-btn-secondary ui-btn-sm" disabled>
+                        <i data-lucide="door-closed" class="w-4 h-4"></i> 返回
+                    </button>
+                </div>
+            </div>
+
+            <ul id="outing-list" class="space-y-2">
+                <!-- 動態產生 -->
+            </ul>
+            <div id="outing-empty" class="text-center text-[13px] text-gray-400 py-2.5">
+                <i data-lucide="coffee" class="w-5 h-5 mx-auto mb-1 text-gray-300"></i>
+                今日尚無外出紀錄
+            </div>
+        </section>
+
+        <!-- 3. 待簽核列表 -->
+        <section class="ui-card p-4">
+            <div class="flex items-center justify-between mb-2.5">
+                <div class="section-title mb-0">
+                    <i data-lucide="file-check-2" class="w-[18px] h-[18px] text-[#4A90E2]"></i>
+                    待簽核單據
+                </div>
+                <span id="pending-count" class="ui-badge ui-badge-danger">0 筆</span>
+            </div>
+
+            <ul id="approval-list" class="space-y-2">
+                <!-- 動態產生 -->
+            </ul>
+            <div id="approval-empty" class="hidden text-center text-[13px] text-gray-400 py-6">
+                <i data-lucide="check-circle-2" class="w-8 h-8 mx-auto mb-2 text-emerald-400"></i>
+                太棒了，沒有待簽核的單據！
+            </div>
+        </section>
+
+    </main>
+</div>
+
+<!-- 簽核詳情滑出面板 -->
+<div id="detail-sheet" class="sheet">
+    <!-- 面板頂列 -->
+    <div class="bg-white px-4 h-14 flex items-center gap-3 border-b border-gray-100 shrink-0">
+        <button id="sheet-back" class="p-1.5 -ml-1.5 rounded-full hover:bg-gray-100 transition-colors">
+            <i data-lucide="arrow-left" class="w-5 h-5 text-gray-700"></i>
+        </button>
+        <span class="text-[16px] font-bold text-gray-800">單據簽核</span>
+    </div>
+
+    <!-- 面板內容（捲動） -->
+    <div class="flex-1 overflow-y-auto p-4 space-y-4">
+        <!-- 摘要卡 -->
+        <div class="ui-card p-4">
+            <div class="flex items-center justify-between mb-3">
+                <span id="d-oa" class="ui-badge ui-badge-info">行政</span>
+                <span id="d-status" class="ui-badge ui-badge-warning">待簽核</span>
+            </div>
+            <h2 id="d-content" class="text-[16px] font-bold text-gray-800 leading-snug mb-1">—</h2>
+            <div id="d-no" class="text-[12px] text-gray-400 font-mono">—</div>
+        </div>
+
+        <!-- 申請內容 -->
+        <div class="ui-card p-4">
+            <div class="section-title">
+                <i data-lucide="clipboard-list" class="w-[18px] h-[18px] text-[#4A90E2]"></i>
+                申請內容
+            </div>
+            <dl class="text-[14px] divide-y divide-gray-100">
+                <div class="flex justify-between py-2.5"><dt class="text-gray-500">申請人</dt><dd id="d-applicant" class="font-medium text-gray-800">—</dd></div>
+                <div class="flex justify-between py-2.5"><dt class="text-gray-500">申請日期</dt><dd id="d-date" class="font-medium text-gray-800">—</dd></div>
+                <div class="flex justify-between py-2.5"><dt class="text-gray-500">金額 / 數量</dt><dd id="d-amount" class="font-bold text-[#4A90E2]">—</dd></div>
+                <div class="flex justify-between py-2.5"><dt class="text-gray-500">目前關卡</dt><dd id="d-stage" class="font-medium text-gray-800">部門主管</dd></div>
+                <div class="py-2.5">
+                    <dt class="text-gray-500 mb-1.5">申請事由</dt>
+                    <dd id="d-reason" class="text-gray-700 leading-relaxed bg-gray-50 rounded-lg p-3 border border-gray-100">—</dd>
+                </div>
+            </dl>
+        </div>
+
+        <!-- 簽核意見 -->
+        <div class="ui-card p-4">
+            <div class="section-title">
+                <i data-lucide="message-square-text" class="w-[18px] h-[18px] text-[#4A90E2]"></i>
+                簽核意見（選填）
+            </div>
+            <textarea id="d-comment" rows="3" class="ui-input" placeholder="輸入簽核意見…"></textarea>
+        </div>
+
+        <div class="h-2"></div>
+    </div>
+
+    <!-- 面板底部簽核動作 -->
+    <div class="bg-white border-t border-gray-100 p-3 flex gap-3 shrink-0" style="padding-bottom: max(0.75rem, env(safe-area-inset-bottom));">
+        <button id="btn-reject" class="ui-btn ui-btn-danger flex-1 py-3">
+            <i data-lucide="x" class="w-5 h-5"></i> 駁回
+        </button>
+        <button id="btn-approve" class="ui-btn ui-btn-success flex-1 py-3">
+            <i data-lucide="check" class="w-5 h-5"></i> 同意核准
+        </button>
+    </div>
+</div>
+
+<!-- 遮罩 -->
+<div id="sheet-mask" class="fixed inset-0 bg-black/30 z-50 hidden"></div>
+
+<!-- 外出事由填寫（外出打卡前必填） -->
+<div id="outing-modal" class="fixed inset-0 z-[65] hidden">
+    <div id="outing-modal-mask" class="absolute inset-0 bg-black/30"></div>
+    <div class="absolute left-0 right-0 bottom-0 max-w-[440px] mx-auto bg-white rounded-t-3xl p-5 shadow-xl" style="padding-bottom: max(1.75rem, env(safe-area-inset-bottom));">
+        <div class="flex items-center justify-between mb-2.5">
+            <div class="section-title mb-0">
+                <i data-lucide="door-open" class="w-[18px] h-[18px] text-amber-500"></i>
+                外出事由
+            </div>
+            <button id="outing-modal-close" class="p-1.5 -mr-1.5 rounded-full hover:bg-gray-100 transition-colors">
+                <i data-lucide="x" class="w-5 h-5 text-gray-500"></i>
+            </button>
+        </div>
+        <p class="text-[13px] text-gray-500 mb-2.5">請先填寫外出原因，再進行外出打卡。</p>
+        <textarea id="outing-reason" rows="3" class="ui-input" placeholder="例如：拜訪客戶、外出洽公、銀行匯款…"></textarea>
+        <p id="outing-reason-error" class="hidden text-[12px] text-rose-500 mt-1.5">請填寫外出原因後再打卡</p>
+        <div class="flex gap-3 mt-4">
+            <button id="outing-cancel" class="ui-btn ui-btn-secondary flex-1 py-3">取消</button>
+            <button id="outing-confirm" class="ui-btn ui-btn-primary flex-1 py-3">
+                <i data-lucide="door-open" class="w-[18px] h-[18px]"></i> 確認外出
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast -->
+<div id="toast-container" class="fixed bottom-5 left-0 right-0 z-[70] flex flex-col items-center gap-2 px-4 pointer-events-none"></div>
+
+<script>
+    lucide.createIcons();
+
+    /* ============ 即時時鐘 ============ */
+    function pad(n){ return String(n).padStart(2,'0'); }
+    function nowHM(){ const d=new Date(); return `${pad(d.getHours())}:${pad(d.getMinutes())}`; }
+    function updateClock(){
+        const d=new Date();
+        document.getElementById('clock-time').textContent = `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+        const days=['週日','週一','週二','週三','週四','週五','週六'];
+        document.getElementById('greet-date').textContent = `${d.getFullYear()}年${pad(d.getMonth()+1)}月${pad(d.getDate())}日 ${days[d.getDay()]}`;
+    }
+    setInterval(updateClock,1000); updateClock();
+
+    /* ============ Toast ============ */
+    function showToast(msg, type='success'){
+        const map = {
+            success:['check-circle','text-emerald-500'],
+            info:['info','text-blue-500'],
+            warn:['alert-triangle','text-amber-500'],
+            error:['x-circle','text-rose-500']
+        };
+        const [icon,color]=map[type]||map.success;
+        const c=document.getElementById('toast-container');
+        const t=document.createElement('div');
+        t.className='bg-gray-900/90 text-white shadow-lg rounded-full px-4 py-2.5 flex items-center gap-2 toast-enter text-[13px] font-medium pointer-events-auto';
+        t.innerHTML=`<i data-lucide="${icon}" class="w-4 h-4 ${color}"></i><span>${msg}</span>`;
+        c.appendChild(t); lucide.createIcons();
+        setTimeout(()=>{ t.style.transition='all .3s'; t.style.opacity='0'; t.style.transform='translateY(120%)'; setTimeout(()=>t.remove(),300); },2600);
+    }
+
+    /* ============ 1. 上下班打卡 ============ */
+    document.getElementById('btn-in').addEventListener('click', function(){
+        const t=nowHM();
+        const el=document.getElementById('in-time');
+        el.textContent=t; el.classList.replace('text-gray-400','text-emerald-600');
+        this.disabled=true; this.classList.remove('ui-btn-primary'); this.classList.add('ui-btn-secondary');
+        this.innerHTML='<i data-lucide="check" class="w-5 h-5"></i> 已打卡'; lucide.createIcons();
+        showToast(`上班打卡成功 ${t}`,'success');
+    });
+    document.getElementById('btn-out').addEventListener('click', function(){
+        const t=nowHM();
+        const el=document.getElementById('out-time');
+        el.textContent=t; el.classList.replace('text-gray-400','text-[#4A90E2]');
+        this.disabled=true;
+        this.innerHTML='<i data-lucide="check" class="w-5 h-5"></i> 已打卡'; lucide.createIcons();
+        showToast(`下班打卡成功，辛苦了 ${t}`,'info');
+    });
+
+    /* ============ 2. 外出紀錄 ============ */
+    let outings = [];   // { out:'HH:MM', back:null, reason:'…' }
+    const outList=document.getElementById('outing-list');
+    const outEmpty=document.getElementById('outing-empty');
+    const btnGo=document.getElementById('btn-go-out');
+    const btnBack=document.getElementById('btn-return');
+    const outingModal=document.getElementById('outing-modal');
+    const outingReason=document.getElementById('outing-reason');
+    const outingError=document.getElementById('outing-reason-error');
+
+    function renderOutings(){
+        const open = outings.some(o=>!o.back);
+        btnGo.disabled = open;            // 外出中不可再外出
+        btnBack.disabled = !open;         // 無外出中則不可返回
+        outEmpty.classList.toggle('hidden', outings.length>0);
+        outList.innerHTML = outings.map((o,i)=>`
+            <li class="flex items-start justify-between gap-2 bg-gray-50 rounded-xl border border-gray-100 px-3.5 py-2.5">
+                <div class="flex items-start gap-2.5 min-w-0">
+                    <span class="w-7 h-7 rounded-full bg-blue-50 text-[#4A90E2] flex items-center justify-center text-[12px] font-bold shrink-0">${i+1}</span>
+                    <div class="text-[13px] min-w-0">
+                        <div class="text-gray-800 font-medium mb-1 break-words">${o.reason}</div>
+                        <div class="flex items-center gap-1.5 text-gray-700"><i data-lucide="door-open" class="w-3.5 h-3.5 text-amber-500"></i> 外出 <span class="font-bold ml-0.5">${o.out}</span></div>
+                        <div class="flex items-center gap-1.5 text-gray-700 mt-0.5"><i data-lucide="door-closed" class="w-3.5 h-3.5 text-emerald-500"></i> 返回 <span class="font-bold ml-0.5">${o.back ?? '—'}</span></div>
+                    </div>
+                </div>
+                ${o.back
+                    ? '<span class="ui-badge ui-badge-success shrink-0">已返回</span>'
+                    : '<span class="ui-badge ui-badge-warning shrink-0">外出中</span>'}
+            </li>`).join('');
+        lucide.createIcons();
+    }
+
+    /* 外出：需先填寫外出原因，再進行外出打卡 */
+    function openOutingModal(){
+        outingReason.value='';
+        outingError.classList.add('hidden');
+        outingModal.classList.remove('hidden');
+        setTimeout(()=>outingReason.focus(), 50);
+    }
+    function closeOutingModal(){ outingModal.classList.add('hidden'); }
+    function confirmOuting(){
+        const reason=outingReason.value.trim();
+        if(!reason){ outingError.classList.remove('hidden'); outingReason.focus(); return; }
+        const t=nowHM();
+        outings.push({out:t, back:null, reason});
+        closeOutingModal();
+        renderOutings();
+        showToast(`已記錄外出 ${t}`,'warn');
+    }
+
+    btnGo.addEventListener('click', openOutingModal);
+    document.getElementById('outing-confirm').addEventListener('click', confirmOuting);
+    document.getElementById('outing-cancel').addEventListener('click', closeOutingModal);
+    document.getElementById('outing-modal-close').addEventListener('click', closeOutingModal);
+    document.getElementById('outing-modal-mask').addEventListener('click', closeOutingModal);
+    outingReason.addEventListener('input', ()=>{ if(outingReason.value.trim()) outingError.classList.add('hidden'); });
+
+    // 返回：直接打卡，無需填寫
+    btnBack.addEventListener('click', ()=>{
+        const open=[...outings].reverse().find(o=>!o.back);
+        if(open){ open.back=nowHM(); renderOutings(); showToast(`已記錄返回 ${open.back}`,'success'); }
+    });
+    renderOutings();
+
+    /* ============ 3. 待簽核列表 ============ */
+    // OA分類 → 徽章顏色
+    const oaColor = { '行政':'ui-badge-info', '財務':'ui-badge-warning', '人事':'ui-badge-success', '採購':'ui-badge-purple', '資訊':'ui-badge-gray' };
+
+    let pending = [
+        { oa:'行政', no:'T0-PU-20260428-001', content:'資產及列管品採購申請', applicant:'Yen Huang', date:'2026-04-28', amount:'TWD 100,000', stage:'部門主管', reason:'採購辦公室列管資產與設備一批，含筆電 5 台、顯示器 8 台，供新進同仁使用。' },
+        { oa:'財務', no:'C-20260510-014', content:'台中出差費用報銷', applicant:'Amy Chen', date:'2026-05-10', amount:'TWD 8,600', stage:'部門主管', reason:'5/6–5/8 台中客戶拜訪之高鐵、住宿與計程車費用報銷，附單據共 6 張。' },
+        { oa:'人事', no:'LV-20260512-007', content:'特休假申請 2 天', applicant:'David Wu', date:'2026-05-12', amount:'2 天', stage:'部門主管', reason:'家庭旅遊，申請 5/20（三）～5/21（四）特休假，工作已交接 Amy 代理。' },
+        { oa:'採購', no:'IC-20260515-003', content:'上海分部辦公室續租合約', applicant:'Grace Lin', date:'2026-05-15', amount:'CNY 22,573', stage:'部門主管', reason:'上海分部辦公室租約到期，續租一年，月租 CNY 22,573，較去年持平。' },
+        { oa:'資訊', no:'B-20260518-021', content:'雲端伺服器擴充費用申請', applicant:'Kevin Lai', date:'2026-05-18', amount:'TWD 36,000', stage:'部門主管', reason:'因系統流量成長，申請擴充雲端伺服器規格，季付方案 TWD 36,000。' }
+    ];
+
+    const listEl=document.getElementById('approval-list');
+    const emptyEl=document.getElementById('approval-empty');
+    const countEl=document.getElementById('pending-count');
+
+    function renderApprovals(){
+        countEl.textContent = `${pending.length} 筆`;
+        emptyEl.classList.toggle('hidden', pending.length>0);
+        listEl.innerHTML = pending.map((p,i)=>`
+            <li data-idx="${i}" class="approval-item tap-card bg-white border border-gray-200 rounded-xl px-3 py-2.5 flex items-center gap-3 cursor-pointer hover:border-[#4A90E2]/40 hover:shadow-sm transition-all">
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="ui-badge ${oaColor[p.oa]||'ui-badge-gray'}">${p.oa}</span>
+                        <span class="text-[11px] text-gray-400 font-mono truncate">${p.no}</span>
+                    </div>
+                    <div class="text-[14px] font-medium text-gray-800 truncate">${p.content}</div>
+                    <div class="text-[12px] text-gray-400 mt-0.5">${p.applicant}・${p.date}</div>
+                </div>
+                <i data-lucide="chevron-right" class="w-5 h-5 text-gray-300 shrink-0"></i>
+            </li>`).join('');
+        lucide.createIcons();
+    }
+    renderApprovals();
+
+    /* ---- 詳情滑出面板 ---- */
+    const sheet=document.getElementById('detail-sheet');
+    const mask=document.getElementById('sheet-mask');
+    let currentIdx=null;
+
+    function openDetail(idx){
+        const p=pending[idx]; if(!p) return;
+        currentIdx=idx;
+        const oaBadge=document.getElementById('d-oa');
+        oaBadge.className='ui-badge '+(oaColor[p.oa]||'ui-badge-gray');
+        oaBadge.textContent=p.oa;
+        document.getElementById('d-content').textContent=p.content;
+        document.getElementById('d-no').textContent=p.no;
+        document.getElementById('d-applicant').textContent=p.applicant;
+        document.getElementById('d-date').textContent=p.date;
+        document.getElementById('d-amount').textContent=p.amount;
+        document.getElementById('d-stage').textContent=p.stage;
+        document.getElementById('d-reason').textContent=p.reason;
+        document.getElementById('d-comment').value='';
+        mask.classList.remove('hidden');
+        requestAnimationFrame(()=>sheet.classList.add('open'));
+    }
+    function closeDetail(){
+        sheet.classList.remove('open');
+        mask.classList.add('hidden');
+        currentIdx=null;
+    }
+    listEl.addEventListener('click', e=>{
+        const li=e.target.closest('.approval-item');
+        if(li) openDetail(Number(li.dataset.idx));
+    });
+    document.getElementById('sheet-back').addEventListener('click', closeDetail);
+    mask.addEventListener('click', closeDetail);
+
+    function signOff(approved){
+        if(currentIdx===null) return;
+        const p=pending[currentIdx];
+        pending.splice(currentIdx,1);
+        renderApprovals();
+        closeDetail();
+        showToast(approved ? `已核准：${p.content}` : `已駁回：${p.content}`, approved ? 'success' : 'error');
+    }
+    document.getElementById('btn-approve').addEventListener('click', ()=>signOff(true));
+    document.getElementById('btn-reject').addEventListener('click', ()=>signOff(false));
+</script>
+</body>
+</html>

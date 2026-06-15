@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>公告管理系統</title>
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- 引入 Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Noto Sans TC"', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: '#4A90E2',
+                        'primary-light': '#EAF2FC',
+                        bgMain: '#f4f7fc',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* 隱藏捲軸但保留捲動功能 */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+    <link rel="stylesheet" href="shared-ui.css">
+</head>
+<body class=" text-gray-800 p-4 md:p-8 min-h-screen flex justify-center">
+
+    <div class="w-full max-w-6xl">
+        
+        <!-- 頂部標題與操作區 -->
+        <div class="flex justify-between items-center mb-6 px-1">
+            <h1 class="ui-page-title">公告管理</h1>
+            
+            <!-- 新增公告按鈕 -->
+            <button onclick="openModal()" class="ui-btn ui-btn-primary">
+                <i class="fa-solid fa-plus"></i>
+                新增公告
+            </button>
+        </div>
+
+        <!-- 主要內容區 -->
+        <div class="ui-card p-2 sm:p-8">
+            
+            <!-- 頁籤導覽 (呼應原圖設計) -->
+            <div class="flex gap-6 sm:gap-8 border-b border-gray-200 mb-6 px-4 sm:px-0 overflow-x-auto no-scrollbar">
+                <button onclick="switchTab('all')" id="tab-all" class="pb-3 text-primary font-bold border-b-2 border-primary whitespace-nowrap">全部公告</button>
+                <button onclick="switchTab('active')" id="tab-active" class="pb-3 text-gray-500 hover:text-gray-700 font-medium whitespace-nowrap">進行中</button>
+                <button onclick="switchTab('draft')" id="tab-draft" class="pb-3 text-gray-500 hover:text-gray-700 font-medium whitespace-nowrap">草稿箱</button>
+                <button onclick="switchTab('archived')" id="tab-archived" class="pb-3 text-gray-500 hover:text-gray-700 font-medium whitespace-nowrap">歷史封存</button>
+            </div>
+
+            <!-- 公告表格 -->
+            <div class="overflow-x-auto">
+                <table class="ui-table text-left min-w-[800px]">
+                    <thead>
+                        <tr>
+                            <th class="w-24">編號</th>
+                            <th class="w-32">分類</th>
+                            <th>標題</th>
+                            <th class="w-32">發佈人</th>
+                            <th class="w-36">日期</th>
+                            <th class="text-right w-24">瀏覽數</th>
+                        </tr>
+                    </thead>
+                    <tbody id="announcementTableBody">
+                        <!-- 由 JavaScript 動態渲染，使後台新增功能可交互運作 -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 分頁控制 -->
+            <div class="flex items-center justify-between mt-6 px-4">
+                <p id="paginationInfo" class="text-sm text-gray-500">顯示 1 至 4 筆，共 4 筆</p>
+                <div class="flex gap-1">
+                    <button class="ui-page-btn" disabled><i class="fa-solid fa-chevron-left text-xs"></i></button>
+                    <button class="ui-page-btn is-active">1</button>
+                    <button class="ui-page-btn">2</button>
+                    <button class="ui-page-btn"><i class="fa-solid fa-chevron-right text-xs"></i></button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- 新增公告互動視窗 (Modal) - 參考附圖重構為高密度專業版面 -->
+    <div id="addModal" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm hidden flex items-center justify-center z-50 transition-opacity">
+        <div class="bg-white rounded-2xl w-full max-w-4xl mx-4 overflow-hidden shadow-2xl transform scale-95 transition-transform duration-200" id="modalContent">
+            
+            <!-- 視窗標題 -->
+            <div class="p-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                <h2 class="text-lg font-bold text-gray-800 flex items-center gap-2">
+                    <span class="w-1 h-5 bg-primary rounded-full"></span>
+                    新增公告與內容發佈
+                </h2>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 transition">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            
+            <!-- 視窗內容 (完全重現附圖配置與欄位) -->
+            <div class="p-6 space-y-4">
+                
+                <!-- 控制區：地區、選擇地區、必須確認、重置 -->
+                <div class="flex flex-wrap items-center justify-between gap-4">
+                    <div class="flex items-center gap-3">
+                        <!-- 地區選單按鈕 -->
+                        <div class="relative">
+                            <button class="bg-emerald-700 hover:bg-emerald-800 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition shadow-sm">
+                                地區 <i class="fa-solid fa-caret-down text-xs"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- 選擇地區按鈕 -->
+                        <button class="bg-emerald-700 hover:bg-emerald-800 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm">
+                            選擇地區
+                        </button>
+                        
+                        <!-- 必須確認 複選框 (Custom Style) -->
+                        <label class="flex items-center gap-2 cursor-pointer select-none ml-2">
+                            <div class="relative">
+                                <input type="checkbox" id="mustConfirm" class="sr-only" checked onchange="toggleConfirmCheckbox(this)">
+                                <div id="checkboxWrapper" class="w-5 h-5 bg-blue-600 rounded flex items-center justify-center text-white text-xs border border-blue-600 transition">
+                                    <i class="fa-solid fa-check"></i>
+                                </div>
+                            </div>
+                            <span class="text-sm font-semibold text-gray-700">必須確認</span>
+                        </label>
+                    </div>
+                    
+                    <!-- 重置按鈕 -->
+                    <button onclick="resetForm()" class="ui-btn ui-btn-primary">
+                        重置
+                    </button>
+                </div>
+
+                <!-- 標題輸入框 (附圖風格：綠色框 + 綠色打勾確認圖示) -->
+                <div class="relative">
+                    <input type="text" id="announcementTitle" class="w-full border-2 border-emerald-500 rounded-lg pl-4 pr-10 py-2.5 focus:outline-none text-gray-800 font-medium placeholder-emerald-600/50 bg-white" placeholder="請輸入標題" value="test">
+                    <div class="absolute inset-y-0 right-3 flex items-center text-emerald-600 text-lg">
+                        <i class="fa-solid fa-check"></i>
+                    </div>
+                </div>
+
+                <!-- 富文本編輯器模擬區 (還原附圖控制列與文字區域) -->
+                <div class="border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm">
+                    <!-- 工具列 -->
+                    <div class="bg-gray-50/80 px-4 py-2.5 border-b border-gray-200 flex flex-wrap items-center gap-y-2 gap-x-4 text-gray-500 text-sm">
+                        <!-- 排版與樣式 -->
+                        <div class="flex items-center gap-3">
+                            <button type="button" class="font-bold text-gray-800 hover:text-black transition" title="標題標籤">H</button>
+                            <button type="button" class="hover:text-black transition" title="粗體"><i class="fa-solid fa-bold"></i></button>
+                            <button type="button" class="hover:text-black transition" title="斜體"><i class="fa-solid fa-italic"></i></button>
+                            <button type="button" class="hover:text-black transition" title="刪除線"><i class="fa-solid fa-strikethrough"></i></button>
+                        </div>
+                        <div class="h-4 w-px bg-gray-300"></div>
+                        <!-- 水平線與引言 -->
+                        <div class="flex items-center gap-3">
+                            <button type="button" class="hover:text-black transition" title="水平分割線"><i class="fa-solid fa-minus"></i></button>
+                            <button type="button" class="hover:text-black transition" title="引用區塊"><i class="fa-solid fa-quote-left"></i></button>
+                        </div>
+                        <div class="h-4 w-px bg-gray-300"></div>
+                        <!-- 清單與對齊 -->
+                        <div class="flex items-center gap-3">
+                            <button type="button" class="hover:text-black transition" title="無序清單"><i class="fa-solid fa-list-ul"></i></button>
+                            <button type="button" class="hover:text-black transition" title="有序清單"><i class="fa-solid fa-list-ol"></i></button>
+                            <button type="button" class="hover:text-black transition" title="任務清單"><i class="fa-regular fa-square-check"></i></button>
+                            <button type="button" class="hover:text-black transition animate-pulse" title="減少縮排"><i class="fa-solid fa-outdent"></i></button>
+                            <button type="button" class="hover:text-black transition" title="增加縮排"><i class="fa-solid fa-indent"></i></button>
+                        </div>
+                        <div class="h-4 w-px bg-gray-300"></div>
+                        <!-- 媒體與表格 -->
+                        <div class="flex items-center gap-3">
+                            <button type="button" class="hover:text-black transition" title="插入表格"><i class="fa-solid fa-table"></i></button>
+                            <button type="button" class="hover:text-black transition" title="插入圖片"><i class="fa-regular fa-image"></i></button>
+                            <button type="button" class="hover:text-black transition" title="插入超連結"><i class="fa-solid fa-link"></i></button>
+                        </div>
+                        <div class="h-4 w-px bg-gray-300"></div>
+                        <!-- 代碼與清除 -->
+                        <div class="flex items-center gap-3">
+                            <button type="button" class="hover:text-black transition" title="程式碼區塊"><i class="fa-solid fa-code"></i></button>
+                            <button type="button" class="font-bold text-xs hover:text-black transition" title="清除格式">CB</button>
+                        </div>
+                    </div>
+                    
+                    <!-- 編輯區 -->
+                    <textarea id="announcementContent" class="w-full px-4 py-3 min-h-[180px] focus:outline-none resize-none text-gray-700 placeholder-gray-400 text-sm" placeholder="輸入公告內容...">test</textarea>
+                </div>
+
+                <!-- 底部上傳附件與動作區 (完全復刻底排設計) -->
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
+                    <!-- 附件上傳控制件 (實作原生功能) -->
+                    <div class="flex items-center border border-gray-300 rounded-lg overflow-hidden bg-white max-w-sm w-full shadow-sm">
+                        <button type="button" onclick="triggerFileInput()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 border-r border-gray-300 text-sm font-medium transition cursor-pointer shrink-0">
+                            選擇檔案
+                        </button>
+                        <span id="fileNameDisplay" class="px-3 text-sm text-gray-500 bg-white grow whitespace-nowrap truncate">
+                            未選擇任何檔案
+                        </span>
+                        <!-- 隱藏的實際 File Input -->
+                        <input type="file" id="announcementFile" class="hidden" onchange="handleFileChange(this)">
+                    </div>
+
+                    <!-- 臨時保存 / 上傳 送出按鈕組 (紫藍色皇家風格) -->
+                    <div class="flex items-center gap-3 justify-end">
+                        <button onclick="submitForm('draft')" class="ui-btn ui-btn-primary">
+                            臨時保存
+                        </button>
+                        <button onclick="submitForm('active')" class="ui-btn ui-btn-primary">
+                            上傳
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- 提示訊息 (Toast) -->
+    <div id="toast" class="fixed bottom-5 right-5 bg-gray-800 text-white px-6 py-3.5 rounded-xl shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 flex items-center gap-3 z-50">
+        <i class="fa-solid fa-circle-check text-emerald-400"></i>
+        <span id="toastText">公告已成功發佈！</span>
+    </div>
+
+    <script>
+        // 初始化模擬資料庫 (增加系統的互動完整度，讓新增真正能在列表生效)
+        let announcements = [
+            { id: 1003, category: '系統公告', title: '端午節連續假期連線維護與伺服器暫停服務通知', author: 'dev', date: '2026-06-02', views: 1245, status: 'active' },
+            { id: 1002, category: '行政通知', title: '2026 年度員工健康檢查填報與預約事宜', author: 'HR_Admin', date: '2026-05-28', views: 842, status: 'active' },
+            { id: 1001, category: '公司活動', title: '第三季核心技術分享會（福爾摩沙會議室）', author: 'dev', date: '2026-05-15', views: 2108, status: 'active' },
+            { id: 1000, category: '一般公告', title: '辦公室冷氣設備定期保養通知', author: 'Admin', date: '2026-05-01', views: 3052, status: 'active' }
+        ];
+
+        let currentFilter = 'all';
+
+        // 頁面載入時進行動態列表渲染
+        window.onload = function() {
+            renderTable();
+        }
+
+        // 動態渲染表格
+        function renderTable() {
+            const tbody = document.getElementById('announcementTableBody');
+            tbody.innerHTML = '';
+
+            const filteredData = announcements.filter(item => {
+                if (currentFilter === 'all') return true;
+                return item.status === currentFilter;
+            });
+
+            filteredData.forEach(item => {
+                // 決定分類樣式色塊
+                let categoryClass = 'ui-badge ui-badge-gray';
+                if (item.category === '系統公告') categoryClass = 'ui-badge ui-badge-warning';
+                else if (item.category === '行政通知') categoryClass = 'ui-badge ui-badge-info';
+                else if (item.category === '公司活動') categoryClass = 'ui-badge ui-badge-success';
+
+                const tr = document.createElement('tr');
+                tr.className = "group";
+                tr.innerHTML = `
+                    <td class="text-gray-400">#${item.id}</td>
+                    <td>
+                        <span class="${categoryClass}">${item.category}</span>
+                    </td>
+                    <td class="font-medium group-hover:text-primary cursor-pointer transition-colors">
+                        ${item.title}
+                    </td>
+                    <td>
+                        <div class="flex items-center gap-2">
+                            <div class="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold">
+                                ${item.author.charAt(0).toUpperCase()}
+                            </div>
+                            ${item.author}
+                        </div>
+                    </td>
+                    <td>${item.date}</td>
+                    <td class="text-right">${item.views.toLocaleString()}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            // 更新分頁與筆數資訊
+            document.getElementById('paginationInfo').innerText = `顯示 1 至 ${filteredData.length} 筆，共 ${filteredData.length} 筆`;
+        }
+
+        // 切換頁籤篩選
+        function switchTab(status) {
+            currentFilter = status;
+            
+            const tabs = {
+                'all': 'tab-all',
+                'active': 'tab-active',
+                'draft': 'tab-draft',
+                'archived': 'tab-archived'
+            };
+
+            // 更新按鈕樣式
+            Object.keys(tabs).forEach(key => {
+                const tabBtn = document.getElementById(tabs[key]);
+                if (key === status) {
+                    tabBtn.className = "pb-3 text-primary font-bold border-b-2 border-primary whitespace-nowrap";
+                } else {
+                    tabBtn.className = "pb-3 text-gray-500 hover:text-gray-700 font-medium whitespace-nowrap";
+                }
+            });
+
+            renderTable();
+        }
+
+        // 開啟 Modal 彈窗
+        function openModal() {
+            const modal = document.getElementById('addModal');
+            const modalContent = document.getElementById('modalContent');
+            
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modalContent.classList.remove('scale-95');
+                modalContent.classList.add('scale-100');
+            }, 10);
+        }
+
+        // 關閉 Modal 彈窗
+        function closeModal() {
+            const modal = document.getElementById('addModal');
+            const modalContent = document.getElementById('modalContent');
+            
+            modalContent.classList.remove('scale-100');
+            modalContent.classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 200);
+        }
+
+        // 必須確認 Custom Checkbox 勾選狀態視覺轉換
+        function toggleConfirmCheckbox(checkbox) {
+            const wrapper = document.getElementById('checkboxWrapper');
+            if (checkbox.checked) {
+                wrapper.className = "w-5 h-5 bg-blue-600 rounded flex items-center justify-center text-white text-xs border border-blue-600 transition";
+                wrapper.innerHTML = '<i class="fa-solid fa-check"></i>';
+            } else {
+                wrapper.className = "w-5 h-5 bg-white rounded flex items-center justify-center text-transparent text-xs border border-gray-300 transition";
+                wrapper.innerHTML = '';
+            }
+        }
+
+        // 重置按鈕行為
+        function resetForm() {
+            document.getElementById('announcementTitle').value = '';
+            document.getElementById('announcementContent').value = '';
+            document.getElementById('fileNameDisplay').innerText = '未選擇任何檔案';
+            document.getElementById('announcementFile').value = '';
+            
+            const checkbox = document.getElementById('mustConfirm');
+            checkbox.checked = false;
+            toggleConfirmCheckbox(checkbox);
+        }
+
+        // 啟動實體檔案選擇器
+        function triggerFileInput() {
+            document.getElementById('announcementFile').click();
+        }
+
+        // 當檔案選取改變時更新介面檔名
+        function handleFileChange(input) {
+            const display = document.getElementById('fileNameDisplay');
+            if (input.files && input.files.length > 0) {
+                display.innerText = input.files[0].name;
+            } else {
+                display.innerText = '未選擇任何檔案';
+            }
+        }
+
+        // 臨時保存與上傳的表單送出邏輯
+        function submitForm(status) {
+            const title = document.getElementById('announcementTitle').value.trim();
+            const content = document.getElementById('announcementContent').value.trim();
+            
+            // 由於輸入控制項已被移除，我們設定預設安全資料
+            const category = "一般公告";
+            const date = new Date().toISOString().split('T')[0];
+
+            if (!title) {
+                showToast('請填寫公告標題！', false);
+                return;
+            }
+
+            // 動態創建公告編號
+            const nextId = announcements.length > 0 ? Math.max(...announcements.map(item => item.id)) + 1 : 1000;
+
+            // 新增至資料集頂部
+            announcements.unshift({
+                id: nextId,
+                category: category,
+                title: title,
+                author: 'dev',
+                date: date,
+                views: 0,
+                status: status // active 為進行中，draft 為草稿
+            });
+
+            closeModal();
+            renderTable();
+
+            // 根據送出模式給予不同提示字眼
+            if (status === 'draft') {
+                showToast('草稿已順利臨時保存！', true);
+            } else {
+                showToast('公告已上傳成功並對外發佈！', true);
+            }
+
+            // 清空表單
+            resetForm();
+        }
+
+        // 觸發自訂 Toast 氣泡提示
+        function showToast(message, isSuccess) {
+            const toast = document.getElementById('toast');
+            const toastText = document.getElementById('toastText');
+            toastText.innerText = message;
+            
+            const icon = toast.querySelector('i');
+            if (isSuccess) {
+                icon.className = "fa-solid fa-circle-check text-emerald-400";
+            } else {
+                icon.className = "fa-solid fa-circle-exclamation text-amber-400";
+            }
+
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+
+        // 點擊 Modal 外部背景關閉視窗
+        document.getElementById('addModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>

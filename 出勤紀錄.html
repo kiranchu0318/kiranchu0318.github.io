@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>打卡記錄</title>
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 Lucide 圖標庫 -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- 設定 Tailwind 自訂主題 (參考附件風格) -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4A90E2', 
+                        'primary-light': '#EAF2FC',
+                        background: '#F8F9FB', 
+                        card: '#FFFFFF',
+                        text: {
+                            main: '#1F2937',
+                            muted: '#6B7280',
+                            light: '#9CA3AF'
+                        },
+                        status: {
+                            submitted: '#DBEAFE',
+                            pending: '#FEF3C7',
+                            completed: '#D1FAE5',
+                            rejected: '#FEE2E2',
+                            text: {
+                                submitted: '#1D4ED8',
+                                pending: '#D97706',
+                                completed: '#059669',
+                                rejected: '#DC2626'
+                            }
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['"Inter"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'card': '0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03)',
+                        'modal': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: theme('colors.background');
+            font-family: theme('fontFamily.sans');
+        }
+        /* 自訂滾動條 */
+        .custom-scrollbar::-webkit-scrollbar {
+            height: 8px;
+            width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+    <link rel="stylesheet" href="shared-ui.css">
+</head>
+<body class="ui-page text-text-main antialiased relative">
+
+    <!-- 主容器 -->
+    <div class="relative mx-auto w-full max-w-[1400px] space-y-6">
+        
+        <!-- 頁面標題區塊 -->
+        <header class="ui-page-header">
+            <div class="flex items-center gap-3">
+                <h1 class="ui-page-title">出勤紀錄</h1>
+            </div>
+        </header>
+        
+        <!-- 頂部分類選單與時間搜尋 -->
+        <div class="flex flex-wrap items-center gap-3">
+            <button class="ui-btn ui-btn-primary">本週</button>
+            <button class="ui-btn ui-btn-secondary">本月</button>
+            
+            <!-- 分隔線 (選用，讓視覺更清楚) -->
+            <div class="hidden sm:block w-px h-6 bg-gray-200 mx-1"></div>
+
+            <!-- 時間搜尋欄位 -->
+            <div class="flex items-center gap-2">
+                <div class="relative">
+                    <input type="date" class="ui-input cursor-pointer">
+                </div>
+                <span class="text-gray-400 text-[13px] font-medium">至</span>
+                <div class="relative">
+                    <input type="date" class="ui-input cursor-pointer">
+                </div>
+                <button class="ui-btn ui-btn-secondary">
+                    <i data-lucide="search" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- 申請紀錄區塊 (卡片樣式) -->
+        <section class="ui-card p-6">
+            
+            <!-- 卡片頂部標題與操作區 -->
+            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 gap-4">
+                <h2 class="text-lg font-semibold text-gray-800 whitespace-nowrap">打卡記錄</h2>
+            </div>
+
+            <!-- 表格容器 -->
+            <div class="overflow-x-auto rounded-lg border border-gray-100 custom-scrollbar">
+                <table class="ui-table text-center">
+                    <thead>
+                        <tr>
+                            <th scope="col" class="whitespace-nowrap">日期</th>
+                            <th scope="col" class="whitespace-nowrap">上班時間</th>
+                            <th scope="col" class="whitespace-nowrap">下班時間</th>
+                            <th scope="col" class="min-w-[180px]">打卡地點</th>
+                            <th scope="col" class="whitespace-nowrap">狀態</th>
+                            <th scope="col" class="whitespace-nowrap">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- 第一列 (今日：下班未打卡屬正常，不顯示補卡) -->
+                        <tr>
+                            <td class="font-medium text-primary whitespace-nowrap">2026-06-02</td>
+                            <td class="whitespace-nowrap">08:52</td>
+                            <td class="text-gray-400 whitespace-nowrap">--:--</td>
+                            <td>台北總部辦公室 (WIFI)</td>
+                            <td class="whitespace-nowrap">
+                                <span class="ui-badge ui-badge-success">正常</span>
+                            </td>
+                            <td class="font-medium text-gray-300 pointer-events-none whitespace-nowrap">-</td>
+                        </tr>
+                        <!-- 第二列 (非今日：上下班皆有打卡，不顯示補卡) -->
+                        <tr>
+                            <td class="whitespace-nowrap">2026-06-01</td>
+                            <td class="whitespace-nowrap">08:58</td>
+                            <td class="whitespace-nowrap">18:05</td>
+                            <td>台北總部辦公室 (WIFI)</td>
+                            <td class="whitespace-nowrap">
+                                <span class="ui-badge ui-badge-success">正常</span>
+                            </td>
+                            <td class="font-medium text-gray-300 pointer-events-none whitespace-nowrap">-</td>
+                        </tr>
+                        <!-- 第三列 (異常/已申請補卡審核中) -->
+                        <tr>
+                            <td class="whitespace-nowrap">2026-05-29</td>
+                            <td class="whitespace-nowrap">09:05</td>
+                            <td class="whitespace-nowrap">18:10</td>
+                            <td>台北總部辦公室 (GPS)</td>
+                            <td class="whitespace-nowrap">
+                                <span class="ui-badge ui-badge-danger">異常</span>
+                            </td>
+                            <td class="font-medium pointer-events-none whitespace-nowrap">
+                                <div class="flex justify-center">
+                                    <span class="ui-badge ui-badge-info">
+                                        <i data-lucide="clock" class="w-3.5 h-3.5"></i> 補卡審核中
+                                    </span>
+                                </div>
+                            </td>
+                        </tr>
+                        <!-- 第四列 (非今日：下班缺卡異常，顯示真實的補卡按鈕) -->
+                        <tr>
+                            <td class="whitespace-nowrap">2026-05-28</td>
+                            <td class="whitespace-nowrap">08:45</td>
+                            <td class="text-red-500 font-medium whitespace-nowrap">--:--</td>
+                            <td>台北總部辦公室 (WIFI)</td>
+                            <td class="whitespace-nowrap">
+                                <span class="ui-badge ui-badge-danger">異常</span>
+                            </td>
+                            <td class="whitespace-nowrap">
+                                <div class="flex items-center justify-center gap-2">
+                                    <button class="ui-btn ui-btn-secondary ui-btn-sm">
+                                        補卡
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 分頁區塊 -->
+            <div class="flex items-center justify-between mt-6 pt-4 border-t border-gray-100">
+                <span class="text-sm text-gray-500">共 4 筆記錄</span>
+                <div class="flex gap-1">
+                    <button class="ui-page-btn">
+                        <i data-lucide="chevron-left" class="w-4 h-4"></i>
+                    </button>
+                    <button class="ui-page-btn is-active">
+                        1
+                    </button>
+                    <button class="ui-page-btn">
+                        2
+                    </button>
+                    <button class="ui-page-btn">
+                        <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 右下角浮動操作欄 (Floating Action Menu) -->
+        <div class="absolute -right-6 bottom-4 translate-x-full md:translate-x-1/2 bg-white rounded-full shadow-modal border border-gray-100 py-3 flex flex-col items-center gap-4 z-10 hidden sm:flex">
+            <button class="w-10 flex justify-center text-gray-300 hover:text-gray-500 transition-colors outline-none">
+                <i data-lucide="grip" class="w-5 h-5"></i>
+            </button>
+            <button class="w-10 flex justify-center text-gray-700 hover:text-primary transition-colors outline-none">
+                <i data-lucide="sparkles" class="w-[18px] h-[18px]"></i>
+            </button>
+            <button class="w-10 flex justify-center text-gray-700 hover:text-primary transition-colors outline-none">
+                <i data-lucide="minimize-2" class="w-[18px] h-[18px]"></i> 
+            </button>
+        </div>
+
+    </div>
+
+    <!-- 初始化圖標 -->
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>

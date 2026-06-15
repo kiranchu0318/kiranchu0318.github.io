@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>電子表單設定</title>
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 Font Awesome 用於圖標 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- 設定 Tailwind 自訂主題 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4A90E2', 
+                        'primary-light': '#EAF2FC',
+                        background: '#F8F9FB', 
+                        card: '#FFFFFF',
+                        text: {
+                            main: '#1F2937',
+                            muted: '#6B7280',
+                            light: '#9CA3AF'
+                        },
+                        status: {
+                            submitted: '#DBEAFE',
+                            pending: '#FEF3C7',
+                            completed: '#D1FAE5',
+                            rejected: '#FEE2E2',
+                            active: '#ECFDF5', 
+                            text: {
+                                submitted: '#1D4ED8',
+                                pending: '#D97706',
+                                completed: '#059669',
+                                rejected: '#DC2626',
+                                active: '#10B981' 
+                            }
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['"Inter"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'card': '0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03)',
+                        'modal': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: theme('colors.background');
+            font-family: theme('fontFamily.sans');
+        }
+        /* 自訂滾動條 */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        /* Modal 動畫過渡 */
+        .modal-enter {
+            opacity: 0;
+            transform: scale(0.95) translateY(10px);
+        }
+        .modal-enter-active {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+            transition: opacity 200ms ease-out, transform 200ms ease-out;
+        }
+
+        /* Toggle 開關樣式微調 */
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: #4A90E2;
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #4A90E2;
+        }
+        .toggle-checkbox {
+            right: 0;
+            z-index: 1;
+            border-color: #e2e8f0;
+            transition: all 0.3s;
+        }
+        .toggle-label {
+            background-color: #cbd5e1;
+            transition: all 0.3s;
+        }
+    </style>
+    <link rel="stylesheet" href="shared-ui.css">
+</head>
+
+<body class="ui-page text-text-main antialiased relative">
+
+    <div class="max-w-7xl mx-auto space-y-6">
+        
+        <!-- 頁面標題區塊 -->
+        <header class="ui-page-header">
+            <h1 class="ui-page-title">電子表單設定</h1>
+        </header>
+
+        <!-- 主要內容區塊 (卡片樣式) -->
+        <section class="ui-card p-4 sm:p-6">
+
+            <!-- 表單列表標題 -->
+            <div class="mb-6 border-b border-gray-100 pb-4">
+                <h2 class="text-lg font-bold text-gray-900">表單定義列表</h2>
+            </div>
+
+            <!-- 表格容器 -->
+            <div class="overflow-x-auto rounded-lg border border-gray-100 mb-6">
+                <table class="ui-table whitespace-nowrap">
+                    <thead>
+                        <tr>
+                            <th scope="col">表單名稱</th>
+                            <th scope="col">類型代碼</th>
+                            <th scope="col">分類</th>
+                            <th scope="col">申請對象</th>
+                            <th scope="col" class="w-24">狀態</th>
+                            <th scope="col">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        <!-- 資料列 1: OA資產申請單 -->
+                        <tr>
+                            <td class="font-medium text-gray-800 form-name">OA資產申請單</td>
+                            <td><span class="px-2 py-1 bg-gray-100 rounded text-xs text-gray-600 font-mono">asset_request</span></td>
+                            <td class="form-category"><span class="ui-badge ui-badge-info">行政</span></td>
+                            <td class="form-rules-count">1 項</td>
+                            <td class="form-status">
+                                <span class="ui-badge ui-badge-success">
+                                    啟用
+                                </span>
+                            </td>
+                            <td>
+                                <div class="flex items-center gap-2">
+                                    <button type="button" onclick="openEditSettingModal(this)" class="ui-btn ui-btn-secondary ui-btn-sm">編輯基本設定</button>
+                                    <button type="button" onclick="openTargetModal(this)" class="ui-btn ui-btn-secondary ui-btn-sm">設定申請對象</button>
+                                    <button type="button" onclick="toggleRowStatus(this)" class="px-3 py-1.5 text-sm font-medium text-white bg-orange-500 rounded shadow-sm hover:bg-orange-600 transition-colors btn-toggle-status">停用</button>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- 資料列 2: 資訊需求申請 -->
+                        <tr>
+                            <td class="font-medium text-gray-800 form-name">資訊需求申請</td>
+                            <td><span class="px-2 py-1 bg-gray-100 rounded text-xs text-gray-600 font-mono">it_request</span></td>
+                            <td class="form-category"><span class="ui-badge ui-badge-info">行政</span></td>
+                            <td class="form-rules-count">0 項</td>
+                            <td class="form-status">
+                                <span class="ui-badge ui-badge-success">
+                                    啟用
+                                </span>
+                            </td>
+                            <td>
+                                <div class="flex items-center gap-2">
+                                    <button type="button" onclick="openEditSettingModal(this)" class="ui-btn ui-btn-secondary ui-btn-sm">編輯基本設定</button>
+                                    <button type="button" onclick="openTargetModal(this)" class="ui-btn ui-btn-secondary ui-btn-sm">設定申請對象</button>
+                                    <button type="button" onclick="toggleRowStatus(this)" class="px-3 py-1.5 text-sm font-medium text-white bg-orange-500 rounded shadow-sm hover:bg-orange-600 transition-colors btn-toggle-status">停用</button>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- 資料列 3: 出差申請 -->
+                        <tr>
+                            <td class="font-medium text-gray-800 form-name">出差申請</td>
+                            <td><span class="px-2 py-1 bg-gray-100 rounded text-xs text-gray-600 font-mono">business_trip</span></td>
+                            <td class="form-category"><span class="ui-badge ui-badge-info">商務</span></td>
+                            <td class="form-rules-count">0 項</td>
+                            <td class="form-status">
+                                <span class="ui-badge ui-badge-success">
+                                    啟用
+                                </span>
+                            </td>
+                            <td>
+                                <div class="flex items-center gap-2">
+                                    <button type="button" onclick="openEditSettingModal(this)" class="ui-btn ui-btn-secondary ui-btn-sm">編輯基本設定</button>
+                                    <button type="button" onclick="openTargetModal(this)" class="ui-btn ui-btn-secondary ui-btn-sm">設定申請對象</button>
+                                    <button type="button" onclick="toggleRowStatus(this)" class="px-3 py-1.5 text-sm font-medium text-white bg-orange-500 rounded shadow-sm hover:bg-orange-600 transition-colors btn-toggle-status">停用</button>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- 資料列 4: 採購申請 -->
+                        <tr>
+                            <td class="font-medium text-gray-800 form-name">採購申請</td>
+                            <td><span class="px-2 py-1 bg-gray-100 rounded text-xs text-gray-600 font-mono">purchase_request</span></td>
+                            <td class="form-category"><span class="ui-badge ui-badge-info">財務</span></td>
+                            <td class="form-rules-count">0 項</td>
+                            <td class="form-status">
+                                <span class="ui-badge ui-badge-success">
+                                    啟用
+                                </span>
+                            </td>
+                            <td>
+                                <div class="flex items-center gap-2">
+                                    <button type="button" onclick="openEditSettingModal(this)" class="ui-btn ui-btn-secondary ui-btn-sm">編輯基本設定</button>
+                                    <button type="button" onclick="openTargetModal(this)" class="ui-btn ui-btn-secondary ui-btn-sm">設定申請對象</button>
+                                    <button type="button" onclick="toggleRowStatus(this)" class="px-3 py-1.5 text-sm font-medium text-white bg-orange-500 rounded shadow-sm hover:bg-orange-600 transition-colors btn-toggle-status">停用</button>
+                                </div>
+                            </td>
+                        </tr>
+
+                    </tbody>
+                </table>
+            </div>
+
+        </section>
+
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 彈出視窗：編輯基本設定 -->
+    <!-- ========================================== -->
+    <div id="editSettingModal" class="fixed inset-0 z-50 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <!-- 背景遮罩 -->
+        <div class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm transition-opacity" onclick="closeEditSettingModal()"></div>
+
+        <!-- 彈窗內容容器 -->
+        <div class="fixed inset-0 z-10 overflow-y-auto flex items-center justify-center p-4">
+            
+            <div id="editSettingModalPanel" class="relative bg-white rounded-lg shadow-modal w-full max-w-lg transform transition-all modal-enter flex flex-col">
+                
+                <!-- 標題與關閉按鈕 -->
+                <div class="px-6 py-4 flex justify-between items-center border-b border-gray-100">
+                    <h3 class="text-lg font-bold text-gray-900">編輯基本設定</h3>
+                    <button onclick="closeEditSettingModal()" class="text-gray-400 hover:text-gray-600 transition-colors outline-none">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                </div>
+
+                <!-- 表單內容區 -->
+                <div class="px-6 py-6 flex-1">
+                    <div class="space-y-5">
+                        
+                        <!-- 表單名稱 (可編輯輸入框) -->
+                        <div class="grid grid-cols-[120px_1fr] items-center gap-4">
+                            <label class="text-sm font-medium text-gray-700 text-right"><span class="text-red-500 mr-1">*</span>表單名稱</label>
+                            <input type="text" id="modalFormName" class="ui-input" value="">
+                        </div>
+
+                        <!-- 分類 (下拉選單) -->
+                        <div class="grid grid-cols-[120px_1fr] items-center gap-4">
+                            <label class="text-sm font-medium text-gray-700 text-right"><span class="text-red-500 mr-1">*</span>分類</label>
+                            <div>
+                                <select id="modalCategorySelect" class="ui-select">
+                                    <option value="行政">行政</option>
+                                    <option value="商務">商務</option>
+                                    <option value="財務">財務</option>
+                                    <option value="HR">HR</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- 說明 (多行文字) -->
+                        <div class="grid grid-cols-[120px_1fr] items-start gap-4">
+                            <label class="text-sm font-medium text-gray-700 text-right pt-2">說明</label>
+                            <textarea class="ui-input resize-none" rows="3" placeholder="選填"></textarea>
+                        </div>
+
+                        <!-- 排序 (增減控制) -->
+                        <div class="grid grid-cols-[120px_1fr] items-center gap-4">
+                            <label class="text-sm font-medium text-gray-700 text-right">排序</label>
+                            <div class="flex items-center border border-gray-300 rounded-md overflow-hidden w-full max-w-[200px]">
+                                <button type="button" onclick="changeSortOrder(-1)" class="w-10 py-1.5 bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-gray-700 border-r border-gray-300 transition-colors focus:outline-none flex justify-center items-center">
+                                    <i class="fa-solid fa-minus text-xs"></i>
+                                </button>
+                                <input type="text" id="modalSortOrder" value="1" class="w-full text-center py-1.5 text-sm text-gray-700 focus:outline-none">
+                                <button type="button" onclick="changeSortOrder(1)" class="w-10 py-1.5 bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-gray-700 border-l border-gray-300 transition-colors focus:outline-none flex justify-center items-center">
+                                    <i class="fa-solid fa-plus text-xs"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 開關項目群組 -->
+                        <div class="space-y-4 pt-2">
+                            <!-- 是否啟用 -->
+                            <div class="grid grid-cols-[120px_1fr] items-center gap-4">
+                                <label class="text-sm font-medium text-gray-700 text-right">是否啟用</label>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="modalStatusCheckbox" value="" class="sr-only peer">
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#4A90E2]"></div>
+                                </label>
+                            </div>
+
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- 底部按鈕區 -->
+                <div class="px-6 py-4 flex justify-end gap-3 border-t border-gray-100 bg-gray-50/50 rounded-b-lg">
+                    <button type="button" onclick="closeEditSettingModal()" class="ui-btn ui-btn-secondary">
+                        取消
+                    </button>
+                    <button type="button" onclick="saveEditSetting()" class="ui-btn ui-btn-primary">
+                        儲存
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 彈出視窗：設定申請對象 -->
+    <!-- ========================================== -->
+    <div id="targetModal" class="fixed inset-0 z-50 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <!-- 背景遮罩 -->
+        <div class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm transition-opacity" onclick="closeTargetModal()"></div>
+
+        <!-- 彈窗內容容器 -->
+        <div class="fixed inset-0 z-10 overflow-y-auto flex items-center justify-center p-4">
+            <div id="targetModalPanel" class="relative bg-white rounded-lg shadow-modal w-full max-w-[550px] transform transition-all modal-enter flex flex-col">
+                
+                <!-- 標題與關閉按鈕 -->
+                <div class="px-6 py-5 flex justify-between items-center">
+                    <h3 class="text-[18px] font-medium text-gray-800" id="targetModalTitle">設定申請對象 — OA資產申請單</h3>
+                    <button onclick="closeTargetModal()" class="text-gray-400 hover:text-gray-600 transition-colors outline-none">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                </div>
+
+                <!-- 表單內容區 -->
+                <div class="px-6 pb-6">
+                    
+                    <!-- 現有規則列表容器 -->
+                    <div id="rules-list-container" class="space-y-2 mb-6">
+                        <!-- 現有規則清單將由 JS 動態渲染 -->
+                    </div>
+
+                    <!-- 分隔線 -->
+                    <div class="border-t border-gray-200 mb-6"></div>
+
+                    <!-- 對象類型與動態欄位群組 -->
+                    <div class="mb-6 space-y-4">
+                        <!-- 對象類型 (自訂下拉選單) -->
+                        <div class="flex items-center gap-4">
+                            <label class="text-[15px] font-medium text-gray-700 w-16 shrink-0">對象類型</label>
+                            <div class="relative w-[280px]" id="target-type-container">
+                                <!-- 觸發按鈕 -->
+                                <button type="button" onclick="toggleTargetTypeSelect()" class="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-[15px] text-left focus:outline-none focus:border-[#4A90E2] transition-colors flex justify-between items-center" id="target-type-btn">
+                                    <span id="target-type-value" class="text-gray-700">全體員工</span>
+                                    <i class="fa-solid fa-angle-down text-gray-400" id="target-type-icon"></i>
+                                </button>
+                                
+                                <!-- 選單面板 -->
+                                <div id="target-type-dropdown" class="hidden absolute z-20 w-full mt-2.5 left-0 bg-white rounded-md shadow-[0_4px_12px_rgba(0,0,0,0.1)] border border-gray-100 pb-1">
+                                    <!-- 小箭頭 (Popover Arrow) -->
+                                    <div class="absolute -top-[5px] left-[90px] transform -translate-x-1/2 w-2.5 h-2.5 bg-white border-t border-l border-gray-100 rotate-45"></div>
+                                    
+                                    <ul class="relative z-10 py-1 text-[15px]" id="target-type-list">
+                                        <li class="px-4 py-2 hover:bg-[#f5f5f5] cursor-pointer text-[#4A90E2] font-medium transition-colors" onclick="selectTargetType(this, '全體員工')">全體員工</li>
+                                        <li class="px-4 py-2 hover:bg-[#f5f5f5] cursor-pointer text-gray-600 transition-colors" onclick="selectTargetType(this, '指定公司')">指定公司</li>
+                                        <li class="px-4 py-2 hover:bg-[#f5f5f5] cursor-pointer text-gray-600 transition-colors" onclick="selectTargetType(this, '指定部門')">指定部門</li>
+                                        <li class="px-4 py-2 hover:bg-[#f5f5f5] cursor-pointer text-gray-600 transition-colors" onclick="selectTargetType(this, '指定角色')">指定角色</li>
+                                        <li class="px-4 py-2 hover:bg-[#f5f5f5] cursor-pointer text-gray-600 transition-colors" onclick="selectTargetType(this, '指定人員')">指定人員</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 動態顯示：指定部門欄位 -->
+                        <div id="department-fields-container" class="hidden space-y-4">
+                            <!-- 篩選公司 -->
+                            <div class="flex items-center gap-4">
+                                <label class="text-[15px] font-medium text-gray-700 w-16 shrink-0">篩選公司</label>
+                                <div class="w-[280px]">
+                                    <select id="filter-company-select" class="ui-select text-gray-400" onchange="this.classList.remove('text-gray-400'); this.classList.add('text-gray-700'); checkAddRuleButtonState();">
+                                        <option value="" disabled selected hidden>選填，依公司篩選部門</option>
+                                        <option value="comp1" class="text-gray-700">總公司</option>
+                                        <option value="comp2" class="text-gray-700">台北分公司</option>
+                                        <option value="comp3" class="text-gray-700">高雄研發中心</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- 選擇部門 -->
+                            <div class="flex items-center gap-4">
+                                <label class="text-[15px] font-medium text-gray-700 w-16 shrink-0">選擇部門</label>
+                                <div class="w-[280px]">
+                                    <select id="select-department-select" class="ui-select text-gray-400" onchange="this.classList.remove('text-gray-400'); this.classList.add('text-gray-700'); checkAddRuleButtonState();">
+                                        <option value="" disabled selected hidden>請選擇部門</option>
+                                        <option value="dept1" class="text-gray-700">資訊部 (IT)</option>
+                                        <option value="dept2" class="text-gray-700">財務部 (FIN)</option>
+                                        <option value="dept3" class="text-gray-700">人資部 (HR)</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 新增按鈕 -->
+                    <button type="button" id="add-rule-btn" onclick="addNewRule()" class="ui-btn ui-btn-primary w-full">
+                        新增
+                    </button>
+
+                </div>
+
+                <!-- 底部按鈕區 -->
+                <div class="px-6 py-4 flex justify-end gap-3 bg-white rounded-b-lg">
+                    <button type="button" onclick="closeTargetModal()" class="ui-btn ui-btn-secondary">
+                        取消
+                    </button>
+                    <button type="button" onclick="closeTargetModal()" class="ui-btn ui-btn-primary">
+                        儲存
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- 互動腳本 -->
+    <script>
+        const editSettingModal = document.getElementById('editSettingModal');
+        const editSettingModalPanel = document.getElementById('editSettingModalPanel');
+        const modalFormName = document.getElementById('modalFormName');
+        const modalCategorySelect = document.getElementById('modalCategorySelect');
+        const modalStatusCheckbox = document.getElementById('modalStatusCheckbox');
+        
+        let currentEditingRow = null; // 儲存當前正被編輯的表格列
+        let currentTargetFormName = ""; // 儲存當前設定申請對象的表單名稱
+
+        // 全域規則對應快照資料庫，以保持對象個數與表格「X 項」即時同步
+        const formRulesMap = {
+            'OA資產申請單': [
+                { type: '全體員工', detail: '(全體員工)' }
+            ],
+            '資訊需求申請': [],
+            '出差申請': [],
+            '採購申請': []
+        };
+
+        // 輔助函式：數值排序加減功能
+        function changeSortOrder(amount) {
+            const input = document.getElementById('modalSortOrder');
+            let val = parseInt(input.value) || 0;
+            val = Math.max(0, val + amount);
+            input.value = val;
+        }
+
+        // 開啟編輯基本設定彈窗
+        function openEditSettingModal(button) {
+            currentEditingRow = button.closest('tr');
+            
+            // 從表格列讀取現有內容
+            const formNameText = currentEditingRow.querySelector('.form-name').textContent.trim();
+            const categoryText = currentEditingRow.querySelector('.form-category span').textContent.trim();
+            const statusText = currentEditingRow.querySelector('.form-status span').textContent.trim();
+            
+            // 動態塞入 Modal 欄位
+            modalFormName.value = formNameText;
+            modalCategorySelect.value = categoryText;
+            modalStatusCheckbox.checked = (statusText === '啟用');
+
+            editSettingModal.classList.remove('hidden');
+            setTimeout(() => {
+                editSettingModalPanel.classList.add('modal-enter-active');
+            }, 10);
+        }
+
+        // 儲存編輯設定並即時同步回列表中
+        function saveEditSetting() {
+            if (currentEditingRow) {
+                const oldNameText = currentEditingRow.querySelector('.form-name').textContent.trim();
+                const newName = modalFormName.value.trim();
+                const newCategory = modalCategorySelect.value;
+                const shouldBeActive = modalStatusCheckbox.checked;
+
+                if (!newName) {
+                    alert('表單名稱不能為空！');
+                    return;
+                }
+
+                // 如果表單改名，同步移轉規則對應庫的 key
+                if (newName !== oldNameText) {
+                    formRulesMap[newName] = formRulesMap[oldNameText] || [];
+                    delete formRulesMap[oldNameText];
+                    
+                    // 重建設定申請對象按鈕的 onclick 參數
+                    const targetBtn = currentEditingRow.querySelector('button[onclick^="openTargetModal"]');
+                    if (targetBtn) {
+                        targetBtn.setAttribute('onclick', `openTargetModal(this)`);
+                    }
+                }
+
+                // 更新名稱
+                currentEditingRow.querySelector('.form-name').textContent = newName;
+                
+                // 更新分類
+                currentEditingRow.querySelector('.form-category').innerHTML = `
+                    <span class="ui-badge ui-badge-info">${newCategory}</span>
+                `;
+
+                // 更新狀態與按鈕
+                const statusCell = currentEditingRow.querySelector('.form-status');
+                const toggleBtn = currentEditingRow.querySelector('.btn-toggle-status');
+
+                if (shouldBeActive) {
+                    statusCell.innerHTML = `
+                        <span class="ui-badge ui-badge-success">
+                            啟用
+                        </span>
+                    `;
+                    toggleBtn.textContent = '停用';
+                    toggleBtn.className = 'px-3 py-1.5 text-sm font-medium text-white bg-orange-500 rounded shadow-sm hover:bg-orange-600 transition-colors btn-toggle-status';
+                } else {
+                    statusCell.innerHTML = `
+                        <span class="px-2.5 py-1 rounded-md bg-red-50 text-red-600 text-xs font-medium border border-red-200">
+                            停用
+                        </span>
+                    `;
+                    toggleBtn.textContent = '啟用';
+                    toggleBtn.className = 'px-3 py-1.5 text-sm font-medium text-white bg-green-600 rounded shadow-sm hover:bg-green-700 transition-colors btn-toggle-status';
+                }
+            }
+            closeEditSettingModal();
+        }
+
+        // 關閉編輯彈窗
+        function closeEditSettingModal() {
+            editSettingModalPanel.classList.remove('modal-enter-active');
+            setTimeout(() => {
+                editSettingModal.classList.add('hidden');
+            }, 200); 
+        }
+
+        /* -----------------------
+           動態啟用/停用切換邏輯 (依據按鈕點擊)
+           ----------------------- */
+        function toggleRowStatus(button) {
+            const row = button.closest('tr');
+            const statusCell = row.querySelector('.form-status');
+            const isActive = button.textContent.trim() === '停用';
+
+            if (isActive) {
+                // 原本是啟用 -> 切換為停用
+                statusCell.innerHTML = `
+                    <span class="ui-badge ui-badge-danger">
+                        停用
+                    </span>
+                `;
+                button.textContent = '啟用';
+                button.className = 'px-3 py-1.5 text-sm font-medium text-white bg-green-600 rounded shadow-sm hover:bg-green-700 transition-colors btn-toggle-status';
+            } else {
+                // 原本是停用 -> 切換為啟用
+                statusCell.innerHTML = `
+                    <span class="ui-badge ui-badge-success">
+                        啟用
+                    </span>
+                `;
+                button.textContent = '停用';
+                button.className = 'px-3 py-1.5 text-sm font-medium text-white bg-orange-500 rounded shadow-sm hover:bg-orange-600 transition-colors btn-toggle-status';
+            }
+        }
+
+        const targetModal = document.getElementById('targetModal');
+        const targetModalPanel = document.getElementById('targetModalPanel');
+        const targetModalTitle = document.getElementById('targetModalTitle');
+
+        // 開啟設定申請對象彈窗
+        function openTargetModal(button) {
+            const row = button.closest('tr');
+            const formName = row.querySelector('.form-name').textContent.trim();
+            currentTargetFormName = formName;
+
+            targetModalTitle.innerHTML = `設定申請對象 — ${formName}`;
+
+            // 初始化與渲染該表單現存的所有規則
+            renderRules(formName);
+            checkAddRuleButtonState();
+
+            targetModal.classList.remove('hidden');
+            setTimeout(() => {
+                targetModalPanel.classList.add('modal-enter-active');
+            }, 10);
+        }
+
+        // 關閉設定申請對象彈窗
+        function closeTargetModal() {
+            targetModalPanel.classList.remove('modal-enter-active');
+            setTimeout(() => {
+                targetModal.classList.add('hidden');
+                closeTargetTypeSelect(); // 關閉彈窗時一併收合下拉選單
+            }, 200);
+        }
+
+        /* -----------------------
+           動態規則渲染與同步邏輯
+           ----------------------- */
+        function renderRules(formName) {
+            const container = document.getElementById('rules-list-container');
+            container.innerHTML = '';
+            const rules = formRulesMap[formName] || [];
+
+            if (rules.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center text-gray-400 py-6 text-sm bg-[#F8F9FB] rounded-md border border-dashed border-gray-200">
+                        目前沒有設定任何規則，全體員工皆無法申請。
+                    </div>
+                `;
+                return;
+            }
+
+            rules.forEach((rule, index) => {
+                const ruleItem = document.createElement('div');
+                ruleItem.className = 'bg-[#F8F9FB] border border-transparent rounded-md p-3 flex justify-between items-center rule-item';
+                ruleItem.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <span class="px-2.5 py-1 bg-white border border-gray-200 text-gray-500 text-sm rounded">${rule.type}</span>
+                        <span class="text-gray-700 text-sm">${rule.detail}</span>
+                    </div>
+                    <button type="button" onclick="deleteRule('${formName}', ${index})" class="text-[#ff4d4f] hover:text-red-600 text-sm font-medium transition-colors">刪除</button>
+                `;
+                container.appendChild(ruleItem);
+            });
+        }
+
+        // 刪除特定規則
+        function deleteRule(formName, index) {
+            if (formRulesMap[formName]) {
+                formRulesMap[formName].splice(index, 1);
+                renderRules(formName);
+                updateRulesCountInTable(formName);
+            }
+        }
+
+        // 同步表格上的 "X 項" 標籤
+        function updateRulesCountInTable(formName) {
+            const rows = document.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                const nameCell = row.querySelector('.form-name');
+                if (nameCell && nameCell.textContent.trim() === formName) {
+                    const countCell = row.querySelector('.form-rules-count');
+                    if (countCell) {
+                        const count = formRulesMap[formName] ? formRulesMap[formName].length : 0;
+                        countCell.textContent = `${count} 項`;
+                    }
+                }
+            });
+        }
+
+        // 檢查新增按鈕的狀態
+        function checkAddRuleButtonState() {
+            const targetType = document.getElementById('target-type-value').textContent;
+            const companySelect = document.getElementById('filter-company-select');
+            const deptSelect = document.getElementById('select-department-select');
+            const addRuleBtn = document.getElementById('add-rule-btn');
+
+            let isReady = false;
+
+            if (targetType === '全體員工') {
+                isReady = true; 
+            } else if (targetType === '指定部門') {
+                if (companySelect.value && deptSelect.value) {
+                    isReady = true;
+                }
+            } else {
+                isReady = true;
+            }
+
+            // 根據是否選擇完整項目，切換按鈕狀態 (.ui-btn 已內建 disabled 樣式)
+            addRuleBtn.disabled = !isReady;
+        }
+
+        // 點擊新增
+        function addNewRule() {
+            const formName = currentTargetFormName;
+            const targetType = document.getElementById('target-type-value').textContent;
+            let ruleDetailText = "";
+
+            if (targetType === '全體員工') {
+                ruleDetailText = "(全體員工)";
+            } else if (targetType === '指定部門') {
+                const comp = document.getElementById('filter-company-select');
+                const dept = document.getElementById('select-department-select');
+                const compText = comp.options[comp.selectedIndex].text;
+                const deptText = dept.options[dept.selectedIndex].text;
+                ruleDetailText = `${compText} - ${deptText}`;
+            } else {
+                ruleDetailText = `(${targetType})`;
+            }
+
+            if (!formRulesMap[formName]) {
+                formRulesMap[formName] = [];
+            }
+
+            // 新增至快照資料庫
+            formRulesMap[formName].push({
+                type: targetType,
+                detail: ruleDetailText
+            });
+
+            // 重新渲染彈窗清單與表格
+            renderRules(formName);
+            updateRulesCountInTable(formName);
+
+            // 清空下拉選單選擇
+            if (targetType === '指定部門') {
+                const comp = document.getElementById('filter-company-select');
+                const dept = document.getElementById('select-department-select');
+                
+                comp.value = "";
+                comp.classList.add('text-gray-400');
+                comp.classList.remove('text-gray-700');
+                
+                dept.value = "";
+                dept.classList.add('text-gray-400');
+                dept.classList.remove('text-gray-700');
+            }
+            
+            checkAddRuleButtonState();
+        }
+
+        /* -----------------------
+           自訂下拉選單互動邏輯 (對象類型)
+           ----------------------- */
+        function toggleTargetTypeSelect() {
+            const dropdown = document.getElementById('target-type-dropdown');
+            const btn = document.getElementById('target-type-btn');
+            const icon = document.getElementById('target-type-icon');
+            
+            const isHidden = dropdown.classList.contains('hidden');
+            
+            if (isHidden) {
+                dropdown.classList.remove('hidden');
+                btn.classList.add('border-[#4A90E2]');
+                btn.classList.remove('border-gray-300');
+                
+                icon.classList.remove('fa-angle-down');
+                icon.classList.add('fa-angle-up');
+            } else {
+                closeTargetTypeSelect();
+            }
+        }
+
+        function selectTargetType(element, value) {
+            const valueSpan = document.getElementById('target-type-value');
+            
+            valueSpan.textContent = value;
+            
+            const listItems = document.getElementById('target-type-list').querySelectorAll('li');
+            listItems.forEach(li => {
+                li.classList.remove('text-[#4A90E2]', 'font-medium');
+                li.classList.add('text-gray-600');
+            });
+            element.classList.remove('text-gray-600');
+            element.classList.add('text-[#4A90E2]', 'font-medium');
+            
+            const deptFields = document.getElementById('department-fields-container');
+            if (value === '指定部門') {
+                deptFields.classList.remove('hidden');
+            } else {
+                deptFields.classList.add('hidden');
+                
+                const comp = document.getElementById('filter-company-select');
+                const dept = document.getElementById('select-department-select');
+                comp.value = "";
+                comp.classList.add('text-gray-400');
+                comp.classList.remove('text-gray-700');
+                dept.value = "";
+                dept.classList.add('text-gray-400');
+                dept.classList.remove('text-gray-700');
+            }
+
+            checkAddRuleButtonState();
+            closeTargetTypeSelect();
+        }
+
+        function closeTargetTypeSelect() {
+            const dropdown = document.getElementById('target-type-dropdown');
+            const btn = document.getElementById('target-type-btn');
+            const icon = document.getElementById('target-type-icon');
+            
+            if (dropdown) dropdown.classList.add('hidden');
+            if (btn) {
+                btn.classList.remove('border-[#4A90E2]');
+                btn.classList.add('border-gray-300');
+            }
+            if (icon) {
+                icon.classList.remove('fa-angle-up');
+                icon.classList.add('fa-angle-down');
+            }
+        }
+
+        // 點擊畫面空白處關閉下拉選單
+        document.addEventListener('click', function(event) {
+            const container = document.getElementById('target-type-container');
+            if (container && !container.contains(event.target)) {
+                closeTargetTypeSelect();
+            }
+        });
+    </script>
+</body>
+</html>

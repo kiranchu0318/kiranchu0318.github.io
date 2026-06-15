@@ -1,0 +1,1706 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>員工管理系統</title>
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 Font Awesome 用於圖標 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- 共用 UI 元件樣式庫（統一全系統元件樣式） -->
+    <link rel="stylesheet" href="shared-ui.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4A90E2', // 主色調：藍色（全系統統一）
+                        'primary-light': '#EAF2FC',
+                        background: '#F8F9FB', // 背景淺灰色
+                        card: '#FFFFFF',
+                        text: {
+                            main: '#1F2937',
+                            muted: '#6B7280',
+                            light: '#9CA3AF'
+                        },
+                        status: {
+                            submitted: '#DBEAFE',
+                            pending: '#FEF3C7',
+                            completed: '#D1FAE5',
+                            rejected: '#FEE2E2',
+                            active: '#ECFDF5', 
+                            text: {
+                                submitted: '#1D4ED8',
+                                pending: '#D97706',
+                                completed: '#059669',
+                                rejected: '#DC2626',
+                                active: '#10B981' 
+                            }
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['"Inter"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'card': '0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03)',
+                        'modal': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: theme('colors.background');
+            font-family: theme('fontFamily.sans');
+        }
+        /* 自訂滾動條 */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        /* Modal 動畫過渡 */
+        .modal-enter {
+            opacity: 0;
+            transform: scale(0.95) translateY(10px);
+        }
+        .modal-enter-active {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+            transition: opacity 200ms ease-out, transform 200ms ease-out;
+        }
+
+        /* 隱藏/顯示 Tab 內容 */
+        .tab-content, .tab-add-content {
+            display: none;
+        }
+        .tab-content.active, .tab-add-content.active {
+            display: block;
+        }
+        /* 隱藏彈窗導航的滾動條 */
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* 詳情 / 新增彈窗：限制欄位最大寬度，避免短內容欄位過寬（表格內較窄的欄位不受影響） */
+        #editModalPanel .tab-content input,
+        #editModalPanel .tab-content textarea,
+        #addEmployeeModalPanel .tab-add-content input,
+        #addEmployeeModalPanel .tab-add-content textarea {
+            max-width: 20rem;
+        }
+        #editModalPanel .tab-content select,
+        #addEmployeeModalPanel .tab-add-content select {
+            max-width: 17rem;
+        }
+        /* 主數據表格內欄位仍可填滿其欄寬 */
+        #editModalPanel .tab-content .min-w-\[960px\] input,
+        #editModalPanel .tab-content .min-w-\[960px\] select,
+        #editModalPanel .tab-content .min-w-\[960px\] textarea,
+        #editModalPanel .tab-content .min-w-\[720px\] input,
+        #editModalPanel .tab-content .min-w-\[720px\] select,
+        #editModalPanel .tab-content .min-w-\[480px\] input,
+        #editModalPanel .tab-content .min-w-\[480px\] select,
+        #addEmployeeModalPanel .tab-add-content .min-w-\[960px\] input,
+        #addEmployeeModalPanel .tab-add-content .min-w-\[960px\] select,
+        #addEmployeeModalPanel .tab-add-content .min-w-\[960px\] textarea,
+        #addEmployeeModalPanel .tab-add-content .min-w-\[720px\] input,
+        #addEmployeeModalPanel .tab-add-content .min-w-\[720px\] select,
+        #addEmployeeModalPanel .tab-add-content .min-w-\[480px\] input,
+        #addEmployeeModalPanel .tab-add-content .min-w-\[480px\] select {
+            max-width: none;
+        }
+    </style>
+</head>
+<body class="ui-page text-text-main antialiased">
+
+    <div class="max-w-7xl mx-auto space-y-8">
+        
+        <header class="ui-page-header">
+            <div class="flex items-center gap-3">
+                <h1 class="ui-page-title">員工管理</h1>
+            </div>
+            
+            <!-- 操作按鈕區 -->
+            <div class="flex gap-4">
+                <button class="ui-btn ui-btn-secondary">
+                    <i class="fa-solid fa-file-export text-gray-500"></i>
+                    匯出清單
+                </button>
+                <button onclick="openAddEmployeeModal()" class="ui-btn ui-btn-primary">
+                    <i class="fa-solid fa-user-plus"></i>
+                    添加新員工
+                </button>
+            </div>
+        </header>
+
+        <section class="ui-card p-6">
+
+            <!-- 列表工具列 (搜尋與篩選) -->
+            <div class="flex flex-col sm:flex-row items-start sm:items-center mb-6 gap-4">
+
+                <!-- 搜尋框 -->
+                <div class="ui-search w-full sm:w-[280px]">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" placeholder="搜尋員工編號、姓名或 Email" class="ui-input ui-search-input">
+                </div>
+
+                <!-- 狀態下拉選單 -->
+                <div class="relative w-full sm:w-[150px]">
+                    <select class="ui-select">
+                        <option value="all" selected>全部</option>
+                        <option value="active">啟用</option>
+                        <option value="inactive">停用</option>
+                        <option value="disabled">禁用</option>
+                    </select>
+                </div>
+
+            </div>
+
+            <div class="overflow-x-auto rounded-lg border border-gray-200 mb-6">
+                <table class="ui-table">
+                    <thead>
+                        <tr>
+                            <th scope="col" class="px-6 py-4">工號</th>
+                            <th scope="col" class="px-6 py-4">姓名</th>
+                            <th scope="col" class="px-6 py-4">帳號狀態</th>
+                            <th scope="col" class="px-6 py-4">事業部</th>
+                            <th scope="col" class="px-6 py-4">分部</th>
+                            <th scope="col" class="px-6 py-4 text-center">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-600">
+                        
+                        <!-- 資料列 1: 啟用 -->
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="px-6 py-4 font-medium text-gray-900">EMP001</td>
+                            <td class="px-6 py-4">王小明</td>
+                            <td class="px-6 py-4">
+                                <span class="ui-badge ui-badge-success">
+                                    啟用
+                                </span>
+                            </td>
+                            <td class="px-6 py-4">研發事業部 (RD BU)</td>
+                            <td class="px-6 py-4">前端架構組</td>
+                            <td class="px-6 py-4 text-center">
+                                <div class="flex items-center justify-center gap-2">
+                                    <button onclick="openEditModal()" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-circle-info"></i> 詳情</button>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- 資料列 2: 禁用 -->
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="px-6 py-4 font-medium text-gray-900">EMP042</td>
+                            <td class="px-6 py-4">李華</td>
+                            <td class="px-6 py-4">
+                                <span class="ui-badge ui-badge-gray">
+                                    禁用
+                                </span>
+                            </td>
+                            <td class="px-6 py-4">營運中心 (Ops)</td>
+                            <td class="px-6 py-4">客戶成功部</td>
+                            <td class="px-6 py-4 text-center">
+                                <div class="flex items-center justify-center gap-2">
+                                    <button onclick="openEditModal()" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-circle-info"></i> 詳情</button>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- 資料列 3: 停用 -->
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="px-6 py-4 font-medium text-gray-900">EMP089</td>
+                            <td class="px-6 py-4">張美麗</td>
+                            <td class="px-6 py-4">
+                                <span class="ui-badge ui-badge-danger">
+                                    停用
+                                </span>
+                            </td>
+                            <td class="px-6 py-4">業務行銷部 (Sales)</td>
+                            <td class="px-6 py-4">華南區銷售</td>
+                            <td class="px-6 py-4 text-center">
+                                <div class="flex items-center justify-center gap-2">
+                                    <button onclick="openEditModal()" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-circle-info"></i> 詳情</button>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- 資料列 4: 啟用 -->
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="px-6 py-4 font-medium text-gray-900">EMP156</td>
+                            <td class="px-6 py-4">趙雲</td>
+                            <td class="px-6 py-4">
+                                <span class="ui-badge ui-badge-success">
+                                    啟用
+                                </span>
+                            </td>
+                            <td class="px-6 py-4">研發事業部 (RD BU)</td>
+                            <td class="px-6 py-4">後端開發組</td>
+                            <td class="px-6 py-4 text-center">
+                                <div class="flex items-center justify-center gap-2">
+                                    <button onclick="openEditModal()" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-circle-info"></i> 詳情</button>
+                                </div>
+                            </td>
+                        </tr>
+                        
+                        <!-- 資料列 5: 禁用 -->
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="px-6 py-4 font-medium text-gray-900">EMP201</td>
+                            <td class="px-6 py-4">林書豪</td>
+                            <td class="px-6 py-4">
+                                <span class="ui-badge ui-badge-gray">
+                                    禁用
+                                </span>
+                            </td>
+                            <td class="px-6 py-4">財務行政部 (Finance)</td>
+                            <td class="px-6 py-4">會計組</td>
+                            <td class="px-6 py-4 text-center">
+                                <div class="flex items-center justify-center gap-2">
+                                    <button onclick="openEditModal()" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-circle-info"></i> 詳情</button>
+                                </div>
+                            </td>
+                        </tr>
+
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="flex flex-col sm:flex-row justify-between items-center gap-4 pt-2">
+                <div class="text-sm text-gray-500 font-medium">
+                    顯示第 1 到 5 筆，共 1,540 筆資料
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <button type="button" class="ui-page-btn">
+                        上一頁
+                    </button>
+                    <button type="button" class="ui-page-btn is-active">
+                        1
+                    </button>
+                    <button type="button" class="ui-page-btn">
+                        2
+                    </button>
+                    <button type="button" class="ui-page-btn">
+                        3
+                    </button>
+                    <button type="button" class="ui-page-btn">
+                        下一頁
+                    </button>
+                </div>
+            </div>
+
+        </section>
+
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 彈出視窗 1：編輯/詳情帳號 (大彈窗) -->
+    <!-- ========================================== -->
+    <div id="editModal" class="fixed inset-0 z-50 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <!-- 背景遮罩 -->
+        <div class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm transition-opacity" onclick="closeEditModal()"></div>
+
+        <!-- 彈窗內容容器 (置中對齊) -->
+        <div class="fixed inset-0 z-10 flex items-center justify-center p-4 sm:p-6 pointer-events-none">
+            
+            <!-- Modal 實體 -->
+            <div id="editModalPanel" class="relative bg-white rounded-xl shadow-modal flex flex-col w-[95vw] max-w-6xl h-[90vh] pointer-events-auto transition-all transform modal-enter">
+                
+                <div class="px-6 pt-5 pb-3 flex justify-between items-center shrink-0 border-b border-gray-100">
+                    <div class="flex items-center gap-2.5">
+                        <h3 class="text-lg font-bold text-gray-900" id="modal-title">員工詳細資料</h3>
+                        <span class="js-edit-only hidden px-2 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-600 border border-amber-100"><i class="fa-solid fa-pen mr-1"></i>編輯中</span>
+                    </div>
+                    <button onclick="closeEditModal()" class="text-gray-400 hover:text-gray-600 transition-colors outline-none">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                </div>
+
+                <!-- 頁籤導覽 (Tab) - 加上水平滾動 -->
+                <div class="px-6 pt-2 border-b border-gray-200 shrink-0 overflow-x-auto custom-scrollbar hide-scrollbar">
+                    <ul class="flex text-[15px] font-medium gap-x-6 -mb-[1px] whitespace-nowrap">
+                        <li>
+                            <a href="#" id="btn-tab-personal" onclick="switchTab('tab-personal')" class="inline-block pb-2 text-gray-800 border-b-[3px] border-[#3b82f6] transition-colors">
+                                個人信息
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" id="btn-tab-job" onclick="switchTab('tab-job')" class="inline-block pb-2 text-gray-700 hover:text-gray-900 hover:border-b-[3px] hover:border-gray-300 border-b-[3px] border-transparent transition-colors">
+                                職位信息
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" id="btn-tab-account" onclick="switchTab('tab-account')" class="inline-block pb-2 text-gray-700 hover:text-gray-900 hover:border-b-[3px] hover:border-gray-300 border-b-[3px] border-transparent transition-colors">
+                                人員帳號
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" id="btn-tab-leave" onclick="switchTab('tab-leave')" class="inline-block pb-2 text-gray-700 hover:text-gray-900 hover:border-b-[3px] hover:border-gray-300 border-b-[3px] border-transparent transition-colors">
+                                假期信息
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="px-6 md:px-8 py-6 overflow-y-auto custom-scrollbar flex-1 min-h-0 bg-white">
+                    
+                    <!-- ========================================== -->
+                    <!-- 頁籤內容：個人信息 -->
+                    <!-- ========================================== -->
+                    <div id="tab-personal" class="tab-content active max-w-5xl mx-auto space-y-8">
+
+                        <!-- 基礎信息 -->
+                        <div>
+                            <h4 class="text-[15px] font-bold text-gray-900 mb-4">基礎信息</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-5">
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">工號 <span class="text-red-500">*</span></label>
+                                    <div class="flex gap-2">
+                                        <input type="text" value="100139" readonly class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded-md text-sm text-gray-800 outline-none cursor-default">
+                                        <button class="px-3 py-2 bg-[#7c3aed] text-white text-sm rounded-md hover:bg-opacity-90 transition-colors shadow-sm whitespace-nowrap shrink-0">查看履歷</button>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">姓名 <span class="text-red-500">*</span></label>
+                                    <input type="text" value="100139" readonly class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded-md text-sm text-gray-800 outline-none cursor-default">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">僱傭類型 <span class="text-red-500">*</span></label>
+                                    <div class="relative">
+                                        <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white border border-transparent rounded-md text-sm outline-none cursor-pointer shadow-sm">
+                                            <option>Full-Time</option>
+                                        </select>
+                                        <i class="fa-solid fa-caret-down text-white absolute right-3 top-1/2 transform -translate-y-1/2 text-xs pointer-events-none"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">招聘需求憑證單號</label>
+                                    <input type="text" readonly class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded-md text-sm text-gray-800 outline-none cursor-default">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">入職審批憑證單號</label>
+                                    <input type="text" readonly class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded-md text-sm text-gray-800 outline-none cursor-default">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 個人信息 -->
+                        <div>
+                            <h4 class="text-[15px] font-bold text-gray-900 mb-4">個人信息</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-5">
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">帳號狀態 <span class="text-red-500">*</span></label>
+                                    <div class="relative">
+                                        <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white border border-transparent rounded-md text-sm outline-none cursor-pointer shadow-sm">
+                                            <option>Active（停用/啟用）</option>
+                                        </select>
+                                        <i class="fa-solid fa-caret-down text-white absolute right-3 top-1/2 transform -translate-y-1/2 text-xs pointer-events-none"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">履歷來源 <span class="text-red-500">*</span></label>
+                                    <div class="relative">
+                                        <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white border border-transparent rounded-md text-sm outline-none cursor-pointer shadow-sm">
+                                            <option>不可考/Unknown</option>
+                                        </select>
+                                        <i class="fa-solid fa-caret-down text-white absolute right-3 top-1/2 transform -translate-y-1/2 text-xs pointer-events-none"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">性別 <span class="text-red-500">*</span></label>
+                                    <div class="relative">
+                                        <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white border border-transparent rounded-md text-sm outline-none cursor-pointer shadow-sm">
+                                            <option>Prefer not to say</option>
+                                        </select>
+                                        <i class="fa-solid fa-caret-down text-white absolute right-3 top-1/2 transform -translate-y-1/2 text-xs pointer-events-none"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">稱謂 <span class="text-red-500">*</span></label>
+                                    <div class="relative">
+                                        <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white border border-transparent rounded-md text-sm outline-none cursor-pointer shadow-sm">
+                                            <option>Prefer not to say</option>
+                                        </select>
+                                        <i class="fa-solid fa-caret-down text-white absolute right-3 top-1/2 transform -translate-y-1/2 text-xs pointer-events-none"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">婚姻狀況</label>
+                                    <div class="relative">
+                                        <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white border border-transparent rounded-md text-sm outline-none cursor-pointer shadow-sm">
+                                            <option>選擇</option>
+                                        </select>
+                                        <i class="fa-solid fa-caret-down text-white absolute right-3 top-1/2 transform -translate-y-1/2 text-xs pointer-events-none"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">出生年月日</label>
+                                    <input type="text" value="1900/01/01" readonly class="w-full sm:max-w-xs px-3 py-2 bg-[#f1f3f5] border border-transparent rounded-md text-sm text-gray-800 outline-none cursor-default mb-1.5">
+                                    <p class="text-[13px] text-red-500 font-medium">為使人事流程與相關福利順利進行，原則上建議填寫正確的出生日期資訊。</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 公司聯繫方式 -->
+                        <div>
+                            <h4 class="text-[15px] font-bold text-gray-900 mb-4">公司聯繫方式</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-5">
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">公司郵箱</label>
+                                    <input type="text" readonly class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded-md text-sm text-gray-800 outline-none cursor-default">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">公司聯繫方式</label>
+                                    <input type="text" readonly class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded-md text-sm text-gray-800 outline-none cursor-default">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 個人聯繫方式 -->
+                        <div>
+                            <h4 class="text-[15px] font-bold text-gray-900 mb-4">個人聯繫方式</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-5">
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">個人郵箱</label>
+                                    <input type="text" readonly class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded-md text-sm text-gray-800 outline-none cursor-default">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">個人聯繫方式</label>
+                                    <input type="text" readonly class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded-md text-sm text-gray-800 outline-none cursor-default">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">個人地址</label>
+                                    <input type="text" readonly class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded-md text-sm text-gray-800 outline-none cursor-default">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 緊急聯繫人電話 -->
+                        <div>
+                            <h4 class="text-[15px] font-bold text-gray-900 mb-4">緊急聯繫人電話</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-5">
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">緊急聯繫人</label>
+                                    <input type="text" readonly class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded-md text-sm text-gray-800 outline-none cursor-default">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">緊急聯繫人電話</label>
+                                    <input type="text" readonly class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded-md text-sm text-gray-800 outline-none cursor-default">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">與員工的關係</label>
+                                    <div class="relative">
+                                        <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white border border-transparent rounded-md text-sm outline-none cursor-pointer shadow-sm">
+                                            <option>選擇</option>
+                                        </select>
+                                        <i class="fa-solid fa-caret-down text-white absolute right-3 top-1/2 transform -translate-y-1/2 text-xs pointer-events-none"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- （六）其他項目 -->
+                        <div>
+                            <h4 class="text-[15px] font-bold text-gray-900 mb-5 mt-8">其他項目</h4>
+                            <div class="border border-dashed border-gray-300 rounded-md px-4 py-6 text-center text-sm text-gray-400">（預留空白區塊）</div>
+                        </div>
+
+                    </div>
+
+                    <!-- ========================================== -->
+                    <!-- 頁籤內容：職位信息 -->
+                    <!-- ========================================== -->
+                    <div id="tab-job" class="tab-content hidden max-w-5xl mx-auto space-y-8">
+
+                        <!-- （一）分部（可掛多組分部） -->
+                        <div>
+                            <div class="flex items-center justify-between mb-4">
+                                <h4 class="text-base font-bold text-gray-800">分部 <span class="text-red-500">*</span><span class="ml-2 text-xs font-medium text-gray-400">（可同時掛載多個分部）</span></h4>
+                                <button class="js-edit-only hidden px-3 py-1.5 text-sm font-medium text-[#7c3aed] border border-[#7c3aed] rounded-md hover:bg-violet-50 transition-colors whitespace-nowrap"><i class="fa-solid fa-plus mr-1.5"></i>新增分部</button>
+                            </div>
+                            <div class="space-y-3">
+
+                                <!-- 分部卡片 1（主分部） -->
+                                <div class="border border-gray-200 rounded-lg bg-white">
+                                    <div class="flex items-center justify-between gap-2 px-4 py-3 border-b border-gray-100 bg-gray-50/60 rounded-t-lg">
+                                        <div class="flex items-center gap-2 min-w-0">
+                                            <i class="fa-solid fa-sitemap text-[#7c3aed] text-sm shrink-0"></i>
+                                            <span class="font-semibold text-gray-900 text-sm truncate">T2 ( 總部 ) -研发中心 RD-2</span>
+                                            <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-violet-50 text-[#7c3aed] border border-violet-100 shrink-0">主分部</span>
+                                        </div>
+                                        <div class="flex items-center gap-1 shrink-0">
+                                            <button class="js-edit-only hidden w-7 h-7 flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors" title="移除分部"><i class="fa-solid fa-trash-can text-xs"></i></button>
+                                        </div>
+                                    </div>
+                                    <div class="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-4">
+                                        <div>
+                                            <label class="block text-xs font-semibold text-gray-500 mb-1.5">Location <span class="text-red-500">*</span></label>
+                                            <div class="relative">
+                                                <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded text-sm outline-none cursor-pointer">
+                                                    <option>T2 ( 總部 )</option>
+                                                </select>
+                                                <i class="fa-solid fa-caret-down text-white absolute right-3 top-1/2 transform -translate-y-1/2 text-xs pointer-events-none"></i>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-semibold text-gray-500 mb-1.5">Business <span class="text-red-500">*</span></label>
+                                            <div class="relative">
+                                                <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded text-sm outline-none cursor-pointer">
+                                                    <option>研发中心 RD</option>
+                                                </select>
+                                                <i class="fa-solid fa-caret-down text-white absolute right-3 top-1/2 transform -translate-y-1/2 text-xs pointer-events-none"></i>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-semibold text-gray-500 mb-1.5">Approval Level <span class="text-red-500">*</span></label>
+                                            <div class="relative">
+                                                <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded text-sm outline-none cursor-pointer">
+                                                    <option>2</option>
+                                                </select>
+                                                <i class="fa-solid fa-caret-down text-white absolute right-3 top-1/2 transform -translate-y-1/2 text-xs pointer-events-none"></i>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-semibold text-gray-500 mb-1.5">人事經理</label>
+                                            <input type="text" value="2" readonly class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded text-sm text-gray-800 outline-none cursor-default">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 分部卡片 2 -->
+                                <div class="border border-gray-200 rounded-lg bg-white">
+                                    <div class="flex items-center justify-between gap-2 px-4 py-3 border-b border-gray-100 bg-gray-50/60 rounded-t-lg">
+                                        <div class="flex items-center gap-2 min-w-0">
+                                            <i class="fa-solid fa-sitemap text-gray-400 text-sm shrink-0"></i>
+                                            <span class="font-semibold text-gray-900 text-sm truncate">T2 ( LKG, RG ) -项目管理中心 PMO-1</span>
+                                        </div>
+                                        <div class="flex items-center gap-1 shrink-0">
+                                            <button class="js-edit-only hidden w-7 h-7 flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors" title="移除分部"><i class="fa-solid fa-trash-can text-xs"></i></button>
+                                        </div>
+                                    </div>
+                                    <div class="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-4">
+                                        <div>
+                                            <label class="block text-xs font-semibold text-gray-500 mb-1.5">Location <span class="text-red-500">*</span></label>
+                                            <div class="relative">
+                                                <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded text-sm outline-none cursor-pointer">
+                                                    <option>T2 ( LKG, RG )</option>
+                                                </select>
+                                                <i class="fa-solid fa-caret-down text-white absolute right-3 top-1/2 transform -translate-y-1/2 text-xs pointer-events-none"></i>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-semibold text-gray-500 mb-1.5">Business <span class="text-red-500">*</span></label>
+                                            <div class="relative">
+                                                <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded text-sm outline-none cursor-pointer">
+                                                    <option>项目管理中心 PMO</option>
+                                                </select>
+                                                <i class="fa-solid fa-caret-down text-white absolute right-3 top-1/2 transform -translate-y-1/2 text-xs pointer-events-none"></i>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-semibold text-gray-500 mb-1.5">Approval Level <span class="text-red-500">*</span></label>
+                                            <div class="relative">
+                                                <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded text-sm outline-none cursor-pointer">
+                                                    <option>1</option>
+                                                </select>
+                                                <i class="fa-solid fa-caret-down text-white absolute right-3 top-1/2 transform -translate-y-1/2 text-xs pointer-events-none"></i>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-semibold text-gray-500 mb-1.5">人事經理</label>
+                                            <input type="text" value="100423" readonly class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded text-sm text-gray-800 outline-none cursor-default">
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <!-- （二）職位 -->
+                        <div>
+                            <h4 class="text-base font-bold text-gray-800 mb-4">職位</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5">
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">入職日期 <span class="text-red-500">*</span></label>
+                                    <input type="text" value="2000/01/01" readonly class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded text-sm text-gray-800 outline-none cursor-default">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">試用期通過日</label>
+                                    <div class="flex items-center">
+                                        <div class="bg-[#EAF2FC] border border-[#EAF2FC] border-r-0 px-3 py-2 rounded-l text-[#4A90E2] flex items-center justify-center">
+                                            <i class="fa-solid fa-square-check"></i>
+                                        </div>
+                                        <input type="text" value="2000/01/01" readonly class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded-r text-sm text-gray-800 outline-none cursor-default">
+                                    </div>
+                                </div>
+                                <div class="sm:col-span-2">
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">累計年資</label>
+                                    <div class="inline-block text-sm text-gray-800 px-3 py-2 bg-gray-50 rounded border border-gray-100">
+                                        入職迄今<span class="text-red-500 underline mx-1">26年</span><span class="text-red-500 underline mr-1">05月</span><span class="text-red-500 underline mr-1">10日</span> ( 結算至系統當天日期 )
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- （三）基本工資 -->
+                        <div>
+                            <h4 class="text-base font-bold text-gray-800 mb-4">基本工資</h4>
+                            <div class="border-t border-gray-200 pt-4 overflow-x-auto">
+                                <div class="min-w-[960px] grid grid-cols-7 gap-2 mb-2">
+                                    <div class="text-sm font-bold text-gray-800 text-center">生效日期*</div>
+                                    <div class="text-sm font-bold text-gray-800 text-center">發薪日*</div>
+                                    <div class="text-sm font-bold text-gray-800 text-center">貨幣類型*</div>
+                                    <div class="text-sm font-bold text-gray-800 text-center">薪資(月)*</div>
+                                    <div class="text-sm font-bold text-gray-800 text-center">支付方式*</div>
+                                    <div class="text-sm font-bold text-gray-800 text-center">薪資調整原因</div>
+                                    <div class="text-sm font-bold text-gray-800 text-center">備註</div>
+                                </div>
+                                <div class="min-w-[960px] grid grid-cols-7 gap-2 items-start">
+                                    <input type="text" value="2010/01/01" readonly class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded text-sm text-gray-800 outline-none cursor-default text-center">
+                                    <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded text-sm outline-none cursor-pointer text-center">
+                                        <option>Every 5th</option>
+                                    </select>
+                                    <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded text-sm outline-none cursor-pointer text-center">
+                                        <option>USD</option>
+                                    </select>
+                                    <input type="text" value="99.000000" readonly class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded text-sm text-gray-800 outline-none cursor-default text-center">
+                                    <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded text-sm outline-none cursor-pointer text-center">
+                                        <option>Autopay</option>
+                                    </select>
+                                    <textarea rows="2" readonly class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded text-sm text-gray-800 outline-none cursor-default resize-none"></textarea>
+                                    <textarea rows="2" readonly class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded text-sm text-gray-800 outline-none cursor-default resize-none"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- （四）獎金 -->
+                        <div>
+                            <h4 class="text-base font-bold text-gray-800 mb-4">獎金</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5">
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">13薪 <span class="text-red-500">*</span></label>
+                                    <div class="relative">
+                                        <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded text-sm outline-none cursor-pointer">
+                                            <option>N</option>
+                                        </select>
+                                        <i class="fa-solid fa-caret-down text-white absolute right-3 top-1/2 transform -translate-y-1/2 text-xs pointer-events-none"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">獎金類型 <span class="text-red-500">*</span></label>
+                                    <div class="relative">
+                                        <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded text-sm outline-none cursor-pointer">
+                                            <option>A</option>
+                                        </select>
+                                        <i class="fa-solid fa-caret-down text-white absolute right-3 top-1/2 transform -translate-y-1/2 text-xs pointer-events-none"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- （五）其他福利 -->
+                        <div>
+                            <h4 class="text-base font-bold text-gray-800 mb-4">其他福利</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5">
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">團建分類 <span class="text-red-500">*</span></label>
+                                    <div class="relative">
+                                        <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded text-sm outline-none cursor-pointer">
+                                            <option>無</option>
+                                        </select>
+                                        <i class="fa-solid fa-caret-down text-white absolute right-3 top-1/2 transform -translate-y-1/2 text-xs pointer-events-none"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">福利制度</label>
+                                    <div class="relative">
+                                        <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded text-sm outline-none cursor-pointer">
+                                            <option>選擇</option>
+                                        </select>
+                                        <i class="fa-solid fa-caret-down text-white absolute right-3 top-1/2 transform -translate-y-1/2 text-xs pointer-events-none"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">生日福利</label>
+                                    <textarea rows="2" readonly class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded text-sm text-gray-800 outline-none cursor-default resize-none"></textarea>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">節日福利</label>
+                                    <textarea rows="2" readonly class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded text-sm text-gray-800 outline-none cursor-default resize-none"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- （六）職位信息 -->
+                        <div>
+                            <h4 class="text-base font-bold text-gray-800 mb-4">職位信息</h4>
+                            <div class="border-t border-gray-200 pt-4 overflow-x-auto">
+                                <div class="min-w-[720px] grid grid-cols-5 gap-2 mb-2">
+                                    <div class="text-sm font-bold text-gray-800 text-center">生效日期*</div>
+                                    <div class="text-sm font-bold text-gray-800 text-center">主體*</div>
+                                    <div class="text-sm font-bold text-gray-800 text-center">部門*</div>
+                                    <div class="text-sm font-bold text-gray-800 text-center">職位*</div>
+                                    <div class="text-sm font-bold text-gray-800 text-center">直屬上司*</div>
+                                </div>
+                                <div class="min-w-[720px] grid grid-cols-5 gap-2 items-start">
+                                    <input type="text" value="2010/01/01" readonly class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded text-sm text-gray-800 outline-none cursor-default text-center">
+                                    <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded text-sm outline-none cursor-pointer text-center">
+                                        <option>None</option>
+                                    </select>
+                                    <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded text-sm outline-none cursor-pointer text-center">
+                                        <option>選擇</option>
+                                    </select>
+                                    <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded text-sm outline-none cursor-pointer text-center">
+                                        <option>選擇</option>
+                                    </select>
+                                    <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded text-sm outline-none cursor-pointer text-center">
+                                        <option>選擇</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- （七）事業部 -->
+                        <div>
+                            <h4 class="text-base font-bold text-gray-800 mb-4">事業部</h4>
+                            <div class="border-t border-gray-200 pt-4 overflow-x-auto">
+                                <div class="min-w-[480px] grid grid-cols-2 gap-2 mb-2">
+                                    <div class="text-sm font-bold text-gray-800 text-center">生效日期*</div>
+                                    <div class="text-sm font-bold text-gray-800 text-center">項目*</div>
+                                </div>
+                                <div class="min-w-[480px] grid grid-cols-2 gap-2 items-start">
+                                    <input type="text" value="2010/01/01" readonly class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded text-sm text-gray-800 outline-none cursor-default text-center">
+                                    <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded text-sm outline-none cursor-pointer text-center">
+                                        <option>選擇</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- （八）職級 -->
+                        <div>
+                            <h4 class="text-base font-bold text-gray-800 mb-4">職級</h4>
+                            <div class="border-t border-gray-200 pt-4 overflow-x-auto">
+                                <div class="min-w-[480px] grid grid-cols-2 gap-2 mb-2">
+                                    <div class="text-sm font-bold text-gray-800 text-center">生效日期*</div>
+                                    <div class="text-sm font-bold text-gray-800 text-center">職級*</div>
+                                </div>
+                                <div class="min-w-[480px] grid grid-cols-2 gap-2 items-start">
+                                    <input type="text" value="2010/01/01" readonly class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded text-sm text-gray-800 outline-none cursor-default text-center">
+                                    <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded text-sm outline-none cursor-pointer text-center">
+                                        <option>K</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- （九）其他項目 -->
+                        <div>
+                            <h4 class="text-base font-bold text-gray-800 mb-4">其他項目</h4>
+                            <div class="border border-dashed border-gray-300 rounded-md px-4 py-6 text-center text-sm text-gray-400">（預留空白區塊）</div>
+                        </div>
+
+                    </div>
+
+                    <!-- ========================================== -->
+                    <!-- 頁籤內容：人員帳號 -->
+                    <!-- ========================================== -->
+                    <div id="tab-account" class="tab-content hidden max-w-4xl mx-auto space-y-8">
+                        <!-- （一）基本帳號綁定資訊 -->
+                        <div>
+                            <h4 class="text-[15px] font-bold text-gray-900 mb-4">人員帳號</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5">
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">Mobile number/whatsapp</label>
+                                    <input type="text" value="&quot;T2&quot; 601114372701" readonly class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded-md text-sm text-gray-800 outline-none cursor-default">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">MM</label>
+                                    <input type="text" readonly class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded-md text-sm text-gray-800 outline-none cursor-default">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">E-mail</label>
+                                    <input type="text" value="gibsonyang@roycetechnology.com" readonly class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded-md text-sm text-gray-800 outline-none cursor-default">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">OA</label>
+                                    <input type="text" readonly class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded-md text-sm text-gray-800 outline-none cursor-default">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">Jira</label>
+                                    <input type="text" readonly class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded-md text-sm text-gray-800 outline-none cursor-default">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">Apple ID</label>
+                                    <input type="text" readonly class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded-md text-sm text-gray-800 outline-none cursor-default">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">門禁卡片</label>
+                                    <input type="text" readonly class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded-md text-sm text-gray-800 outline-none cursor-default">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">指紋</label>
+                                    <input type="text" readonly class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded-md text-sm text-gray-800 outline-none cursor-default">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ========================================== -->
+                    <!-- 頁籤內容：假期信息 -->
+                    <!-- ========================================== -->
+                    <div id="tab-leave" class="tab-content hidden max-w-5xl mx-auto space-y-8">
+
+                        <!-- （一）分部資訊 -->
+                        <div>
+                            <h4 class="text-base font-bold text-gray-800 mb-4">分部資訊</h4>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-500 mb-1.5">已選分部</label>
+                                <input type="text" value="T2 ( 總部 ) -研发中心 RD-2" readonly class="w-full sm:max-w-md px-3 py-2 bg-[#e8ecf1] border border-gray-300 rounded text-sm text-gray-800 outline-none cursor-default">
+                            </div>
+                        </div>
+
+                        <!-- （二）假期政策 -->
+                        <div>
+                            <h4 class="text-base font-bold text-gray-800 mb-4">假期政策</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5">
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">時區</label>
+                                    <input type="text" value="Asia/Taipei" readonly class="w-full px-3 py-2 bg-[#e8ecf1] border border-gray-300 rounded text-sm text-gray-800 outline-none cursor-default">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">國家代碼</label>
+                                    <input type="text" value="TW" readonly class="w-full px-3 py-2 bg-[#e8ecf1] border border-gray-300 rounded text-sm text-gray-800 outline-none cursor-default">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- （三）假期總表配置 -->
+                        <div>
+                            <h4 class="text-base font-bold text-gray-800 mb-4">假期總表配置</h4>
+                            <div class="border border-gray-200 rounded-lg overflow-x-auto">
+                                <table class="w-full min-w-[720px] text-sm text-gray-800">
+                                    <thead>
+                                        <tr class="bg-gray-50 text-gray-700 text-left">
+                                            <th class="px-4 py-3 font-bold">假期名稱</th>
+                                            <th class="px-4 py-3 font-bold">支薪類型</th>
+                                            <th class="px-4 py-3 font-bold">時間單位定義</th>
+                                            <th class="px-4 py-3 font-bold">Increase / Decrease</th>
+                                            <th class="px-4 py-3 font-bold text-right">總生成時數*</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-100">
+                                        <tr>
+                                            <td class="px-4 py-2.5">帶薪年假</td>
+                                            <td class="px-4 py-2.5">Paid</td>
+                                            <td class="px-4 py-2.5">8 hours</td>
+                                            <td class="px-4 py-2.5"><span class="inline-block px-2 py-0.5 rounded text-xs font-medium bg-red-50 text-red-600">Decrease</span></td>
+                                            <td class="px-4 py-2.5 text-right">160</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="px-4 py-2.5">事假</td>
+                                            <td class="px-4 py-2.5">Unpaid</td>
+                                            <td class="px-4 py-2.5">8 hours</td>
+                                            <td class="px-4 py-2.5"><span class="inline-block px-2 py-0.5 rounded text-xs font-medium bg-red-50 text-red-600">Decrease</span></td>
+                                            <td class="px-4 py-2.5 text-right">112</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="px-4 py-2.5">病假</td>
+                                            <td class="px-4 py-2.5">Paid</td>
+                                            <td class="px-4 py-2.5">8 hours</td>
+                                            <td class="px-4 py-2.5"><span class="inline-block px-2 py-0.5 rounded text-xs font-medium bg-red-50 text-red-600">Decrease</span></td>
+                                            <td class="px-4 py-2.5 text-right">16</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="px-4 py-2.5">喪假</td>
+                                            <td class="px-4 py-2.5">Paid</td>
+                                            <td class="px-4 py-2.5">8 hours</td>
+                                            <td class="px-4 py-2.5"><span class="inline-block px-2 py-0.5 rounded text-xs font-medium bg-red-50 text-red-600">Decrease</span></td>
+                                            <td class="px-4 py-2.5 text-right">40</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="px-4 py-2.5">婚假</td>
+                                            <td class="px-4 py-2.5">Paid</td>
+                                            <td class="px-4 py-2.5">8 hours</td>
+                                            <td class="px-4 py-2.5"><span class="inline-block px-2 py-0.5 rounded text-xs font-medium bg-red-50 text-red-600">Decrease</span></td>
+                                            <td class="px-4 py-2.5 text-right">24</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="px-4 py-2.5">生理假</td>
+                                            <td class="px-4 py-2.5">Paid</td>
+                                            <td class="px-4 py-2.5">8 hours</td>
+                                            <td class="px-4 py-2.5"><span class="inline-block px-2 py-0.5 rounded text-xs font-medium bg-red-50 text-red-600">Decrease</span></td>
+                                            <td class="px-4 py-2.5 text-right">8</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="px-4 py-2.5">产假</td>
+                                            <td class="px-4 py-2.5">Paid</td>
+                                            <td class="px-4 py-2.5">8 hours</td>
+                                            <td class="px-4 py-2.5"><span class="inline-block px-2 py-0.5 rounded text-xs font-medium bg-red-50 text-red-600">Decrease</span></td>
+                                            <td class="px-4 py-2.5 text-right">320</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="px-4 py-2.5">产检假</td>
+                                            <td class="px-4 py-2.5">Paid</td>
+                                            <td class="px-4 py-2.5">8 hours</td>
+                                            <td class="px-4 py-2.5"><span class="inline-block px-2 py-0.5 rounded text-xs font-medium bg-red-50 text-red-600">Decrease</span></td>
+                                            <td class="px-4 py-2.5 text-right">40</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="px-4 py-2.5">安胎假</td>
+                                            <td class="px-4 py-2.5">Paid</td>
+                                            <td class="px-4 py-2.5">8 hours</td>
+                                            <td class="px-4 py-2.5"><span class="inline-block px-2 py-0.5 rounded text-xs font-medium bg-green-50 text-green-600">Increase</span></td>
+                                            <td class="px-4 py-2.5 text-right">0</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="px-4 py-2.5">陪产假</td>
+                                            <td class="px-4 py-2.5">Paid</td>
+                                            <td class="px-4 py-2.5">8 hours</td>
+                                            <td class="px-4 py-2.5"><span class="inline-block px-2 py-0.5 rounded text-xs font-medium bg-green-50 text-green-600">Increase</span></td>
+                                            <td class="px-4 py-2.5 text-right">0</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="px-4 py-2.5">加班调休</td>
+                                            <td class="px-4 py-2.5">Paid</td>
+                                            <td class="px-4 py-2.5">8 hours</td>
+                                            <td class="px-4 py-2.5"><span class="inline-block px-2 py-0.5 rounded text-xs font-medium bg-green-50 text-green-600">Increase</span></td>
+                                            <td class="px-4 py-2.5 text-right">0</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="px-4 py-2.5">公假</td>
+                                            <td class="px-4 py-2.5">Paid</td>
+                                            <td class="px-4 py-2.5">8 hours</td>
+                                            <td class="px-4 py-2.5"><span class="inline-block px-2 py-0.5 rounded text-xs font-medium bg-green-50 text-green-600">Increase</span></td>
+                                            <td class="px-4 py-2.5 text-right">0</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="px-6 sm:px-8 py-4 flex flex-col sm:flex-row justify-between items-center shrink-0 border-t border-gray-100 bg-white rounded-b-xl gap-3">
+                    <div class="js-view-only flex gap-2 w-full sm:w-auto">
+                        <button type="button" class="flex-1 sm:flex-none px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded shadow-sm hover:bg-gray-50 transition-colors">
+                            重置密碼
+                        </button>
+                        <button type="button" class="flex-1 sm:flex-none px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded shadow-sm hover:bg-gray-50 transition-colors">
+                            離職
+                        </button>
+                        <button type="button" class="flex-1 sm:flex-none px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded shadow-sm hover:bg-gray-50 transition-colors">
+                            刪除
+                        </button>
+                    </div>
+                    <!-- 編輯模式提示（僅編輯狀態顯示，置於底部左側） -->
+                    <div class="js-edit-only hidden flex items-center gap-2 text-sm text-amber-600 w-full sm:w-auto sm:mr-auto">
+                        <i class="fa-solid fa-circle-info"></i>
+                        <span>編輯模式：可新增 / 移除分部，完成後請按「儲存」。</span>
+                    </div>
+                    <div class="flex gap-2 w-full sm:w-auto">
+                        <button type="button" onclick="enterEditMode()" class="js-view-only flex-1 sm:flex-none px-5 py-2 text-sm font-medium text-white bg-primary rounded shadow-sm hover:bg-opacity-90 transition-colors">
+                            修改
+                        </button>
+                        <button type="button" onclick="closeEditModal()" class="js-view-only flex-1 sm:flex-none px-5 py-2 text-sm font-medium text-white bg-gray-500 rounded shadow-sm hover:bg-gray-600 transition-colors">
+                            關閉
+                        </button>
+                        <button type="button" onclick="saveEditMode()" class="js-edit-only hidden flex-1 sm:flex-none px-5 py-2 text-sm font-medium text-white bg-[#7c3aed] rounded shadow-sm hover:bg-opacity-90 transition-colors">
+                            <i class="fa-solid fa-check mr-1.5"></i>儲存
+                        </button>
+                        <button type="button" onclick="exitEditMode()" class="js-edit-only hidden flex-1 sm:flex-none px-5 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded shadow-sm hover:bg-gray-50 transition-colors">
+                            取消
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 彈出視窗 2：添加新員工 (新增彈窗) -->
+    <!-- ========================================== -->
+    <div id="addEmployeeModal" class="fixed inset-0 z-50 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <!-- 背景遮罩 -->
+        <div class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm transition-opacity" onclick="closeAddEmployeeModal()"></div>
+
+        <!-- 彈窗內容容器 -->
+        <div class="fixed inset-0 z-10 flex items-center justify-center p-4 sm:p-6 pointer-events-none">
+            
+            <!-- Modal 實體 (修正滾動破版，加上 overflow-hidden) -->
+            <div id="addEmployeeModalPanel" class="relative bg-white rounded-xl shadow-modal flex flex-col w-[95vw] max-w-6xl h-[90vh] pointer-events-auto transition-all transform modal-enter">
+                
+                <div class="px-6 pt-4 border-b border-gray-200 shrink-0 flex justify-between items-center bg-white">
+                    <div class="overflow-x-auto custom-scrollbar flex-1 mr-4 hide-scrollbar">
+                        <ul class="flex text-[15px] font-medium gap-x-8 -mb-[1px] whitespace-nowrap">
+                            <li>
+                                <a href="#" id="btn-tab-add-personal" onclick="switchAddTab('tab-add-personal')" class="inline-block pb-3 text-gray-800 border-b-[3px] border-[#3b82f6] transition-colors">
+                                    個人信息
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" id="btn-tab-add-job" onclick="switchAddTab('tab-add-job')" class="inline-block pb-3 text-[#3b82f6] hover:text-blue-600 border-b-[3px] border-transparent transition-colors">
+                                    職位信息
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" id="btn-tab-add-leave" onclick="switchAddTab('tab-add-leave')" class="inline-block pb-3 text-[#3b82f6] hover:text-blue-600 border-b-[3px] border-transparent transition-colors">
+                                    假期信息
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                    <!-- 右上角關閉按鈕 -->
+                    <button onclick="closeAddEmployeeModal()" class="text-gray-400 hover:text-gray-600 transition-colors outline-none pb-2 flex items-center justify-center w-8 h-8 rounded-full hover:bg-gray-100 shrink-0">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                </div>
+
+                <div class="px-6 md:px-8 py-6 overflow-y-auto custom-scrollbar flex-1 min-h-0 bg-white">
+                    
+                    <!-- ========================================== -->
+                    <!-- 頁籤內容：個人信息 -->
+                    <!-- ========================================== -->
+                    <div id="tab-add-personal" class="tab-add-content active max-w-5xl mx-auto space-y-8">
+
+                        <!-- 基礎信息 -->
+                        <div>
+                            <h4 class="text-[15px] font-bold text-gray-900 mb-4">基礎信息</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-5">
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">工號 <span class="text-red-500">*</span></label>
+                                    <div class="flex gap-2">
+                                        <input type="text" placeholder="工號申請後自動帶入" class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded-md text-sm text-gray-800 outline-none focus:bg-white focus:border-gray-300 transition-colors">
+                                        <button class="px-3 py-2 bg-[#7c3aed] text-white text-sm rounded-md hover:bg-opacity-90 transition-colors shadow-sm whitespace-nowrap shrink-0">工號申請</button>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">姓名 <span class="text-red-500">*</span></label>
+                                    <input type="text" placeholder="請輸入姓名" class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded-md text-sm text-gray-800 outline-none focus:bg-white focus:border-gray-300 transition-colors">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">僱傭類型 <span class="text-red-500">*</span></label>
+                                    <div class="relative">
+                                        <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white border border-transparent rounded-md text-sm outline-none cursor-pointer shadow-sm">
+                                            <option>選擇</option><option>Full-Time</option><option>Part-Time</option><option>Contract</option>
+                                        </select>
+                                        <i class="fa-solid fa-caret-down text-white absolute right-3 top-1/2 transform -translate-y-1/2 text-xs pointer-events-none"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">招聘需求憑證單號</label>
+                                    <input type="text" class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded-md text-sm text-gray-800 outline-none focus:bg-white focus:border-gray-300 transition-colors">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">入職審批憑證單號</label>
+                                    <input type="text" class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded-md text-sm text-gray-800 outline-none focus:bg-white focus:border-gray-300 transition-colors">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 個人信息 -->
+                        <div>
+                            <h4 class="text-[15px] font-bold text-gray-900 mb-4">個人信息</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-5">
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">帳號狀態 <span class="text-red-500">*</span></label>
+                                    <div class="relative">
+                                        <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white border border-transparent rounded-md text-sm outline-none cursor-pointer shadow-sm">
+                                            <option>Active（啟用）</option><option>Inactive（停用）</option>
+                                        </select>
+                                        <i class="fa-solid fa-caret-down text-white absolute right-3 top-1/2 transform -translate-y-1/2 text-xs pointer-events-none"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">履歷來源 <span class="text-red-500">*</span></label>
+                                    <div class="relative">
+                                        <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white border border-transparent rounded-md text-sm outline-none cursor-pointer shadow-sm">
+                                            <option>選擇</option><option>自招/Internal Recruit</option><option>不可考/Unknown</option><option>獵頭/Headhunter</option>
+                                        </select>
+                                        <i class="fa-solid fa-caret-down text-white absolute right-3 top-1/2 transform -translate-y-1/2 text-xs pointer-events-none"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">性別 <span class="text-red-500">*</span></label>
+                                    <div class="relative">
+                                        <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white border border-transparent rounded-md text-sm outline-none cursor-pointer shadow-sm">
+                                            <option>選擇</option><option>Male</option><option>Female</option><option>Prefer not to say</option>
+                                        </select>
+                                        <i class="fa-solid fa-caret-down text-white absolute right-3 top-1/2 transform -translate-y-1/2 text-xs pointer-events-none"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">稱謂 <span class="text-red-500">*</span></label>
+                                    <div class="relative">
+                                        <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white border border-transparent rounded-md text-sm outline-none cursor-pointer shadow-sm">
+                                            <option>選擇</option><option>Mr.</option><option>Ms.</option><option>Prefer not to say</option>
+                                        </select>
+                                        <i class="fa-solid fa-caret-down text-white absolute right-3 top-1/2 transform -translate-y-1/2 text-xs pointer-events-none"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">婚姻狀況</label>
+                                    <div class="relative">
+                                        <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white border border-transparent rounded-md text-sm outline-none cursor-pointer shadow-sm">
+                                            <option>選擇</option><option>已婚</option><option>未婚</option>
+                                        </select>
+                                        <i class="fa-solid fa-caret-down text-white absolute right-3 top-1/2 transform -translate-y-1/2 text-xs pointer-events-none"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">出生年月日</label>
+                                    <input type="text" placeholder="年/月/日" class="w-full sm:max-w-xs px-3 py-2 bg-[#f1f3f5] border border-transparent rounded-md text-sm text-gray-800 outline-none focus:bg-white focus:border-gray-300 transition-colors mb-1.5">
+                                    <p class="text-[13px] text-red-500 font-medium">為使人事流程與相關福利順利進行，原則上建議填寫正確的出生日期資訊。</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 公司聯繫方式 -->
+                        <div>
+                            <h4 class="text-[15px] font-bold text-gray-900 mb-4">公司聯繫方式</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-5">
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">公司郵箱</label>
+                                    <input type="text" class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded-md text-sm text-gray-800 outline-none focus:bg-white focus:border-gray-300 transition-colors">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">公司聯繫方式</label>
+                                    <input type="text" class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded-md text-sm text-gray-800 outline-none focus:bg-white focus:border-gray-300 transition-colors">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 個人聯繫方式 -->
+                        <div>
+                            <h4 class="text-[15px] font-bold text-gray-900 mb-4">個人聯繫方式</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-5">
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">個人郵箱</label>
+                                    <input type="text" class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded-md text-sm text-gray-800 outline-none focus:bg-white focus:border-gray-300 transition-colors">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">個人聯繫方式</label>
+                                    <input type="text" class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded-md text-sm text-gray-800 outline-none focus:bg-white focus:border-gray-300 transition-colors">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">個人地址</label>
+                                    <input type="text" class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded-md text-sm text-gray-800 outline-none focus:bg-white focus:border-gray-300 transition-colors">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 緊急聯繫人電話 -->
+                        <div>
+                            <h4 class="text-[15px] font-bold text-gray-900 mb-4">緊急聯繫人電話</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-5">
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">緊急聯繫人</label>
+                                    <input type="text" class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded-md text-sm text-gray-800 outline-none focus:bg-white focus:border-gray-300 transition-colors">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">緊急聯繫人電話</label>
+                                    <input type="text" class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded-md text-sm text-gray-800 outline-none focus:bg-white focus:border-gray-300 transition-colors">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">與員工的關係</label>
+                                    <div class="relative">
+                                        <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white border border-transparent rounded-md text-sm outline-none cursor-pointer shadow-sm">
+                                            <option>選擇</option><option>父母</option><option>配偶</option><option>子女</option><option>其他</option>
+                                        </select>
+                                        <i class="fa-solid fa-caret-down text-white absolute right-3 top-1/2 transform -translate-y-1/2 text-xs pointer-events-none"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 其他項目 -->
+                        <div>
+                            <h4 class="text-[15px] font-bold text-gray-900 mb-5 mt-8">其他項目</h4>
+                            <div class="border border-dashed border-gray-300 rounded-md px-4 py-6 text-center text-sm text-gray-400">（預留空白區塊）</div>
+                        </div>
+
+                    </div>
+
+                    <!-- ========================================== -->
+                    <!-- 頁籤內容：職位信息 -->
+                    <!-- ========================================== -->
+                    <div id="tab-add-job" class="tab-add-content hidden max-w-5xl mx-auto space-y-8">
+
+                        <!-- 分部（可掛多組分部） -->
+                        <div>
+                            <div class="flex items-center justify-between mb-4">
+                                <h4 class="text-base font-bold text-gray-800">分部 <span class="text-red-500">*</span><span class="ml-2 text-xs font-medium text-gray-400">（可同時掛載多個分部）</span></h4>
+                                <button type="button" onclick="addDivisionCard()" class="px-3 py-1.5 text-sm font-medium text-[#7c3aed] border border-[#7c3aed] rounded-md hover:bg-violet-50 transition-colors whitespace-nowrap"><i class="fa-solid fa-plus mr-1.5"></i>新增分部</button>
+                            </div>
+                            <div id="division-list" class="space-y-3">
+
+                                <!-- 分部卡片（可複製新增） -->
+                                <div class="division-card border border-gray-200 rounded-lg bg-white">
+                                    <div class="flex items-center justify-between gap-2 px-4 py-3 border-b border-gray-100 bg-gray-50/60 rounded-t-lg">
+                                        <div class="flex items-center gap-2 min-w-0">
+                                            <i class="fa-solid fa-sitemap text-[#7c3aed] text-sm shrink-0"></i>
+                                            <span class="font-semibold text-gray-900 text-sm">分部設定</span>
+                                        </div>
+                                        <button type="button" onclick="removeDivisionCard(this)" class="w-7 h-7 flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors" title="移除分部"><i class="fa-solid fa-trash-can text-xs"></i></button>
+                                    </div>
+                                    <div class="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-4">
+                                        <div>
+                                            <label class="block text-xs font-semibold text-gray-500 mb-1.5">Location <span class="text-red-500">*</span></label>
+                                            <div class="relative">
+                                                <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded text-sm outline-none cursor-pointer">
+                                                    <option>選擇地區</option><option>T2 ( 總部 )</option><option>T2 ( LKG, RG )</option><option>BOSS</option>
+                                                </select>
+                                                <i class="fa-solid fa-caret-down text-white absolute right-3 top-1/2 transform -translate-y-1/2 text-xs pointer-events-none"></i>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-semibold text-gray-500 mb-1.5">Business <span class="text-red-500">*</span></label>
+                                            <div class="relative">
+                                                <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded text-sm outline-none cursor-pointer">
+                                                    <option>選擇事業部</option><option>研发中心 RD</option><option>项目管理中心 PMO</option><option>BOSS</option>
+                                                </select>
+                                                <i class="fa-solid fa-caret-down text-white absolute right-3 top-1/2 transform -translate-y-1/2 text-xs pointer-events-none"></i>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-semibold text-gray-500 mb-1.5">Approval Level <span class="text-red-500">*</span></label>
+                                            <div class="relative">
+                                                <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded text-sm outline-none cursor-pointer">
+                                                    <option>選擇</option><option>1</option><option>2</option><option>3</option>
+                                                </select>
+                                                <i class="fa-solid fa-caret-down text-white absolute right-3 top-1/2 transform -translate-y-1/2 text-xs pointer-events-none"></i>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-semibold text-gray-500 mb-1.5">人事經理</label>
+                                            <input type="text" placeholder="系統帶入" class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded text-sm text-gray-800 outline-none focus:bg-white focus:border-gray-300 transition-colors">
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <!-- 職位 -->
+                        <div>
+                            <h4 class="text-base font-bold text-gray-800 mb-4">職位</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5">
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">入職日期 <span class="text-red-500">*</span></label>
+                                    <input type="text" placeholder="年/月/日" class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded text-sm text-gray-800 outline-none focus:bg-white focus:border-gray-300 transition-colors">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">試用期通過日</label>
+                                    <div class="flex items-center">
+                                        <div class="bg-[#EAF2FC] border border-[#EAF2FC] border-r-0 px-3 py-2 rounded-l text-[#4A90E2] flex items-center justify-center">
+                                            <i class="fa-solid fa-square-check"></i>
+                                        </div>
+                                        <input type="text" placeholder="年/月/日" class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded-r text-sm text-gray-800 outline-none focus:bg-white focus:border-gray-300 transition-colors">
+                                    </div>
+                                </div>
+                                <div class="sm:col-span-2">
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">累計年資</label>
+                                    <div class="inline-block text-sm text-gray-800 px-3 py-2 bg-gray-50 rounded border border-gray-100">
+                                        入職迄今<span class="text-red-500 underline mx-1">00年</span><span class="text-red-500 underline mr-1">00月</span><span class="text-red-500 underline mr-1">00日</span> ( 結算至系統當天日期 )
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 基本工資 -->
+                        <div>
+                            <h4 class="text-base font-bold text-gray-800 mb-4">基本工資</h4>
+                            <div class="border-t border-gray-200 pt-4 overflow-x-auto">
+                                <div class="min-w-[960px] grid grid-cols-7 gap-2 mb-2">
+                                    <div class="text-sm font-bold text-gray-800 text-center">生效日期*</div>
+                                    <div class="text-sm font-bold text-gray-800 text-center">發薪日*</div>
+                                    <div class="text-sm font-bold text-gray-800 text-center">貨幣類型*</div>
+                                    <div class="text-sm font-bold text-gray-800 text-center">薪資(月)*</div>
+                                    <div class="text-sm font-bold text-gray-800 text-center">支付方式*</div>
+                                    <div class="text-sm font-bold text-gray-800 text-center">薪資調整原因</div>
+                                    <div class="text-sm font-bold text-gray-800 text-center">備註</div>
+                                </div>
+                                <div class="min-w-[960px] grid grid-cols-7 gap-2 items-start">
+                                    <input type="text" placeholder="年/月/日" class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded text-sm text-gray-800 outline-none focus:bg-white focus:border-gray-300 transition-colors text-center">
+                                    <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded text-sm outline-none cursor-pointer text-center"><option>選擇</option><option>Every 5th</option><option>Every 10th</option></select>
+                                    <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded text-sm outline-none cursor-pointer text-center"><option>選擇</option><option>USD</option><option>TWD</option><option>CNY</option></select>
+                                    <input type="text" placeholder="0.000000" class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded text-sm text-gray-800 outline-none focus:bg-white focus:border-gray-300 transition-colors text-center">
+                                    <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded text-sm outline-none cursor-pointer text-center"><option>選擇</option><option>Autopay</option><option>Cash</option></select>
+                                    <textarea rows="2" class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded text-sm text-gray-800 outline-none focus:bg-white focus:border-gray-300 transition-colors resize-none"></textarea>
+                                    <textarea rows="2" class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded text-sm text-gray-800 outline-none focus:bg-white focus:border-gray-300 transition-colors resize-none"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 獎金 -->
+                        <div>
+                            <h4 class="text-base font-bold text-gray-800 mb-4">獎金</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5">
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">13薪 <span class="text-red-500">*</span></label>
+                                    <div class="relative">
+                                        <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded text-sm outline-none cursor-pointer"><option>選擇</option><option>Y</option><option>N</option></select>
+                                        <i class="fa-solid fa-caret-down text-white absolute right-3 top-1/2 transform -translate-y-1/2 text-xs pointer-events-none"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">獎金類型 <span class="text-red-500">*</span></label>
+                                    <div class="relative">
+                                        <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded text-sm outline-none cursor-pointer"><option>選擇</option><option>A</option><option>B</option><option>C</option></select>
+                                        <i class="fa-solid fa-caret-down text-white absolute right-3 top-1/2 transform -translate-y-1/2 text-xs pointer-events-none"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 其他福利 -->
+                        <div>
+                            <h4 class="text-base font-bold text-gray-800 mb-4">其他福利</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5">
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">團建分類 <span class="text-red-500">*</span></label>
+                                    <div class="relative">
+                                        <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded text-sm outline-none cursor-pointer"><option>選擇</option><option>無</option><option>A 類</option><option>B 類</option></select>
+                                        <i class="fa-solid fa-caret-down text-white absolute right-3 top-1/2 transform -translate-y-1/2 text-xs pointer-events-none"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">福利制度</label>
+                                    <div class="relative">
+                                        <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded text-sm outline-none cursor-pointer"><option>選擇</option><option>標準</option><option>主管</option></select>
+                                        <i class="fa-solid fa-caret-down text-white absolute right-3 top-1/2 transform -translate-y-1/2 text-xs pointer-events-none"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">生日福利</label>
+                                    <textarea rows="2" class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded text-sm text-gray-800 outline-none focus:bg-white focus:border-gray-300 transition-colors resize-none"></textarea>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">節日福利</label>
+                                    <textarea rows="2" class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded text-sm text-gray-800 outline-none focus:bg-white focus:border-gray-300 transition-colors resize-none"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 職位信息 -->
+                        <div>
+                            <h4 class="text-base font-bold text-gray-800 mb-4">職位信息</h4>
+                            <div class="border-t border-gray-200 pt-4 overflow-x-auto">
+                                <div class="min-w-[720px] grid grid-cols-5 gap-2 mb-2">
+                                    <div class="text-sm font-bold text-gray-800 text-center">生效日期*</div>
+                                    <div class="text-sm font-bold text-gray-800 text-center">主體*</div>
+                                    <div class="text-sm font-bold text-gray-800 text-center">部門*</div>
+                                    <div class="text-sm font-bold text-gray-800 text-center">職位*</div>
+                                    <div class="text-sm font-bold text-gray-800 text-center">直屬上司*</div>
+                                </div>
+                                <div class="min-w-[720px] grid grid-cols-5 gap-2 items-start">
+                                    <input type="text" placeholder="年/月/日" class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded text-sm text-gray-800 outline-none focus:bg-white focus:border-gray-300 transition-colors text-center">
+                                    <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded text-sm outline-none cursor-pointer text-center"><option>選擇</option><option>None</option></select>
+                                    <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded text-sm outline-none cursor-pointer text-center"><option>選擇</option><option>研發部</option><option>人資部</option></select>
+                                    <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded text-sm outline-none cursor-pointer text-center"><option>選擇</option></select>
+                                    <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded text-sm outline-none cursor-pointer text-center"><option>選擇</option></select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 事業部 -->
+                        <div>
+                            <h4 class="text-base font-bold text-gray-800 mb-4">事業部</h4>
+                            <div class="border-t border-gray-200 pt-4 overflow-x-auto">
+                                <div class="min-w-[480px] grid grid-cols-2 gap-2 mb-2">
+                                    <div class="text-sm font-bold text-gray-800 text-center">生效日期*</div>
+                                    <div class="text-sm font-bold text-gray-800 text-center">項目*</div>
+                                </div>
+                                <div class="min-w-[480px] grid grid-cols-2 gap-2 items-start">
+                                    <input type="text" placeholder="年/月/日" class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded text-sm text-gray-800 outline-none focus:bg-white focus:border-gray-300 transition-colors text-center">
+                                    <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded text-sm outline-none cursor-pointer text-center"><option>選擇</option><option>GT</option></select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 職級 -->
+                        <div>
+                            <h4 class="text-base font-bold text-gray-800 mb-4">職級</h4>
+                            <div class="border-t border-gray-200 pt-4 overflow-x-auto">
+                                <div class="min-w-[480px] grid grid-cols-2 gap-2 mb-2">
+                                    <div class="text-sm font-bold text-gray-800 text-center">生效日期*</div>
+                                    <div class="text-sm font-bold text-gray-800 text-center">職級*</div>
+                                </div>
+                                <div class="min-w-[480px] grid grid-cols-2 gap-2 items-start">
+                                    <input type="text" placeholder="年/月/日" class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded text-sm text-gray-800 outline-none focus:bg-white focus:border-gray-300 transition-colors text-center">
+                                    <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded text-sm outline-none cursor-pointer text-center"><option>選擇</option><option>K</option><option>P</option><option>M</option></select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 其他項目 -->
+                        <div>
+                            <h4 class="text-base font-bold text-gray-800 mb-4">其他項目</h4>
+                            <div class="border border-dashed border-gray-300 rounded-md px-4 py-6 text-center text-sm text-gray-400">（預留空白區塊）</div>
+                        </div>
+
+                    </div>
+
+                    <!-- ========================================== -->
+                    <!-- 頁籤內容：假期信息 -->
+                    <!-- ========================================== -->
+                    <div id="tab-add-leave" class="tab-add-content hidden max-w-5xl mx-auto space-y-8">
+
+                        <!-- 分部資訊 -->
+                        <div>
+                            <h4 class="text-base font-bold text-gray-800 mb-4">分部資訊</h4>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-500 mb-1.5">已選分部</label>
+                                <input type="text" placeholder="依職位信息所選分部自動帶入" readonly class="w-full sm:max-w-md px-3 py-2 bg-[#e8ecf1] border border-gray-300 rounded text-sm text-gray-800 outline-none cursor-default">
+                            </div>
+                        </div>
+
+                        <!-- 假期政策 -->
+                        <div>
+                            <h4 class="text-base font-bold text-gray-800 mb-4">假期政策</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5">
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">時區</label>
+                                    <input type="text" placeholder="系統帶入" readonly class="w-full px-3 py-2 bg-[#e8ecf1] border border-gray-300 rounded text-sm text-gray-800 outline-none cursor-default">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">國家代碼</label>
+                                    <input type="text" placeholder="系統帶入" readonly class="w-full px-3 py-2 bg-[#e8ecf1] border border-gray-300 rounded text-sm text-gray-800 outline-none cursor-default">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 假期總表配置 -->
+                        <div>
+                            <h4 class="text-base font-bold text-gray-800 mb-4">假期總表配置</h4>
+                            <div class="border border-gray-200 rounded-lg overflow-x-auto">
+                                <table class="w-full min-w-[720px] text-sm text-gray-800">
+                                    <thead>
+                                        <tr class="bg-gray-50 text-gray-700 text-left">
+                                            <th class="px-4 py-3 font-bold">假期名稱</th>
+                                            <th class="px-4 py-3 font-bold">支薪類型</th>
+                                            <th class="px-4 py-3 font-bold">時間單位定義</th>
+                                            <th class="px-4 py-3 font-bold">Increase / Decrease</th>
+                                            <th class="px-4 py-3 font-bold text-right">總生成時數*</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-100">
+                                        <tr><td class="px-4 py-2.5">帶薪年假</td><td class="px-4 py-2.5">Paid</td><td class="px-4 py-2.5">8 hours</td><td class="px-4 py-2.5"><span class="inline-block px-2 py-0.5 rounded text-xs font-medium bg-red-50 text-red-600">Decrease</span></td><td class="px-4 py-2.5 text-right">160</td></tr>
+                                        <tr><td class="px-4 py-2.5">事假</td><td class="px-4 py-2.5">Unpaid</td><td class="px-4 py-2.5">8 hours</td><td class="px-4 py-2.5"><span class="inline-block px-2 py-0.5 rounded text-xs font-medium bg-red-50 text-red-600">Decrease</span></td><td class="px-4 py-2.5 text-right">112</td></tr>
+                                        <tr><td class="px-4 py-2.5">病假</td><td class="px-4 py-2.5">Paid</td><td class="px-4 py-2.5">8 hours</td><td class="px-4 py-2.5"><span class="inline-block px-2 py-0.5 rounded text-xs font-medium bg-red-50 text-red-600">Decrease</span></td><td class="px-4 py-2.5 text-right">16</td></tr>
+                                        <tr><td class="px-4 py-2.5">喪假</td><td class="px-4 py-2.5">Paid</td><td class="px-4 py-2.5">8 hours</td><td class="px-4 py-2.5"><span class="inline-block px-2 py-0.5 rounded text-xs font-medium bg-red-50 text-red-600">Decrease</span></td><td class="px-4 py-2.5 text-right">40</td></tr>
+                                        <tr><td class="px-4 py-2.5">婚假</td><td class="px-4 py-2.5">Paid</td><td class="px-4 py-2.5">8 hours</td><td class="px-4 py-2.5"><span class="inline-block px-2 py-0.5 rounded text-xs font-medium bg-red-50 text-red-600">Decrease</span></td><td class="px-4 py-2.5 text-right">24</td></tr>
+                                        <tr><td class="px-4 py-2.5">生理假</td><td class="px-4 py-2.5">Paid</td><td class="px-4 py-2.5">8 hours</td><td class="px-4 py-2.5"><span class="inline-block px-2 py-0.5 rounded text-xs font-medium bg-red-50 text-red-600">Decrease</span></td><td class="px-4 py-2.5 text-right">8</td></tr>
+                                        <tr><td class="px-4 py-2.5">公假</td><td class="px-4 py-2.5">Paid</td><td class="px-4 py-2.5">8 hours</td><td class="px-4 py-2.5"><span class="inline-block px-2 py-0.5 rounded text-xs font-medium bg-green-50 text-green-600">Increase</span></td><td class="px-4 py-2.5 text-right">0</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- 底部按鈕區 (保存/取消) -->
+                <div class="px-6 md:px-12 py-4 flex gap-3 shrink-0 border-t border-gray-100 bg-[#fafafa] rounded-b-xl">
+                    <button type="button" onclick="closeAddEmployeeModal()" class="px-6 py-2 text-[15px] font-medium text-white bg-[#4A90E2] rounded shadow-sm hover:bg-opacity-90 transition-colors">
+                        保存
+                    </button>
+                    <button type="button" onclick="closeAddEmployeeModal()" class="px-6 py-2 text-[15px] font-medium text-white bg-[#6b7280] rounded shadow-sm hover:bg-gray-600 transition-colors">
+                        取消
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM 元素宣告 (確保兩組彈窗相互獨立)
+        const editModal = document.getElementById('editModal');
+        const editModalPanel = document.getElementById('editModalPanel');
+        const addEmployeeModal = document.getElementById('addEmployeeModal');
+        const addEmployeeModalPanel = document.getElementById('addEmployeeModalPanel');
+
+        /* -----------------------
+           主頁面詳情彈窗 (Edit Modal / Details)
+           ----------------------- */
+        function openEditModal() {
+            if (editModal && editModalPanel) {
+                editModal.classList.remove('hidden');
+                // 強制重繪以觸發過渡動畫
+                void editModal.offsetWidth;
+                editModalPanel.classList.remove('opacity-0', 'scale-95', 'translate-y-4');
+                editModalPanel.classList.add('modal-enter-active');
+
+                // 每次開啟皆預設為「檢視」狀態，並顯示第一個頁籤
+                setEditMode(false);
+                switchTab('tab-personal');
+            }
+        }
+
+        /* -----------------------
+           檢視 / 修改 狀態切換
+           - 檢視狀態：隱藏 .js-edit-only（如「新增分部」、分部移除鈕、儲存/取消）
+           - 修改狀態：隱藏 .js-view-only（如「修改」「關閉」與下方管理操作），改顯示編輯工具
+           ----------------------- */
+        function setEditMode(isEdit) {
+            if (!editModalPanel) return;
+            editModalPanel.classList.toggle('edit-mode', isEdit);
+            editModalPanel.querySelectorAll('.js-edit-only').forEach(el => el.classList.toggle('hidden', !isEdit));
+            editModalPanel.querySelectorAll('.js-view-only').forEach(el => el.classList.toggle('hidden', isEdit));
+        }
+
+        function enterEditMode() {
+            setEditMode(true);
+        }
+
+        function exitEditMode() {
+            setEditMode(false);
+        }
+
+        function saveEditMode() {
+            // Demo：實際儲存邏輯可在此串接 API，此處僅返回檢視狀態
+            setEditMode(false);
+        }
+
+        function closeEditModal() {
+            if (editModal && editModalPanel) {
+                editModalPanel.classList.remove('modal-enter-active');
+                setTimeout(() => {
+                    editModal.classList.add('hidden');
+                }, 200);
+            }
+        }
+
+        /* -----------------------
+           編輯彈窗內 頁籤切換邏輯 (Tabs)
+           ----------------------- */
+        function switchTab(tabId) {
+            // 隱藏所有內容
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // 取消所有按鈕的高亮狀態 (恢復為未選中樣式)
+            document.querySelectorAll('[id^="btn-tab-"]').forEach(btn => {
+                btn.classList.remove('text-gray-800', 'border-[#3b82f6]');
+                btn.classList.add('text-gray-700', 'border-transparent', 'hover:text-gray-900', 'hover:border-gray-300');
+            });
+
+            // 顯示目標內容
+            const targetContent = document.getElementById(tabId);
+            if (targetContent) {
+                targetContent.classList.add('active');
+            }
+            
+            // 高亮目標按鈕
+            const activeBtn = document.getElementById('btn-' + tabId);
+            if (activeBtn) {
+                activeBtn.classList.remove('text-gray-700', 'border-transparent', 'hover:text-gray-900', 'hover:border-gray-300');
+                activeBtn.classList.add('text-gray-800', 'border-[#3b82f6]');
+            }
+        }
+
+        /* -----------------------
+           添加新員工彈窗 (Add Employee Modal)
+           ----------------------- */
+        function openAddEmployeeModal() {
+            if (addEmployeeModal && addEmployeeModalPanel) {
+                addEmployeeModal.classList.remove('hidden');
+                void addEmployeeModal.offsetWidth;
+                addEmployeeModalPanel.classList.add('modal-enter-active');
+                
+                // 每次開啟預設顯示第一個頁籤
+                switchAddTab('tab-add-personal');
+            }
+        }
+
+        function closeAddEmployeeModal() {
+            if (addEmployeeModal && addEmployeeModalPanel) {
+                addEmployeeModalPanel.classList.remove('modal-enter-active');
+                setTimeout(() => {
+                    addEmployeeModal.classList.add('hidden');
+                }, 200);
+            }
+        }
+
+        /* -----------------------
+           職位信息：新增 / 移除分部（可掛多組分部）
+           ----------------------- */
+        function addDivisionCard() {
+            const list = document.getElementById('division-list');
+            if (!list) return;
+            const first = list.querySelector('.division-card');
+            const clone = first.cloneNode(true);
+            // 重設複製卡片的欄位值
+            clone.querySelectorAll('input').forEach(i => i.value = '');
+            clone.querySelectorAll('select').forEach(s => s.selectedIndex = 0);
+            list.appendChild(clone);
+        }
+
+        function removeDivisionCard(btn) {
+            const list = document.getElementById('division-list');
+            if (!list) return;
+            // 至少保留一張分部卡片
+            if (list.querySelectorAll('.division-card').length > 1) {
+                btn.closest('.division-card').remove();
+            }
+        }
+
+        /* -----------------------
+           新增員工內 頁籤切換邏輯 (Tabs)
+           ----------------------- */
+        function switchAddTab(tabId) {
+            // 隱藏所有新增內容
+            document.querySelectorAll('.tab-add-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // 取消所有按鈕的高亮狀態
+            document.querySelectorAll('[id^="btn-tab-add-"]').forEach(btn => {
+                btn.classList.remove('text-gray-800', 'border-[#3b82f6]');
+                btn.classList.add('text-[#3b82f6]', 'border-transparent', 'hover:text-blue-600');
+            });
+
+            // 顯示目標內容
+            const targetContent = document.getElementById(tabId);
+            if (targetContent) {
+                targetContent.classList.add('active');
+            }
+            
+            // 高亮目標按鈕
+            const activeBtn = document.getElementById('btn-' + tabId);
+            if (activeBtn) {
+                activeBtn.classList.remove('text-[#3b82f6]', 'border-transparent', 'hover:text-blue-600');
+                activeBtn.classList.add('text-gray-800', 'border-[#3b82f6]');
+            }
+        }
+    </script>
+
+</body>
+</html>

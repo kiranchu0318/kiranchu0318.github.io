@@ -1,0 +1,341 @@
+/* =====================================================================
+   HROA 共用 UI 元件樣式庫 (Design System)
+   ---------------------------------------------------------------------
+   用途：統一全系統「同用途」UI 元件的外觀（按鈕 / 表格 / 搜尋框 /
+        狀態標籤 / 卡片 / 分頁）。各頁面只要 <link> 此檔並套用對應
+        .ui-* class，即可保持一致樣式。
+   作法：純 CSS（不依賴 Tailwind 編譯），可被 iframe 子頁各自引入。
+   主色：藍色 #4A90E2
+   ===================================================================== */
+
+:root {
+    /* 主色 */
+    --ui-primary:        #4A90E2;
+    --ui-primary-hover:  #3B7DD8;
+    --ui-primary-active: #357ABD;
+    --ui-primary-light:  #EAF2FC;   /* active 底色 / hover 淺底 */
+    --ui-primary-ring:   rgba(74, 144, 226, 0.25);
+
+    /* 中性色 */
+    --ui-text:           #374151;   /* gray-700 */
+    --ui-text-muted:     #6B7280;   /* gray-500 */
+    --ui-text-strong:    #111827;   /* gray-900 */
+    --ui-border:         #E5E7EB;   /* gray-200 */
+    --ui-border-strong:  #D1D5DB;   /* gray-300 */
+    --ui-bg-subtle:      #F9FAFB;   /* gray-50 */
+    --ui-divider:        #F3F4F6;   /* gray-100 */
+
+    /* 功能色 */
+    --ui-success:        #22C55E;
+    --ui-success-hover:  #16A34A;
+    --ui-danger:         #D93025;
+    --ui-danger-hover:   #B91C1C;
+    --ui-warning:        #F59E0B;
+
+    /* 圓角 / 陰影 */
+    --ui-radius-sm:  6px;
+    --ui-radius:     8px;    /* 按鈕 / 輸入框 */
+    --ui-radius-lg:  12px;   /* 卡片 */
+    --ui-shadow-sm:  0 1px 2px rgba(0, 0, 0, 0.05);
+    --ui-shadow-card: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+/* =====================================================================
+   1. 按鈕 Button
+   ===================================================================== */
+.ui-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;          /* py-2 px-4 */
+    font-size: 0.875rem;           /* text-sm */
+    font-weight: 500;              /* font-medium */
+    line-height: 1.25rem;
+    border-radius: var(--ui-radius);
+    border: 1px solid transparent;
+    box-shadow: var(--ui-shadow-sm);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background-color .15s ease, color .15s ease, border-color .15s ease, box-shadow .15s ease;
+    user-select: none;
+}
+.ui-btn:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--ui-primary-ring);
+}
+.ui-btn:disabled,
+.ui-btn[disabled] {
+    opacity: .5;
+    cursor: not-allowed;
+}
+
+/* 主要按鈕（新增 / 儲存 / 提交 / 確定） */
+.ui-btn-primary {
+    background-color: var(--ui-primary);
+    color: #fff;
+    border-color: var(--ui-primary);
+}
+.ui-btn-primary:hover { background-color: var(--ui-primary-hover); border-color: var(--ui-primary-hover); }
+.ui-btn-primary:active { background-color: var(--ui-primary-active); }
+
+/* 次要按鈕（取消 / 重置 / 匯出） */
+.ui-btn-secondary {
+    background-color: #fff;
+    color: var(--ui-text);
+    border-color: var(--ui-border-strong);
+}
+.ui-btn-secondary:hover { background-color: var(--ui-bg-subtle); color: var(--ui-primary); border-color: var(--ui-primary); }
+
+/* 危險按鈕（刪除 / 撤回 / 駁回） */
+.ui-btn-danger {
+    background-color: var(--ui-danger);
+    color: #fff;
+    border-color: var(--ui-danger);
+}
+.ui-btn-danger:hover { background-color: var(--ui-danger-hover); border-color: var(--ui-danger-hover); }
+
+/* 成功按鈕（核准 / 通過） */
+.ui-btn-success {
+    background-color: var(--ui-success);
+    color: #fff;
+    border-color: var(--ui-success);
+}
+.ui-btn-success:hover { background-color: var(--ui-success-hover); border-color: var(--ui-success-hover); }
+
+/* 尺寸變體 */
+.ui-btn-sm { padding: 0.3125rem 0.75rem; font-size: 0.8125rem; }   /* 表格內小按鈕 */
+.ui-btn-lg { padding: 0.625rem 1.5rem; font-size: 0.9375rem; }
+
+/* =====================================================================
+   2. 輸入框 / 搜尋框 / 下拉 Input / Search / Select
+   ===================================================================== */
+.ui-input,
+.ui-select {
+    display: block;
+    width: 100%;
+    padding: 0.5rem 0.75rem;       /* py-2 px-3 */
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    color: var(--ui-text);
+    background-color: #fff;
+    border: 1px solid var(--ui-border-strong);
+    border-radius: var(--ui-radius);
+    box-shadow: var(--ui-shadow-sm);
+    transition: border-color .15s ease, box-shadow .15s ease;
+    outline: none;
+}
+.ui-input::placeholder { color: #9CA3AF; }
+.ui-input:focus,
+.ui-select:focus {
+    border-color: var(--ui-primary);
+    box-shadow: 0 0 0 3px var(--ui-primary-ring);
+}
+.ui-input:disabled,
+.ui-select:disabled {
+    background-color: var(--ui-bg-subtle);
+    color: var(--ui-text-muted);
+    cursor: not-allowed;
+}
+
+/* 下拉箭頭 */
+.ui-select {
+    -webkit-appearance: none;
+    appearance: none;
+    padding-right: 2.5rem;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    cursor: pointer;
+}
+
+/* 搜尋框容器：內含左側 icon。將 input 設 .ui-input 並加 .ui-search-input */
+.ui-search { position: relative; }
+.ui-search > svg,
+.ui-search > i,
+.ui-search > .ui-search-icon {
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--ui-text-muted);
+    pointer-events: none;
+}
+.ui-search-input { padding-left: 2.25rem; }   /* 預留 icon 空間 */
+
+/* =====================================================================
+   3. 表格 Table（後代選擇器，套在 <table class="ui-table"> 即可）
+   ===================================================================== */
+.ui-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+}
+.ui-table thead {
+    background-color: var(--ui-bg-subtle);
+    color: var(--ui-text-muted);
+    font-weight: 500;
+}
+.ui-table thead th {
+    padding: 0.75rem 1.25rem;       /* py-3 px-5 */
+    font-weight: 500;
+    border: none;
+    border-bottom: 1px solid var(--ui-border);
+    white-space: nowrap;
+}
+.ui-table tbody td {
+    padding: 0.875rem 1.25rem;      /* py-3.5 px-5 */
+    border: none;
+    border-bottom: 1px solid var(--ui-divider);
+    color: var(--ui-text);
+    vertical-align: middle;
+}
+.ui-table tbody tr {
+    background-color: #fff;
+    transition: background-color .15s ease;
+}
+.ui-table tbody tr:hover { background-color: var(--ui-bg-subtle); }
+.ui-table tbody tr:last-child td { border-bottom: none; }
+
+/* =====================================================================
+   4. 狀態標籤 / 徽章 Badge
+   ===================================================================== */
+.ui-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    padding: 0.25rem 0.625rem;      /* py-1 px-2.5 */
+    font-size: 0.75rem;             /* text-xs */
+    font-weight: 600;
+    line-height: 1rem;
+    border-radius: 9999px;          /* rounded-full */
+    border: 1px solid transparent;
+    white-space: nowrap;
+}
+.ui-badge-success { background-color: #E6F4EA; color: #1E8E3E; border-color: #A8DAB5; }   /* 已通過 / 啟用 / 正常 */
+.ui-badge-info    { background-color: #E0EAFF; color: #3949AB; border-color: #A9C3F8; }   /* 審批中 / 進行中 */
+.ui-badge-warning { background-color: #FEF0C7; color: #B54708; border-color: #FEDF89; }   /* 待簽核 / 待處理 */
+.ui-badge-danger  { background-color: #FCE8E8; color: #D93025; border-color: #F6C6C3; }   /* 駁回 / 異常 / 停用 */
+.ui-badge-purple  { background-color: #F4F0FF; color: #6941C6; border-color: #D9C9F8; }   /* 模板 / 特殊 */
+.ui-badge-gray    { background-color: #F3F4F6; color: #4B5563; border-color: #E5E7EB; }   /* 草稿 / 未綁定 */
+
+/* =====================================================================
+   5. 卡片 Card（僅含底色/圓角/邊框/陰影，padding 由各頁自訂）
+   ===================================================================== */
+.ui-card {
+    background-color: #fff;
+    border: 1px solid var(--ui-divider);
+    border-radius: var(--ui-radius-lg);
+    box-shadow: var(--ui-shadow-card);
+}
+
+/* =====================================================================
+   6. 分頁 Pagination
+   ===================================================================== */
+.ui-page-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2rem;
+    height: 2rem;
+    padding: 0 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--ui-text-muted);
+    background-color: #fff;
+    border: 1px solid var(--ui-border);
+    border-radius: var(--ui-radius-sm);
+    cursor: pointer;
+    transition: background-color .15s ease, color .15s ease, border-color .15s ease;
+}
+.ui-page-btn:hover { background-color: var(--ui-bg-subtle); color: var(--ui-primary); }
+.ui-page-btn:disabled,
+.ui-page-btn[disabled] { opacity: .5; cursor: not-allowed; }
+.ui-page-btn.is-active,
+.ui-page-btn[aria-current="page"] {
+    background-color: var(--ui-primary);
+    color: #fff;
+    border-color: var(--ui-primary);
+}
+
+/* =====================================================================
+   7. 基礎排版 Typography（全站統一字體與字級）
+   ===================================================================== */
+body {
+    font-family: 'Inter', 'Noto Sans TC', 'PingFang TC', -apple-system,
+                 BlinkMacSystemFont, 'Segoe UI', Roboto, 'Microsoft JhengHei', sans-serif;
+    font-size: 14px;                /* 全站基準字級 */
+    line-height: 1.6;
+    color: var(--ui-text);
+    background-color: #F4F6F8;       /* 全站統一頁面底色 */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* 字級階層（可選用，維持一致比例） */
+.ui-text-xs   { font-size: 0.75rem;  }   /* 12px */
+.ui-text-sm   { font-size: 0.8125rem; }  /* 13px */
+.ui-text-base { font-size: 0.875rem; }   /* 14px */
+.ui-text-lg   { font-size: 1rem;     }   /* 16px */
+
+/* =====================================================================
+   8. 頁面結構 Page Layout（容器 / 標題列）
+   ===================================================================== */
+
+/* 頁面外層容器：統一外距與底色 */
+.ui-page {
+    min-height: 100vh;
+    padding: 1.5rem;
+    background-color: #F4F6F8;
+}
+@media (max-width: 640px) {
+    .ui-page { padding: 1rem; }
+}
+
+/* 內容置中容器：統一最大寬度 */
+.ui-container {
+    width: 100%;
+    max-width: 1280px;
+    margin-left: auto;
+    margin-right: auto;
+}
+.ui-container-wide { max-width: 1536px; }   /* 寬版（多欄密集表格頁） */
+
+/* 頁面標題列：左標題、右操作按鈕，兩端對齊 */
+.ui-page-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+/* 頁面標題：統一字級 + 左側主色強調條（由 ::before 產生） */
+.ui-page-title {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1.5rem;              /* 24px，全站統一標題字級 */
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: 0.015em;
+    color: #1F2937;                 /* gray-800 */
+}
+.ui-page-title::before {
+    content: "";
+    display: inline-block;
+    flex-shrink: 0;
+    width: 0.375rem;
+    height: 1.5rem;
+    border-radius: 9999px;
+    background-color: var(--ui-primary);
+}
+
+/* 頁面副標題（標題下方說明文字） */
+.ui-page-subtitle {
+    margin-top: 0.375rem;
+    font-size: 0.875rem;
+    color: var(--ui-text-muted);
+}

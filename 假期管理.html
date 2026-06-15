@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HR 員工假期紀錄管理系統</title>
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 Font Awesome 用於圖標 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4A90E2', 
+                        'primary-light': '#EAF2FC',
+                        background: '#F8F9FB', 
+                        card: '#FFFFFF',
+                        text: {
+                            main: '#1F2937',
+                            muted: '#6B7280',
+                            light: '#9CA3AF'
+                        },
+                        status: {
+                            submitted: '#DBEAFE',
+                            pending: '#FEF3C7',
+                            completed: '#D1FAE5',
+                            rejected: '#FEE2E2',
+                            active: '#ECFDF5', 
+                            text: {
+                                submitted: '#1D4ED8',
+                                pending: '#D97706',
+                                completed: '#059669',
+                                rejected: '#DC2626',
+                                active: '#10B981' 
+                            }
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['"Inter"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'card': '0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03)',
+                        'modal': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                        'stat': '0 10px 15px -3px rgba(92, 74, 229, 0.04), 0 4px 6px -2px rgba(92, 74, 229, 0.01)'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: theme('colors.background');
+            font-family: theme('fontFamily.sans');
+        }
+        /* 自訂滾動條 */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        /* Modal 動畫過渡 */
+        .modal-enter {
+            opacity: 0;
+            transform: scale(0.95) translateY(10px);
+        }
+        .modal-enter-active {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+            transition: opacity 200ms ease-out, transform 200ms ease-out;
+        }
+
+        /* 可複選下拉選單 (Multi-select) */
+        .ms { position: relative; }
+        .ms-toggle { display: flex; align-items: center; justify-content: space-between; gap: .5rem; width: 100%; text-align: left; cursor: pointer; }
+        .ms-toggle.ms-active { border-color: #4A90E2; }
+        .ms-label { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .ms-toggle.ms-active .ms-label { color: #1F2937; font-weight: 600; }
+        .ms-caret { font-size: .6rem; color: #9CA3AF; flex-shrink: 0; }
+        .ms-panel { position: absolute; z-index: 40; top: calc(100% + 4px); left: 0; right: 0; background: #fff; border: 1px solid #E5E7EB; border-radius: .5rem; box-shadow: 0 8px 24px rgba(0,0,0,.10); padding: .25rem; max-height: 240px; overflow-y: auto; }
+        .ms-option { display: flex; align-items: center; gap: .55rem; padding: .45rem .55rem; border-radius: .375rem; font-size: .8125rem; color: #374151; cursor: pointer; white-space: nowrap; }
+        .ms-option:hover { background: #F3F4F6; }
+        .ms-option input { width: 15px; height: 15px; accent-color: #4A90E2; cursor: pointer; }
+    </style>
+    <link rel="stylesheet" href="shared-ui.css">
+</head>
+<body class="ui-page text-text-main antialiased relative">
+
+    <div class="relative mx-auto w-full max-w-[1400px] space-y-6">
+        
+        <!-- 頁面標題區塊 -->
+        <header class="ui-page-header">
+            <h1 class="ui-page-title">假期管理</h1>
+        </header>
+
+        
+        <!-- 頂部人資專屬篩選控制台 -->
+        <div class="ui-card p-5 space-y-4">
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- 工號與姓名搜尋 -->
+                <div class="relative">
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">員工搜尋 (姓名/工號)</label>
+                    <div class="relative ui-search">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="filter-search" oninput="applyFilters()" placeholder="輸入員工姓名或工號..." class="ui-input ui-search-input">
+                    </div>
+                </div>
+
+                <!-- 地區篩選 (可複選) -->
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">地區</label>
+                    <div id="filter-region-ms"></div>
+                </div>
+
+                <!-- 事業部篩選 (可複選) -->
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">事業部</label>
+                    <div id="filter-bu-ms"></div>
+                </div>
+
+                <!-- 項目篩選 (可複選) -->
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">項目</label>
+                    <div id="filter-item-ms"></div>
+                </div>
+
+                <!-- 部門篩選 (可複選) -->
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">部門</label>
+                    <div id="filter-dept-ms"></div>
+                </div>
+
+                <!-- 假期類型篩選 -->
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">假期種類</label>
+                    <div class="relative">
+                        <select id="filter-type" onchange="applyFilters()" class="ui-select">
+                            <option value="all">全部種類</option>
+                            <option value="特休">特休 (Annual Leave)</option>
+                            <option value="事假">事假 (Personal Leave)</option>
+                            <option value="病假">病假 (Sick Leave)</option>
+                            <option value="公假">公假 (Official Leave)</option>
+                            <option value="補休">補休 (Compensatory Leave)</option>
+                            <option value="婚假">婚假 (Marriage Leave)</option>
+                            <option value="喪假">喪假 (Bereavement Leave)</option>
+                            <option value="生理假">生理假 (Menstrual Leave)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- 狀態篩選 -->
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">假單狀態</label>
+                    <div class="relative">
+                        <select id="filter-status" onchange="applyFilters()" class="ui-select">
+                            <option value="all">全部狀態</option>
+                            <option value="待審核">待審核</option>
+                            <option value="已核准">已核准</option>
+                            <option value="已駁回">已駁回</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- 請假時間搜尋 -->
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">請假日期區間</label>
+                    <div class="flex items-center gap-1.5">
+                        <input type="date" id="filter-date-start" onchange="applyFilters()" class="ui-input flex-1 min-w-0">
+                        <span class="text-gray-400 text-xs font-medium shrink-0">至</span>
+                        <input type="date" id="filter-date-end" onchange="applyFilters()" class="ui-input flex-1 min-w-0">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 快速時間標籤 & 重設按鈕 -->
+            <div class="flex flex-wrap items-center justify-end pt-2 gap-2">
+                <button onclick="resetFilters()" class="text-xs text-primary font-semibold hover:underline flex items-center gap-1.5">
+                    <i class="fa-solid fa-arrows-rotate"></i> 重設所有篩選條件
+                </button>
+            </div>
+        </div>
+
+        <!-- 假單紀錄區塊 (卡片樣式) -->
+        <section class="ui-card p-4 sm:p-6">
+            
+            <!-- 卡片頂部標題與操作區 -->
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                <div class="flex items-center gap-2">
+                    <h2 id="table-title" class="text-lg font-bold text-gray-900 whitespace-nowrap">假單紀錄列表</h2>
+                    <span id="record-count-badge" class="bg-blue-50 text-primary text-xs px-2.5 py-1 rounded-md font-bold">10 筆資料</span>
+                </div>
+                <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
+                    <div class="text-xs text-text-muted flex items-center gap-2">
+                        <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500"></span> 已核准
+                        <span class="inline-block w-2.5 h-2.5 rounded-full bg-amber-500 ml-1"></span> 待審核
+                        <span class="inline-block w-2.5 h-2.5 rounded-full bg-rose-500 ml-1"></span> 已駁回
+                    </div>
+                    <button onclick="mockExport()" class="ui-btn ui-btn-secondary ui-btn-sm">
+                        <i class="fa-solid fa-download"></i> 匯出報表
+                    </button>
+                </div>
+            </div>
+
+            <!-- 表格容器 -->
+            <div class="overflow-x-auto rounded-lg border border-gray-100 custom-scrollbar">
+                <table class="ui-table text-center whitespace-nowrap">
+                    <thead>
+                        <tr>
+                            <th scope="col" class="text-left">工號</th>
+                            <th scope="col" class="text-left">姓名</th>
+                            <th scope="col">地區</th>
+                            <th scope="col">事業部</th>
+                            <th scope="col">項目</th>
+                            <th scope="col">部門</th>
+                            <th scope="col">開始日</th>
+                            <th scope="col">結束日</th>
+                            <th scope="col">假期種類</th>
+                            <th scope="col">天數</th>
+                            <th scope="col" class="w-28">假單狀態</th>
+                            <th scope="col">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leave-tbody">
+                        <!-- 動態由 JavaScript 渲染 -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 查無資料備用顯示 -->
+            <div id="no-data-view" class="hidden py-16 text-center space-y-3">
+                <div class="inline-flex p-4 bg-gray-50 text-gray-400 rounded-full">
+                    <i class="fa-solid fa-magnifying-glass text-3xl"></i>
+                </div>
+                <p class="text-sm text-text-muted font-medium">查無符合條件的同仁假期紀錄</p>
+                <button onclick="resetFilters()" class="text-xs text-primary font-semibold hover:underline">清除篩選條件</button>
+            </div>
+
+            <!-- 分頁區塊 -->
+            <div class="flex items-center justify-between mt-6 pt-4 border-t border-gray-100">
+                <span id="pagination-info" class="text-sm text-gray-500">顯示第 1 到 10 筆，共 10 筆記錄</span>
+                <div class="flex gap-1">
+                    <button class="ui-page-btn">
+                        <i class="fa-solid fa-chevron-left text-xs"></i>
+                    </button>
+                    <button class="ui-page-btn is-active">
+                        1
+                    </button>
+                    <button class="ui-page-btn">
+                        <i class="fa-solid fa-chevron-right text-xs"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 彈出視窗：假期審批內容 Modal (全面參照附圖增強) -->
+    <!-- ========================================== -->
+    <div id="review-modal" class="fixed inset-0 z-50 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <!-- 背景遮罩 -->
+        <div class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm transition-opacity" onclick="closeReviewModal()"></div>
+
+        <!-- 彈窗內容容器 -->
+        <div class="fixed inset-0 z-10 overflow-y-auto flex items-center justify-center p-4">
+            <div class="relative bg-white rounded-lg shadow-modal w-full max-w-[850px] transform transition-all modal-enter flex flex-col my-8">
+                
+                <!-- 標頭 (附圖 1 的標頭樣式) -->
+                <div class="px-6 py-4 flex justify-between items-center border-b border-gray-100">
+                    <div class="flex items-center gap-2">
+                        <h3 class="font-bold text-lg text-[#3245B1] tracking-wide">假期申請詳情</h3>
+                    </div>
+                    <button onclick="closeReviewModal()" class="w-8 h-8 flex items-center justify-center bg-[#4A90E2] text-white rounded-md hover:bg-opacity-95 transition-colors shadow-sm">
+                        <i class="fa-solid fa-xmark text-sm"></i>
+                    </button>
+                </div>
+                
+                <!-- 內容 (彈出視窗主體，附圖 1, 2, 3 的大整合) -->
+                <div class="p-6 space-y-6 max-h-[80vh] overflow-y-auto custom-scrollbar">
+                    
+                    <!-- 1. 申請資訊（整齊兩欄網格） -->
+                    <div class="space-y-3">
+                        <h4 class="font-bold text-sm text-gray-800 border-b border-gray-100 pb-2">申請資訊</h4>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
+                            <div class="space-y-1">
+                                <span class="text-sm font-medium text-gray-700">申請日期</span>
+                                <input type="text" id="modal-app-date" readonly class="ui-input">
+                            </div>
+                            <div class="space-y-1">
+                                <span class="text-sm font-medium text-gray-700">假期種類</span>
+                                <input type="text" id="modal-leave-type" readonly class="ui-input">
+                            </div>
+                            <div class="space-y-1">
+                                <span class="text-sm font-medium text-gray-700">開始日</span>
+                                <input type="text" id="modal-leave-start" readonly class="ui-input">
+                            </div>
+                            <div class="space-y-1">
+                                <span class="text-sm font-medium text-gray-700">結束日</span>
+                                <input type="text" id="modal-leave-end" readonly class="ui-input">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2. 每日工時分配 + 申請說明（並排） -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="space-y-2">
+                            <span class="text-sm font-medium text-gray-700 block">每日工時分配 <span id="modal-hour-used" class="text-xs font-normal text-gray-400">&lt; Hour used: 0 &gt;</span></span>
+                            <div class="border border-gray-200 rounded-md w-full overflow-hidden bg-white shadow-sm">
+                                <div id="modal-daily-hours-container" class="p-3 space-y-3 max-h-[200px] overflow-y-auto custom-scrollbar">
+                                    <!-- 由 JS 動態注入各日工時分配 -->
+                                </div>
+                                <div class="bg-gray-50 border-t border-gray-100 p-2.5 px-4 text-sm font-bold text-gray-700" id="modal-total-hours">
+                                    Total : 0 Hours
+                                </div>
+                            </div>
+                        </div>
+                        <div class="space-y-1.5">
+                            <span class="text-sm font-medium text-gray-700 block">申請說明</span>
+                            <textarea id="modal-reason" readonly class="ui-input italic h-[180px] cursor-not-allowed resize-none"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- 3. 審批信息 (簽核歷程，檢視用) -->
+                    <div class="space-y-3">
+                        <div class="bg-[#E9EDF9] p-2.5 px-4 rounded-t-md border-b border-gray-200 flex items-center">
+                            <h4 class="font-bold text-gray-800 text-sm">審批信息</h4>
+                        </div>
+                        <div class="overflow-x-auto rounded-b-md border border-gray-200">
+                            <table class="ui-table text-center whitespace-nowrap">
+                                <thead>
+                                    <tr>
+                                        <th>分類</th>
+                                        <th>工號</th>
+                                        <th>姓名</th>
+                                        <th>項目</th>
+                                        <th>部門</th>
+                                        <th>職位</th>
+                                        <th>狀態</th>
+                                        <th>審批日期</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="modal-approval-flow-tbody" class="font-medium">
+                                    <!-- 由 JS 動態注入簽核節點流 -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- 8. 評論 (僅顯示) -->
+                    <div class="space-y-3 pt-2">
+                        <h4 class="font-bold text-sm text-gray-800 border-b border-gray-100 pb-2">評論</h4>
+                        <div id="modal-comment-display" class="flex items-start gap-4">
+                            <!-- 由 JS 動態注入該筆評論；無評論時顯示提示 -->
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- 底部按鈕（僅檢視，關閉） -->
+                <div class="px-6 py-4 flex justify-end border-t border-gray-100 bg-gray-50/50 rounded-b-lg" id="modal-action-footer">
+                    <button onclick="closeReviewModal()" class="ui-btn ui-btn-secondary">
+                        關閉
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 提示消息彈窗 (Toast Alert) -->
+    <div id="toast" class="fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+        <i id="toast-icon" class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
+        <span id="toast-text" class="text-sm font-medium">假單已順利核准！</span>
+    </div>
+
+    <script>
+        // 假單資料庫初始化 (工號、姓名、部門、職位、開始日、結束日、假期種類、天數、請假原因、假單狀態、申請日期、審批記錄)
+        let leaveDb = [
+            { id: "101383", name: "陳小明", dept: "RD", jobTitle: "企劃專員", startDate: "2026-06-01", endDate: "2026-06-05", type: "陪產假", days: 5.0, reason: "太太分娩生產安排，特請陪產假照顧家人及新生兒。", status: "待審核", appDate: "2026-06-03 11:05:05" },
+            { id: "100344", name: "林雅婷", dept: "RD", jobTitle: "Operations Director", startDate: "2026-06-12", endDate: "2026-06-12", type: "病假", days: 1.0, reason: "生病感冒發燒，需前往醫院看診並在家靜養", status: "待審核", appDate: "2026-06-11 09:15:00" },
+            { id: "100423", name: "張家豪", dept: "HR", jobTitle: "HR Manager", startDate: "2026-06-11", endDate: "2026-06-11", type: "事假", days: 0.5, reason: "私人急事需要親自前往政府機關辦理產權移轉手續", status: "待審核", appDate: "2026-06-10 14:22:15" },
+            { id: "101122", name: "黃淑芬", dept: "HR", jobTitle: "企劃專員", startDate: "2026-06-08", endDate: "2026-06-10", type: "婚假", days: 3.0, reason: "登記結婚並舉辦宴會補請手續", status: "已核准", appDate: "2026-06-05 10:11:00", comment: "新婚愉快，恭喜！" },
+            { id: "101334", name: "王大同", dept: "RD", jobTitle: "資深工程師", startDate: "2026-06-05", endDate: "2026-06-05", type: "生理假", days: 1.0, reason: "女性生理期不適，申請在家休息", status: "已核准", appDate: "2026-06-04 16:00:20", comment: "核准，好好休息。" },
+            { id: "100645", name: "李美玲", dept: "HR", jobTitle: "HR Officer", startDate: "2026-06-03", endDate: "2026-06-04", type: "補休", days: 1.5, reason: "因技術部跨年專案系統部署加班，申請補休時數扣抵", status: "已核准", appDate: "2026-06-01 13:50:40", comment: "補休時數經人事部比對無誤，予以通過。" },
+            { id: "101312", name: "劉建國", dept: "IA1", jobTitle: "Internal Auditor", startDate: "2026-06-01", endDate: "2026-06-01", type: "公假", days: 1.0, reason: "公務外派，代表公司赴世貿展覽館參加 2026 AI 技術論壇", status: "已核准", appDate: "2026-05-30 09:00:00", comment: "論壇回公司後需分享心得資料。" },
+            { id: "101363", name: "蔡佳蓉", dept: "HR", jobTitle: "HR Officer", startDate: "2026-05-28", endDate: "2026-05-29", type: "事假", days: 2.0, reason: "家中有突發管線漏水狀況，需請假陪同工程師維修", status: "已駁回", appDate: "2026-05-26 15:44:00", comment: "此申請未經第一層直屬主管核可，且天數與出勤記錄矛盾，故予以駁回。" },
+            { id: "101002", name: "吳志強", dept: "IA1", jobTitle: "Group Deputy Director", startDate: "2026-05-25", endDate: "2026-05-27", type: "喪假", days: 3.0, reason: "祖父過世，需返鄉協助親人處理喪葬事宜", status: "已核准", appDate: "2026-05-22 11:30:15", comment: "節哀順變。後續請補正相關訃聞。 " },
+            { id: "101023", name: "許宇軒", dept: "IA1", jobTitle: "Internal Audit Manager", startDate: "2026-05-20", endDate: "2026-05-22", type: "特休", days: 3.0, reason: "出國度假安排", status: "已核准", appDate: "2026-05-18 10:00:00", comment: "工作交接安排妥當，准予請假。" },
+            { id: "101455", name: "周冠宇", dept: "FIN", jobTitle: "Financial Analyst", startDate: "2026-06-15", endDate: "2026-06-16", type: "特休", days: 2.0, reason: "安排家庭出遊，提前申請特休。", status: "待審核", appDate: "2026-06-11 17:20:30" },
+            { id: "101478", name: "鄭雅文", dept: "MKT", jobTitle: "行銷企劃", startDate: "2026-06-09", endDate: "2026-06-09", type: "病假", days: 1.0, reason: "腸胃炎不適，需就醫並在家休養。", status: "待審核", appDate: "2026-06-08 08:45:10" },
+            { id: "101501", name: "林宏達", dept: "MKT", jobTitle: "Marketing Manager", startDate: "2026-06-04", endDate: "2026-06-06", type: "特休", days: 3.0, reason: "返鄉參加親友婚禮並短暫休假。", status: "已核准", appDate: "2026-06-01 11:00:00", comment: "已確認團隊排程無虞，准假。" },
+            { id: "101522", name: "高敏華", dept: "FIN", jobTitle: "會計專員", startDate: "2026-06-02", endDate: "2026-06-02", type: "事假", days: 0.5, reason: "前往銀行處理公司帳戶相關事宜。", status: "已核准", appDate: "2026-05-29 14:10:25", comment: "半日事假核准。" },
+            { id: "101544", name: "謝志偉", dept: "RD", jobTitle: "前端工程師", startDate: "2026-05-30", endDate: "2026-05-30", type: "補休", days: 1.0, reason: "上線專案連續假日加班，申請補休一日。", status: "已核准", appDate: "2026-05-27 19:30:00", comment: "加班時數比對無誤，准予補休。" },
+            { id: "101566", name: "洪曉君", dept: "HR", jobTitle: "教育訓練專員", startDate: "2026-05-26", endDate: "2026-05-28", type: "特休", days: 3.0, reason: "規劃連假出國旅遊行程。", status: "待審核", appDate: "2026-05-22 09:50:40" },
+            { id: "101588", name: "曾國維", dept: "IA1", jobTitle: "Internal Auditor", startDate: "2026-05-21", endDate: "2026-05-21", type: "公假", days: 1.0, reason: "代表公司至主管機關出席法遵說明會。", status: "已核准", appDate: "2026-05-19 13:15:00", comment: "請於會後繳交出席證明。" },
+            { id: "101601", name: "潘怡君", dept: "MKT", jobTitle: "社群行銷專員", startDate: "2026-05-18", endDate: "2026-05-19", type: "事假", days: 2.0, reason: "陪同家人北上就醫並照護。", status: "已駁回", appDate: "2026-05-15 16:05:55", comment: "當期事假額度已用罄，且未檢附佐證，故予駁回。" },
+            { id: "101623", name: "孫立群", dept: "FIN", jobTitle: "Finance Manager", startDate: "2026-05-14", endDate: "2026-05-16", type: "喪假", days: 3.0, reason: "外婆辭世，返鄉協助處理後事。", status: "已核准", appDate: "2026-05-12 10:40:00", comment: "節哀，後續再補正相關文件即可。" }
+        ];
+
+        // 地區 / 事業部 / 項目 歸屬（依工號與部門推導，與系統一致）
+        function deriveRegion(id) { return ['TW', 'US', 'JP'][parseInt(id, 10) % 3]; }
+        function deriveBu(dept) { return dept === 'RD' ? '研發部' : (dept === 'MKT' ? '業務部' : '管理總處'); }
+        leaveDb.forEach(r => {
+            if (!r.item) r.item = 'GT';
+            if (!r.region) r.region = deriveRegion(r.id);
+            if (!r.bu) r.bu = deriveBu(r.dept);
+        });
+
+        // 追蹤當前正在審核的紀錄索引
+        let activeReviewIndex = null;
+
+        // 當前過濾狀態
+        let currentFilters = {
+            search: "",
+            type: "all",
+            status: "all",
+            dateStart: "",
+            dateEnd: ""
+        };
+
+        // 將「請假日期區間」設為當日
+        function setDateRangeToToday() {
+            const d = new Date();
+            const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+            document.getElementById('filter-date-start').value = today;
+            document.getElementById('filter-date-end').value = today;
+        }
+
+        // 啟動與初始化渲染
+        window.onload = function() {
+            setDateRangeToToday();   // 日期區間預設為當日
+            applyFilters();
+        };
+
+        function renderTable(dataToRender) {
+            const tbody = document.getElementById('leave-tbody');
+            const noDataView = document.getElementById('no-data-view');
+            tbody.innerHTML = '';
+
+            if (dataToRender.length === 0) {
+                tbody.parentElement.classList.add('hidden');
+                noDataView.classList.remove('hidden');
+                document.getElementById('record-count-badge').innerText = `0 筆資料`;
+                document.getElementById('pagination-info').innerText = `顯示第 0 到 0 筆，共 0 筆記錄`;
+                return;
+            }
+
+            tbody.parentElement.classList.remove('hidden');
+            noDataView.classList.add('hidden');
+
+            dataToRender.forEach((record) => {
+                // 對應在全域資料庫陣列的實際索引
+                const actualIndex = leaveDb.findIndex(r => r.id === record.id && r.startDate === record.startDate);
+
+                // 狀態 Badge 樣式 (符合電子表單風格)
+                let statusBadge = '';
+                if (record.status === '已核准') {
+                    statusBadge = `<span class="ui-badge ui-badge-success"><i class="fa-solid fa-circle-check text-[10px]"></i>已核准</span>`;
+                } else if (record.status === '待審核') {
+                    statusBadge = `<span class="ui-badge ui-badge-warning"><i class="fa-solid fa-hourglass-start text-[10px]"></i>待審核</span>`;
+                } else if (record.status === '已駁回') {
+                    statusBadge = `<span class="ui-badge ui-badge-danger"><i class="fa-solid fa-circle-xmark text-[10px]"></i>已駁回</span>`;
+                }
+
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-gray-50/70 transition-colors";
+                
+                tr.innerHTML = `
+                    <td class="text-left font-mono font-semibold text-gray-500">${record.id}</td>
+                    <td class="text-left">
+                        <span class="font-bold text-gray-800">${record.name}</span>
+                    </td>
+                    <td><span class="px-2 py-0.5 bg-orange-50 text-orange-600 rounded text-xs font-semibold">${record.region}</span></td>
+                    <td><span class="px-2 py-0.5 bg-emerald-50 text-emerald-600 rounded text-xs font-semibold">${record.bu}</span></td>
+                    <td><span class="px-2 py-0.5 bg-blue-50 text-primary rounded text-xs font-semibold">${record.item}</span></td>
+                    <td class="font-semibold text-gray-700"><span class="px-2 py-0.5 bg-gray-100 rounded text-xs">${record.dept}</span></td>
+                    <td class="text-primary font-bold">${record.startDate}</td>
+                    <td class="text-primary font-bold">${record.endDate}</td>
+                    <td class="font-semibold text-gray-700">
+                        <span class="px-2 py-0.5 bg-gray-100 rounded text-xs">${record.type}</span>
+                    </td>
+                    <td class="font-bold text-gray-700 text-xs">${record.days} 天</td>
+                    <td>${statusBadge}</td>
+                    <td>
+                        <button onclick="openReviewModal(${actualIndex})" class="ui-btn ui-btn-secondary ui-btn-sm mx-auto">
+                            <i class="fa-solid fa-circle-info"></i> 詳情
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('record-count-badge').innerText = `${dataToRender.length} 筆資料`;
+            document.getElementById('pagination-info').innerText = `顯示第 1 到 ${dataToRender.length} 筆，共 ${dataToRender.length} 筆記錄`;
+        }
+
+        /* ===== 可複選下拉選單元件 ===== */
+        function createMultiSelect(rootId, options, placeholder, onChange) {
+            const root = document.getElementById(rootId);
+            if (!root) return null;
+            const norm = options.map(o => typeof o === 'string' ? { value: o, label: o } : o);
+            const labelMap = {}; norm.forEach(o => labelMap[o.value] = o.label);
+            const selected = new Set();
+            root.classList.add('ms');
+            root.innerHTML =
+                `<button type="button" class="ui-input ms-toggle"><span class="ms-label">${placeholder}</span><span class="ms-caret">▼</span></button>` +
+                `<div class="ms-panel hidden">${norm.map(o => `<label class="ms-option"><input type="checkbox" value="${o.value}"><span>${o.label}</span></label>`).join('')}</div>`;
+            const toggle = root.querySelector('.ms-toggle');
+            const panel = root.querySelector('.ms-panel');
+            const labelEl = root.querySelector('.ms-label');
+            function syncLabel() {
+                const arr = [...selected];
+                labelEl.textContent = arr.length === 0 ? placeholder : (arr.length === 1 ? labelMap[arr[0]] : `已選 ${arr.length} 項`);
+                toggle.classList.toggle('ms-active', arr.length > 0);
+            }
+            toggle.addEventListener('click', e => {
+                e.stopPropagation();
+                document.querySelectorAll('.ms-panel').forEach(p => { if (p !== panel) p.classList.add('hidden'); });
+                panel.classList.toggle('hidden');
+            });
+            panel.addEventListener('click', e => e.stopPropagation());
+            panel.querySelectorAll('input').forEach(cb => cb.addEventListener('change', () => {
+                cb.checked ? selected.add(cb.value) : selected.delete(cb.value);
+                syncLabel();
+                if (onChange) onChange();
+            }));
+            return {
+                getSelected: () => [...selected],
+                reset: () => { selected.clear(); panel.querySelectorAll('input').forEach(cb => cb.checked = false); syncLabel(); }
+            };
+        }
+        document.addEventListener('click', () => document.querySelectorAll('.ms-panel').forEach(p => p.classList.add('hidden')));
+
+        const DEPT_OPTIONS = [
+            { value: 'RD', label: '研發部 (RD)' },
+            { value: 'HR', label: '人資部 (HR)' },
+            { value: 'IA1', label: '內稽部 (IA1)' },
+            { value: 'FIN', label: '財務部 (FIN)' },
+            { value: 'MKT', label: '行銷部 (MKT)' }
+        ];
+        const ITEM_OPTIONS = [{ value: 'GT', label: 'GT' }];
+        const REGION_OPTIONS = [
+            { value: 'TW', label: '台灣 (TW)' },
+            { value: 'US', label: '美國 (US)' },
+            { value: 'JP', label: '日本 (JP)' }
+        ];
+        const BU_OPTIONS = [
+            { value: '管理總處', label: '管理總處' },
+            { value: '研發部', label: '研發部' },
+            { value: '業務部', label: '業務部' }
+        ];
+        const msFilterRegion = createMultiSelect('filter-region-ms', REGION_OPTIONS, '全部地區', applyFilters);
+        const msFilterBu = createMultiSelect('filter-bu-ms', BU_OPTIONS, '全部事業部', applyFilters);
+        const msFilterItem = createMultiSelect('filter-item-ms', ITEM_OPTIONS, '全部項目', applyFilters);
+        const msFilterDept = createMultiSelect('filter-dept-ms', DEPT_OPTIONS, '全部部門', applyFilters);
+
+        function applyFilters() {
+            const searchValue = document.getElementById('filter-search').value.toLowerCase().trim();
+            const typeValue = document.getElementById('filter-type').value;
+            const statusValue = document.getElementById('filter-status').value;
+            const dateStart = document.getElementById('filter-date-start').value;
+            const dateEnd = document.getElementById('filter-date-end').value;
+            const regions = msFilterRegion ? msFilterRegion.getSelected() : [];
+            const bus = msFilterBu ? msFilterBu.getSelected() : [];
+            const items = msFilterItem ? msFilterItem.getSelected() : [];
+            const depts = msFilterDept ? msFilterDept.getSelected() : [];
+
+            let filtered = [...leaveDb];
+
+            // A. 工號與姓名搜尋
+            if (searchValue) {
+                filtered = filtered.filter(record =>
+                    record.name.toLowerCase().includes(searchValue) ||
+                    record.id.toLowerCase().includes(searchValue)
+                );
+            }
+
+            // A-2. 地區（可複選）
+            if (regions.length) filtered = filtered.filter(record => regions.includes(record.region));
+
+            // A-3. 事業部（可複選）
+            if (bus.length) filtered = filtered.filter(record => bus.includes(record.bu));
+
+            // A-4. 項目（可複選）
+            if (items.length) filtered = filtered.filter(record => items.includes(record.item));
+
+            // A-5. 部門（可複選）
+            if (depts.length) filtered = filtered.filter(record => depts.includes(record.dept));
+
+            // B. 假期種類
+            if (typeValue !== 'all') {
+                filtered = filtered.filter(record => record.type === typeValue);
+            }
+
+            // C. 狀態
+            if (statusValue !== 'all') {
+                filtered = filtered.filter(record => record.status === statusValue);
+            }
+
+            // D. 起訖日期交叉篩選
+            if (dateStart) {
+                filtered = filtered.filter(record => record.endDate >= dateStart);
+            }
+            if (dateEnd) {
+                filtered = filtered.filter(record => record.startDate <= dateEnd);
+            }
+
+            renderTable(filtered);
+        }
+
+        // 重置
+        function resetFilters() {
+            document.getElementById('filter-search').value = '';
+            if (msFilterRegion) msFilterRegion.reset();
+            if (msFilterBu) msFilterBu.reset();
+            if (msFilterItem) msFilterItem.reset();
+            if (msFilterDept) msFilterDept.reset();
+            document.getElementById('filter-type').value = 'all';
+            document.getElementById('filter-status').value = 'all';
+            setDateRangeToToday();   // 日期區間還原為當日
+
+            showToast('info', '已還原並清除所有假期篩選設定');
+            applyFilters();
+        }
+
+        function getDatesInRange(startDateStr, endDateStr) {
+            const dates = [];
+            let curr = new Date(startDateStr);
+            const end = new Date(endDateStr);
+            while (curr <= end) {
+                dates.push(curr.toISOString().split('T')[0]);
+                curr.setDate(curr.getDate() + 1);
+            }
+            return dates;
+        }
+
+        function openReviewModal(dbIndex) {
+            activeReviewIndex = dbIndex;
+            const record = leaveDb[dbIndex];
+
+            // A. 基本輸入框填充 (附圖 1 風格)
+            document.getElementById('modal-app-date').value = record.appDate.split(' ')[0]; // 提取年月日
+            document.getElementById('modal-leave-start').value = record.startDate;
+            document.getElementById('modal-leave-end').value = record.endDate;
+            document.getElementById('modal-leave-type').value = record.type;
+            document.getElementById('modal-reason').value = record.reason || '無補充事由。';
+
+            // B. 每日工時分配盒生成 (附圖 1 的日期列表)
+            const dates = getDatesInRange(record.startDate, record.endDate);
+            const container = document.getElementById('modal-daily-hours-container');
+            container.innerHTML = '';
+            
+            let accumulatedHours = 0;
+            dates.forEach((dateStr, idx) => {
+                // 如果是最後一天且天數有小數，分配4小時，否則一般1天配8~10小時
+                let currentDayHour = 8;
+                if (record.days === 0.5) {
+                    currentDayHour = 4;
+                } else if (idx === dates.length - 1 && (record.days % 1 !== 0)) {
+                    currentDayHour = 4;
+                } else if (record.type === "陪產假" && idx < 2) {
+                    currentDayHour = 10; // 模擬附圖 1 的 10 單位
+                }
+
+                accumulatedHours += currentDayHour;
+
+                const rowDiv = document.createElement('div');
+                rowDiv.className = "flex items-center justify-between text-sm py-1 border-b border-gray-50";
+                rowDiv.innerHTML = `
+                    <span class="text-gray-700 font-medium font-mono">${dateStr}</span>
+                    <div class="flex items-center gap-2">
+                        <input type="text" readonly value="${currentDayHour}" class="w-12 text-center bg-gray-100 border border-gray-200 rounded text-gray-700 text-xs py-1 font-bold outline-none">
+                        <span class="text-xs text-gray-400">單位</span>
+                    </div>
+                `;
+                container.appendChild(rowDiv);
+            });
+
+            document.getElementById('modal-hour-used').innerText = `< Hour used: 0 >`;
+            document.getElementById('modal-total-hours').innerText = `Total : ${accumulatedHours} Hours`;
+
+            // C. 審批信息歷程流動表 (附圖 2 / 3 風格)
+            renderApprovalFlowTable(record);
+
+            // D. 評論（僅顯示該筆評論）
+            const commentDisplay = document.getElementById('modal-comment-display');
+            if (record.comment && record.comment.trim()) {
+                commentDisplay.innerHTML = `
+                    <div class="w-16 pt-0.5 font-mono font-bold text-sm text-gray-600 shrink-0">100344</div>
+                    <div class="flex-1 text-sm text-gray-700 bg-gray-50 border border-gray-100 rounded-lg p-3 leading-relaxed">${record.comment.trim()}</div>
+                `;
+            } else {
+                commentDisplay.innerHTML = `<div class="text-sm text-gray-400 italic py-2">尚無評論</div>`;
+            }
+
+            // E. 僅檢視：底部固定顯示「關閉」按鈕
+            const footer = document.getElementById('modal-action-footer');
+            footer.innerHTML = `
+                <button onclick="closeReviewModal()" class="ui-btn ui-btn-secondary">
+                    關閉
+                </button>
+            `;
+
+            const modal = document.getElementById('review-modal');
+            const panel = modal.querySelector('.transform');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                panel.classList.add('modal-enter-active');
+                panel.classList.remove('modal-enter');
+            }, 10);
+        }
+
+        function renderApprovalFlowTable(record) {
+            const flowTbody = document.getElementById('modal-approval-flow-tbody');
+            flowTbody.innerHTML = '';
+
+            // 定義固定審批鏈
+            const nodes = [
+                { role: "申請人", id: record.id, name: record.name, item: "GT", dept: record.dept, title: record.jobTitle, date: record.appDate, type: "applicant" },
+                { role: "審批人 1", id: "100344", name: "100344", item: "GT", dept: "RD", title: "Operations Director/運營總監", date: (record.status !== "待審核" ? "2026-06-11 15:20:00" : ""), type: "approver" },
+                { role: "審批人 2", id: "100423", name: "100423", item: "GT", dept: "HR", title: "HR Manager", date: (record.status === "已核准" ? "2026-06-11 15:25:00" : ""), type: "approver" },
+                { role: "被抄送審批", id: "101002", name: "101002", item: "GT", dept: "IA1", title: "Group Deputy Internal Audit Director/集團內審副總監", date: "", type: "cc" },
+                { role: "被抄送審批", id: "101023", name: "101023", item: "GT", dept: "IA1", title: "Internal Audit Manager/內審經理", date: "", type: "cc" },
+                { role: "被抄送審批", id: "100645", name: "100645", item: "GT", dept: "HR", title: "HR Officer/人資專員", date: "", type: "cc" },
+                { role: "被抄送審批", id: "101363", name: "101363", item: "GT", dept: "HR", title: "HR Officer/人資專員", date: "", type: "cc" },
+                { role: "被抄送審批", id: "101312", name: "101312", item: "GT", dept: "IA1", title: "Internal Auditor/內審專員", date: "", type: "cc" },
+                { role: "被抄送審批", id: "100175", name: "100175", item: "GT", dept: "IA1", title: "Internal Audit Team Leader/內審組長", date: "", type: "cc" }
+            ];
+
+            nodes.forEach((node) => {
+                let statusBadge = '';
+                
+                if (node.type === 'applicant') {
+                    statusBadge = `<span class="ui-badge ui-badge-gray">申請</span>`;
+                } else if (node.type === 'approver') {
+                    if (record.status === '待審核') {
+                        statusBadge = `<span class="ui-badge ui-badge-gray">等待中</span>`;
+                    } else if (record.status === '已核准') {
+                        statusBadge = `<span class="ui-badge ui-badge-success">同意</span>`;
+                    } else if (record.status === '已駁回') {
+                        statusBadge = `<span class="ui-badge ui-badge-danger">駁回</span>`;
+                    }
+                } else if (node.type === 'cc') {
+                    statusBadge = `<span class="ui-badge ui-badge-info">抄送</span>`;
+                }
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="text-gray-500 text-xs">${node.role}</td>
+                    <td class="text-gray-600 font-mono font-bold">${node.id}</td>
+                    <td class="text-gray-600 font-bold">${node.name}</td>
+                    <td class="text-gray-500">${node.item}</td>
+                    <td class="text-gray-700 font-bold">${node.dept}</td>
+                    <td class="text-left pl-6 text-gray-600 font-medium">${node.title}</td>
+                    <td>${statusBadge}</td>
+                    <td class="text-gray-500 font-mono text-xs">${node.date || ''}</td>
+                `;
+                flowTbody.appendChild(tr);
+            });
+        }
+
+        // 關閉 Modal
+        function closeReviewModal() {
+            const modal = document.getElementById('review-modal');
+            const panel = modal.querySelector('.transform');
+            panel.classList.remove('modal-enter-active');
+            panel.classList.add('modal-enter');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                activeReviewIndex = null;
+            }, 200);
+        }
+
+        // Toast 提示控制中心
+        function showToast(type, text) {
+            const toast = document.getElementById('toast');
+            const toastIcon = document.getElementById('toast-icon');
+            const toastText = document.getElementById('toast-text');
+
+            toastText.innerText = text;
+
+            if (type === 'success') {
+                toast.className = "fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform transition-all duration-300 border border-emerald-500/20";
+                toastIcon.className = "fa-solid fa-circle-check text-emerald-400 text-base";
+            } else if (type === 'error') {
+                toast.className = "fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform transition-all duration-300 border border-rose-500/20";
+                toastIcon.className = "fa-solid fa-circle-xmark text-rose-500 text-base";
+            } else {
+                toast.className = "fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform transition-all duration-300 border border-blue-500/20";
+                toastIcon.className = "fa-solid fa-circle-info text-blue-400 text-base";
+            }
+
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+
+        // 模擬資料匯出
+        function mockExport() {
+            showToast('success', '全體員工假期明細報表 (xlsx 格式) 已建立並開始下載！');
+        }
+    </script>
+</body>
+</html>

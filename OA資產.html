@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OA資產</title>
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 Font Awesome 用於圖標 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- 設定 Tailwind 自訂主題 (沿用原設定) -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4A90E2', // 主色調：紫色
+                        'primary-light': '#EAF2FC',
+                        background: '#F8F9FB', // 背景淺灰色
+                        card: '#FFFFFF',
+                        text: {
+                            main: '#1F2937',
+                            muted: '#6B7280',
+                            light: '#9CA3AF'
+                        },
+                        status: {
+                            active: '#D1FAE5',     // 啟用: 綠色系
+                            inactive: '#FEE2E2',   // 停用: 紅色系
+                            standard: '#DBEAFE',   // 已標準化: 藍色系
+                            text: {
+                                active: '#059669',
+                                inactive: '#DC2626',
+                                standard: '#2563EB'
+                            }
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['"Inter"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'card': '0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03)',
+                        'hover': '0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: theme('colors.background');
+            font-family: theme('fontFamily.sans');
+        }
+        /* 隱藏滾動條但保留滾動功能 (適用於標籤列) */
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+    <link rel="stylesheet" href="shared-ui.css">
+</head>
+<body class="ui-page text-text-main antialiased">
+
+    <div class="max-w-7xl mx-auto space-y-8">
+        
+        <!-- 頁面標題區塊 -->
+        <header class="ui-page-header">
+            <div class="flex items-center gap-3">
+                <div>
+                    <h1 class="ui-page-title">OA 資產</h1>
+                </div>
+            </div>
+        </header>
+
+        <!-- 矩形表單選單網格 (Grid Layout) -->
+        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            
+            <!-- 卡片 1：資產數統計 -->
+            <a href="#" class="group block ui-card p-6 hover:shadow-hover hover:border-primary/30 transition-all duration-300 transform hover:-translate-y-1 relative overflow-hidden">
+                <div class="flex justify-between items-start mb-4 relative z-10">
+                    <div class="w-12 h-12 rounded-xl bg-primary-light text-primary flex items-center justify-center text-xl group-hover:bg-primary group-hover:text-white transition-colors duration-300 shadow-sm">
+                        <i class="fa-solid fa-chart-pie"></i>
+                    </div>
+                </div>
+                <h3 class="text-lg font-bold text-gray-800 mb-2 group-hover:text-primary transition-colors relative z-10">資產數統計</h3>
+                <p class="text-sm text-gray-500 line-clamp-2 relative z-10">檢視各類資產數量及分佈狀態統計報表。</p>
+                <div class="mt-5 pt-4 border-t border-gray-50 flex items-center justify-between text-xs text-gray-400 relative z-10">
+                    <span class="text-primary font-medium flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity translate-x-2 group-hover:translate-x-0 duration-300">
+                        進入統計 <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                    </span>
+                </div>
+            </a>
+
+            <!-- 卡片 2：資產清單 -->
+            <a href="#" class="group block ui-card p-6 hover:shadow-hover hover:border-primary/30 transition-all duration-300 transform hover:-translate-y-1 relative overflow-hidden">
+                <div class="flex justify-between items-start mb-4 relative z-10">
+                    <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300 shadow-sm">
+                        <i class="fa-solid fa-list-ul"></i>
+                    </div>
+                </div>
+                <h3 class="text-lg font-bold text-gray-800 mb-2 group-hover:text-blue-600 transition-colors relative z-10">資產清單</h3>
+                <p class="text-sm text-gray-500 line-clamp-2 relative z-10">查詢、新增或管理所有公司內部資產的詳細資料。</p>
+                <div class="mt-5 pt-4 border-t border-gray-50 flex items-center justify-between text-xs text-gray-400 relative z-10">
+                    <span class="text-blue-600 font-medium flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity translate-x-2 group-hover:translate-x-0 duration-300">
+                        檢視清單 <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                    </span>
+                </div>
+            </a>
+
+            <!-- 卡片 3：資產盤點 -->
+            <a href="#" class="group block ui-card p-6 hover:shadow-hover hover:border-primary/30 transition-all duration-300 transform hover:-translate-y-1 relative overflow-hidden">
+                <div class="flex justify-between items-start mb-4 relative z-10">
+                    <div class="w-12 h-12 rounded-xl bg-green-50 text-green-600 flex items-center justify-center text-xl group-hover:bg-green-600 group-hover:text-white transition-colors duration-300 shadow-sm">
+                        <i class="fa-solid fa-clipboard-check"></i>
+                    </div>
+                </div>
+                <h3 class="text-lg font-bold text-gray-800 mb-2 group-hover:text-green-600 transition-colors relative z-10">資產盤點</h3>
+                <p class="text-sm text-gray-500 line-clamp-2 relative z-10">執行定期或不定期資產盤點作業，記錄盤點結果。</p>
+                <div class="mt-5 pt-4 border-t border-gray-50 flex items-center justify-between text-xs text-gray-400 relative z-10">
+                    <span class="text-green-600 font-medium flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity translate-x-2 group-hover:translate-x-0 duration-300">
+                        開始盤點 <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                    </span>
+                </div>
+            </a>
+
+            <!-- 卡片 4：資產單統計 -->
+            <a href="#" class="group block ui-card p-6 hover:shadow-hover hover:border-primary/30 transition-all duration-300 transform hover:-translate-y-1 relative overflow-hidden">
+                <div class="flex justify-between items-start mb-4 relative z-10">
+                    <div class="w-12 h-12 rounded-xl bg-orange-50 text-orange-500 flex items-center justify-center text-xl group-hover:bg-orange-500 group-hover:text-white transition-colors duration-300 shadow-sm">
+                        <i class="fa-solid fa-file-invoice"></i>
+                    </div>
+                </div>
+                <h3 class="text-lg font-bold text-gray-800 mb-2 group-hover:text-orange-500 transition-colors relative z-10">資產單統計</h3>
+                <p class="text-sm text-gray-500 line-clamp-2 relative z-10">統計各類資產異動單據（如領用、歸還、報廢單）的處理狀況。</p>
+                <div class="mt-5 pt-4 border-t border-gray-50 flex items-center justify-between text-xs text-gray-400 relative z-10">
+                    <span class="text-orange-500 font-medium flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity translate-x-2 group-hover:translate-x-0 duration-300">
+                        進入統計 <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                    </span>
+                </div>
+            </a>
+
+            <!-- 卡片 5：資產抽查 -->
+            <a href="#" class="group block ui-card p-6 hover:shadow-hover hover:border-primary/30 transition-all duration-300 transform hover:-translate-y-1 relative overflow-hidden">
+                <div class="flex justify-between items-start mb-4 relative z-10">
+                    <div class="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-xl group-hover:bg-purple-600 group-hover:text-white transition-colors duration-300 shadow-sm">
+                        <i class="fa-solid fa-magnifying-glass-chart"></i>
+                    </div>
+                </div>
+                <h3 class="text-lg font-bold text-gray-800 mb-2 group-hover:text-purple-600 transition-colors relative z-10">資產抽查</h3>
+                <p class="text-sm text-gray-500 line-clamp-2 relative z-10">針對特定部門或資產類別進行抽樣檢查，確保帳物相符。</p>
+                <div class="mt-5 pt-4 border-t border-gray-50 flex items-center justify-between text-xs text-gray-400 relative z-10">
+                    <span class="text-purple-600 font-medium flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity translate-x-2 group-hover:translate-x-0 duration-300">
+                        執行抽查 <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                    </span>
+                </div>
+            </a>
+
+        </section>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>打卡系統</title>
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 Lucide 圖標庫 -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: #fcfcfc; 
+        }
+        
+        /* 簡單的 Toast 動畫 */
+        @keyframes slideInUp {
+            from { transform: translateY(100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .toast-enter {
+            animation: slideInUp 0.3s ease-out forwards;
+        }
+    </style>
+    <link rel="stylesheet" href="shared-ui.css">
+</head>
+<body class="p-5 text-[14px] text-gray-700">
+
+    <!-- 頁面標題 -->
+    <div class="flex justify-between items-center mb-5">
+        <h1 class="ui-page-title">打卡系統</h1>
+        <div class="flex items-center text-[13px] text-gray-500 bg-white px-3 py-1.5 rounded-full border border-gray-200 shadow-sm">
+            <i data-lucide="map-pin" class="w-4 h-4 mr-1.5 text-blue-500"></i>
+            <span>當前定位：台北總部辦公室 (IP: 192.168.1.105)</span>
+        </div>
+    </div>
+    
+    <!-- 打卡操作面板 (置中顯示) -->
+    <div class="flex justify-center mb-6 mt-10">
+        
+        <div class="w-full max-w-md ui-card p-8 flex flex-col items-center justify-center relative overflow-hidden">
+            <!-- 裝飾背景 -->
+            <div class="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 rounded-full bg-blue-50 opacity-50"></div>
+            
+            <h2 class="text-[16px] font-bold text-[#2b3b84] w-full text-left mb-8 relative z-10">實時打卡</h2>
+            
+            <!-- 時鐘顯示 -->
+            <div class="text-center mb-10 relative z-10">
+                <div id="current-date" class="text-gray-500 text-[14px] mb-1">加載中...</div>
+                <div id="current-time" class="text-[48px] font-bold text-blue-600 tracking-tight leading-none" style="font-variant-numeric: tabular-nums;">
+                    --:--:--
+                </div>
+            </div>
+
+            <!-- 打卡狀態顯示區 -->
+            <div class="w-full mb-6 flex justify-between px-6 py-3 bg-gray-50 rounded-md border border-gray-100 relative z-10">
+                <div class="flex flex-col items-center w-1/2">
+                    <span class="text-[12px] text-gray-500 mb-1">上班時間</span>
+                    <span id="display-in-time" class="text-[15px] font-bold text-gray-400">未打卡</span>
+                </div>
+                <div class="w-[1px] bg-gray-200"></div>
+                <div class="flex flex-col items-center w-1/2">
+                    <span class="text-[12px] text-gray-500 mb-1">下班時間</span>
+                    <span id="display-out-time" class="text-[15px] font-bold text-gray-400">未打卡</span>
+                </div>
+            </div>
+
+            <!-- 打卡按鈕區 -->
+            <div class="w-full flex gap-4 relative z-10">
+                <button id="btn-clock-in" class="flex-1 bg-[#4A90E2] hover:bg-blue-600 text-white py-3.5 rounded-md text-[15px] font-medium transition-colors shadow-sm flex flex-col items-center justify-center gap-1.5 group">
+                    <i data-lucide="log-in" class="w-5 h-5 group-hover:scale-110 transition-transform"></i>
+                    上班打卡
+                </button>
+                <button id="btn-clock-out" class="flex-1 bg-white hover:bg-gray-50 border border-gray-300 text-gray-700 py-3.5 rounded-md text-[15px] font-medium transition-colors shadow-sm flex flex-col items-center justify-center gap-1.5 group">
+                    <i data-lucide="log-out" class="w-5 h-5 group-hover:scale-110 transition-transform"></i>
+                    下班打卡
+                </button>
+            </div>
+            
+            <div class="mt-6 text-[12px] text-gray-400 flex items-center justify-center w-full">
+                <i data-lucide="info" class="w-3.5 h-3.5 mr-1"></i>
+                請確認網絡環境，以免定位偏差
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Toast 提示組件 (隱藏狀態) -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2"></div>
+
+    <script>
+        // 初始化 Lucide 圖標
+        lucide.createIcons();
+
+        // 實時時鐘邏輯
+        function updateClock() {
+            const now = new Date();
+            
+            // 格式化時間 HH:MM:SS
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            document.getElementById('current-time').textContent = `${hours}:${minutes}:${seconds}`;
+
+            // 格式化日期 YYYY年MM月DD日 星期X
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const date = String(now.getDate()).padStart(2, '0');
+            const days = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+            const dayName = days[now.getDay()];
+            
+            document.getElementById('current-date').textContent = `${year}年${month}月${date}日 ${dayName}`;
+        }
+        
+        setInterval(updateClock, 1000);
+        updateClock(); // 初始調用一次防閃爍
+
+        // 提示訊息 (Toast) 邏輯
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            const icon = type === 'success' 
+                ? '<i data-lucide="check-circle" class="w-5 h-5 text-green-500 mr-2"></i>' 
+                : '<i data-lucide="info" class="w-5 h-5 text-blue-500 mr-2"></i>';
+                
+            toast.className = `bg-white border ${type === 'success' ? 'border-green-200' : 'border-blue-200'} shadow-lg rounded-md px-4 py-3 flex items-center toast-enter text-[14px] text-gray-700 min-w-[250px]`;
+            toast.innerHTML = `
+                ${icon}
+                <span>${message}</span>
+            `;
+            
+            container.appendChild(toast);
+            lucide.createIcons(); // 重新渲染新加入的圖標
+
+            // 3秒後移除
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(100%)';
+                toast.style.transition = 'all 0.3s ease-in-out';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // 打卡按鈕事件
+        document.getElementById('btn-clock-in').addEventListener('click', function() {
+            const now = new Date();
+            const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+            
+            // 更新畫面上顯示的打卡時間
+            const inTimeDisplay = document.getElementById('display-in-time');
+            inTimeDisplay.textContent = timeStr;
+            inTimeDisplay.classList.replace('text-gray-400', 'text-green-600');
+
+            // 變更按鈕樣式示意已打卡
+            this.classList.replace('bg-[#4A90E2]', 'bg-gray-100');
+            this.classList.replace('hover:bg-blue-600', 'hover:bg-gray-200');
+            this.classList.replace('text-white', 'text-gray-400');
+            this.innerHTML = `<i data-lucide="check" class="w-5 h-5"></i> 已打卡`;
+            this.disabled = true;
+            lucide.createIcons();
+            
+            showToast(`上班打卡成功！時間：${timeStr}`, 'success');
+        });
+
+        document.getElementById('btn-clock-out').addEventListener('click', function() {
+            const now = new Date();
+            const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+            
+            // 更新畫面上顯示的打卡時間
+            const outTimeDisplay = document.getElementById('display-out-time');
+            outTimeDisplay.textContent = timeStr;
+            outTimeDisplay.classList.replace('text-gray-400', 'text-blue-600');
+
+            // 變更按鈕樣式示意已打卡
+            this.classList.replace('bg-white', 'bg-gray-100');
+            this.classList.replace('border-gray-300', 'border-transparent');
+            this.classList.replace('hover:bg-gray-50', 'hover:bg-gray-200');
+            this.classList.replace('text-gray-700', 'text-gray-400');
+            this.innerHTML = `<i data-lucide="check" class="w-5 h-5"></i> 已打卡`;
+            this.disabled = true;
+            lucide.createIcons();
+            
+            showToast(`下班打卡成功！辛苦了。時間：${timeStr}`, 'info');
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ERP 系統首頁 - 總覽</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @keyframes slideUp {
+      from { transform: translateY(10px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    @keyframes zoomIn {
+      from { transform: scale(0.97); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    .animate-slide-up {
+      animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .animate-zoom-in {
+      animation: zoomIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    
+    /* 優化滾動條，使其更細緻且不突兀 */
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #E2E8F0;
+      border-radius: 20px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #CBD5E1;
+    }
+
+    /* 卡片懸浮通用效果 */
+    .hover-card-effect {
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .hover-card-effect:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
+      border-color: #E2E8F0;
+    }
+  </style>
+    <link rel="stylesheet" href="shared-ui.css">
+</head>
+<body class=" text-slate-800 font-sans h-screen flex overflow-hidden selection:bg-blue-100 selection:text-blue-900">
+
+  <!-- ==================== 左側邊欄 ==================== -->
+  <aside class="w-[260px] bg-white border-r border-slate-200/80 flex-shrink-0 flex flex-col overflow-y-auto z-20 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
+    <div class="p-5 space-y-8 mt-2">
+      
+      <!-- 打卡區塊 -->
+      <div class="bg-gradient-to-b from-slate-50 to-white rounded-2xl border border-slate-100 p-5 shadow-sm">
+        <div class="text-center mb-5">
+          <p class="text-xs text-slate-400 font-bold mb-1 tracking-wide" id="clock-date">----/--/--</p>
+          <p class="text-[10px] text-slate-400 font-medium mb-2 opacity-80">+0800 (台北標準時間)</p>
+          <p class="text-3xl font-mono font-black text-slate-800 tracking-widest" id="clock-time">--:--:--</p>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div class="flex flex-col items-center group">
+            <div class="h-6 mb-1 flex justify-center items-center">
+              <span id="punch-in-time" class="text-xs font-mono font-bold text-blue-600 transition-opacity"></span>
+            </div>
+            <button id="btn-punch-in" onclick="punchIn()" class="w-full h-12 bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200/60 font-bold rounded-xl text-[13px] transition-all active:scale-[0.97] focus:outline-none focus:ring-2 focus:ring-blue-500/50 flex items-center justify-center shadow-sm">
+              <span>上班打卡</span>
+            </button>
+          </div>
+          <div class="flex flex-col items-center group">
+            <div class="h-6 mb-1 flex justify-center items-center">
+              <span id="punch-out-time" class="text-xs font-mono font-bold text-slate-500 transition-opacity"></span>
+            </div>
+            <button id="btn-punch-out" onclick="punchOut()" class="w-full h-12 bg-white hover:bg-slate-50 text-slate-600 border border-slate-200 font-bold rounded-xl text-[13px] transition-all active:scale-[0.97] focus:outline-none focus:ring-2 focus:ring-slate-500/50 flex items-center justify-center shadow-sm">
+              <span>下班打卡</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 快捷入口 (2x2 四宮格) -->
+      <div>
+        <h5 class="text-xs font-bold text-slate-400 mb-3 px-1 tracking-wider uppercase">快捷入口</h5>
+        <div class="bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-sm">
+          <div class="grid grid-cols-2 divide-x divide-y divide-slate-50 text-[12px] font-semibold text-center">
+            <button onclick="openNotificationModal()" class="relative flex flex-col items-center justify-center py-6 text-slate-500 hover:bg-slate-50/80 hover:text-blue-600 transition-colors focus:outline-none focus:bg-slate-50 group">
+              <!-- 未讀通知紅點徽章 -->
+              <span id="nav-notif-badge" class="absolute top-4 right-1/4 translate-x-1/2 -translate-y-1/2 flex items-center justify-center w-4 h-4 bg-rose-500 text-white text-[10px] font-bold rounded-full border-2 border-white z-10 animate-pulse hidden">0</span>
+              <svg class="w-6 h-6 mb-2.5 opacity-80 group-hover:animate-bounce" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+              通知
+            </button>
+            <button onclick="openAllApprovalsModal()" class="relative flex flex-col items-center justify-center py-6 text-slate-500 hover:bg-slate-50/80 hover:text-blue-600 transition-colors focus:outline-none focus:bg-slate-50 group">
+              <!-- 待簽核紅點徽章 -->
+              <span id="nav-approval-badge" class="absolute top-4 right-1/4 translate-x-1/2 -translate-y-1/2 flex items-center justify-center w-4 h-4 bg-rose-500 text-white text-[10px] font-bold rounded-full border-2 border-white z-10 animate-pulse hidden">0</span>
+              <svg class="w-6 h-6 mb-2.5 opacity-80 group-hover:animate-bounce" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
+              簽核
+            </button>
+            <button class="flex flex-col items-center justify-center py-6 text-slate-500 hover:bg-slate-50/80 hover:text-blue-600 transition-colors focus:outline-none focus:bg-slate-50">
+              <svg class="w-6 h-6 mb-2.5 opacity-80" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+              請假
+            </button>
+            <button class="flex flex-col items-center justify-center py-6 text-slate-500 hover:bg-slate-50/80 hover:text-blue-600 transition-colors border-t border-slate-50 focus:outline-none focus:bg-slate-50">
+              <svg class="w-6 h-6 mb-2.5 opacity-80" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"></path></svg>
+              公告
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </aside>
+
+  <!-- ==================== 中間主要內容區 ==================== -->
+  <main class="flex-1 flex flex-col overflow-hidden relative z-10">
+    
+    <!-- 頂部頁籤導航 -->
+    <header class="bg-white border-b border-slate-200/80 px-8 pt-5 flex-shrink-0 shadow-[0_4px_24px_rgba(0,0,0,0.01)] relative z-10">
+      <nav class="flex gap-10 text-base font-bold" id="main-tabs">
+        <button data-target="personal" onclick="switchTab('personal')" class="tab-btn pb-3.5 text-blue-600 border-b-2 border-blue-600 -mb-px transition-all focus:outline-none">個人</button>
+        <button data-target="info" onclick="switchTab('info')" class="tab-btn pb-3.5 text-slate-500 hover:text-slate-800 transition-all focus:outline-none border-b-2 border-transparent hover:border-slate-300">資訊中心</button>
+        <button data-target="team" onclick="switchTab('team')" class="tab-btn pb-3.5 text-slate-500 hover:text-slate-800 transition-all focus:outline-none border-b-2 border-transparent hover:border-slate-300">團隊成員</button>
+      </nav>
+    </header>
+
+    <!-- 滾動內容容器 -->
+    <div class="flex-1 overflow-y-auto p-6 md:p-8 lg:p-10">
+
+      <!-- Tab: 個人 -->
+      <div id="tab-personal" class="tab-content block animate-slide-up">
+        <div class="max-w-4xl mx-auto">
+          <div class="flex items-center gap-3 mb-6">
+            <div class="w-1.5 h-6 bg-blue-600 rounded-full"></div>
+            <h4 class="text-xl font-bold text-slate-800">個人休假概況</h4>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-5" id="leave-balances-container">
+             <!-- 由 JS 動態生成 -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: 資訊中心 -->
+      <div id="tab-info" class="tab-content hidden animate-slide-up">
+        <div class="max-w-4xl mx-auto">
+          <div class="flex items-center gap-3 mb-6">
+            <div class="w-1.5 h-6 bg-blue-600 rounded-full"></div>
+            <h4 class="text-xl font-bold text-slate-800">最新公告</h4>
+          </div>
+          <div class="ui-card overflow-hidden" id="announcements-container">
+            <!-- 由 JS 動態生成 -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: 團隊成員 -->
+      <div id="tab-team" class="tab-content hidden animate-slide-up">
+        <div class="max-w-4xl mx-auto">
+          <div class="flex items-center gap-3 mb-6">
+            <div class="w-1.5 h-6 bg-blue-600 rounded-full"></div>
+            <h4 class="text-xl font-bold text-slate-800">團隊成員</h4>
+          </div>
+          
+          <div class="ui-card overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="ui-table text-center">
+                <thead>
+                  <tr>
+                    <th class="w-2/3">分部</th>
+                    <th class="w-1/3">姓名</th>
+                  </tr>
+                </thead>
+                <tbody id="team-members-tbody">
+                   <!-- 由 JS 動態生成 -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- ==================== 右側邊欄 ==================== -->
+  <aside class="w-[320px] lg:w-[380px] bg-white border-l border-slate-200/80 flex-shrink-0 flex flex-col overflow-y-auto p-6 space-y-6 z-20 shadow-[-4px_0_24px_rgba(0,0,0,0.02)]">
+    
+    <!-- 登入資訊卡片 -->
+    <div class="ui-card p-6 hover-card-effect">
+      <div class="flex justify-between items-start mb-6">
+        <h4 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+          <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"></path></svg>
+          登入資訊
+        </h4>
+      </div>
+      
+      <div class="flex items-center gap-4 mb-6 pb-6 border-b border-slate-50">
+        <div class="w-12 h-12 bg-gradient-to-br from-blue-100 to-blue-200 text-blue-700 rounded-full flex items-center justify-center font-black text-lg shadow-inner">系</div>
+        <div>
+          <div class="flex items-baseline gap-2 mb-0.5">
+            <span class="text-base font-bold text-slate-800">系統管理員</span>
+          </div>
+          <span class="text-xs text-slate-400 font-medium">System Admin</span>
+        </div>
+      </div>
+
+      <div class="space-y-4 text-[13px]">
+        <div class="flex justify-between items-center">
+          <p class="text-slate-400 font-medium">公司名稱</p>
+          <p class="font-bold text-slate-700">--</p>
+        </div>
+        <div class="flex justify-between items-center">
+          <p class="text-slate-400 font-medium">員工編號</p>
+          <p class="font-bold text-slate-700 font-mono bg-slate-50 px-2 py-0.5 rounded">00001</p>
+        </div>
+        <div class="flex justify-between items-center">
+          <p class="text-slate-400 font-medium">IP 位置</p>
+          <p class="font-bold text-slate-500 font-mono">127.0.0.1</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 團隊行事曆卡片 -->
+    <div class="ui-card overflow-hidden flex-shrink-0 hover-card-effect flex flex-col">
+      <div class="px-6 py-5 border-b border-slate-50 bg-slate-50/50">
+         <h4 class="text-base font-bold text-slate-800">團隊行事曆 (2026/06)</h4>
+      </div>
+      <div class="p-6 flex flex-col gap-6">
+        <!-- 日曆網格 -->
+        <div>
+          <div class="grid grid-cols-7 gap-1 text-center text-[11px] font-bold text-slate-400 mb-3">
+            <span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span>
+          </div>
+          <div class="grid grid-cols-7 gap-1.5 mb-2" id="calendar-grid"></div>
+        </div>
+        
+        <!-- 分隔線 -->
+        <hr class="border-slate-100">
+
+        <!-- 今日行程 -->
+        <div class="flex-1 min-h-[150px]">
+           <h6 class="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2" id="selected-agenda-title">
+             <span class="w-1.5 h-4 bg-blue-500 rounded-sm"></span> 
+             06-02 行程
+           </h6>
+          <div class="space-y-3 overflow-y-auto max-h-[220px] pr-2" id="agenda-container"></div>
+        </div>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- ==================== 模態視窗組 (Modals) ==================== -->
+  
+  <!-- 通知中心彈窗 -->
+  <div id="notification-modal" class="fixed inset-0 z-[90] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm hidden transition-opacity">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-zoom-in flex flex-col max-h-[80vh]">
+      <div class="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50 shrink-0">
+        <div class="flex items-center gap-2">
+          <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+          <h4 class="text-base font-bold text-slate-800">系統通知中心</h4>
+        </div>
+        <button onclick="closeNotificationModal()" class="text-slate-400 hover:text-slate-700 p-2 hover:bg-slate-200/50 rounded-full transition-colors focus:outline-none">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+      
+      <!-- 通知列表區塊 (可滾動) -->
+      <div class="overflow-y-auto flex-1 p-2" id="notification-list-container">
+        <!-- 由 JS 動態生成 -->
+      </div>
+
+      <div class="px-5 py-4 bg-slate-50/80 flex justify-between items-center border-t border-slate-100 shrink-0">
+        <button onclick="markAllNotificationsRead()" class="text-xs font-bold text-slate-500 hover:text-blue-600 transition-colors">全部標示為已讀</button>
+        <button onclick="closeNotificationModal()" class="ui-btn ui-btn-secondary">關閉</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 公告詳細 -->
+  <div id="announcement-modal" class="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm hidden transition-opacity">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-zoom-in">
+      <div class="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+        <span id="anno-modal-tag" class="px-3 py-1 text-xs font-bold rounded-md border text-blue-700 border-blue-200 bg-blue-50 tracking-wide">系統公告</span>
+        <button onclick="closeAnnouncementModal()" class="text-slate-400 hover:text-slate-700 p-2 hover:bg-slate-200/50 rounded-full transition-colors focus:outline-none">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+      <div class="p-6 space-y-4">
+        <h4 id="anno-modal-title" class="text-xl font-bold text-slate-800 leading-tight"></h4>
+        <p id="anno-modal-meta" class="text-xs text-slate-400 font-medium"></p>
+        <div id="anno-modal-content" class="bg-slate-50 p-5 rounded-xl text-[14px] text-slate-600 leading-relaxed whitespace-pre-wrap border border-slate-100"></div>
+      </div>
+      <div class="px-6 py-5 bg-slate-50/80 flex justify-end border-t border-slate-100">
+        <button onclick="closeAnnouncementModal(); showToast('已確認讀取公告資訊')" class="ui-btn ui-btn-primary">我已知悉</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 單據簽核詳細 (新版表單) -->
+  <div id="approval-detail-modal" class="fixed inset-0 z-[80] flex items-center justify-center p-4 lg:p-6 bg-slate-900/50 backdrop-blur-md hidden transition-opacity">
+    <div class="bg-[#F0F2F5] rounded-xl shadow-2xl w-full max-w-[1280px] h-full max-h-[95vh] flex flex-col overflow-hidden animate-zoom-in border border-white/20">
+
+      <!-- 標題列 -->
+      <div class="p-4 bg-white border-b border-slate-200 flex items-center justify-between shrink-0 shadow-sm z-10">
+        <h3 class="text-[16px] font-bold text-slate-800 tracking-wide" id="approve-modal-head-title">費用申請單 (B)</h3>
+        <button onclick="closeApprovalDetailModal()" class="bg-blue-600 hover:bg-blue-700 text-white w-8 h-8 rounded flex items-center justify-center transition-colors focus:outline-none">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+
+      <!-- 內容區 (左右兩欄) -->
+      <div class="flex-1 flex flex-col md:flex-row p-4 gap-4 overflow-y-auto md:overflow-hidden">
+
+        <!-- 左欄 (表單內容) -->
+        <div class="flex-1 flex flex-col gap-4 pr-0 md:pr-2 md:overflow-y-auto shrink-0 md:shrink">
+
+          <!-- 區塊: 基本資訊 -->
+          <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
+            <h4 class="text-[15px] font-bold text-blue-800 mb-5 border-b border-slate-100 pb-2 tracking-wide">基本資訊</h4>
+            <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-x-6 gap-y-5">
+              <!-- row 1 -->
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1.5">文件編號</label>
+                <input type="text" id="approve-detail-file-no" readonly value="B-BU4-API-T1-KKKKK-20260526-01" class="w-full text-sm font-medium border border-slate-200 rounded-md px-3 py-2.5 bg-slate-100 text-slate-700 focus:outline-none cursor-not-allowed"/>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1.5">申請日期</label>
+                <div class="relative">
+                  <span class="absolute inset-y-0 left-3 flex items-center text-slate-400">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                  </span>
+                  <input type="text" id="approve-detail-date" readonly value="2026-05-26" class="w-full text-sm font-medium border border-slate-200 rounded-md pl-9 pr-3 py-2.5 bg-slate-50 text-slate-700 focus:outline-none"/>
+                </div>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1.5">標題</label>
+                <input type="text" id="approve-detail-title" readonly class="w-full text-sm font-medium border border-slate-200 rounded-md px-3 py-2.5 bg-white text-slate-800 focus:outline-none"/>
+              </div>
+              <!-- row 2 -->
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1.5">申請人</label>
+                <input type="text" id="approve-detail-applicant" readonly class="w-full text-sm font-medium border border-slate-200 rounded-md px-3 py-2.5 bg-white text-slate-800 focus:outline-none"/>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1.5">總部審批</label>
+                <input type="checkbox" disabled class="w-4.5 h-4.5 rounded border-slate-300 mt-2"/>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1.5">服務類型</label>
+                <input type="text" id="approve-detail-service-type" readonly value="一般費用" class="w-full text-sm font-medium border border-slate-200 rounded-md px-3 py-2.5 bg-white text-slate-800 focus:outline-none"/>
+              </div>
+              <!-- row 3 -->
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1.5">項目</label>
+                <input type="text" id="approve-detail-project" readonly value="GT" class="w-full text-sm font-medium border border-slate-200 rounded-md px-3 py-2.5 bg-slate-100 text-slate-700 focus:outline-none cursor-not-allowed"/>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1.5">區域</label>
+                <input type="text" id="approve-detail-region" readonly value="T1" class="w-full text-sm font-medium border border-slate-200 rounded-md px-3 py-2.5 bg-slate-100 text-slate-700 focus:outline-none cursor-not-allowed"/>
+              </div>
+            </div>
+          </div>
+
+          <!-- 區塊: 費用申請 -->
+          <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
+            <h4 class="text-[15px] font-bold text-blue-800 mb-5 border-b border-slate-100 pb-2 tracking-wide">費用申請</h4>
+            <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-x-6 gap-y-5">
+              <div class="lg:col-span-2 xl:col-span-3">
+                <label class="block text-xs font-bold text-slate-600 mb-1.5">是否關聯其他單號</label>
+                <input type="checkbox" disabled class="w-4.5 h-4.5 rounded border-slate-300"/>
+              </div>
+              <!-- row 2 -->
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1.5">公司別</label>
+                <input type="text" readonly value="TC" class="w-full text-sm font-medium border border-slate-200 rounded-md px-3 py-2.5 bg-slate-100 text-slate-700 focus:outline-none cursor-not-allowed"/>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1.5">部門</label>
+                <input type="text" readonly value="RD" class="w-full text-sm font-medium border border-slate-200 rounded-md px-3 py-2.5 bg-slate-100 text-slate-700 focus:outline-none cursor-not-allowed"/>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1.5">部門主管</label>
+                <input type="text" readonly value="Kidd" class="w-full text-sm font-medium border border-slate-200 rounded-md px-3 py-2.5 bg-slate-100 text-slate-700 focus:outline-none cursor-not-allowed"/>
+              </div>
+              <!-- row 3 -->
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1.5">開戶行姓名</label>
+                <input type="text" readonly value="" class="w-full text-sm font-medium border border-slate-200 rounded-md px-3 py-2.5 bg-white text-slate-800 focus:outline-none"/>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1.5">開戶銀行</label>
+                <input type="text" readonly value="" class="w-full text-sm font-medium border border-slate-200 rounded-md px-3 py-2.5 bg-white text-slate-800 focus:outline-none"/>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1.5">銀行帳號</label>
+                <input type="text" readonly value="" class="w-full text-sm font-medium border border-slate-200 rounded-md px-3 py-2.5 bg-white text-slate-800 focus:outline-none"/>
+              </div>
+            </div>
+          </div>
+
+          <!-- 金額與按鈕 -->
+          <div class="mt-4 flex flex-col items-center">
+            <div class="w-full flex justify-end mb-8 pr-4">
+              <div class="space-y-1.5 text-right flex flex-col items-end">
+                 <div class="flex items-center gap-6">
+                   <span class="text-xs font-bold text-slate-500 tracking-wider">TOTAL AMOUNT</span>
+                   <span class="text-[15px] font-black text-slate-800 tracking-tight" id="approve-detail-amount">TWD 0</span>
+                 </div>
+                 <div class="flex items-center gap-6">
+                   <span class="text-xs font-bold text-slate-500 tracking-wider">TOTAL AMOUNT CNY</span>
+                   <span class="text-[14px] font-black text-slate-800 tracking-tight" id="approve-detail-amount-cny">CNY 225,733,634.31</span>
+                 </div>
+              </div>
+            </div>
+            
+            <button id="btn-approve-action" onclick="submitApprovalCurrent('已完成')" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-[15px] px-16 py-3 rounded-md shadow-md transition-all active:scale-95 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 mb-10 tracking-widest">
+              審批
+            </button>
+          </div>
+
+        </div>
+
+        <!-- 右欄 (審批線預覽) -->
+        <div class="w-full md:w-[320px] lg:w-[360px] flex flex-col bg-white rounded-lg shadow-sm border border-slate-200 shrink-0 md:overflow-hidden">
+          <div class="bg-teal-600 px-5 py-4 shrink-0">
+            <h4 class="text-white font-bold text-[15px] tracking-wide">審批線預覽</h4>
+          </div>
+          <div class="overflow-x-auto md:overflow-x-hidden md:overflow-y-auto flex-1">
+            <table class="w-full text-center text-[13px] text-slate-600">
+              <thead class="bg-slate-50 border-b border-slate-200 font-bold text-slate-500 sticky top-0">
+                <tr>
+                  <th class="py-3.5 px-2 w-16">序號</th>
+                  <th class="py-3.5 px-2">條件</th>
+                  <th class="py-3.5 px-2">職稱</th>
+                  <th class="py-3.5 px-2 w-16">簽名</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                <tr class="hover:bg-slate-50">
+                  <td class="py-4 px-2 font-bold text-slate-800">1</td>
+                  <td class="py-4 px-2 text-slate-500"></td>
+                  <td class="py-4 px-2 text-slate-700">部門主管</td>
+                  <td class="py-4 px-2 text-slate-400">-</td>
+                </tr>
+                <tr class="hover:bg-slate-50">
+                  <td class="py-4 px-2 font-bold text-slate-800">2</td>
+                  <td class="py-4 px-2 text-slate-500"></td>
+                  <td class="py-4 px-2 text-slate-700">費用會計</td>
+                  <td class="py-4 px-2 text-slate-400">-</td>
+                </tr>
+                <tr class="hover:bg-slate-50">
+                  <td class="py-4 px-2 font-bold text-slate-800">3</td>
+                  <td class="py-4 px-2 text-slate-500"></td>
+                  <td class="py-4 px-2 text-slate-700">財務負責人</td>
+                  <td class="py-4 px-2 text-slate-400">-</td>
+                </tr>
+                <tr class="hover:bg-slate-50">
+                  <td class="py-4 px-2 font-bold text-slate-800">4</td>
+                  <td class="py-4 px-2 text-slate-500"></td>
+                  <td class="py-4 px-2 text-slate-700">資金專員</td>
+                  <td class="py-4 px-2 text-slate-400">-</td>
+                </tr>
+                <tr class="hover:bg-slate-50 text-slate-500">
+                  <td class="py-4 px-2 text-[12px]">抄送</td>
+                  <td class="py-4 px-2">抄送</td>
+                  <td class="py-4 px-2 text-slate-700">資金主管</td>
+                  <td class="py-4 px-2">-</td>
+                </tr>
+                <tr class="hover:bg-slate-50 text-slate-500">
+                  <td class="py-4 px-2 text-[12px]">抄送</td>
+                  <td class="py-4 px-2">抄送</td>
+                  <td class="py-4 px-2 text-slate-700">記帳</td>
+                  <td class="py-4 px-2">-</td>
+                </tr>
+                <tr class="hover:bg-slate-50 text-slate-500">
+                  <td class="py-4 px-2 text-[12px]">抄送</td>
+                  <td class="py-4 px-2">抄送</td>
+                  <td class="py-4 px-2 text-slate-700">稽核</td>
+                  <td class="py-4 px-2">-</td>
+                </tr>
+                <tr class="hover:bg-slate-50 text-slate-500">
+                  <td class="py-4 px-2 text-[12px]">抄送</td>
+                  <td class="py-4 px-2">抄送</td>
+                  <td class="py-4 px-2 text-slate-700">抄送內審</td>
+                  <td class="py-4 px-2">-</td>
+                </tr>
+                <tr class="hover:bg-slate-50 text-slate-500">
+                  <td class="py-4 px-2 text-[12px]">抄送</td>
+                  <td class="py-4 px-2">抄送</td>
+                  <td class="py-4 px-2 text-slate-700">財務總監</td>
+                  <td class="py-4 px-2">-</td>
+                </tr>
+                <tr class="hover:bg-slate-50 text-slate-500">
+                  <td class="py-4 px-2 text-[12px]">抄送</td>
+                  <td class="py-4 px-2">抄送</td>
+                  <td class="py-4 px-2 text-slate-700">財務負責人</td>
+                  <td class="py-4 px-2">-</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- 全螢幕: 待簽核彈窗 -->
+  <div id="all-approvals-modal" class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-md hidden transition-opacity">
+    <div class="bg-[#F4F6F8] rounded-3xl shadow-2xl w-full max-w-4xl h-auto max-h-[85vh] flex flex-col overflow-hidden animate-zoom-in border border-white/20">
+      
+      <div class="p-5 bg-white border-b border-slate-200/80 flex items-center justify-between shrink-0 shadow-sm z-10 relative">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-xl">📂</div>
+          <h3 class="text-lg font-bold text-slate-800">待簽核</h3>
+        </div>
+        <button onclick="closeAllApprovalsModal()" class="text-slate-500 hover:text-slate-800 px-4 py-2 hover:bg-slate-100 rounded-xl font-bold text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-slate-200">
+          ✕ 關閉視窗
+        </button>
+      </div>
+
+      <div class="overflow-y-auto p-5 space-y-4 flex-1">
+        <!-- 簽核表格 -->
+        <div class="ui-card overflow-hidden flex flex-col">
+          <div class="overflow-x-auto">
+            <table class="ui-table text-center table-fixed min-w-[650px]">
+              <thead>
+                <tr>
+                  <th class="w-[120px]">文件類型</th>
+                  <th>標題</th>
+                  <th class="w-[150px]">申請人</th>
+                  <th class="w-[180px]">日期</th>
+                </tr>
+              </thead>
+              <tbody id="all-approvals-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 全域 Toast -->
+  <div id="toast-container" class="fixed bottom-8 right-8 z-[100] flex flex-col gap-3 pointer-events-none"></div>
+
+  <!-- ==================== JavaScript ==================== -->
+  <script>
+    const state = {
+      leaveBalances: [
+        { id: 'al', name: '特休 / 年假', total: 56, used: 16, color: 'bg-blue-500' },
+        { id: 'fl', name: '彈性休假', total: 24, used: 8, color: 'bg-emerald-500' },
+        { id: 'sl', name: '不扣薪病假', total: 30, used: 0, color: 'bg-amber-500' },
+        { id: 'ct', name: '補休', total: 12, used: 4, color: 'bg-rose-500' }
+      ],
+      announcements: [
+        { id: 1, title: '【重要】2026年端午節連假出勤與值班排班調整通知', date: '2026-06-01', author: '張雅婷', content: '各位同仁好，2026年端午節假期將至，本公司調整放假及補班規則如下：6月15日至6月17日為放假日。' },
+        { id: 2, title: '【公告】ERP 系統預計於本週六 (06/06) 凌晨進行例行性維護', date: '2026-05-28', author: '系統組', content: '本週六凌晨 01:00 至 05:00 將進行系統底層資料庫升級與安全維護。' },
+        { id: 3, title: '【活動】第三季度員工大會暨慶生會報名開跑', date: '2026-05-25', author: '福委會', content: '大會將於 7 月 10 日下午召開。本次將於 W 飯店舉辦精緻下午茶餐會。' }
+      ],
+      selectedDate: '2026-06-02',
+      calendarEvents: {
+        '2026-06-02': [{ time: '09:30', title: '📊 跨部門週會' }, { time: '14:00', title: '☕ 部門內訓 OJT' }],
+        '2026-06-05': [{ time: '15:00', title: '🚀 專案 Milestone 審查' }]
+      },
+      teamMembers: [
+        { branch: 'T1-研发中心 RD-2', name: '101247' },
+        { branch: 'T2 ( 总部 ) -研发中心 RD-2', name: '100381' },
+        { branch: 'T1-研发中心 RD-2', name: '101601' },
+        { branch: 'T1-研发中心 RD-2', name: '101128' }
+      ],
+      approvalList: [
+        { id: 'oa1', oa: '財務', loc: 'T1', type: 'BC', title: '我要買陶朱隱園', applicant: 'KKKKK', signer: 'KKKKK', amount: 'TWD 1,000,000,000', date: '2026-05-26 14:14', approver: '部門主管', ref: '-', status: '待簽核' },
+        { id: 'oa2', oa: '財務', loc: 'T1', type: 'C', title: 'T1─一般費用-20260525', applicant: '101372', signer: '101372', amount: 'TWD 2,000', date: '2026-05-25 15:36', approver: '部門主管', ref: '-', status: '待簽核' },
+        { id: 'oa3', oa: '合同', loc: 'THQ', type: 'IC', title: 'THQ-內部合同单-20260428', applicant: 'Yen', signer: 'Yen H', amount: '0', date: '2026-04-28 15:05', approver: '部門主管', ref: '-', status: '待簽核' },
+        
+        // 對應系統通知中心的全新模擬簽核資料
+        { id: 'oa_leave_101730', oa: '行政', loc: 'T1', type: 'AL', title: "有員工提交'休假申請' (申請休假_101730_2026-06-03)", applicant: '101730', signer: '張小明', amount: 'TWD 0', date: '2026-06-03 09:36:32', approver: '部門主管', ref: '-', status: '待簽核' },
+        { id: 'oa_audit_100344', oa: '行政', loc: 'THQ', type: 'IC', title: "駁回通知_{離任審計申請_100344_2026-05-27}", applicant: '100344', signer: '林大華', amount: 'TWD 0', date: '2026-05-27 05:45:01', approver: '部門主管', ref: '-', status: '已退回' },
+        { id: 'oa_punch_101383_1', oa: '行政', loc: 'T1', type: 'PU', title: "“員工補打卡申請” (申請補打卡_101383_2026-06-03)", applicant: '101383', signer: '王小二', amount: 'TWD 0', date: '2026-06-03 03:26:00', approver: '部門主管', ref: '-', status: '待簽核' },
+        { id: 'oa_punch_101383_2', oa: '行政', loc: 'T1', type: 'PU', title: "“員工補打卡申請” (申請補打卡_101383_2026-06-03)", applicant: '101383', signer: '王小二', amount: 'TWD 0', date: '2026-06-03 03:14:10', approver: '部門主管', ref: '-', status: '待簽核' },
+        { id: 'oa_punch_101278_1', oa: '行政', loc: 'T1', type: 'PU', title: "“補打卡申請” (申請補打卡_101278_2026-06-03)", applicant: '101278', signer: '劉伊庭', amount: 'TWD 0', date: '2026-06-03 03:12:59', approver: '部門主管', ref: '-', status: '待簽核' },
+        { id: 'oa_punch_101383_3', oa: '行政', loc: 'T1', type: 'PU', title: "“員工補打卡申請” (申請補打卡_101383_2026-06-03)", applicant: '101383', signer: '王小二', amount: 'TWD 0', date: '2026-06-03 03:12:24', approver: '部門主管', ref: '-', status: '待簽核' },
+        { id: 'oa_punch_101278_2', oa: '行政', loc: 'T1', type: 'PU', title: "“補打卡申請” (申請補打卡_101278_2026-06-03)", applicant: '101278', signer: '劉伊庭', amount: 'TWD 0', date: '2026-06-03 03:06:30', approver: '部門主管', ref: '-', status: '待簽核' }
+      ],
+      notifications: [
+        { id: 'n1', title: "有員工提交'休假申請' (申請休假_101730_2026-06-03)", time: "2026-06-03 09:36:32", isRead: false, approvalId: 'oa_leave_101730' },
+        { id: 'n2', title: "駁回通知_{離任審計申請_100344_2026-05-27}，請儘速查閱", time: "2026-06-03 05:45:01", isRead: false, approvalId: 'oa_audit_100344' },
+        { id: 'n3', title: "您有一份 “員工補打卡申請” 需要審批 (申請補打卡_101383_2026-06-03)", time: "2026-06-03 03:26:00", isRead: false, approvalId: 'oa_punch_101383_1' },
+        { id: 'n4', title: "您有一份 “員工補打卡申請” 需要審批 (申請補打卡_101383_2026-06-03)", time: "2026-06-03 03:14:10", isRead: false, approvalId: 'oa_punch_101383_2' },
+        { id: 'n5', title: "有員工提交'補打卡申請' (申請補打卡_101278_2026-06-03)", time: "2026-06-03 03:12:59", isRead: false, approvalId: 'oa_punch_101278_1' },
+        { id: 'n6', title: "您有一份 “員工補打卡申請” 需要審批 (申請補打卡_101383_2026-06-03)", time: "2026-06-03 03:12:24", isRead: false, approvalId: 'oa_punch_101383_3' },
+        { id: 'n7', title: "有員工提交'補打卡申請' (申請補打卡_101278_2026-06-03)", time: "2026-06-03 03:06:30", isRead: false, approvalId: 'oa_punch_101278_2' }
+      ]
+    };
+
+    // 1. 打卡邏輯
+    function punchIn() {
+      const btn = document.getElementById('btn-punch-in');
+      const timeSpan = document.getElementById('punch-in-time');
+      const now = new Date();
+      const hh = String(now.getHours()).padStart(2, '0');
+      const min = String(now.getMinutes()).padStart(2, '0');
+      const ss = String(now.getSeconds()).padStart(2, '0');
+      const timeStr = `${hh}:${min}:${ss}`;
+      
+      showToast(`上班打卡成功！打卡時間：${timeStr}`);
+      btn.innerHTML = `<span class="tracking-widest">已上班</span>`;
+      btn.onclick = null;
+      btn.classList.remove('hover:bg-blue-100', 'active:scale-[0.97]');
+      btn.classList.add('cursor-default', 'bg-blue-50/50', 'text-blue-600/70', 'border-blue-100');
+      
+      timeSpan.innerText = timeStr;
+    }
+
+    function punchOut() {
+      const btn = document.getElementById('btn-punch-out');
+      const timeSpan = document.getElementById('punch-out-time');
+      const now = new Date();
+      const hh = String(now.getHours()).padStart(2, '0');
+      const min = String(now.getMinutes()).padStart(2, '0');
+      const ss = String(now.getSeconds()).padStart(2, '0');
+      const timeStr = `${hh}:${min}:${ss}`;
+      
+      showToast(`下班打卡成功！打卡時間：${timeStr}`);
+      btn.innerHTML = `<span class="tracking-widest">已下班</span>`;
+      btn.onclick = null;
+      btn.classList.remove('hover:bg-slate-50', 'active:scale-[0.97]');
+      btn.classList.add('cursor-default', 'bg-slate-50/50', 'text-slate-400', 'border-slate-100');
+      
+      timeSpan.innerText = timeStr;
+    }
+
+    // 2. 時鐘更新
+    setInterval(() => {
+      const now = new Date();
+      const yyyy = now.getFullYear();
+      const mm = String(now.getMonth() + 1).padStart(2, '0');
+      const dd = String(now.getDate()).padStart(2, '0');
+      const hh = String(now.getHours()).padStart(2, '0');
+      const min = String(now.getMinutes()).padStart(2, '0');
+      const ss = String(now.getSeconds()).padStart(2, '0');
+      
+      const clockDateEl = document.getElementById('clock-date');
+      const clockTimeEl = document.getElementById('clock-time');
+      if (clockDateEl) clockDateEl.innerText = `${yyyy}-${mm}-${dd}`;
+      if (clockTimeEl) clockTimeEl.innerText = `${hh}:${min}:${ss}`;
+    }, 1000);
+
+    // 3. Tab 切換
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      const activeTab = document.getElementById('tab-' + tabId);
+      if (activeTab) activeTab.classList.remove('hidden');
+
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.className = 'tab-btn pb-3.5 text-slate-500 hover:text-slate-800 transition-all focus:outline-none border-b-2 border-transparent hover:border-slate-300';
+      });
+      const activeBtn = document.querySelector(`.tab-btn[data-target="${tabId}"]`);
+      if (activeBtn) {
+        activeBtn.className = 'tab-btn pb-3.5 text-blue-600 border-b-2 border-blue-600 font-bold -mb-px transition-all focus:outline-none';
+      }
+    }
+
+    // 4. 渲染邏輯
+    function renderLeaveBalances() {
+      const container = document.getElementById('leave-balances-container');
+      if (container) {
+        container.innerHTML = state.leaveBalances.map(leave => {
+          const remaining = leave.total - leave.used;
+          return `
+            <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm hover-card-effect relative overflow-hidden">
+              <div class="absolute top-0 left-0 w-full h-1 ${leave.color}"></div>
+              <div class="flex justify-between items-start mb-4 mt-1">
+                <p class="text-sm text-slate-500 font-bold">${leave.name}</p>
+              </div>
+              <div class="flex items-baseline gap-2 mb-4">
+                <span class="text-4xl font-black text-slate-800 tracking-tight">${remaining}</span>
+                <span class="text-xs text-slate-400 font-semibold">/ ${leave.total} H</span>
+              </div>
+              <div class="pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+                 <span class="font-medium">已使用</span>
+                 <span class="font-bold text-slate-700 bg-slate-50 px-2 py-1 rounded-md">${leave.used} H</span>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+
+    function renderAnnouncements() {
+      const container = document.getElementById('announcements-container');
+      if (container) {
+        container.innerHTML = state.announcements.map(anno => `
+          <div onclick="openAnnouncementModal(${anno.id})" class="flex items-start gap-4 p-6 hover:bg-slate-50 cursor-pointer transition-colors border-b border-slate-100 last:border-0 group">
+            <div class="flex-shrink-0 mt-1.5">
+              <span class="w-2.5 h-2.5 rounded-full bg-blue-500 block group-hover:scale-125 transition-transform"></span>
+            </div>
+            <div class="flex-1 overflow-hidden">
+               <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mb-2">
+                  <h5 class="text-base font-bold text-slate-800 truncate pr-4 group-hover:text-blue-600 transition-colors">${anno.title}</h5>
+                  <span class="text-xs text-slate-400 font-mono font-medium whitespace-nowrap bg-slate-50 px-2 py-1 rounded-md">${anno.date}</span>
+               </div>
+               <p class="text-sm text-slate-500 truncate">${anno.content}</p>
+            </div>
+          </div>
+        `).join('');
+      }
+    }
+
+    function renderCalendar() {
+      const grid = document.getElementById('calendar-grid');
+      if (grid) {
+        let html = '<span class="text-center py-2 text-xs font-medium text-slate-300 select-none">31</span>';
+        for (let day = 1; day <= 30; day++) {
+          const dateStr = `2026-06-${day < 10 ? '0'+day : day}`;
+          const isSelected = dateStr === state.selectedDate;
+          const hasEvent = !!state.calendarEvents[dateStr];
+          
+          let btnClass = "py-2 text-xs rounded-xl flex flex-col items-center justify-center relative font-bold transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/30 ";
+          if (isSelected) {
+              btnClass += "bg-blue-600 text-white shadow-md ";
+          } else {
+              btnClass += "text-slate-600 hover:bg-slate-100 hover:text-slate-900 ";
+          }
+          
+          const dotHtml = hasEvent ? `<span class="w-1.5 h-1.5 rounded-full mt-1.5 ${isSelected ? 'bg-white' : 'bg-orange-400'}"></span>` : '<span class="w-1.5 h-1.5 mt-1.5"></span>';
+          html += `<button onclick="selectDate('${dateStr}')" class="${btnClass}"><span>${day}</span>${dotHtml}</button>`;
+        }
+        grid.innerHTML = html;
+        renderAgenda();
+      }
+    }
+
+    function renderAgenda() {
+      const agendaTitle = document.getElementById('selected-agenda-title');
+      if (agendaTitle) {
+        agendaTitle.innerHTML = `<span class="w-1.5 h-4 bg-blue-500 rounded-sm"></span> ${state.selectedDate.slice(5)} 行程`;
+      }
+      const container = document.getElementById('agenda-container');
+      if (container) {
+        const events = state.calendarEvents[state.selectedDate];
+        if (events && events.length > 0) {
+          container.innerHTML = events.map(ev => `
+            <div class="p-3 bg-slate-50 rounded-xl border-l-[3px] border-blue-500 text-sm flex flex-col gap-1.5 hover:shadow-sm transition-shadow cursor-default">
+               <span class="text-slate-400 text-xs font-mono font-bold">${ev.time}</span>
+               <span class="font-bold text-slate-700">${ev.title}</span>
+            </div>
+          `).join('');
+        } else {
+          container.innerHTML = `
+            <div class="h-24 flex flex-col items-center justify-center text-slate-400 bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
+               <span class="text-xs font-medium">當日無行程</span>
+            </div>
+          `;
+        }
+      }
+    }
+
+    function renderQuickApprovals() {
+      const pendings = state.approvalList.filter(item => item.status === '待簽核');
+      
+      // 更新快捷入口的簽核徽章 (保留這個功能)
+      const approvalBadge = document.getElementById('nav-approval-badge');
+      if (approvalBadge) {
+        if (pendings.length > 0) {
+          approvalBadge.innerText = pendings.length;
+          approvalBadge.classList.remove('hidden');
+        } else {
+          approvalBadge.classList.add('hidden');
+        }
+      }
+    }
+
+    function applyFilters() {
+      const filtered = state.approvalList.filter(item => item.status === '待簽核');
+      renderAllApprovalsTable(filtered);
+    }
+
+    function renderAllApprovalsTable(list) {
+      const tbody = document.getElementById('all-approvals-tbody');
+      if (tbody) {
+        if (list.length > 0) {
+          tbody.innerHTML = list.map(item => {
+            // 將日期拆分成日期與時間兩行
+            const dateParts = item.date.split(' ');
+            const dateStr = dateParts[0] || '';
+            // 若原本沒有秒數，自動補上 :00 讓格式像附圖一樣
+            const timeStr = dateParts[1] ? (dateParts[1].length === 5 ? dateParts[1] + ':00' : dateParts[1]) : '';
+            
+            // 使用 signer 來呈現類似附圖中的 Yen H 格式
+            const applicantName = item.signer || item.applicant;
+
+            return `
+              <tr onclick="openApprovalDetailModal('${item.id}')" class="cursor-pointer group text-center">
+                <td class="font-medium">${item.type}</td>
+                <td class="break-words max-w-sm mx-auto text-left md:text-center">${item.title}</td>
+                <td>${applicantName}</td>
+                <td class="leading-tight">
+                  <div>${dateStr}</div>
+                  <div class="text-[12px] text-slate-400 mt-0.5">${timeStr}</div>
+                </td>
+              </tr>
+            `;
+          }).join('');
+        } else {
+          tbody.innerHTML = `<tr><td colspan="4" class="py-12 text-center text-slate-400 font-medium text-base">沒有待簽核的項目。</td></tr>`;
+        }
+      }
+    }
+
+    function renderNotifications() {
+      const container = document.getElementById('notification-list-container');
+      const badge = document.getElementById('nav-notif-badge');
+      
+      const unreadCount = state.notifications.filter(n => !n.isRead).length;
+      
+      // 更新徽章
+      if (badge) {
+        if (unreadCount > 0) {
+          badge.innerText = unreadCount;
+          badge.classList.remove('hidden');
+        } else {
+          badge.classList.add('hidden');
+        }
+      }
+
+      if (container) {
+        if (state.notifications.length > 0) {
+          container.innerHTML = state.notifications.map(n => {
+            const readOpacity = n.isRead ? 'opacity-50' : '';
+            return `
+              <div onclick="readNotification('${n.id}')" class="py-3 px-5 border-b border-slate-100 last:border-0 hover:bg-slate-50/50 transition-colors cursor-pointer flex flex-col gap-1 ${readOpacity}">
+                <div class="text-[14px] text-slate-800 leading-relaxed">
+                  ${!n.isRead ? '<span class="bg-[#3B82F6] text-white text-[11px] font-bold px-2 py-0.5 rounded-full mr-2 inline-block tracking-wide">New</span>' : ''}
+                  <span class="font-medium text-slate-700">${n.title}</span>
+                </div>
+                <div class="text-slate-400 font-mono text-[12px]">${n.time}</div>
+              </div>
+            `;
+          }).join('');
+        } else {
+          container.innerHTML = `<div class="py-12 text-center text-slate-400 text-sm">目前沒有任何通知。</div>`;
+        }
+      }
+    }
+
+    // 渲染團隊成員表格
+    function renderTeamMembers() {
+      const tbody = document.getElementById('team-members-tbody');
+      if (tbody && state.teamMembers) {
+        tbody.innerHTML = state.teamMembers.map(member => `
+          <tr>
+            <td class="font-medium text-center">${member.branch}</td>
+            <td class="font-mono font-bold text-center">${member.name}</td>
+          </tr>
+        `).join('');
+      }
+    }
+
+    // 5. 互動事件
+    function selectDate(dateStr) { state.selectedDate = dateStr; renderCalendar(); }
+    
+    function showToast(msg) {
+      const c = document.getElementById('toast-container');
+      if (c) {
+        const t = document.createElement('div');
+        t.className = "flex items-center gap-3 px-5 py-4 rounded-2xl shadow-xl border bg-white border-slate-100 animate-slide-up text-sm font-bold text-slate-800 pointer-events-auto";
+        t.innerHTML = `<span class="w-6 h-6 flex items-center justify-center bg-blue-100 rounded-full text-blue-600 text-xs">✓</span> ${msg}`;
+        c.appendChild(t);
+        setTimeout(() => { t.classList.add('opacity-0', 'translate-y-2'); setTimeout(() => t.remove(), 300); }, 3000);
+      }
+    }
+
+    function openAnnouncementModal(id) {
+      const anno = state.announcements.find(a => a.id === id);
+      if (anno) {
+        document.getElementById('anno-modal-title').innerText = anno.title;
+        document.getElementById('anno-modal-meta').innerText = `發佈：${anno.date} | ${anno.author}`;
+        document.getElementById('anno-modal-content').innerText = anno.content;
+        document.getElementById('announcement-modal').classList.remove('hidden');
+      }
+    }
+    function closeAnnouncementModal() { document.getElementById('announcement-modal').classList.add('hidden'); }
+
+    let currentApprovalId = null;
+
+    function openApprovalDetailModal(id) {
+      currentApprovalId = id;
+      const item = state.approvalList.find(a => a.id === id);
+      if (item) {
+        // 先關閉可能重疊的通知中心
+        closeNotificationModal();
+
+        // 綁定新版表單的資料
+        document.getElementById('approve-detail-title').value = item.title;
+        document.getElementById('approve-detail-applicant').value = `${item.applicant} (${item.signer})`;
+        document.getElementById('approve-detail-amount').innerText = item.amount || 'TWD 0';
+        
+        // 動態折算 CNY 匯率 (模擬)
+        const valNumeric = item.amount ? parseInt(item.amount.replace(/[^0-9]/g, '')) || 0 : 0;
+        const computedCny = (valNumeric * 0.225).toLocaleString('zh-Hans-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        document.getElementById('approve-detail-amount-cny').innerText = `CNY ${computedCny}`;
+
+        // 動態文件編號
+        const cleanDate = item.date.split(' ')[0].replace(/-/g, '');
+        document.getElementById('approve-detail-file-no').value = `${item.type}-BU4-API-${item.loc || 'T1'}-${item.applicant}-${cleanDate}-01`;
+        document.getElementById('approve-detail-date').value = item.date.split(' ')[0];
+
+        // 服務類型映射
+        let serviceStr = '一般費用';
+        if (item.type === 'AL' || item.title.includes('休假')) serviceStr = '休假申請';
+        else if (item.type === 'PU' || item.title.includes('打卡')) serviceStr = '補打卡申請';
+        else if (item.title.includes('審計')) serviceStr = '離任審計';
+        
+        document.getElementById('approve-detail-service-type').value = serviceStr;
+        document.getElementById('approve-detail-project').value = item.type;
+        document.getElementById('approve-detail-region').value = item.loc || 'T1';
+
+        const actionBtn = document.getElementById('btn-approve-action');
+        if (actionBtn) {
+          if (item.status === '待簽核') {
+            actionBtn.style.display = 'block';
+          } else {
+            actionBtn.style.display = 'none';
+          }
+        }
+        
+        document.getElementById('approval-detail-modal').classList.remove('hidden');
+      }
+    }
+    
+    function closeApprovalDetailModal() { document.getElementById('approval-detail-modal').classList.add('hidden'); }
+
+    function submitApprovalCurrent(status) {
+      if (!currentApprovalId) return;
+      submitApproval(currentApprovalId, status);
+    }
+
+    function submitApproval(id, status) {
+      state.approvalList = state.approvalList.map(item => item.id === id ? { ...item, status: status } : item);
+      closeApprovalDetailModal();
+      renderQuickApprovals();
+      applyFilters();
+      showToast(`OA-${id.toUpperCase()} 處理成功，狀態更新為【${status}】`);
+    }
+
+    function openAllApprovalsModal() { applyFilters(); document.getElementById('all-approvals-modal').classList.remove('hidden'); }
+    function closeAllApprovalsModal() { document.getElementById('all-approvals-modal').classList.add('hidden'); }
+
+    // 開啟通知彈窗
+    function openNotificationModal() {
+      renderNotifications();
+      document.getElementById('notification-modal').classList.remove('hidden');
+    }
+    
+    // 關閉通知彈窗
+    function closeNotificationModal() {
+      document.getElementById('notification-modal').classList.add('hidden');
+    }
+
+    // 通知互動：點選通知標記為已讀，並直接打開對應的簽核表單彈窗
+    function readNotification(id) {
+      state.notifications = state.notifications.map(n => n.id === id ? { ...n, isRead: true } : n);
+      renderNotifications();
+      
+      const notification = state.notifications.find(n => n.id === id);
+      if (notification && notification.approvalId) {
+        openApprovalDetailModal(notification.approvalId);
+      }
+    }
+
+    function markAllNotificationsRead() {
+      state.notifications = state.notifications.map(n => ({ ...n, isRead: true }));
+      renderNotifications();
+      showToast('已將所有通知標示為已讀');
+    }
+
+    // 初始化
+    window.onload = function() {
+      renderLeaveBalances();
+      renderAnnouncements();
+      renderCalendar();
+      renderQuickApprovals();
+      renderNotifications();
+      renderTeamMembers();
+    };
+  </script>
+</body>
+</html>

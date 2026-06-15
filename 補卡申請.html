@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>補卡申請</title>
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 Font Awesome 用於圖標 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- 設定 Tailwind 自訂主題 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4A90E2', 
+                        'primary-light': '#EAF2FC',
+                        background: '#F8F9FB', 
+                        card: '#FFFFFF',
+                        text: {
+                            main: '#1F2937',
+                            muted: '#6B7280',
+                            light: '#9CA3AF'
+                        },
+                        status: {
+                            submitted: '#DBEAFE',
+                            pending: '#FEF3C7',
+                            completed: '#D1FAE5',
+                            rejected: '#FEE2E2',
+                            text: {
+                                submitted: '#1D4ED8',
+                                pending: '#D97706',
+                                completed: '#059669',
+                                rejected: '#DC2626'
+                            }
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['"Inter"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'card': '0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03)',
+                        'modal': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: theme('colors.background');
+            font-family: theme('fontFamily.sans');
+        }
+        /* 自訂滾動條 */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        
+        /* Modal 動畫過渡 */
+        .modal-enter {
+            opacity: 0;
+            transform: scale(0.95);
+        }
+        .modal-enter-active {
+            opacity: 1;
+            transform: scale(1);
+            transition: opacity 200ms ease-out, transform 200ms ease-out;
+        }
+    </style>
+    <link rel="stylesheet" href="shared-ui.css">
+</head>
+
+<body class="ui-page text-text-main antialiased relative">
+
+    <div class="max-w-7xl mx-auto space-y-6 md:space-y-8">
+        
+        <!-- 頁面標題區塊 -->
+        <header class="ui-page-header">
+            <div class="flex items-center gap-3">
+                <h1 class="ui-page-title">補卡申請</h1>
+            </div>
+            
+            <!-- 操作按鈕區 -->
+            <div class="flex gap-3 w-full sm:w-auto">
+                <button onclick="openModal()" class="ui-btn ui-btn-primary w-full sm:w-auto">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    新增補卡申請
+                </button>
+            </div>
+        </header>
+
+        <!-- 申請紀錄區塊 (卡片樣式) -->
+        <section class="ui-card p-4 md:p-6">
+            
+            <!-- 列表工具列 (篩選條件) -->
+            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 gap-4">
+                <h2 class="text-lg font-semibold text-gray-800 whitespace-nowrap">補卡紀錄</h2>
+                <div class="flex flex-col sm:flex-row flex-wrap gap-3 w-full lg:w-auto lg:flex-1 lg:justify-end">
+                    <!-- 補卡原因下拉選單 -->
+                    <div class="relative w-full sm:w-40 md:w-48">
+                        <select class="ui-select">
+                            <option value="">所有原因</option>
+                            <option value="forgot">忘記打卡</option>
+                            <option value="system">系統異常</option>
+                            <option value="business">公出/出差</option>
+                            <option value="other">其他</option>
+                        </select>
+                    </div>
+
+                    <!-- 搜尋時間區間 -->
+                    <div class="flex items-center gap-2 w-full sm:w-auto">
+                        <div class="relative flex-1 sm:flex-none sm:w-auto">
+                            <input type="date" class="ui-input cursor-pointer">
+                        </div>
+                        <span class="text-gray-400 text-sm whitespace-nowrap">至</span>
+                        <div class="relative flex-1 sm:flex-none sm:w-auto">
+                            <input type="date" class="ui-input cursor-pointer">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 表格容器 -->
+            <div class="overflow-x-auto rounded-lg border border-gray-100">
+                <table class="ui-table min-w-full text-left">
+                    <thead class="whitespace-nowrap">
+                        <tr>
+                            <th scope="col">申請日期</th>
+                            <th scope="col">補卡日期</th>
+                            <th scope="col">時段</th>
+                            <th scope="col">補卡時間</th>
+                            <th scope="col">補卡原因</th>
+                            <!-- 種類欄位設為 w-full 讓它自動擴展吸收多餘空間 -->
+                            <th scope="col" class="w-full min-w-[200px]">種類</th>
+                            <th scope="col" class="text-center">狀態</th>
+                            <th scope="col" class="text-center">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- 資料列 1：已提交 -->
+                        <tr>
+                            <td class="font-medium text-gray-900 whitespace-nowrap">2026/06/05</td>
+                            <td class="whitespace-nowrap">2026/06/04</td>
+                            <td class="text-gray-900 whitespace-nowrap">上班打卡</td>
+                            <td class="text-gray-900 font-medium whitespace-nowrap">08:55</td>
+                            <td class="whitespace-nowrap">
+                                <span class="ui-badge ui-badge-info">忘記打卡</span>
+                            </td>
+                            <td class="whitespace-normal break-words">早上進辦公室忘記刷卡</td>
+                            <td class="text-center whitespace-nowrap">
+                                <span class="ui-badge ui-badge-info">
+                                    已提交
+                                </span>
+                            </td>
+                            <td class="text-center whitespace-nowrap">
+                                <div class="flex items-center justify-center gap-2">
+                                    <button class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-eye"></i> 檢視</button>
+                                    <button class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-rotate-left"></i> 撤回</button>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- 資料列 2：審批中 -->
+                        <tr>
+                            <td class="font-medium text-gray-900 whitespace-nowrap">2026/06/01</td>
+                            <td class="whitespace-nowrap">2026/05/31</td>
+                            <td class="text-gray-900 whitespace-nowrap">下班打卡</td>
+                            <td class="text-gray-900 font-medium whitespace-nowrap">18:10</td>
+                            <td class="whitespace-nowrap">
+                                <span class="ui-badge ui-badge-purple">系統異常</span>
+                            </td>
+                            <td class="whitespace-normal break-words">打卡APP當機無法連線</td>
+                            <td class="text-center whitespace-nowrap">
+                                <span class="ui-badge ui-badge-warning">
+                                    審批中
+                                </span>
+                            </td>
+                            <td class="text-center whitespace-nowrap">
+                                <div class="flex items-center justify-center gap-2">
+                                    <button class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-eye"></i> 檢視</button>
+                                    <button class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-rotate-left"></i> 撤回</button>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- 資料列 3：完成 -->
+                        <tr>
+                            <td class="font-medium text-gray-900 whitespace-nowrap">2026/05/20</td>
+                            <td class="whitespace-nowrap">2026/05/19</td>
+                            <td class="text-gray-900 whitespace-nowrap">上下班打卡</td>
+                            <td class="text-gray-900 font-medium whitespace-nowrap">09:00 - 17:30</td>
+                            <td class="whitespace-nowrap">
+                                <span class="ui-badge ui-badge-success">公出</span>
+                            </td>
+                            <td class="whitespace-normal break-words">前往客戶端開會一整天</td>
+                            <td class="text-center whitespace-nowrap">
+                                <span class="ui-badge ui-badge-success">
+                                    完成
+                                </span>
+                            </td>
+                            <td class="text-center whitespace-nowrap">
+                                <button class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-eye"></i> 檢視</button>
+                            </td>
+                        </tr>
+
+                         <!-- 資料列 4：駁回 -->
+                        <tr>
+                            <td class="font-medium text-gray-900 whitespace-nowrap">2026/04/15</td>
+                            <td class="whitespace-nowrap">2026/04/14</td>
+                            <td class="text-gray-900 whitespace-nowrap">上班打卡</td>
+                            <td class="text-gray-900 font-medium whitespace-nowrap">10:30</td>
+                            <td class="whitespace-nowrap">
+                                <span class="ui-badge ui-badge-warning">其他</span>
+                            </td>
+                            <td class="whitespace-normal break-words">私人原因遲到申請補卡</td>
+                            <td class="text-center whitespace-nowrap">
+                                <span class="ui-badge ui-badge-danger">
+                                    駁回
+                                </span>
+                            </td>
+                            <td class="text-center whitespace-nowrap">
+                                <button class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-eye"></i> 檢視</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 分頁區塊 -->
+            <div class="flex flex-col sm:flex-row items-center justify-between mt-6 pt-4 border-t border-gray-100 gap-4">
+                <span class="text-sm text-gray-500 text-center sm:text-left">顯示第 1 到 4 筆，共 12 筆紀錄</span>
+                <div class="flex gap-1 w-full sm:w-auto justify-center">
+                    <button class="ui-page-btn" disabled>上一頁</button>
+                    <button class="ui-page-btn is-active">1</button>
+                    <button class="ui-page-btn">2</button>
+                    <button class="ui-page-btn">3</button>
+                    <button class="ui-page-btn">下一頁</button>
+                </div>
+            </div>
+
+        </section>
+
+    </div>
+
+    <!-- 彈出視窗：新增補卡申請 -->
+    <div id="leaveModal" class="fixed inset-0 z-50 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <!-- 背景遮罩 -->
+        <div class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm transition-opacity" onclick="closeModal()"></div>
+
+        <!-- 彈窗內容容器 -->
+        <div class="fixed inset-0 z-10 overflow-y-auto">
+            <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
+                
+                <div id="modalPanel" class="relative transform overflow-hidden rounded-xl bg-white text-left shadow-modal transition-all sm:my-8 w-full max-w-2xl modal-enter">
+                    
+                    <!-- 標題區 -->
+                    <div class="bg-white px-4 sm:px-6 py-4 sm:py-5 border-b border-gray-100 flex justify-between items-center sticky top-0 z-20">
+                        <h3 class="text-lg font-bold text-gray-900" id="modal-title">新增補卡申請</h3>
+                        <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 transition-colors p-2 rounded-full hover:bg-gray-100">
+                            <i class="fa-solid fa-xmark text-lg"></i>
+                        </button>
+                    </div>
+
+                    <!-- 表單內容 -->
+                    <div class="px-4 sm:px-6 py-6 space-y-6 max-h-[calc(100vh-140px)] overflow-y-auto">
+                        
+                        <!-- 兩欄式：補卡日期與補卡時間 -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">補卡日期 <span class="text-red-500">*</span></label>
+                                <input type="date" class="ui-input">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">實際打卡時間 <span class="text-red-500">*</span></label>
+                                <input type="time" class="ui-input">
+                            </div>
+                        </div>
+
+                        <!-- 兩欄式：打卡節點與補卡原因 -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">時段 <span class="text-red-500">*</span></label>
+                                <div class="relative">
+                                    <select class="ui-select">
+                                        <option value="" disabled selected>請選擇時段</option>
+                                        <option value="clock_in">上班打卡</option>
+                                        <option value="clock_out">下班打卡</option>
+                                        <option value="both">上下班皆漏打</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">補卡原因 <span class="text-red-500">*</span></label>
+                                <div class="relative">
+                                    <select class="ui-select">
+                                        <option value="" disabled selected>請選擇補卡原因</option>
+                                        <option value="forgot">忘記打卡</option>
+                                        <option value="system">系統異常</option>
+                                        <option value="business">公出/出差</option>
+                                        <option value="other">其他</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 種類說明 -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">種類 <span class="text-red-500">*</span></label>
+                            <textarea rows="3" placeholder="請詳細說明補卡原因（例如：因參與公出會議無法回辦公室打卡）..." class="ui-input resize-none"></textarea>
+                        </div>
+
+                        <!-- 證明文件上傳 -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">證明文件（選填）</label>
+                            <div class="flex items-center w-full">
+                                <input type="file" class="block w-full text-sm text-gray-500 border border-gray-200 rounded-lg cursor-pointer
+                                    file:mr-4 file:py-2 file:px-4
+                                    file:rounded-l-lg file:border-0
+                                    file:text-sm file:font-medium
+                                    file:bg-primary-light file:text-primary
+                                    hover:file:bg-blue-100 transition-all">
+                            </div>
+                            <p class="mt-2 text-xs text-gray-500 leading-relaxed">※ 若為系統異常或公出，可上傳相關截圖或證明。支援 jpg, png, pdf 等格式。</p>
+                        </div>
+
+                    </div>
+
+                    <!-- 底部按鈕區 -->
+                    <div class="bg-gray-50 px-4 sm:px-6 py-4 flex flex-col-reverse sm:flex-row justify-end gap-3 rounded-b-xl border-t border-gray-100 sticky bottom-0 z-20">
+                        <button type="button" onclick="closeModal()" class="ui-btn ui-btn-secondary w-full sm:w-auto">
+                            取消
+                        </button>
+                        <button type="button" onclick="closeModal()" class="ui-btn ui-btn-primary w-full sm:w-auto">
+                            提交申請
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal 互動腳本 -->
+    <script>
+        const modal = document.getElementById('leaveModal');
+        const modalPanel = document.getElementById('modalPanel');
+
+        function openModal() {
+            modal.classList.remove('hidden');
+            // 觸發顯示動畫
+            setTimeout(() => {
+                modalPanel.classList.add('modal-enter-active');
+            }, 10);
+            
+            // 防止背景滾動
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            // 觸發隱藏動畫
+            modalPanel.classList.remove('modal-enter-active');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                // 恢復背景滾動
+                document.body.style.overflow = '';
+            }, 200); // 對應 CSS 的過渡時間
+        }
+        
+        // 點擊 Esc 鍵關閉 Modal
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape' && !modal.classList.contains('hidden')) {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>

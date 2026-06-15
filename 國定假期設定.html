@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>國定假期設定 - 系統管理</title>
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 Font Awesome 用於圖標 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- 設定 Tailwind 自訂主題 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4A90E2', // 主色調：紫色
+                        'primary-light': '#EAF2FC',
+                        background: '#F8F9FB', // 背景淺灰色
+                        card: '#FFFFFF',
+                        text: {
+                            main: '#1F2937',
+                            muted: '#6B7280',
+                            light: '#9CA3AF'
+                        },
+                        status: {
+                            holiday: '#D1FAE5',    // 國定假日: 綠色系
+                            makeup: '#FEE2E2',     // 補班: 紅色系
+                            bridge: '#DBEAFE',     // 彈性放假: 藍色系
+                            text: {
+                                holiday: '#059669',
+                                makeup: '#DC2626',
+                                bridge: '#2563EB'
+                            }
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['"Inter"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'card': '0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: theme('colors.background');
+            font-family: theme('fontFamily.sans');
+        }
+        /* 自訂滾動條 */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+    <link rel="stylesheet" href="shared-ui.css">
+</head>
+<body class="ui-page text-text-main antialiased">
+
+    <div class="max-w-7xl mx-auto space-y-8">
+        
+        <!-- 頁面標題區塊 -->
+        <header class="ui-page-header">
+            <div class="flex items-center gap-3">
+                <h1 class="ui-page-title">國定假期設定</h1>
+            </div>
+            
+            <!-- 操作按鈕區 -->
+            <div class="flex gap-4">
+                <button class="ui-btn ui-btn-secondary">
+                    <i class="fa-solid fa-file-export text-gray-500"></i>
+                    匯出清單
+                </button>
+                <button onclick="openModal()" class="ui-btn ui-btn-primary">
+                    <i class="fa-solid fa-calendar-plus"></i>
+                    新增假期
+                </button>
+            </div>
+        </header>
+
+        <!-- 假期列表區塊 (卡片樣式) -->
+        <section class="ui-card p-6">
+
+            <!-- 列表工具列 (查詢條件：地區、年份) -->
+            <div class="flex flex-col lg:flex-row justify-between items-center mb-6 gap-4">
+
+                <!-- 篩選條件群組 -->
+                <div class="flex flex-wrap gap-3 w-full lg:w-auto">
+                    <!-- 地區篩選 -->
+                    <div>
+                        <select class="ui-select">
+                            <option value="all">全區</option>
+                            <option value="tw" selected>台灣 (TW)</option>
+                            <option value="us">美國 (US)</option>
+                            <option value="jp">日本 (JP)</option>
+                        </select>
+                    </div>
+
+                    <!-- 年份篩選 -->
+                    <div>
+                        <select class="ui-select">
+                            <option value="2027">2027年</option>
+                            <option value="2026" selected>2026年</option>
+                            <option value="2025">2025年</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- 搜尋與進階篩選 -->
+                <div class="flex gap-3 w-full lg:w-auto">
+                    <div class="ui-search w-full lg:w-72">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" placeholder="搜尋假期名稱..." class="ui-input ui-search-input">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 表格容器 -->
+            <div class="overflow-x-auto rounded-lg border border-gray-100">
+                <table class="ui-table whitespace-nowrap">
+                    <thead>
+                        <tr>
+                            <th scope="col">
+                                <div class="flex items-center gap-2 cursor-pointer hover:text-gray-700">
+                                    日期 <i class="fa-solid fa-arrow-down-1-9 text-xs text-gray-400"></i>
+                                </div>
+                            </th>
+                            <th scope="col">姓名(假期名稱)</th>
+                            <th scope="col">地區</th>
+                            <th scope="col">分類</th>
+                            <th scope="col" class="min-w-[200px]">備註</th>
+                            <th scope="col" class="text-center">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        <!-- 資料列 1: 國定假日 -->
+                        <tr>
+                            <td class="font-semibold text-gray-900">2026/01/01 (四)</td>
+                            <td class="font-medium text-gray-800">元旦</td>
+                            <td class="text-gray-600">台灣</td>
+                            <td>
+                                <span class="ui-badge ui-badge-success">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>國定假日
+                                </span>
+                            </td>
+                            <td class="text-gray-500 truncate max-w-xs">開國紀念日放假一天</td>
+                            <td class="text-center">
+                                <div class="flex items-center justify-center gap-2">
+                                    <button onclick="openModal()" class="ui-btn ui-btn-secondary ui-btn-sm" title="編輯"><i class="fa-solid fa-pen"></i> 編輯</button>
+                                    <button class="ui-btn ui-btn-sm text-rose-600 border border-rose-200 hover:bg-rose-50" title="刪除"><i class="fa-solid fa-trash-can"></i> 刪除</button>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- 資料列 2: 彈性放假 -->
+                        <tr>
+                            <td class="font-semibold text-gray-900">2026/02/16 (一)</td>
+                            <td class="font-medium text-gray-800">春節彈性放假</td>
+                            <td class="text-gray-600">台灣</td>
+                            <td>
+                                <span class="ui-badge ui-badge-info">
+                                    <i class="fa-solid fa-calendar-arrows-up-down text-[10px]"></i>彈性放假
+                                </span>
+                            </td>
+                            <td class="text-gray-500 truncate max-w-xs">配合農曆春節連假，於2/7補班</td>
+                            <td class="text-center">
+                                <div class="flex items-center justify-center gap-2">
+                                    <button onclick="openModal()" class="ui-btn ui-btn-secondary ui-btn-sm" title="編輯"><i class="fa-solid fa-pen"></i> 編輯</button>
+                                    <button class="ui-btn ui-btn-sm text-rose-600 border border-rose-200 hover:bg-rose-50" title="刪除"><i class="fa-solid fa-trash-can"></i> 刪除</button>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- 資料列 3: 補班 -->
+                        <tr class="bg-gray-50/30">
+                            <td class="font-semibold text-gray-900">2026/02/07 (六)</td>
+                            <td class="font-medium text-gray-800">春節補班</td>
+                            <td class="text-gray-600">台灣</td>
+                            <td>
+                                <span class="ui-badge ui-badge-danger">
+                                    <i class="fa-solid fa-briefcase text-[10px]"></i>補班日
+                                </span>
+                            </td>
+                            <td class="text-gray-500 truncate max-w-xs">補2/16彈性放假</td>
+                            <td class="text-center">
+                                <div class="flex items-center justify-center gap-2">
+                                    <button onclick="openModal()" class="ui-btn ui-btn-secondary ui-btn-sm" title="編輯"><i class="fa-solid fa-pen"></i> 編輯</button>
+                                    <button class="ui-btn ui-btn-sm text-rose-600 border border-rose-200 hover:bg-rose-50" title="刪除"><i class="fa-solid fa-trash-can"></i> 刪除</button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 分頁區塊 -->
+            <div class="flex flex-col sm:flex-row items-center justify-between mt-6 pt-4 border-t border-gray-100 gap-4">
+                <span class="text-sm text-gray-500">顯示第 1 到 3 筆，共 18 筆資料</span>
+                <div class="flex gap-1">
+                    <button class="ui-page-btn" disabled>上一頁</button>
+                    <button class="ui-page-btn is-active">1</button>
+                    <button class="ui-page-btn">2</button>
+                    <button class="ui-page-btn">下一頁</button>
+                </div>
+            </div>
+
+        </section>
+
+    </div>
+
+    <!-- 假期編輯/新增彈窗 (Modal) -->
+    <div id="holidayModal" class="fixed inset-0 z-50 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <!-- 背景遮罩 -->
+        <div class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm transition-opacity opacity-0" id="modalBackdrop" onclick="closeModal()"></div>
+
+        <!-- 彈窗內容容器 -->
+        <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+            <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-6">
+                
+                <!-- 彈窗主體 -->
+                <div id="modalPanel" class="relative transform overflow-hidden rounded-xl bg-gray-50 text-left shadow-2xl transition-all w-full max-w-2xl opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95 flex flex-col">
+                    
+                    <!-- 標題區塊 -->
+                    <div class="sticky top-0 z-20 bg-white border-b border-gray-200 shadow-sm rounded-t-xl px-8 py-5 flex justify-between items-center">
+                        <div class="flex items-center gap-3">
+                            <h2 class="text-xl font-bold text-gray-800" id="modal-title">假期資料設定</h2>
+                        </div>
+                        <button type="button" class="w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors" onclick="closeModal()">
+                            <i class="fa-solid fa-xmark text-xl"></i>
+                        </button>
+                    </div>
+
+                    <!-- 彈窗表單內容 -->
+                    <div class="p-8 bg-white flex-1">
+                        <div class="space-y-6">
+                            
+                            <!-- 表單欄位 -->
+                            <div class="grid grid-cols-1 sm:grid-cols-[120px_1fr] gap-2 sm:gap-4 items-center">
+                                <label class="text-sm text-gray-600 font-medium flex items-center gap-1">假期名稱 <span class="text-red-500 font-bold">*</span></label>
+                                <input type="text" placeholder="例如：元旦、春節補班" class="ui-input">
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-[120px_1fr] gap-2 sm:gap-4 items-center">
+                                <label class="text-sm text-gray-600 font-medium flex items-center gap-1">日期 <span class="text-red-500 font-bold">*</span></label>
+                                <input type="date" class="ui-input cursor-pointer">
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-[120px_1fr] gap-2 sm:gap-4 items-center">
+                                <label class="text-sm text-gray-600 font-medium flex items-center gap-1">適用地區 <span class="text-red-500 font-bold">*</span></label>
+                                <select class="ui-select">
+                                    <option value="tw">台灣</option>
+                                    <option value="us">美國</option>
+                                    <option value="jp">日本</option>
+                                </select>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-[120px_1fr] gap-2 sm:gap-4 items-center">
+                                <label class="text-sm text-gray-600 font-medium flex items-center gap-1">分類 <span class="text-red-500 font-bold">*</span></label>
+                                <select class="ui-select">
+                                    <option value="holiday">國定假日</option>
+                                    <option value="bridge">彈性放假</option>
+                                    <option value="makeup">補班日</option>
+                                </select>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-[120px_1fr] gap-2 sm:gap-4 items-start pt-2">
+                                <label class="text-sm text-gray-600 font-medium pt-2">備註</label>
+                                <textarea rows="4" placeholder="請輸入假期相關備註資訊..." class="ui-input resize-none"></textarea>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- 彈窗底部按鈕 -->
+                    <div class="bg-gray-50 border-t border-gray-200 px-8 py-4 flex justify-end gap-3 rounded-b-xl">
+                        <button type="button" class="ui-btn ui-btn-secondary" onclick="closeModal()">
+                            取消
+                        </button>
+                        <button type="button" class="ui-btn ui-btn-primary" onclick="closeModal()">
+                            <i class="fa-solid fa-check"></i> 儲存設定
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 腳本控制彈窗動畫 -->
+    <script>
+        // 打開彈窗的漸變動畫邏輯
+        function openModal() {
+            const modal = document.getElementById('holidayModal');
+            const backdrop = document.getElementById('modalBackdrop');
+            const modalPanel = document.getElementById('modalPanel');
+            
+            modal.classList.remove('hidden');
+            void modal.offsetWidth; // 強制瀏覽器重繪
+            
+            backdrop.classList.remove('opacity-0');
+            backdrop.classList.add('opacity-100');
+            
+            modalPanel.classList.remove('opacity-0', 'translate-y-4', 'sm:translate-y-0', 'sm:scale-95');
+            modalPanel.classList.add('opacity-100', 'translate-y-0', 'sm:scale-100');
+        }
+
+        // 關閉彈窗的漸變動畫邏輯
+        function closeModal() {
+            const modal = document.getElementById('holidayModal');
+            const backdrop = document.getElementById('modalBackdrop');
+            const modalPanel = document.getElementById('modalPanel');
+            
+            backdrop.classList.remove('opacity-100');
+            backdrop.classList.add('opacity-0');
+            
+            modalPanel.classList.remove('opacity-100', 'translate-y-0', 'sm:scale-100');
+            modalPanel.classList.add('opacity-0', 'translate-y-4', 'sm:translate-y-0', 'sm:scale-95');
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+    </script>
+
+</body>
+</html>

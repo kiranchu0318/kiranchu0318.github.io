@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>團隊績效管理</title>
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 Font Awesome 用於圖標 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- 設定 Tailwind 自訂主題 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4A90E2', 
+                        'primary-light': '#EAF2FC',
+                        background: '#F8F9FB',
+                        card: '#FFFFFF',
+                        text: {
+                            main: '#1F2937',
+                            muted: '#6B7280',
+                            light: '#9CA3AF'
+                        },
+                        status: {
+                            draft: '#F3F4F6',
+                            pending: '#FEF3C7',
+                            completed: '#D1FAE5',
+                            action: '#FEE2E2',
+                            text: {
+                                draft: '#4B5563',
+                                pending: '#D97706',
+                                completed: '#059669',
+                                action: '#DC2626'
+                            }
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['"Inter"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'card': '0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: theme('colors.background');
+            font-family: theme('fontFamily.sans');
+        }
+        /* 自訂滾動條 */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+    <link rel="stylesheet" href="shared-ui.css">
+</head>
+<body class="ui-page text-text-main antialiased">
+
+    <div class="max-w-7xl mx-auto space-y-8">
+        
+        <!-- 頁面標題區塊 -->
+        <header class="ui-page-header">
+            <div class="flex items-center gap-3">
+                <h1 class="ui-page-title">團隊績效管理</h1>
+            </div>
+            
+            <!-- 操作按鈕區 -->
+            <div class="flex gap-4">
+                <button class="ui-btn ui-btn-secondary">
+                    <i class="fa-solid fa-download text-gray-500"></i>
+                    匯出報表
+                </button>
+                <button class="ui-btn ui-btn-primary">
+                    <i class="fa-solid fa-paper-plane"></i>
+                    發布新考核
+                </button>
+            </div>
+        </header>
+
+        <!-- 數據總覽區塊 (主管視角重點) -->
+        <section class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <div class="ui-card p-5 flex items-center gap-4 border-l-4 border-red-500">
+                <div class="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center text-red-500 text-xl">
+                    <i class="fa-solid fa-bell"></i>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500 mb-1">需主管評分</p>
+                    <p class="text-2xl font-bold text-gray-800">5 <span class="text-sm font-normal text-gray-400">件</span></p>
+                </div>
+            </div>
+            <div class="ui-card p-5 flex items-center gap-4 border-l-4 border-primary">
+                <div class="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center text-primary text-xl">
+                    <i class="fa-solid fa-users"></i>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500 mb-1">團隊平均分數</p>
+                    <p class="text-2xl font-bold text-gray-800">88.5</p>
+                </div>
+            </div>
+            <div class="ui-card p-5 flex items-center gap-4 border-l-4 border-green-500">
+                <div class="w-12 h-12 rounded-full bg-green-50 flex items-center justify-center text-green-600 text-xl">
+                    <i class="fa-solid fa-check-circle"></i>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500 mb-1">已完成考核</p>
+                    <p class="text-2xl font-bold text-gray-800">12 <span class="text-sm font-normal text-gray-400">件</span></p>
+                </div>
+            </div>
+            <div class="ui-card p-5 flex items-center gap-4 border-l-4 border-yellow-400">
+                <div class="w-12 h-12 rounded-full bg-yellow-50 flex items-center justify-center text-yellow-600 text-xl">
+                    <i class="fa-solid fa-hourglass-half"></i>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500 mb-1">員工自評中</p>
+                    <p class="text-2xl font-bold text-gray-800">3 <span class="text-sm font-normal text-gray-400">件</span></p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 績效列表區塊 -->
+        <section class="ui-card p-6">
+
+            <!-- 列表工具列 -->
+            <div class="flex flex-col lg:flex-row justify-end items-center mb-6 gap-4">
+                <div class="flex flex-wrap gap-3 w-full lg:w-auto">
+                    <!-- 狀態篩選下拉 -->
+                    <select class="ui-select w-auto">
+                        <option>所有狀態</option>
+                        <option>需主管評分</option>
+                        <option>員工自評中</option>
+                        <option>已完成</option>
+                    </select>
+                    <!-- 搜尋框 -->
+                    <div class="ui-search w-full sm:w-64">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" placeholder="搜尋姓名、工號、部門..." class="ui-input ui-search-input">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 表格容器 -->
+            <div class="overflow-x-auto rounded-lg border border-gray-100">
+                <table class="ui-table text-left whitespace-nowrap">
+                    <thead>
+                        <tr>
+                            <th scope="col">員工資訊</th>
+                            <th scope="col">類型 / 期間</th>
+                            <th scope="col" class="text-center">員工自評分數</th>
+                            <th scope="col" class="text-center">主管評分</th>
+                            <th scope="col" class="text-center">狀態</th>
+                            <th scope="col" class="text-right">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- 假資料列 1：需主管評分 -->
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td>
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold">
+                                        王
+                                    </div>
+                                    <div>
+                                        <div class="font-medium text-gray-900">王小明 <span class="text-xs text-gray-400 ml-1">#EMP001</span></div>
+                                        <div class="text-xs text-gray-500">研發部 · 前端工程師</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="flex flex-col gap-1">
+                                    <span class="w-max px-2.5 py-0.5 rounded-md bg-blue-50 text-blue-600 text-xs font-medium">2026 年度考核</span>
+                                    <span class="text-xs text-gray-500">2026/01/01 - 2026/12/31</span>
+                                </div>
+                            </td>
+                            <td class="text-center">
+                                <span class="font-medium text-gray-900">90</span>
+                            </td>
+                            <td class="text-center text-gray-400">
+                                -
+                            </td>
+                            <td class="text-center">
+                                <span class="ui-badge ui-badge-danger mx-auto cursor-default">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span>
+                                    需主管評分
+                                </span>
+                            </td>
+                            <td class="text-right">
+                                <button class="ui-btn ui-btn-secondary ui-btn-sm">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                    立即評分
+                                </button>
+                            </td>
+                        </tr>
+
+                        <!-- 假資料列 2：員工自評中 (主管需等待) -->
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td>
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-full bg-green-100 text-green-600 flex items-center justify-center font-bold">
+                                        李
+                                    </div>
+                                    <div>
+                                        <div class="font-medium text-gray-900">李大華 <span class="text-xs text-gray-400 ml-1">#EMP002</span></div>
+                                        <div class="text-xs text-gray-500">研發部 · 後端工程師</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="flex flex-col gap-1">
+                                    <span class="w-max px-2.5 py-0.5 rounded-md bg-purple-50 text-purple-600 text-xs font-medium">試用期考核</span>
+                                    <span class="text-xs text-gray-500">2026/03/01 - 2026/05/31</span>
+                                </div>
+                            </td>
+                            <td class="text-center text-gray-400">
+                                -
+                            </td>
+                            <td class="text-center text-gray-400">
+                                -
+                            </td>
+                            <td class="text-center">
+                                <span class="ui-badge ui-badge-warning mx-auto">
+                                    員工自評中
+                                </span>
+                            </td>
+                            <td class="text-right">
+                                <button class="ui-btn ui-btn-secondary ui-btn-sm">
+                                    <i class="fa-regular fa-bell"></i>
+                                    發送催辦
+                                </button>
+                            </td>
+                        </tr>
+
+                        <!-- 假資料列 3：已完成 -->
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td>
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center font-bold">
+                                        陳
+                                    </div>
+                                    <div>
+                                        <div class="font-medium text-gray-900">陳小美 <span class="text-xs text-gray-400 ml-1">#EMP003</span></div>
+                                        <div class="text-xs text-gray-500">設計部 · UI/UX 設計師</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="flex flex-col gap-1">
+                                    <span class="w-max px-2.5 py-0.5 rounded-md bg-blue-50 text-blue-600 text-xs font-medium">2025 年度考核</span>
+                                    <span class="text-xs text-gray-500">2025/01/01 - 2025/12/31</span>
+                                </div>
+                            </td>
+                            <td class="text-center">
+                                <span class="font-medium text-gray-900">92</span>
+                            </td>
+                            <td class="text-center">
+                                <span class="font-medium text-gray-900">95</span>
+                            </td>
+                            <td class="text-center">
+                                <span class="ui-badge ui-badge-success mx-auto">
+                                    已完成
+                                </span>
+                            </td>
+                            <td class="text-right">
+                                <button class="ui-btn ui-btn-secondary ui-btn-sm">
+                                    <i class="fa-regular fa-eye"></i>
+                                    檢視結果
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 分頁區塊 -->
+            <div class="flex items-center justify-between mt-6 pt-4 border-t border-gray-100">
+                <span class="text-sm text-gray-500">顯示第 1 到 3 筆，共 24 筆資料</span>
+                <div class="flex gap-1">
+                    <button class="ui-page-btn" disabled>上一頁</button>
+                    <button class="ui-page-btn is-active">1</button>
+                    <button class="ui-page-btn">2</button>
+                    <button class="ui-page-btn">3</button>
+                    <button class="ui-page-btn">下一頁</button>
+                </div>
+            </div>
+
+        </section>
+
+    </div>
+
+</body>
+</html>

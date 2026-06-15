@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>我的申請</title>
+  
+  <!-- 載入 Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- 載入 React 核心庫 -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  
+  <!-- 載入 Babel 供瀏覽器即時編譯 JSX -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link rel="stylesheet" href="shared-ui.css">
+</head>
+<body class="">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    // --- 圖示 SVG 元件 ---
+    const IconBase = ({ size = 24, strokeWidth = 2, children, className = '', ...props }) => (
+      <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+        {children}
+      </svg>
+    );
+
+    const Calendar = (props) => <IconBase {...props}><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></IconBase>;
+    const Search = (props) => <IconBase {...props}><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></IconBase>;
+    const ChevronDown = (props) => <IconBase {...props}><polyline points="6 9 12 15 18 9"></polyline></IconBase>;
+    const X = (props) => <IconBase {...props}><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></IconBase>;
+    const Plus = (props) => <IconBase {...props}><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></IconBase>;
+
+    // --- 自訂日期選取器 (DatePicker) 元件 ---
+    const DatePickerDropdown = ({ isOpen, onToggle, value, onChange, placeholder }) => {
+      const [viewDate, setViewDate] = useState(value ? new Date(value) : new Date());
+
+      useEffect(() => {
+        if (isOpen && value) {
+          setViewDate(new Date(value));
+        }
+      }, [isOpen, value]);
+
+      const formatDate = (date) => {
+        const y = date.getFullYear();
+        const m = String(date.getMonth() + 1).padStart(2, '0');
+        const d = String(date.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+      };
+
+      const getDaysInMonth = (year, month) => new Date(year, month + 1, 0).getDate();
+      const getFirstDayOfMonth = (year, month) => new Date(year, month, 1).getDay();
+
+      const year = viewDate.getFullYear();
+      const month = viewDate.getMonth();
+      const days = [];
+      const daysInMonth = getDaysInMonth(year, month);
+      const firstDay = getFirstDayOfMonth(year, month);
+
+      for (let i = 0; i < firstDay; i++) days.push(null);
+      for (let i = 1; i <= daysInMonth; i++) days.push(new Date(year, month, i));
+
+      return (
+        <div className="relative">
+          <div
+            onClick={onToggle}
+            className={`flex items-center bg-white border rounded px-3 py-1.5 shadow-sm cursor-pointer transition-colors ${
+              isOpen ? 'border-[#4A90E2] ring-1 ring-[#4A90E2]' : 'border-gray-300 hover:border-[#4A90E2]'
+            }`}
+          >
+            <Calendar size={15} className="text-gray-400 mr-2 flex-shrink-0" />
+            <input
+              type="text"
+              className="w-24 outline-none text-sm text-gray-700 cursor-pointer bg-transparent pointer-events-none"
+              placeholder={placeholder}
+              value={value}
+              readOnly
+            />
+          </div>
+          
+          {isOpen && (
+            <div className="absolute top-full mt-1 left-0 bg-white border border-gray-200 rounded shadow-lg z-50 p-4 w-[280px]" onClick={e => e.stopPropagation()}>
+              <div className="flex justify-between items-center mb-4">
+                <button onClick={() => setViewDate(new Date(year, month - 1, 1))} className="p-1 hover:bg-gray-100 rounded text-gray-500 transition-colors">
+                  <ChevronDown size={18} className="rotate-90" />
+                </button>
+                <span className="text-[15px] font-semibold text-gray-800">{year}年 {month + 1}月</span>
+                <button onClick={() => setViewDate(new Date(year, month + 1, 1))} className="p-1 hover:bg-gray-100 rounded text-gray-500 transition-colors">
+                  <ChevronDown size={18} className="-rotate-90" />
+                </button>
+              </div>
+              <div className="grid grid-cols-7 gap-1 text-center text-xs text-gray-400 mb-2 font-medium">
+                {['日', '一', '二', '三', '四', '五', '六'].map(d => <div key={d}>{d}</div>)}
+              </div>
+              <div className="grid grid-cols-7 gap-1 text-center text-sm">
+                {days.map((d, i) => {
+                  const dateStr = d ? formatDate(d) : '';
+                  const isSelected = value === dateStr;
+                  const isToday = d && formatDate(d) === formatDate(new Date());
+                  
+                  return (
+                    <div
+                      key={i}
+                      onClick={() => {
+                        if (d) {
+                          onChange(isSelected ? '' : dateStr);
+                          if (!isSelected) onToggle();
+                        }
+                      }}
+                      className={`
+                        py-1 rounded transition-colors
+                        ${!d ? 'pointer-events-none' : 'cursor-pointer'}
+                        ${isSelected ? 'bg-[#4A90E2] text-white font-medium shadow-sm' : 
+                          d ? 'hover:bg-gray-100 text-gray-700' : ''}
+                        ${!isSelected && isToday ? 'text-[#4A90E2] font-bold' : ''}
+                      `}
+                    >
+                      {d ? d.getDate() : ''}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    };
+
+    // --- 主程式元件 ---
+    const App = () => {
+      // 頁籤狀態
+      const tabs = ['申請中', '臨時保存', '模板保存'];
+      const [activeTab, setActiveTab] = useState('申請中');
+
+      // 費用詳情彈窗控制狀態
+      const [isModalOpen, setIsModalOpen] = useState(false);
+      const [showOpinions, setShowOpinions] = useState(false);
+      const [withdrawConfirmItem, setWithdrawConfirmItem] = useState(null);
+
+      // --- 查詢資料 ---
+      const [startDate, setStartDate] = useState('');
+      const [endDate, setEndDate] = useState('');
+      const [openDropdown, setOpenDropdown] = useState(null);
+
+      // 電子表單：篩選器設定 (以申請人狀態為主)
+      const filterConfigs = [
+        { id: 'status', label: '狀態', type: 'multi', options: ['草稿', '審批中', '已完成', '撤回', '駁回', '待補件'] },
+        { id: 'oa', label: 'OA 類型', type: 'multi', options: ['商務', '合同', '財務', '行政', 'PMO'] },
+        { id: 'project', label: '項目', type: 'multi', options: ['GT'] },
+        { id: 'location', label: '地點', type: 'multi', options: ['T1', 'T2', 'THQ', 'T3', 'T4'] },
+        { id: 'docType', label: '單據類型', type: 'multi', options: ['新增資產申請 (ASSETS)', '費用申請單 (B)', '商務公告(BU)', '費用報銷單 (C)', '內部合同審批單 (IC)'] },
+      ];
+
+      // 請假/補卡申請：專屬篩選器設定
+      const ltFilterConfigs = [
+        { id: 'ltStatus', label: '狀態', type: 'multi', options: ['審批中', '已完成', '駁回', '撤回'] },
+        { id: 'ltProject', label: '項目', type: 'multi', options: ['GT'] },
+      ];
+
+      // 統一狀態管理
+      const [selectedFilters, setSelectedFilters] = useState({
+        status: ['審批中'], // 預設選中
+        oa: [], project: [], location: [], docType: [],
+        ltStatus: [], ltProject: []
+      });
+
+      const toggleFilterOption = (filterId, option) => {
+        setSelectedFilters(prev => {
+          const currentSelected = prev[filterId];
+          if (Array.isArray(currentSelected)) {
+            if (currentSelected.includes(option)) {
+              return { ...prev, [filterId]: currentSelected.filter(item => item !== option) };
+            } else {
+              return { ...prev, [filterId]: [...currentSelected, option] };
+            }
+          } else {
+            return { ...prev, [filterId]: option };
+          }
+        });
+      };
+
+      const toggleSelectAll = (filterId, options) => {
+        setSelectedFilters(prev => {
+          const currentSelected = prev[filterId];
+          if (currentSelected.length === options.length) {
+            return { ...prev, [filterId]: [] }; 
+          } else {
+            return { ...prev, [filterId]: [...options] }; 
+          }
+        });
+      };
+
+      const removeFilterOption = (filterId, option, e) => {
+        e.stopPropagation();
+        toggleFilterOption(filterId, option);
+      };
+
+      // 共用：篩選列渲染函數
+      const renderFilterBar = (configs) => (
+        <div className="bg-[#F8F9FB] p-3 rounded border border-gray-200 flex flex-wrap gap-4 items-center">
+          {configs.map((filter) => (
+            <div key={filter.id} className={`flex items-center gap-2 flex-1 min-w-[180px] ${filter.id === 'docType' || filter.id === 'status' || filter.id === 'ltStatus' ? 'md:col-span-2 lg:min-w-[280px]' : ''}`}>
+              <span className="whitespace-nowrap text-xs text-gray-600 font-medium w-16 text-right">{filter.label}</span>
+              <div className="relative flex-1">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setOpenDropdown(openDropdown === filter.id ? null : filter.id);
+                  }}
+                  className={`w-full flex items-center justify-between bg-white border rounded px-2.5 py-1.5 text-[13px] transition-colors shadow-sm min-h-[32px] ${
+                    openDropdown === filter.id ? 'border-[#4A90E2] ring-1 ring-[#4A90E2]' : 'border-gray-300 hover:border-[#4A90E2]'
+                  }`}
+                >
+                  <div className="flex-1 flex flex-wrap gap-1 items-center overflow-hidden">
+                    {filter.type === 'single' ? (
+                      <span className="text-gray-700 truncate">{selectedFilters[filter.id]}</span>
+                    ) : selectedFilters[filter.id].length > 0 ? (
+                      selectedFilters[filter.id].map(opt => (
+                        <span key={opt} className="inline-flex items-center gap-1 bg-[#F0F2F5] text-gray-700 px-1.5 py-0.5 rounded-sm text-[11px] border border-gray-200 max-w-full">
+                          <span className="truncate">{opt}</span>
+                          <div 
+                            onClick={(e) => removeFilterOption(filter.id, opt, e)} 
+                            className="hover:text-red-500 hover:bg-gray-200 rounded-full p-0.5 transition-colors cursor-pointer flex-shrink-0"
+                          >
+                            <X size={10} strokeWidth={2} />
+                          </div>
+                        </span>
+                      ))
+                    ) : (
+                      <span className="text-gray-700">全部</span>
+                    )}
+                  </div>
+                  <ChevronDown size={14} className={`text-gray-400 transition-transform flex-shrink-0 ml-1.5 ${openDropdown === filter.id ? 'rotate-180' : ''}`} />
+                </button>
+
+                {/* 下拉選單內容 */}
+                {openDropdown === filter.id && (
+                  <div 
+                    className={`absolute top-full mt-1 left-0 w-full min-w-[200px] bg-white border border-gray-200 rounded shadow-lg z-50 py-1 ${filter.id === 'docType' || filter.id === 'status' || filter.id === 'ltStatus' ? 'md:w-[350px]' : ''}`}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {filter.type === 'single' ? (
+                      <div className="max-h-60 overflow-y-auto">
+                        {filter.options.map(opt => (
+                          <div 
+                            key={opt} 
+                            onClick={() => {
+                              toggleFilterOption(filter.id, opt);
+                              setOpenDropdown(null);
+                            }}
+                            className={`px-3 py-1.5 hover:bg-gray-50 cursor-pointer text-[13px] transition-colors ${selectedFilters[filter.id] === opt ? 'text-[#4A90E2] bg-[#F5F7FA] font-medium' : 'text-gray-700'}`}
+                          >
+                            {opt}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="flex flex-col">
+                        <div 
+                          onClick={() => toggleSelectAll(filter.id, filter.options)}
+                          className="px-3 py-1.5 text-[13px] text-[#4CAF50] font-medium cursor-pointer hover:bg-gray-50 transition-colors"
+                        >
+                          Select All
+                        </div>
+                        <div className="h-px bg-gray-100 my-1"></div>
+                        <div className="max-h-48 overflow-y-auto">
+                          {filter.options.map(opt => (
+                            <label key={opt} className="flex items-center px-3 py-1.5 hover:bg-gray-50 cursor-pointer gap-2.5">
+                              <input 
+                                type="checkbox" 
+                                checked={selectedFilters[filter.id].includes(opt)}
+                                onChange={() => toggleFilterOption(filter.id, opt)}
+                                className="w-3.5 h-3.5 rounded border-gray-300 text-[#4A90E2] focus:ring-[#4A90E2]" 
+                              />
+                              <span className="text-[13px] text-gray-700">{opt}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      );
+
+      // 共用：搜尋與日期列渲染函數
+      const renderSearchBar = () => (
+        <div className="flex flex-wrap items-center justify-between gap-4 pb-2">
+          <div className="flex flex-1 min-w-[200px] max-w-md gap-3">
+            <div className="ui-search flex-1">
+              <Search size={14} className="text-gray-400" />
+              <input
+                type="text"
+                placeholder="請輸入關鍵字"
+                className="ui-input ui-search-input"
+              />
+            </div>
+          </div>
+          
+          <div className="flex flex-wrap items-center gap-1.5">
+            <DatePickerDropdown 
+              isOpen={openDropdown === 'startDate'}
+              onToggle={(e) => {
+                if(e) e.stopPropagation();
+                setOpenDropdown(openDropdown === 'startDate' ? null : 'startDate');
+              }}
+              value={startDate}
+              onChange={setStartDate}
+              placeholder="開始日期"
+            />
+            <span className="text-gray-400 text-sm">~</span>
+            <DatePickerDropdown 
+              isOpen={openDropdown === 'endDate'}
+              onToggle={(e) => {
+                if(e) e.stopPropagation();
+                setOpenDropdown(openDropdown === 'endDate' ? null : 'endDate');
+              }}
+              value={endDate}
+              onChange={setEndDate}
+              placeholder="結束日期"
+            />
+
+            <button className="ui-btn ui-btn-primary ml-2">
+              搜尋
+            </button>
+            <button
+              onClick={() => {
+                setStartDate('');
+                setEndDate('');
+              }}
+              className="ui-btn ui-btn-secondary"
+            >
+              重設
+            </button>
+            <button className="ui-btn ui-btn-secondary ml-1">
+              匯出 Excel
+            </button>
+          </div>
+        </div>
+      );
+
+      // 電子表單假資料 (包含不同狀態)
+      const allMockData = [
+        { oa: '財務', location: 'T1', type: 'BC', title: 'T1—一般費用-20260605', applicant: 'Kidd', amounts: ['TWD 1,000,000,000', 'CNY 225,733,634.31'], date: '2026-05-26 14:14:05', approver: '部門主管', refNo: '-', status: '審批中' },
+        { oa: '財務', location: 'T1', type: 'C', title: 'T1—一般費用-20260525', applicant: 'Kidd', amounts: ['TWD 2,000', 'CNY 451.47'], date: '2026-05-25 15:36:45', approver: '部門主管', refNo: '-', status: '已完成' },
+        { oa: '合同', location: 'THQ', type: 'IC', title: 'THQ-内部合同单-20260428', applicant: 'Kidd', amounts: ['0'], date: '2026-04-28 15:05:09', approver: '部門主管', refNo: '-', status: '審批中' },
+        { oa: '合同', location: 'THQ', type: 'IC', title: 'THQ-内部合同单-20260428', applicant: 'Kidd', amounts: ['CNY 123'], date: '2026-04-28 15:38:52', approver: '部門主管', refNo: '-', status: '駁回' },
+        // 臨時保存的資料
+        { oa: '行政', location: 'T2', type: 'SA', title: 'T2-用印申請-草稿', applicant: 'Kidd', amounts: ['0'], date: '2026-05-27 10:00:00', approver: '-', refNo: '-', status: '草稿' },
+        // 模板保存的資料
+        { oa: '財務', location: 'T1', type: 'B', title: '出差旅費報銷模板', applicant: 'Kidd', amounts: ['0'], date: '2026-05-20 09:00:00', approver: '-', refNo: '-', status: '模板' },
+      ];
+
+      // 依據當前頁籤過濾資料
+      const displayData = allMockData.filter(item => {
+        if (activeTab === '申請中') {
+          return ['審批中', '已完成', '駁回', '撤回'].includes(item.status);
+        } else if (activeTab === '臨時保存') {
+          return item.status === '草稿';
+        } else if (activeTab === '模板保存') {
+          return item.status === '模板';
+        }
+        return true;
+      });
+
+      const getStatusBadge = (status) => {
+        if (status === '審批中') {
+          return <span className="ui-badge ui-badge-info">審批中</span>;
+        }
+        if (status === '已完成') {
+          return <span className="ui-badge ui-badge-success">已完成</span>;
+        }
+        if (status === '駁回') {
+          return <span className="ui-badge ui-badge-danger">駁回</span>;
+        }
+        if (status === '草稿') {
+          return <span className="ui-badge ui-badge-gray">草稿</span>;
+        }
+        if (status === '模板') {
+          return <span className="ui-badge ui-badge-purple">模板</span>;
+        }
+        return <span className="ui-badge ui-badge-gray">{status}</span>;
+      };
+
+      return (
+        <div className="min-h-screen bg-[#F5F6F8] font-sans text-gray-800 flex flex-col p-6" onClick={() => setOpenDropdown(null)}>
+          
+          {/* 大標題 - 改為個人的申請 */}
+          <div className="mb-6">
+            <h1 className="ui-page-title">我的申請</h1>
+          </div>
+
+          {/* 白色主卡片 */}
+          <main className="ui-card overflow-hidden w-full max-w-full">
+            
+            {/* 頁籤區塊 */}
+            <div className="flex items-center border-b border-gray-200 px-6 pt-4 gap-8">
+              {tabs.map(tab => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`pb-3 text-sm font-medium transition-colors relative ${
+                    activeTab === tab ? 'text-[#4A90E2]' : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  {tab}
+                  {activeTab === tab && (
+                    <div className="absolute bottom-0 left-0 w-full h-[3px] bg-[#4A90E2] rounded-t-sm"></div>
+                  )}
+                </button>
+              ))}
+            </div>
+
+            {/* 內容區塊 */}
+            <div className="p-6 space-y-5">
+              <>
+                {renderFilterBar(filterConfigs)}
+                {renderSearchBar()}
+
+                {/* 資料表格 */}
+                <div className="border border-gray-200 rounded overflow-x-auto">
+                  <table className="ui-table text-center whitespace-nowrap">
+                    <thead>
+                      <tr>
+                        <th>OA</th>
+                        <th>地點</th>
+                        <th>類型</th>
+                        <th className="text-left">編號</th>
+                        <th>總金額</th>
+                        <th>申請/保存日期</th>
+                        <th>當前審批人</th>
+                        <th>關聯號</th>
+                        <th>狀態</th>
+                        <th>操作</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {displayData.map((row, idx) => (
+                        <tr key={idx}>
+                          <td>{row.oa}</td>
+                          <td>{row.location}</td>
+                          <td>{row.type}</td>
+                          <td className="text-left">
+                            <button
+                              onClick={() => setIsModalOpen(true)}
+                              className="text-[#4A90E2] hover:underline font-medium text-left"
+                            >
+                              {`${row.type}-GT-GT-${row.location}-AAA H-${row.date.slice(0,10).replace(/-/g,'')}-${String(idx+1).padStart(2,'0')}`}
+                            </button>
+                          </td>
+                          <td>
+                            <div className="flex flex-col items-center text-xs gap-0.5">
+                              {row.amounts.map((amt, i) => (
+                                <span key={i}>{amt}</span>
+                              ))}
+                            </div>
+                          </td>
+                          <td className="text-gray-500">
+                            <div className="flex flex-col items-center leading-tight">
+                              <span>{row.date.slice(0,10)}</span>
+                              <span className="text-xs text-gray-400">{row.date.slice(11)}</span>
+                            </div>
+                          </td>
+                          <td>{row.approver}</td>
+                          <td className="text-gray-400">{row.refNo}</td>
+                          <td>
+                            <div className="flex items-center justify-center">
+                              {getStatusBadge(row.status)}
+                            </div>
+                          </td>
+                          <td>
+                            <div className="flex items-center justify-center gap-2">
+                              {row.status === '審批中' && (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setWithdrawConfirmItem(row);
+                                  }}
+                                  className="ui-btn ui-btn-secondary ui-btn-sm"
+                                >
+                                  撤回
+                                </button>
+                              )}
+                              {row.status === '草稿' && (
+                                <>
+                                  <button className="ui-btn ui-btn-secondary ui-btn-sm">編輯</button>
+                                  <button className="ui-btn ui-btn-sm text-rose-600 border border-rose-200 hover:bg-rose-50">刪除</button>
+                                </>
+                              )}
+                              {row.status === '模板' && (
+                                <>
+                                  <button className="ui-btn ui-btn-secondary ui-btn-sm">套用</button>
+                                  <button className="ui-btn ui-btn-sm text-rose-600 border border-rose-200 hover:bg-rose-50">刪除</button>
+                                </>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* 底部按鈕區與分頁 */}
+                <div className="flex flex-col md:flex-row justify-center items-center pt-2">
+                  {/* 分頁 */}
+                  <div className="flex items-center gap-1.5">
+                    <button className="ui-page-btn">&laquo;</button>
+                    <button className="ui-page-btn">&lt;</button>
+                    <button className="ui-page-btn is-active">1</button>
+                    <button className="ui-page-btn">&gt;</button>
+                    <button className="ui-page-btn">&raquo;</button>
+                  </div>
+                </div>
+              </>
+            </div>
+
+          </main>
+
+          {/* ================= 單據詳情彈窗 ================= */}
+          {isModalOpen && (
+            <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-center justify-center p-4 overflow-y-auto" onClick={() => setIsModalOpen(false)}>
+              <div 
+                className="bg-[#F0F2F5] rounded-xl shadow-2xl w-full max-w-[1450px] h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200 text-left"
+                onClick={e => e.stopPropagation()}
+              >
+                
+                {/* 彈窗標題與關閉按鈕 */}
+                <div className="bg-[#EEF2F6] px-6 py-3.5 flex items-center justify-between border-b border-gray-200 flex-shrink-0">
+                  <span className="font-bold text-gray-800 text-base">費用申請單 (B) - 詳情</span>
+                  <button 
+                    onClick={() => setIsModalOpen(false)}
+                    className="bg-[#3F51B5] hover:bg-blue-800 text-white p-1 rounded transition-colors"
+                  >
+                    <X size={18} strokeWidth={2.5} />
+                  </button>
+                </div>
+
+                <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
+                  
+                  {/* 左側：表單卡片內容 */}
+                  <div className="flex-1 flex flex-col overflow-hidden">
+                    <div className="flex-1 overflow-y-auto p-6 space-y-6">
+
+                      {/* 基本資訊卡片 */}
+                      <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-5">
+                        <div className="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2">基本資訊</div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                          <div>
+                            <label className="block text-gray-700 text-xs mb-1.5 font-medium">文件編號</label>
+                            <input type="text" disabled value="B-BU4-API-T1-Kidd-20260526-01" className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 cursor-not-allowed font-mono" />
+                          </div>
+                          <div>
+                            <label className="block text-gray-700 text-xs mb-1.5 font-medium">申請日期</label>
+                            <div className="flex items-center bg-[#EAECEF] border border-gray-300 rounded px-3 py-2 text-sm text-gray-700">
+                              <Calendar size={14} className="mr-2 text-gray-500" />
+                              <span>2026-05-26</span>
+                            </div>
+                          </div>
+                          <div>
+                            <label className="block text-gray-700 text-xs mb-1.5 font-medium">標題</label>
+                            <input type="text" disabled value="T1—一般費用-20260605" className="w-full bg-white border border-gray-200 rounded px-3 py-2 text-sm text-gray-800 font-medium" />
+                          </div>
+                          <div>
+                            <label className="block text-gray-700 text-xs mb-1.5 font-medium">申請人</label>
+                            <input type="text" disabled value="Kidd" className="w-full bg-white border border-gray-200 rounded px-3 py-2 text-sm text-gray-800" />
+                          </div>
+                          <div>
+                            <label className="block text-gray-700 text-xs mb-1.5 font-medium">服務類型</label>
+                            <input type="text" disabled value="一般費用" className="w-full bg-white border border-gray-200 rounded px-3 py-2 text-sm text-gray-800" />
+                          </div>
+                          <div>
+                            <label className="block text-gray-700 text-xs mb-1.5 font-medium">區域</label>
+                            <input type="text" disabled value="T1" className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 cursor-not-allowed" />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* 費用申請明細卡片 */}
+                      <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-5">
+                        <div className="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2">費用申請明細</div>
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                          <div className="lg:col-span-8">
+                            <label className="block text-gray-700 text-xs mb-1.5 font-semibold">內容</label>
+                            <input type="text" disabled value="300坪+5個停車位" className="w-full bg-white border border-gray-200 rounded px-3 py-2 text-sm text-gray-800 font-medium" />
+                          </div>
+                          <div className="lg:col-span-4">
+                            <label className="block text-gray-700 text-xs mb-1.5 font-semibold">金額</label>
+                            <div className="flex items-center border border-gray-200 rounded overflow-hidden">
+                              <span className="bg-gray-50 border-r border-gray-200 px-3 py-2 text-sm text-gray-500 font-medium select-none">TWD</span>
+                              <input type="text" disabled value="1000000000" className="w-full bg-white px-3 py-2 text-sm text-gray-800 font-medium focus:outline-none" />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* 審批線詳情表格區塊 */}
+                      <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+                        <div className="bg-[#EEF2F6] px-6 py-3.5 flex items-center justify-between border-b border-gray-200">
+                          <span className="font-bold text-[#1A237E] text-[15px]">進度追蹤</span>
+                          
+                          {/* 右側：顯示審批意見與附件開關 */}
+                          <div className="flex items-center gap-3">
+                            <span className="text-xs font-semibold text-[#1A237E]">顯示審批意見與附件</span>
+                            <button 
+                              onClick={() => setShowOpinions(!showOpinions)}
+                              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
+                                showOpinions ? 'bg-[#3F51B5]' : 'bg-gray-300'
+                              }`}
+                            >
+                              <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                                showOpinions ? 'translate-x-6' : 'translate-x-1'
+                              }`} />
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="p-4 space-y-4">
+                          <div className="overflow-x-auto border border-gray-100 rounded-lg">
+                            <table className="w-full text-left text-xs border-collapse">
+                              <thead>
+                                <tr className="border-b border-gray-200 bg-gray-50 text-gray-700 font-bold">
+                                  <th className="px-4 py-3 text-center w-16">序號</th>
+                                  <th className="px-4 py-3 text-center w-24">審批狀態</th>
+                                  <th className="px-4 py-3">職稱</th>
+                                  <th className="px-4 py-3">簽名</th>
+                                  <th className="px-4 py-3 w-40">審批時間</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-gray-100 font-medium">
+                                <tr>
+                                  <td className="px-4 py-3 text-center font-bold text-gray-800">1</td>
+                                  <td className="px-4 py-3 text-center">
+                                    <span className="ui-badge ui-badge-info">審批中</span>
+                                  </td>
+                                  <td className="px-4 py-3 text-gray-800">部門主管</td>
+                                  <td className="px-4 py-3 text-gray-800">Robin L</td>
+                                  <td className="px-4 py-3 text-gray-400">-</td>
+                                </tr>
+                                <tr>
+                                  <td className="px-4 py-3 text-center font-bold text-gray-800">2</td>
+                                  <td className="px-4 py-3 text-center">
+                                    <span className="ui-badge ui-badge-warning">待處理</span>
+                                  </td>
+                                  <td className="px-4 py-3 text-gray-800">項目負責人</td>
+                                  <td className="px-4 py-3 text-gray-800">Derrick</td>
+                                  <td className="px-4 py-3 text-gray-400">-</td>
+                                </tr>
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      </div>
+
+                    </div>
+
+                    {/* 底部總額顯示區 */}
+                    <div className="bg-[#F8F9FA] border-t border-gray-200 px-6 py-4 flex flex-col items-end gap-3 flex-shrink-0 shadow-[0_-2px_8px_rgba(0,0,0,0.04)]">
+                      <div className="flex flex-col items-end text-sm text-gray-800 font-medium space-y-1 w-full">
+                        <div className="flex justify-end gap-12 w-full">
+                          <span className="text-gray-500 font-semibold text-xs tracking-wide">TOTAL AMOUNT</span>
+                          <span className="w-48 text-right font-bold text-gray-800">TWD 1,000,000,000.00</span>
+                        </div>
+                      </div>
+                    </div>
+
+                  </div>
+
+                  {/* 右側：審批流程預覽 */}
+                  <div className="w-full lg:w-[350px] bg-white border-t lg:border-t-0 lg:border-l border-gray-200 overflow-y-auto flex flex-col flex-shrink-0">
+                    <div className="bg-[#0097A7] text-white px-4 py-3.5 font-bold text-sm tracking-wide">
+                      審批流程預覽
+                    </div>
+                    
+                    <div className="p-1 flex-1 overflow-y-auto">
+                      <table className="w-full text-xs text-center border-collapse">
+                        <thead>
+                          <tr className="border-b border-gray-200 bg-gray-50 text-gray-500 font-bold">
+                            <th className="px-3 py-2 w-12 border-r border-gray-200">序號</th>
+                            <th className="px-3 py-2 border-r border-gray-200">職稱</th>
+                            <th className="px-3 py-2 w-16">簽名</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100 font-semibold text-gray-700">
+                          <tr className="border-b border-gray-200">
+                            <td className="px-3 py-3 border-r border-gray-200 font-bold text-center text-gray-800">1</td>
+                            <td className="px-3 py-3 border-r border-gray-200 text-gray-500">部門主管</td>
+                            <td className="px-3 py-3 text-center text-gray-400">-</td>
+                          </tr>
+                          <tr className="border-b border-gray-200">
+                            <td className="px-3 py-3 border-r border-gray-200 font-bold text-center text-gray-800">2</td>
+                            <td className="px-3 py-3 border-r border-gray-200 text-gray-500">項目負責人</td>
+                            <td className="px-3 py-3 text-center text-gray-400">-</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ================= 撤回確認彈窗 ================= */}
+          {withdrawConfirmItem && (
+            <div className="fixed inset-0 bg-black bg-opacity-45 z-[60] flex items-center justify-center p-4" onClick={() => setWithdrawConfirmItem(null)}>
+              <div 
+                className="bg-white rounded-md shadow-xl w-full max-w-[400px] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200 text-center"
+                onClick={e => e.stopPropagation()}
+              >
+                <div className="p-8">
+                  <div className="text-gray-800 text-sm font-medium mb-8">
+                    確定要撤回此申請單嗎？
+                  </div>
+                  <div className="flex justify-center gap-4">
+                    <button
+                      onClick={() => setWithdrawConfirmItem(null)}
+                      className="ui-btn ui-btn-secondary"
+                    >
+                      取消
+                    </button>
+                    <button
+                      onClick={() => setWithdrawConfirmItem(null)}
+                      className="ui-btn ui-btn-danger"
+                    >
+                      確定撤回
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+        </div>
+      );
+    };
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>

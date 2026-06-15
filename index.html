@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OA HROA System - 框架</title>
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 Lucide 圖標庫 -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+        /* 自定義滾動條 */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background-color: #d1d5db;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-track {
+            background-color: transparent;
+        }
+        /* 隱藏水平捲軸（頂部選單列 / 分頁列） */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+    <link rel="stylesheet" href="shared-ui.css">
+</head>
+<body class="flex flex-col h-screen bg-[#f0f2f5] text-[14px] text-gray-700 overflow-hidden">
+
+    <!-- 頂部選單列 (Logo + 水平選單) -->
+    <header class="h-14 bg-white border-b border-gray-200 flex items-center px-4 gap-3 shrink-0 shadow-sm z-30">
+        <!-- Logo 區塊 -->
+        <div class="flex items-center space-x-2 shrink-0 mr-1">
+            <span class="text-[#ea580c] font-bold text-2xl italic tracking-tighter">OA</span>
+            <span class="text-gray-700 font-bold text-lg tracking-wider">HROA</span>
+        </div>
+
+        <!-- 水平導航選單 -->
+        <!-- 第一層：分類列（由 JS 動態渲染） -->
+        <nav id="category-bar" class="flex items-center gap-0.5 flex-1 min-w-0 overflow-x-auto no-scrollbar"></nav>
+
+        <!-- 右側：功能圖示 -->
+        <div class="flex items-center space-x-1.5 text-gray-500 shrink-0">
+            <div class="p-1.5 hover:bg-gray-100 rounded-full cursor-pointer transition-colors"><i data-lucide="moon" class="w-[18px] h-[18px]"></i></div>
+            <div class="p-1.5 hover:bg-gray-100 rounded-full cursor-pointer transition-colors"><i data-lucide="languages" class="w-[18px] h-[18px]"></i></div>
+            <div class="p-1.5 hover:bg-gray-100 rounded-full cursor-pointer transition-colors"><i data-lucide="globe" class="w-[18px] h-[18px]"></i></div>
+            <div id="fullscreen-btn" class="p-1.5 hover:bg-gray-100 rounded-full cursor-pointer transition-colors"><i data-lucide="maximize" class="w-[18px] h-[18px]"></i></div>
+                
+            <!-- 通知小鈴鐺 -->
+            <div id="bell-container" class="p-1.5 hover:bg-gray-100 rounded-full cursor-pointer transition-colors relative">
+                <i data-lucide="bell" class="w-[18px] h-[18px]"></i>
+                <span class="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-red-500 rounded-full border border-white"></span>
+                    
+                <!-- Dropdown -->
+                <div id="notification-dropdown" class="hidden absolute top-full right-0 mt-3 w-64 bg-white border border-gray-200 shadow-lg rounded-md py-1 z-50 cursor-default">
+                    <div class="px-4 py-2.5 text-sm text-gray-800 border-b border-gray-100 font-bold bg-gray-50/50">通知中心</div>
+                    <div class="px-4 py-3 text-xs text-gray-600 hover:bg-blue-50 cursor-pointer border-b border-gray-50 transition-colors flex items-start gap-2">
+                        <span class="w-1.5 h-1.5 bg-blue-500 rounded-full mt-1 shrink-0"></span>
+                        <div>您有一筆新的休假申請待審核。</div>
+                    </div>
+                    <div class="px-4 py-3 text-xs text-gray-600 hover:bg-blue-50 cursor-pointer border-b border-gray-50 transition-colors flex items-start gap-2">
+                        <span class="w-1.5 h-1.5 bg-blue-500 rounded-full mt-1 shrink-0"></span>
+                        <div>公告：2026上半年資產盤點開始。</div>
+                    </div>
+                    <div class="px-4 py-2.5 text-center text-xs text-blue-500 cursor-pointer hover:bg-gray-50 transition-colors">查看全部通知</div>
+                </div>
+            </div>
+
+            <!-- 用戶頭像與選單 -->
+            <div id="user-profile-btn" class="ml-2 pl-2 flex items-center cursor-pointer relative">
+                <img src="https://ui-avatars.com/api/?name=User&background=fce4ec&color=d81b60" class="w-7 h-7 rounded-full shadow-sm">
+                    
+                <!-- 用戶選單 Dropdown -->
+                <div id="user-dropdown" class="hidden absolute top-full right-0 mt-3 w-40 bg-white border border-gray-200 shadow-lg rounded-md py-1.5 z-50 cursor-default">
+                    <div class="px-4 py-2 text-[14px] text-gray-700 hover:bg-gray-50 cursor-pointer flex items-center gap-2.5 transition-colors">
+                        <i data-lucide="settings" class="w-4 h-4 text-gray-600"></i>
+                        <span>密碼變更</span>
+                    </div>
+                    <div class="px-4 py-2 text-[14px] text-gray-700 hover:bg-gray-50 cursor-pointer flex items-center gap-2.5 transition-colors">
+                        <i data-lucide="settings" class="w-4 h-4 text-gray-600"></i>
+                        <span>通知設定</span>
+                    </div>
+                    <div id="open-mobile-home" class="px-4 py-2 text-[14px] text-gray-700 hover:bg-gray-50 cursor-pointer flex items-center gap-2.5 transition-colors">
+                        <i data-lucide="smartphone" class="w-4 h-4 text-gray-600"></i>
+                        <span>手機版首頁</span>
+                    </div>
+                    <div class="my-1 border-t border-gray-100"></div>
+                    <div class="px-4 py-2 text-[14px] text-gray-700 hover:bg-gray-50 cursor-pointer flex items-center gap-2.5 transition-colors">
+                        <i data-lucide="log-out" class="w-4 h-4 text-gray-600"></i>
+                        <span>Log Out</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 右側主要內容區 -->
+    <main class="flex-1 flex flex-col min-w-0 bg-[#f4f5f7]">
+        
+        <!-- 頂部 Header -->
+        <header class="h-12 bg-white flex items-center gap-3 px-4 border-b border-gray-100 shrink-0 z-10">
+            <!-- 隱形佔位：對齊第一層 Logo 寬度，使子項列從「首頁」按鈕位置開始 -->
+            <div class="flex items-center space-x-2 shrink-0 mr-1 invisible" aria-hidden="true">
+                <span class="text-2xl italic tracking-tighter font-bold">OA</span>
+                <span class="text-lg tracking-wider font-bold">HROA</span>
+            </div>
+            <!-- 第二層：子項導覽列（點選分類後攤開其子項，由 JS 動態渲染） -->
+            <div id="subnav-bar" class="flex items-center gap-0.5 flex-1 min-w-0 overflow-x-auto no-scrollbar text-[13px]"></div>
+
+            <!-- 右側：搜尋框（保留於此層） -->
+            <div class="flex items-center space-x-1.5 text-gray-500 shrink-0">
+                <div class="flex items-center bg-gray-100/80 px-2.5 py-1.5 rounded-md text-xs cursor-text hover:bg-gray-200 transition-colors">
+                    <i data-lucide="search" class="w-3.5 h-3.5 mr-1.5"></i>
+                    <span>搜索</span>
+                    <span class="ml-3 bg-white border border-gray-200 rounded px-1 text-[10px] shadow-sm text-gray-400 flex items-center"><span class="mr-0.5">⌘</span>K</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- 頁面內容區透過 iframe 載入 -->
+        <iframe name="content-frame" id="content-frame" src="首頁.html" class="w-full h-full flex-1 border-none bg-transparent"></iframe>
+
+    </main>
+
+    <script>
+        // 1. 初始化 Lucide 圖標
+        lucide.createIcons();
+
+        // 2. 兩層選單：第一層分類 / 第二層子項（攤平）
+        const MENU = [
+            { title: '首頁', icon: 'home', href: '首頁.html', children: [] },
+            { title: '考勤管理', icon: 'clock', children: [
+                { title: '打卡' }, { title: '出勤紀錄' }, { title: '補卡申請' }, { title: '假期申請' } ] },
+            { title: '電子表單', icon: 'file-text', children: [
+                { title: '申請', href: '申請.html' }, { title: '我的申請' }, { title: '簽核', badge: '3' } ] },
+            { title: '資訊中心', icon: 'info', children: [ { title: '公告' } ] },
+            { title: '人事模塊', icon: 'user-cog', children: [
+                { title: '員工管理' }, { title: '組織配置' }, { title: '出勤管理' }, { title: '假期管理' }, { title: '薪資管理' }, { title: '績效管理' } ] },
+            { title: '財務模塊', icon: 'wallet', children: [
+                { title: '採購申請管理' }, { title: '報銷審核' }, { title: '付款管理' }, { title: '費用分攤' }, { title: '財務報表' } ] },
+            { title: '行政模塊', icon: 'building', children: [
+                { title: '公告管理' }, { title: '資產管理' }, { title: '行政申請' }, { title: '訪客管理' }, { title: '工號創建管理', href: '工號創建管理.html' }, { title: '會議室管理' } ] },
+            { title: '系統管理', icon: 'settings', children: [
+                { title: '帳號角色管理' }, { title: '角色與權限' }, { title: '電子表單設定' }, { title: '組織架構' }, { title: '審批流設定' }, { title: '分組設定' }, { title: '稽核日誌' }, { title: '模塊設定' }, { title: '系統設定' }, { title: '查詢Log' }, { title: '查詢User Log' }, { title: 'Operation' } ] }
+        ];
+
+        const categoryBar = document.getElementById('category-bar');
+        const subnavBar = document.getElementById('subnav-bar');
+        const iframe = document.getElementById('content-frame');
+
+        const hrefOf = (item) => item.href || `${item.title}.html`;
+        const CAT_ON  = 'menu-cat flex items-center px-3 py-2 text-blue-600 bg-[#EAF2FC] font-medium rounded-md cursor-pointer transition-colors whitespace-nowrap shrink-0';
+        const CAT_OFF = 'menu-cat flex items-center px-3 py-2 text-gray-600 hover:bg-gray-50 rounded-md cursor-pointer transition-colors whitespace-nowrap shrink-0';
+        const SUB_ON  = 'subnav-item flex items-center gap-1.5 px-3 py-1.5 text-blue-600 bg-blue-50 font-medium rounded-md cursor-pointer transition-colors whitespace-nowrap shrink-0';
+        const SUB_OFF = 'subnav-item flex items-center gap-1.5 px-3 py-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md cursor-pointer transition-colors whitespace-nowrap shrink-0';
+
+        // 渲染第一層分類
+        MENU.forEach((cat, i) => {
+            const btn = document.createElement('div');
+            btn.className = CAT_OFF;
+            btn.innerHTML = `<i data-lucide="${cat.icon}" class="w-[18px] h-[18px] mr-2 shrink-0"></i><span>${cat.title}</span>`;
+            btn.addEventListener('click', () => selectCategory(i));
+            categoryBar.appendChild(btn);
+        });
+
+        // 選分類 → 第二層攤開其子項
+        function selectCategory(i) {
+            categoryBar.querySelectorAll('.menu-cat').forEach((el, idx) => { el.className = (idx === i) ? CAT_ON : CAT_OFF; });
+            const cat = MENU[i];
+            subnavBar.innerHTML = '';
+            (cat.children || []).forEach(item => {
+                const el = document.createElement('div');
+                el.className = SUB_OFF;
+                el.dataset.href = hrefOf(item);
+                el.innerHTML = `<span>${item.title}</span>` + (item.badge ? ` <span class="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none">${item.badge}</span>` : '');
+                el.addEventListener('click', () => loadPage(el));
+                subnavBar.appendChild(el);
+            });
+            // 無子項（例如首頁）→ 直接載入該分類頁面
+            if (!cat.children || cat.children.length === 0) {
+                iframe.src = hrefOf(cat);
+            }
+            lucide.createIcons();
+        }
+
+        // 點子項 → 載入內容並高亮
+        function loadPage(el) {
+            if (el.dataset.href) iframe.src = el.dataset.href;
+            subnavBar.querySelectorAll('.subnav-item').forEach(s => s.className = SUB_OFF);
+            el.className = SUB_ON;
+        }
+
+        // 系統初始化：預設選「首頁」
+        selectCategory(0);
+        lucide.createIcons();
+
+        // 3. 通知小鈴鐺下拉選單
+        const bellContainer = document.getElementById('bell-container');
+        const notificationDropdown = document.getElementById('notification-dropdown');
+        if (bellContainer && notificationDropdown) {
+            bellContainer.addEventListener('click', (e) => {
+                notificationDropdown.classList.toggle('hidden');
+                e.stopPropagation();
+            });
+            document.addEventListener('click', (e) => {
+                if (!bellContainer.contains(e.target)) {
+                    notificationDropdown.classList.add('hidden');
+                }
+            });
+        }
+
+        // 4. 用戶頭像下拉選單
+        const userProfileBtn = document.getElementById('user-profile-btn');
+        const userDropdown = document.getElementById('user-dropdown');
+        if (userProfileBtn && userDropdown) {
+            userProfileBtn.addEventListener('click', (e) => {
+                userDropdown.classList.toggle('hidden');
+                e.stopPropagation();
+            });
+            document.addEventListener('click', (e) => {
+                if (!userProfileBtn.contains(e.target)) {
+                    userDropdown.classList.add('hidden');
+                }
+            });
+        }
+
+        // 4-1. 手機版首頁（由頭像選單開啟，同分頁整頁導向，不套主框架）
+        const openMobileHome = document.getElementById('open-mobile-home');
+        if (openMobileHome) {
+            openMobileHome.addEventListener('click', (e) => {
+                e.stopPropagation();
+                userDropdown.classList.add('hidden');
+                window.location.href = '手機版首頁.html';
+            });
+        }
+
+        // 5. 全螢幕切換
+        const fullscreenBtn = document.getElementById('fullscreen-btn');
+        if (fullscreenBtn) {
+            fullscreenBtn.addEventListener('click', () => {
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen().catch(err => {
+                        console.warn(`Error attempting to enable fullscreen: ${err.message}`);
+                    });
+                } else {
+                    document.exitFullscreen();
+                }
+            });
+        }
+    </script>
+</body>
+</html>
