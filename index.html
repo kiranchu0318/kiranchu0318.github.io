@@ -134,23 +134,24 @@
 
         // 2. 兩層選單：第一層分類 / 第二層子項（攤平）
         const MENU = [
-            { title: '首頁', icon: 'home', href: '首頁.html', children: [] },
-            { title: '考勤管理', icon: 'clock', children: [
-                { title: '打卡' }, { title: '出勤紀錄' }, { title: '補卡申請' }, { title: '假期申請' } ] },
-            { title: '電子表單', icon: 'file-text', children: [
-                { title: '申請', href: '申請.html' }, { title: '我的申請' }, { title: '簽核', badge: '3' } ] },
-            { title: '資訊中心', icon: 'info', children: [ { title: '公告' }, { title: '文件庫', href: '文件庫.html' } ] },
-            { title: '人事模塊', icon: 'user-cog', children: [
+            // 工作台：員工日常自助（首頁 / 考勤 / 表單 / 資訊），以群組分隔不同子領域
+            { title: '工作台', icon: 'layout-dashboard', groups: [
+                [ { title: '首頁', href: '首頁.html' } ],
+                [ { title: '打卡' }, { title: '出勤紀錄' }, { title: '補卡申請' }, { title: '假期申請' } ],
+                [ { title: '申請', href: '申請.html' }, { title: '我的申請' }, { title: '簽核', badge: '3' } ],
+                [ { title: '公告' }, { title: '文件庫', href: '文件庫.html' } ]
+            ] },
+            { title: '人事管理', icon: 'user-cog', children: [
                 { title: '員工管理' }, { title: '組織配置' }, { title: '出勤管理' }, { title: '假期管理' }, { title: '薪資管理' }, { title: '績效管理' } ] },
-            { title: '財務模塊', icon: 'wallet', children: [
+            { title: '財務管理', icon: 'wallet', children: [
                 { title: '採購申請管理' }, { title: '報銷審核' }, { title: '付款管理' }, { title: '費用分攤' }, { title: '財務報表' } ] },
-            { title: '行政模塊', icon: 'building', children: [
+            { title: '行政管理', icon: 'building', children: [
                 { title: '公告管理' }, { title: '資產管理' }, { title: '行政申請' }, { title: '訪客管理' }, { title: '工號創建管理', href: '工號創建管理.html' }, { title: '會議室管理' } ] },
-            { title: '系統管理', icon: 'settings', groups: [
+            { title: '系統設定', icon: 'settings', groups: [
                 [ { title: '帳號角色管理' }, { title: '角色與權限' } ],
                 [ { title: '電子表單設定' }, { title: '審批流設定' }, { title: '分組設定' } ],
-                [ { title: '稽核日誌' }, { title: '查詢Log' }, { title: '查詢User Log' }, { title: 'Operation' } ],
-                [ { title: '組織架構管理' }, { title: '模塊設定' }, { title: '系統設定' } ]
+                [ { title: '組織架構管理' }, { title: '模塊設定' }, { title: '系統設定' },
+                  { title: '日誌', dropdown: [ { title: '稽核日誌' }, { title: '查詢Log' }, { title: '查詢User Log' }, { title: 'Operation' } ] } ]
             ] }
         ];
 
@@ -178,15 +179,57 @@
             categoryBar.querySelectorAll('.menu-cat').forEach((el, idx) => { el.className = (idx === i) ? CAT_ON : CAT_OFF; });
             const cat = MENU[i];
             subnavBar.innerHTML = '';
+            // 清掉上一個分類殘留、掛在 body 上的下拉面板
+            document.querySelectorAll('.subnav-dd-panel').forEach(p => p.remove());
 
-            // 渲染單一子項
+            // 渲染單一子項（若為下拉項目則改用 appendDropdown）
             const appendItem = (item) => {
+                if (item.dropdown) { appendDropdown(item); return; }
                 const el = document.createElement('div');
                 el.className = SUB_OFF;
                 el.dataset.href = hrefOf(item);
                 el.innerHTML = `<span>${item.title}</span>` + (item.badge ? ` <span class="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none">${item.badge}</span>` : '');
                 el.addEventListener('click', () => loadPage(el));
                 subnavBar.appendChild(el);
+            };
+            // 渲染下拉選單項目（如「日誌」）。面板掛在 body 上以避免被第二層的 overflow 裁切
+            const appendDropdown = (item) => {
+                const toggle = document.createElement('div');
+                toggle.className = SUB_OFF;
+                toggle.innerHTML = `<span>${item.title}</span><i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>`;
+                subnavBar.appendChild(toggle);
+
+                const panel = document.createElement('div');
+                panel.className = 'subnav-dd-panel fixed z-[60] min-w-[160px] bg-white border border-gray-200 rounded-lg shadow-lg py-1 hidden';
+                item.dropdown.forEach(sub => {
+                    const opt = document.createElement('div');
+                    opt.className = 'px-3 py-2 text-[13px] text-gray-600 hover:bg-gray-100 hover:text-gray-900 cursor-pointer whitespace-nowrap transition-colors rounded-md mx-1';
+                    opt.textContent = sub.title;
+                    opt.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        iframe.src = hrefOf(sub);
+                        // 清掉其他子項高亮，將下拉開關設為 active
+                        subnavBar.querySelectorAll('.subnav-item').forEach(s => s.className = SUB_OFF);
+                        toggle.className = SUB_ON;
+                        panel.querySelectorAll('div').forEach(d => d.classList.remove('text-blue-600', 'bg-blue-50', 'font-medium'));
+                        opt.classList.add('text-blue-600', 'bg-blue-50', 'font-medium');
+                        panel.classList.add('hidden');
+                    });
+                    panel.appendChild(opt);
+                });
+                document.body.appendChild(panel);
+
+                toggle.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const willOpen = panel.classList.contains('hidden');
+                    document.querySelectorAll('.subnav-dd-panel').forEach(p => p.classList.add('hidden'));
+                    if (willOpen) {
+                        const r = toggle.getBoundingClientRect();
+                        panel.style.top = `${r.bottom + 4}px`;
+                        panel.style.left = `${r.left}px`;
+                        panel.classList.remove('hidden');
+                    }
+                });
             };
             // 群組間的垂直分隔線
             const appendDivider = () => {
@@ -219,8 +262,15 @@
             el.className = SUB_ON;
         }
 
-        // 系統初始化：預設選「首頁」
+        // 點擊空白處關閉第二層的下拉面板（如「日誌」）
+        document.addEventListener('click', () => {
+            document.querySelectorAll('.subnav-dd-panel').forEach(p => p.classList.add('hidden'));
+        });
+
+        // 系統初始化：預設展開「工作台」並高亮其中的「首頁」（iframe 預設已載入首頁.html）
         selectCategory(0);
+        const homeItem = subnavBar.querySelector('[data-href="首頁.html"]');
+        if (homeItem) homeItem.className = SUB_ON;
         lucide.createIcons();
 
         // 3. 通知小鈴鐺下拉選單

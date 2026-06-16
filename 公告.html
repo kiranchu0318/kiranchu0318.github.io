@@ -40,11 +40,11 @@
 </head>
 <body class=" text-gray-800 p-4 md:p-8 min-h-screen flex justify-center">
 
-    <div class="w-full max-w-6xl">
+    <div class="w-full">
         
         <!-- 頂部標題與操作區 -->
         <div class="flex justify-between items-center mb-6 px-1">
-            <h1 class="ui-page-title">公告管理</h1>
+            <h1 class="ui-page-title">公告</h1>
             
             <!-- 新增公告按鈕 -->
             <button onclick="openModal()" class="ui-btn ui-btn-primary">
@@ -56,24 +56,15 @@
         <!-- 主要內容區 -->
         <div class="ui-card p-2 sm:p-8">
             
-            <!-- 頁籤導覽 (呼應原圖設計) -->
-            <div class="flex gap-6 sm:gap-8 border-b border-gray-200 mb-6 px-4 sm:px-0 overflow-x-auto no-scrollbar">
-                <button onclick="switchTab('all')" id="tab-all" class="pb-3 text-primary font-bold border-b-2 border-primary whitespace-nowrap">全部公告</button>
-                <button onclick="switchTab('active')" id="tab-active" class="pb-3 text-gray-500 hover:text-gray-700 font-medium whitespace-nowrap">進行中</button>
-                <button onclick="switchTab('draft')" id="tab-draft" class="pb-3 text-gray-500 hover:text-gray-700 font-medium whitespace-nowrap">草稿箱</button>
-                <button onclick="switchTab('archived')" id="tab-archived" class="pb-3 text-gray-500 hover:text-gray-700 font-medium whitespace-nowrap">歷史封存</button>
-            </div>
-
             <!-- 公告表格 -->
             <div class="overflow-x-auto">
                 <table class="ui-table text-left min-w-[800px]">
                     <thead>
                         <tr>
-                            <th class="w-24">編號</th>
                             <th class="w-32">分類</th>
                             <th>標題</th>
-                            <th class="w-32">發佈人</th>
-                            <th class="w-36">日期</th>
+                            <th class="w-48">發佈人</th>
+                            <th class="w-36">時間</th>
                             <th class="text-right w-24">瀏覽數</th>
                         </tr>
                     </thead>
@@ -105,7 +96,7 @@
             <div class="p-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
                 <h2 class="text-lg font-bold text-gray-800 flex items-center gap-2">
                     <span class="w-1 h-5 bg-primary rounded-full"></span>
-                    新增公告與內容發佈
+                    新增公告
                 </h2>
                 <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 transition">
                     <i class="fa-solid fa-xmark text-xl"></i>
@@ -138,7 +129,7 @@
                                     <i class="fa-solid fa-check"></i>
                                 </div>
                             </div>
-                            <span class="text-sm font-semibold text-gray-700">必須確認</span>
+                            <span class="text-sm font-semibold text-gray-700">必須已讀</span>
                         </label>
                     </div>
                     
@@ -217,15 +208,44 @@
 
                     <!-- 臨時保存 / 上傳 送出按鈕組 (紫藍色皇家風格) -->
                     <div class="flex items-center gap-3 justify-end">
-                        <button onclick="submitForm('draft')" class="ui-btn ui-btn-primary">
-                            臨時保存
-                        </button>
-                        <button onclick="submitForm('active')" class="ui-btn ui-btn-primary">
-                            上傳
+                        <button onclick="submitForm()" class="ui-btn ui-btn-primary">
+                            發布
                         </button>
                     </div>
                 </div>
 
+            </div>
+        </div>
+    </div>
+
+    <!-- 公告內容檢視視窗 (Detail Modal) -->
+    <div id="detailModal" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm hidden flex items-center justify-center z-50 transition-opacity">
+        <div id="detailModalContent" class="bg-white rounded-2xl w-full max-w-3xl mx-4 overflow-hidden shadow-2xl transform scale-95 transition-transform duration-200 flex flex-col max-h-[90vh]">
+
+            <!-- 標題列：左側公告資訊、右上方 編輯 / 刪除 / 關閉 -->
+            <div class="p-5 border-b border-gray-100 flex justify-between items-start gap-4 bg-gray-50/50">
+                <div class="min-w-0">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span id="detailCategory" class="ui-badge ui-badge-gray"></span>
+                        <span id="detailId" class="text-xs text-gray-400 font-mono"></span>
+                    </div>
+                    <h2 id="detailTitle" class="text-xl font-bold text-gray-800 break-words leading-snug"></h2>
+                    <div class="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2.5 text-sm text-gray-500">
+                        <span class="flex items-center gap-1.5"><i class="fa-regular fa-user text-gray-400"></i> <span id="detailAuthor"></span></span>
+                        <span class="flex items-center gap-1.5"><i class="fa-regular fa-calendar text-gray-400"></i> <span id="detailDate"></span></span>
+                        <span class="flex items-center gap-1.5"><i class="fa-regular fa-eye text-gray-400"></i> <span id="detailViews"></span> 次瀏覽</span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 shrink-0">
+                    <button onclick="editFromDetail()" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-pen-to-square"></i> 編輯</button>
+                    <button onclick="deleteFromDetail()" class="ui-btn ui-btn-sm text-rose-600 border border-rose-200 hover:bg-rose-50"><i class="fa-solid fa-trash-can"></i> 刪除</button>
+                    <button onclick="closeDetail()" class="text-gray-400 hover:text-gray-600 transition ml-1 p-1"><i class="fa-solid fa-xmark text-xl"></i></button>
+                </div>
+            </div>
+
+            <!-- 公告內容 -->
+            <div class="p-6 overflow-y-auto">
+                <div id="detailContent" class="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap"></div>
             </div>
         </div>
     </div>
@@ -239,13 +259,25 @@
     <script>
         // 初始化模擬資料庫 (增加系統的互動完整度，讓新增真正能在列表生效)
         let announcements = [
-            { id: 1003, category: '系統公告', title: '端午節連續假期連線維護與伺服器暫停服務通知', author: 'dev', date: '2026-06-02', views: 1245, status: 'active' },
-            { id: 1002, category: '行政通知', title: '2026 年度員工健康檢查填報與預約事宜', author: 'HR_Admin', date: '2026-05-28', views: 842, status: 'active' },
-            { id: 1001, category: '公司活動', title: '第三季核心技術分享會（福爾摩沙會議室）', author: 'dev', date: '2026-05-15', views: 2108, status: 'active' },
-            { id: 1000, category: '一般公告', title: '辦公室冷氣設備定期保養通知', author: 'Admin', date: '2026-05-01', views: 3052, status: 'active' }
+            { id: 1003, category: '全體', title: '端午節連續假期連線維護與伺服器暫停服務通知', author: 'dev', date: '2026-06-02', views: 1245,
+              content: '親愛的同仁您好：\n\n配合端午節連續假期，資訊部門將於 2026/06/08 22:00 至 2026/06/09 06:00 進行伺服器與網路設備例行維護。\n\n維護期間，內部 OA 系統、差勤系統及檔案伺服器將暫停服務，造成不便敬請見諒。如有緊急需求，請聯繫資訊部值班人員（分機 5168）。\n\n資訊部 敬上' },
+            { id: 1002, category: '地區', title: '2026 年度員工健康檢查填報與預約事宜', author: 'HR_Admin', date: '2026-05-28', views: 842,
+              content: '2026 年度員工健康檢查即日起開放預約，請所有正職同仁於 2026/06/20 前完成線上填報與時段預約。\n\n本次健檢與「康健診所」合作，提供基礎與進階兩種方案，費用由公司全額補助。詳細項目與院所地址請參閱附件。\n\n如有疑問請洽人資部 HR_Admin。' },
+            { id: 1001, category: '全體', title: '第三季核心技術分享會（福爾摩沙會議室）', author: 'dev', date: '2026-05-15', views: 2108,
+              content: '第三季核心技術分享會將於 2026/07/05（五）下午 14:00 在福爾摩沙會議室舉行。\n\n本次主題涵蓋微服務架構實戰、前端效能優化與 AI 輔助開發工具導入經驗。歡迎各部門同仁踴躍報名參加，現場備有茶點。\n\n名額有限，報名從速。' },
+            { id: 1000, category: '地區', title: '辦公室冷氣設備定期保養通知', author: 'Admin', date: '2026-05-01', views: 3052,
+              content: '為維持辦公環境品質，總務將於 2026/05/10（六）對全棟冷氣設備進行定期保養與濾網清潔。\n\n保養期間部分樓層冷氣將輪流暫停，預計每區段約 1 小時。造成不便敬請見諒，感謝配合。\n\n總務組 敬上' }
         ];
 
-        let currentFilter = 'all';
+        let currentDetailId = null;  // 目前檢視中的公告 id
+        let editingId = null;        // 編輯中的公告 id（null 表示為新增）
+
+        // 依分類回傳對應 badge 樣式
+        function categoryClassOf(category) {
+            if (category === '全體') return 'ui-badge ui-badge-info';
+            if (category === '地區') return 'ui-badge ui-badge-success';
+            return 'ui-badge ui-badge-gray';
+        }
 
         // 頁面載入時進行動態列表渲染
         window.onload = function() {
@@ -257,36 +289,21 @@
             const tbody = document.getElementById('announcementTableBody');
             tbody.innerHTML = '';
 
-            const filteredData = announcements.filter(item => {
-                if (currentFilter === 'all') return true;
-                return item.status === currentFilter;
-            });
+            const filteredData = announcements;
 
             filteredData.forEach(item => {
-                // 決定分類樣式色塊
-                let categoryClass = 'ui-badge ui-badge-gray';
-                if (item.category === '系統公告') categoryClass = 'ui-badge ui-badge-warning';
-                else if (item.category === '行政通知') categoryClass = 'ui-badge ui-badge-info';
-                else if (item.category === '公司活動') categoryClass = 'ui-badge ui-badge-success';
+                const categoryClass = categoryClassOf(item.category);
 
                 const tr = document.createElement('tr');
                 tr.className = "group";
                 tr.innerHTML = `
-                    <td class="text-gray-400">#${item.id}</td>
                     <td>
                         <span class="${categoryClass}">${item.category}</span>
                     </td>
-                    <td class="font-medium group-hover:text-primary cursor-pointer transition-colors">
+                    <td class="font-medium text-gray-800 hover:text-primary hover:underline cursor-pointer transition-colors" onclick="openDetail(${item.id})" title="點擊查看公告內容">
                         ${item.title}
                     </td>
-                    <td>
-                        <div class="flex items-center gap-2">
-                            <div class="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold">
-                                ${item.author.charAt(0).toUpperCase()}
-                            </div>
-                            ${item.author}
-                        </div>
-                    </td>
+                    <td>${item.author}</td>
                     <td>${item.date}</td>
                     <td class="text-right">${item.views.toLocaleString()}</td>
                 `;
@@ -297,40 +314,96 @@
             document.getElementById('paginationInfo').innerText = `顯示 1 至 ${filteredData.length} 筆，共 ${filteredData.length} 筆`;
         }
 
-        // 切換頁籤篩選
-        function switchTab(status) {
-            currentFilter = status;
-            
-            const tabs = {
-                'all': 'tab-all',
-                'active': 'tab-active',
-                'draft': 'tab-draft',
-                'archived': 'tab-archived'
-            };
-
-            // 更新按鈕樣式
-            Object.keys(tabs).forEach(key => {
-                const tabBtn = document.getElementById(tabs[key]);
-                if (key === status) {
-                    tabBtn.className = "pb-3 text-primary font-bold border-b-2 border-primary whitespace-nowrap";
-                } else {
-                    tabBtn.className = "pb-3 text-gray-500 hover:text-gray-700 font-medium whitespace-nowrap";
-                }
-            });
-
-            renderTable();
-        }
-
-        // 開啟 Modal 彈窗
+        // 開啟 Modal 彈窗（新增模式）
         function openModal() {
+            editingId = null; // 新增模式
+            document.querySelector('#modalContent h2').innerHTML =
+                '<span class="w-1 h-5 bg-primary rounded-full"></span> 新增公告';
+            resetForm();
+
             const modal = document.getElementById('addModal');
             const modalContent = document.getElementById('modalContent');
-            
+
             modal.classList.remove('hidden');
             setTimeout(() => {
                 modalContent.classList.remove('scale-95');
                 modalContent.classList.add('scale-100');
             }, 10);
+        }
+
+        /* ============ 公告內容檢視 / 編輯 / 刪除 ============ */
+
+        // 點擊標題 → 開啟內容檢視彈窗
+        function openDetail(id) {
+            const item = announcements.find(a => a.id === id);
+            if (!item) return;
+            currentDetailId = id;
+
+            const catEl = document.getElementById('detailCategory');
+            catEl.className = categoryClassOf(item.category);
+            catEl.innerText = item.category;
+            document.getElementById('detailId').innerText = '#' + item.id;
+            document.getElementById('detailTitle').innerText = item.title;
+            document.getElementById('detailAuthor').innerText = item.author;
+            document.getElementById('detailDate').innerText = item.date;
+            document.getElementById('detailViews').innerText = item.views.toLocaleString();
+            document.getElementById('detailContent').innerText = item.content || '（此公告尚無詳細內容）';
+
+            const modal = document.getElementById('detailModal');
+            const mc = document.getElementById('detailModalContent');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                mc.classList.remove('scale-95');
+                mc.classList.add('scale-100');
+            }, 10);
+        }
+
+        function closeDetail() {
+            const modal = document.getElementById('detailModal');
+            const mc = document.getElementById('detailModalContent');
+            mc.classList.remove('scale-100');
+            mc.classList.add('scale-95');
+            setTimeout(() => { modal.classList.add('hidden'); }, 200);
+        }
+
+        // 由檢視彈窗點「編輯」→ 帶入資料開啟編輯彈窗
+        function editFromDetail() {
+            const id = currentDetailId;
+            closeDetail();
+            setTimeout(() => openEdit(id), 200);
+        }
+
+        // 開啟編輯彈窗並帶入既有資料
+        function openEdit(id) {
+            const item = announcements.find(a => a.id === id);
+            if (!item) return;
+            editingId = id;
+
+            document.querySelector('#modalContent h2').innerHTML =
+                '<span class="w-1 h-5 bg-primary rounded-full"></span> 編輯公告與內容';
+            document.getElementById('announcementTitle').value = item.title;
+            document.getElementById('announcementContent').value = item.content || '';
+            document.getElementById('fileNameDisplay').innerText = '未選擇任何檔案';
+            document.getElementById('announcementFile').value = '';
+
+            const modal = document.getElementById('addModal');
+            const modalContent = document.getElementById('modalContent');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modalContent.classList.remove('scale-95');
+                modalContent.classList.add('scale-100');
+            }, 10);
+        }
+
+        // 由檢視彈窗點「刪除」
+        function deleteFromDetail() {
+            const item = announcements.find(a => a.id === currentDetailId);
+            if (!item) return;
+            if (!confirm(`確定要下架公告「${item.title}」嗎？下架後將不再顯示於公告列表。`)) return;
+            announcements = announcements.filter(a => a.id !== currentDetailId);
+            closeDetail();
+            renderTable();
+            showToast('公告已下架', true);
         }
 
         // 關閉 Modal 彈窗
@@ -384,13 +457,13 @@
             }
         }
 
-        // 臨時保存與上傳的表單送出邏輯
-        function submitForm(status) {
+        // 表單送出邏輯：送出即發布
+        function submitForm() {
             const title = document.getElementById('announcementTitle').value.trim();
             const content = document.getElementById('announcementContent').value.trim();
-            
+
             // 由於輸入控制項已被移除，我們設定預設安全資料
-            const category = "一般公告";
+            const category = "全體";
             const date = new Date().toISOString().split('T')[0];
 
             if (!title) {
@@ -398,10 +471,25 @@
                 return;
             }
 
+            // 編輯模式：更新既有公告（保留分類、發佈人、日期、瀏覽數）
+            if (editingId !== null) {
+                const item = announcements.find(a => a.id === editingId);
+                if (item) {
+                    item.title = title;
+                    item.content = content;
+                }
+                editingId = null;
+                closeModal();
+                renderTable();
+                showToast('公告已更新！', true);
+                resetForm();
+                return;
+            }
+
             // 動態創建公告編號
             const nextId = announcements.length > 0 ? Math.max(...announcements.map(item => item.id)) + 1 : 1000;
 
-            // 新增至資料集頂部
+            // 新增至資料集頂部，送出當下即發布
             announcements.unshift({
                 id: nextId,
                 category: category,
@@ -409,18 +497,12 @@
                 author: 'dev',
                 date: date,
                 views: 0,
-                status: status // active 為進行中，draft 為草稿
+                content: content
             });
 
             closeModal();
             renderTable();
-
-            // 根據送出模式給予不同提示字眼
-            if (status === 'draft') {
-                showToast('草稿已順利臨時保存！', true);
-            } else {
-                showToast('公告已上傳成功並對外發佈！', true);
-            }
+            showToast('公告已發布！', true);
 
             // 清空表單
             resetForm();
@@ -449,6 +531,20 @@
         document.getElementById('addModal').addEventListener('click', function(e) {
             if (e.target === this) {
                 closeModal();
+            }
+        });
+
+        // 點擊內容檢視彈窗外部背景關閉
+        document.getElementById('detailModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeDetail();
+            }
+        });
+
+        // Esc 關閉檢視彈窗
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && !document.getElementById('detailModal').classList.contains('hidden')) {
+                closeDetail();
             }
         });
     </script>
