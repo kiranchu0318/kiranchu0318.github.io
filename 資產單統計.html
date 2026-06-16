@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>資產單統計</title>
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 Font Awesome 用於圖標 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4A90E2',
+                        'primary-light': '#EAF2FC',
+                        background: '#F8F9FB',
+                        card: '#FFFFFF',
+                        text: { main: '#1F2937', muted: '#6B7280', light: '#9CA3AF' }
+                    },
+                    fontFamily: {
+                        sans: ['"Inter"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'card': '0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03)',
+                        'modal': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: theme('colors.background');
+            font-family: theme('fontFamily.sans');
+        }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+    </style>
+    <link rel="stylesheet" href="shared-ui.css">
+</head>
+<body class="ui-page text-text-main antialiased relative">
+
+    <div class="relative mx-auto w-full max-w-[1400px] space-y-6">
+
+        <!-- 頁面標題區塊 -->
+        <header class="ui-page-header">
+            <h1 class="ui-page-title">資產單統計</h1>
+            <div class="flex items-center gap-2.5 w-full sm:w-auto">
+                <button onclick="mockExport()" class="ui-btn ui-btn-secondary flex-1 sm:flex-none">
+                    <i class="fa-solid fa-download"></i> 匯出報表
+                </button>
+            </div>
+        </header>
+
+        <!-- 篩選台 -->
+        <div class="ui-card p-5 space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">時間區間</label>
+                    <div class="flex items-center gap-1.5">
+                        <input type="date" id="date-start" onchange="applyFilters()" class="ui-input flex-1 min-w-0">
+                        <span class="text-gray-400 text-xs font-medium shrink-0">至</span>
+                        <input type="date" id="date-end" onchange="applyFilters()" class="ui-input flex-1 min-w-0">
+                    </div>
+                </div>
+            </div>
+            <div class="flex flex-wrap items-center justify-end pt-2 gap-2">
+                <button onclick="resetFilters()" class="text-xs text-primary font-semibold hover:underline flex items-center gap-1.5">
+                    <i class="fa-solid fa-arrows-rotate"></i> 重設篩選條件
+                </button>
+            </div>
+        </div>
+
+        <!-- 列表 -->
+        <section class="ui-card p-4 sm:p-6">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
+                <div class="flex items-center gap-2">
+                    <h2 class="text-lg font-bold text-gray-900 whitespace-nowrap">資產單統計列表</h2>
+                    <span id="count-badge" class="bg-blue-50 text-primary text-xs px-2.5 py-1 rounded-md font-bold">0 筆資料</span>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto rounded-lg border border-gray-100 custom-scrollbar">
+                <table class="ui-table text-center">
+                    <thead>
+                        <tr>
+                            <th scope="col" class="text-left">位置</th>
+                            <th scope="col">資產</th>
+                            <th scope="col">資產項目數</th>
+                            <th scope="col">調撥</th>
+                            <th scope="col">調撥項目數</th>
+                            <th scope="col">維修</th>
+                            <th scope="col">維修項目數</th>
+                            <th scope="col">報廢</th>
+                            <th scope="col">報廢項目數</th>
+                            <th scope="col">總計數</th>
+                            <th scope="col">未使用數字資產</th>
+                            <th scope="col">未使用數字資產比率</th>
+                            <th scope="col">未使用非數字資產</th>
+                            <th scope="col">未使用非數字資產比率</th>
+                        </tr>
+                    </thead>
+                    <tbody id="stat-tbody"><!-- 動態由 JavaScript 渲染 --></tbody>
+                </table>
+            </div>
+
+            <div id="no-data-view" class="hidden py-16 text-center space-y-3">
+                <div class="inline-flex p-4 bg-gray-50 text-gray-400 rounded-full"><i class="fa-solid fa-chart-column text-3xl"></i></div>
+                <p class="text-sm text-text-muted font-medium">查無符合時間區間的資產單統計</p>
+                <button onclick="resetFilters()" class="text-xs text-primary font-semibold hover:underline">清除篩選條件</button>
+            </div>
+
+            <div class="flex items-center justify-between mt-6 pt-4 border-t border-gray-100">
+                <span id="pagination-info" class="text-sm text-gray-500">顯示第 0 到 0 筆，共 0 筆記錄</span>
+                <div class="flex gap-1">
+                    <button class="ui-page-btn"><i class="fa-solid fa-chevron-left text-xs"></i></button>
+                    <button class="ui-page-btn is-active">1</button>
+                    <button class="ui-page-btn"><i class="fa-solid fa-chevron-right text-xs"></i></button>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- 提示消息 (Toast) -->
+    <div id="toast" class="fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+        <i id="toast-icon" class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
+        <span id="toast-text" class="text-sm font-medium">操作成功！</span>
+    </div>
+
+    <script>
+        // 資產單統計資料庫
+        // 欄位：日期(供時間區間篩選)、位置、各單據數(資產/調撥/維修/報廢)與其項目數、未使用數字/非數字資產與比率
+        const statDb = [
+            { date: "2026-06-11", loc: "台北總部",     asset: 42, assetItems: 180, transfer: 15, transferItems: 38, repair: 9, repairItems: 12, scrap: 6, scrapItems: 14, unusedDigital: 24, unusedDigitalRatio: "13.3%", unusedNonDigital: 31, unusedNonDigitalRatio: "9.6%" },
+            { date: "2026-06-09", loc: "台中分公司",   asset: 18, assetItems: 73,  transfer: 7,  transferItems: 16, repair: 4, repairItems: 5,  scrap: 3, scrapItems: 6,  unusedDigital: 9,  unusedDigitalRatio: "11.0%", unusedNonDigital: 14, unusedNonDigitalRatio: "8.2%" },
+            { date: "2026-06-06", loc: "高雄營運處",   asset: 11, assetItems: 45,  transfer: 3,  transferItems: 8,  repair: 2, repairItems: 3,  scrap: 1, scrapItems: 2,  unusedDigital: 5,  unusedDigitalRatio: "9.1%",  unusedNonDigital: 7,  unusedNonDigitalRatio: "6.8%" },
+            { date: "2026-06-03", loc: "上海分部",     asset: 35, assetItems: 142, transfer: 12, transferItems: 29, repair: 8, repairItems: 11, scrap: 5, scrapItems: 13, unusedDigital: 19, unusedDigitalRatio: "12.4%", unusedNonDigital: 26, unusedNonDigitalRatio: "10.1%" },
+            { date: "2026-05-28", loc: "新加坡辦事處", asset: 9,  assetItems: 31,  transfer: 2,  transferItems: 5,  repair: 1, repairItems: 1,  scrap: 0, scrapItems: 0,  unusedDigital: 3,  unusedDigitalRatio: "7.5%",  unusedNonDigital: 4,  unusedNonDigitalRatio: "5.3%" },
+            { date: "2026-05-20", loc: "東京辦事處",   asset: 6,  assetItems: 22,  transfer: 1,  transferItems: 3,  repair: 0, repairItems: 0,  scrap: 1, scrapItems: 2,  unusedDigital: 2,  unusedDigitalRatio: "6.1%",  unusedNonDigital: 3,  unusedNonDigitalRatio: "4.9%" }
+        ];
+
+        // 總計數 = 各單據數加總（資產 + 調撥 + 維修 + 報廢）
+        function totalCount(r) { return r.asset + r.transfer + r.repair + r.scrap; }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('stat-tbody');
+            const noData = document.getElementById('no-data-view');
+            tbody.innerHTML = '';
+
+            if (data.length === 0) {
+                tbody.parentElement.classList.add('hidden');
+                noData.classList.remove('hidden');
+                document.getElementById('count-badge').innerText = `0 筆資料`;
+                document.getElementById('pagination-info').innerText = `顯示第 0 到 0 筆，共 0 筆記錄`;
+                return;
+            }
+
+            tbody.parentElement.classList.remove('hidden');
+            noData.classList.add('hidden');
+
+            data.forEach(r => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-50/70 transition-colors';
+                tr.innerHTML = `
+                    <td class="text-left font-semibold text-gray-800">${r.loc}</td>
+                    <td class="text-gray-700">${r.asset}</td>
+                    <td class="text-gray-500">${r.assetItems}</td>
+                    <td class="text-gray-700">${r.transfer}</td>
+                    <td class="text-gray-500">${r.transferItems}</td>
+                    <td class="text-gray-700">${r.repair}</td>
+                    <td class="text-gray-500">${r.repairItems}</td>
+                    <td class="text-gray-700">${r.scrap}</td>
+                    <td class="text-gray-500">${r.scrapItems}</td>
+                    <td class="font-bold text-primary">${totalCount(r)}</td>
+                    <td class="text-gray-700">${r.unusedDigital}</td>
+                    <td><span class="px-2 py-0.5 bg-blue-50 text-primary rounded text-xs font-semibold">${r.unusedDigitalRatio}</span></td>
+                    <td class="text-gray-700">${r.unusedNonDigital}</td>
+                    <td><span class="px-2 py-0.5 bg-amber-50 text-amber-600 rounded text-xs font-semibold">${r.unusedNonDigitalRatio}</span></td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            // 合計列
+            const sum = (k) => data.reduce((acc, r) => acc + r[k], 0);
+            const totalRow = document.createElement('tr');
+            totalRow.className = 'bg-gray-50 font-bold text-gray-800 border-t-2 border-gray-200';
+            totalRow.innerHTML = `
+                <td class="text-left">合計</td>
+                <td>${sum('asset')}</td>
+                <td>${sum('assetItems')}</td>
+                <td>${sum('transfer')}</td>
+                <td>${sum('transferItems')}</td>
+                <td>${sum('repair')}</td>
+                <td>${sum('repairItems')}</td>
+                <td>${sum('scrap')}</td>
+                <td>${sum('scrapItems')}</td>
+                <td class="text-primary">${data.reduce((a, r) => a + totalCount(r), 0)}</td>
+                <td>${sum('unusedDigital')}</td>
+                <td>—</td>
+                <td>${sum('unusedNonDigital')}</td>
+                <td>—</td>
+            `;
+            tbody.appendChild(totalRow);
+
+            document.getElementById('count-badge').innerText = `${data.length} 筆資料`;
+            document.getElementById('pagination-info').innerText = `顯示第 1 到 ${data.length} 筆，共 ${data.length} 筆記錄`;
+        }
+
+        // 依時間區間篩選
+        function applyFilters() {
+            const start = document.getElementById('date-start').value;
+            const end = document.getElementById('date-end').value;
+            const filtered = statDb.filter(r =>
+                (!start || r.date >= start) &&
+                (!end || r.date <= end));
+            renderTable(filtered);
+        }
+
+        function resetFilters() {
+            document.getElementById('date-start').value = '';
+            document.getElementById('date-end').value = '';
+            showToast('info', '已重設時間區間篩選');
+            applyFilters();
+        }
+
+        function mockExport() {
+            showToast('success', '資產單統計報表已開始匯出，請稍候下載。');
+        }
+
+        function showToast(type, text) {
+            const toast = document.getElementById('toast');
+            const toastIcon = document.getElementById('toast-icon');
+            const toastText = document.getElementById('toast-text');
+            toastText.innerText = text;
+            if (type === 'success') {
+                toast.className = "fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform transition-all duration-300 border border-emerald-500/20";
+                toastIcon.className = "fa-solid fa-circle-check text-emerald-400 text-base";
+            } else if (type === 'error') {
+                toast.className = "fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform transition-all duration-300 border border-rose-500/20";
+                toastIcon.className = "fa-solid fa-circle-xmark text-rose-400 text-base";
+            } else {
+                toast.className = "fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform transition-all duration-300 border border-blue-500/20";
+                toastIcon.className = "fa-solid fa-circle-info text-blue-400 text-base";
+            }
+            toast.style.transform = 'translateY(0)';
+            toast.style.opacity = '1';
+            clearTimeout(window.__toastTimer);
+            window.__toastTimer = setTimeout(() => {
+                toast.style.transform = 'translateY(5rem)';
+                toast.style.opacity = '0';
+            }, 2600);
+        }
+
+        // 預設顯示全部（時間區間留空）
+        window.onload = applyFilters;
+    </script>
+</body>
+</html>

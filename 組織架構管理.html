@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>組織架構管理</title>
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 Font Awesome 用於圖標 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4A90E2',
+                        'primary-light': '#EAF2FC',
+                        background: '#F8F9FB',
+                        card: '#FFFFFF',
+                        text: { main: '#1F2937', muted: '#6B7280', light: '#9CA3AF' }
+                    },
+                    fontFamily: {
+                        sans: ['"Inter"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'card': '0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03)',
+                        'modal': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: theme('colors.background');
+            font-family: theme('fontFamily.sans');
+        }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+    </style>
+    <link rel="stylesheet" href="shared-ui.css">
+</head>
+<body class="ui-page text-text-main antialiased relative">
+
+    <div class="relative mx-auto w-full max-w-[1400px] space-y-6">
+
+        <!-- 頁面標題區塊 -->
+        <header class="ui-page-header">
+            <h1 class="ui-page-title">組織架構管理</h1>
+        </header>
+
+        <!-- 頁籤：地區 / 公司 / 事業部 / 項目 / 部門 / 職位 / 職級 -->
+        <div id="tab-bar" class="flex items-center gap-1 border-b border-gray-200 overflow-x-auto custom-scrollbar"><!-- 動態由 JavaScript 渲染 --></div>
+
+        <!-- 列表區塊（七個分頁共用，依當前分頁切換資料） -->
+        <div class="space-y-6">
+
+            <!-- 工具列：搜尋 + 新增 -->
+            <div class="ui-card p-5">
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                    <div class="ui-search w-full sm:w-80">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="search-input" oninput="render()" placeholder="搜尋代碼或名稱..." class="ui-input ui-search-input">
+                    </div>
+                    <button onclick="openCreate()" class="ui-btn ui-btn-primary w-full sm:w-auto">
+                        <i class="fa-solid fa-plus"></i> 新增
+                    </button>
+                </div>
+            </div>
+
+            <!-- 列表 -->
+            <section class="ui-card p-4 sm:p-6">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
+                    <div class="flex items-center gap-2">
+                        <h2 id="list-title" class="text-lg font-bold text-gray-900 whitespace-nowrap">地區列表</h2>
+                        <span id="count-badge" class="bg-blue-50 text-primary text-xs px-2.5 py-1 rounded-md font-bold">0 筆資料</span>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto rounded-lg border border-gray-100 custom-scrollbar">
+                    <table class="ui-table text-center">
+                        <thead>
+                            <tr>
+                                <th scope="col" class="text-left">代碼</th>
+                                <th scope="col" class="text-left">名稱</th>
+                                <th scope="col">狀態</th>
+                                <th scope="col" class="text-center">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="org-tbody"><!-- 動態由 JavaScript 渲染 --></tbody>
+                    </table>
+                </div>
+
+                <div id="no-data-view" class="hidden py-16 text-center space-y-3">
+                    <div class="inline-flex p-4 bg-gray-50 text-gray-400 rounded-full"><i class="fa-solid fa-folder-open text-3xl"></i></div>
+                    <p class="text-sm text-text-muted font-medium">查無符合條件的資料</p>
+                </div>
+
+                <div class="flex items-center justify-between mt-6 pt-4 border-t border-gray-100">
+                    <span id="pagination-info" class="text-sm text-gray-500">顯示第 0 到 0 筆，共 0 筆記錄</span>
+                    <div class="flex gap-1">
+                        <button class="ui-page-btn"><i class="fa-solid fa-chevron-left text-xs"></i></button>
+                        <button class="ui-page-btn is-active">1</button>
+                        <button class="ui-page-btn"><i class="fa-solid fa-chevron-right text-xs"></i></button>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+    </div>
+
+    <!-- ============ 新增 / 編輯 彈窗 ============ -->
+    <div id="edit-modal" class="fixed inset-0 bg-black/40 z-50 flex justify-center items-center hidden p-4">
+        <div class="bg-white rounded-2xl shadow-modal w-full max-w-md overflow-hidden">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                <h3 id="modal-title" class="text-base font-bold text-gray-900">新增地區</h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="px-6 py-5 space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">代碼 <span class="text-rose-500">*</span></label>
+                    <input type="text" id="field-code" placeholder="請輸入代碼" class="ui-input">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">名稱 <span class="text-rose-500">*</span></label>
+                    <input type="text" id="field-name" placeholder="請輸入名稱" class="ui-input">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">狀態</label>
+                    <select id="field-status" class="ui-select">
+                        <option value="true">啟用</option>
+                        <option value="false">停用</option>
+                    </select>
+                </div>
+            </div>
+            <div class="flex justify-end gap-2.5 px-6 py-4 bg-gray-50 border-t border-gray-100">
+                <button onclick="closeModal()" class="ui-btn ui-btn-secondary">取消</button>
+                <button onclick="saveRecord()" class="ui-btn ui-btn-primary">儲存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 提示消息 (Toast) -->
+    <div id="toast" class="fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+        <i id="toast-icon" class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
+        <span id="toast-text" class="text-sm font-medium">操作成功！</span>
+    </div>
+
+    <script>
+        // 七個分頁設定
+        const CATEGORIES = [
+            { key: 'region',   label: '地區' },
+            { key: 'company',  label: '公司' },
+            { key: 'bu',       label: '事業部' },
+            { key: 'project',  label: '項目' },
+            { key: 'dept',     label: '部門' },
+            { key: 'position', label: '職位' },
+            { key: 'grade',    label: '職級' }
+        ];
+
+        // 各分頁資料庫（代碼 / 名稱 / 啟用狀態）
+        const orgData = {
+            region: [
+                { code: 'TW', name: '台灣', active: true },
+                { code: 'US', name: '美國', active: true },
+                { code: 'JP', name: '日本', active: true },
+                { code: 'CN', name: '中國', active: true },
+                { code: 'SG', name: '新加坡', active: false }
+            ],
+            company: [
+                { code: 'KH-TW', name: '知為股份有限公司', active: true },
+                { code: 'KH-US', name: 'KnowHow USA Inc.', active: true },
+                { code: 'KH-JP', name: 'ノウハウ株式会社', active: true },
+                { code: 'KH-CN', name: '知為（上海）科技有限公司', active: false }
+            ],
+            bu: [
+                { code: 'BU01', name: '軟體事業部', active: true },
+                { code: 'BU02', name: '硬體事業部', active: true },
+                { code: 'BU03', name: '雲端服務事業部', active: true },
+                { code: 'BU04', name: '行銷事業部', active: false }
+            ],
+            project: [
+                { code: 'GT', name: 'GT 專案', active: true },
+                { code: 'NX', name: 'NX 新平台', active: true },
+                { code: 'AI', name: 'AI 研究專案', active: true },
+                { code: 'OLD', name: '舊版維運專案', active: false }
+            ],
+            dept: [
+                { code: 'RD', name: '研發部', active: true },
+                { code: 'HR', name: '人資部', active: true },
+                { code: 'FIN', name: '財務部', active: true },
+                { code: 'MKT', name: '行銷部', active: true },
+                { code: 'IA1', name: '內稽部', active: false }
+            ],
+            position: [
+                { code: 'PM', name: '專案經理', active: true },
+                { code: 'FE', name: '前端工程師', active: true },
+                { code: 'BE', name: '後端工程師', active: true },
+                { code: 'UI', name: 'UI/UX 設計師', active: true },
+                { code: 'QA', name: '測試工程師', active: false }
+            ],
+            grade: [
+                { code: 'P1', name: '助理工程師', active: true },
+                { code: 'P2', name: '工程師', active: true },
+                { code: 'P3', name: '資深工程師', active: true },
+                { code: 'M1', name: '初階主管', active: true },
+                { code: 'M2', name: '中階主管', active: false }
+            ]
+        };
+
+        let activeCat = 'region';
+        let editIndex = -1;   // -1 = 新增；>=0 = 編輯第幾筆（指向 orgData[activeCat] 的索引）
+
+        function currentLabel() {
+            return CATEGORIES.find(c => c.key === activeCat).label;
+        }
+
+        // 渲染頁籤
+        function renderTabs() {
+            const bar = document.getElementById('tab-bar');
+            const onCls = 'px-4 py-2.5 text-sm font-semibold text-primary border-b-2 border-primary -mb-px transition-colors whitespace-nowrap';
+            const offCls = 'px-4 py-2.5 text-sm font-medium text-gray-500 border-b-2 border-transparent -mb-px hover:text-gray-700 transition-colors whitespace-nowrap';
+            bar.innerHTML = CATEGORIES.map(c =>
+                `<button onclick="switchCat('${c.key}')" class="${c.key === activeCat ? onCls : offCls}">${c.label}</button>`
+            ).join('');
+        }
+
+        function switchCat(key) {
+            activeCat = key;
+            document.getElementById('search-input').value = '';
+            renderTabs();
+            document.getElementById('list-title').innerText = `${currentLabel()}列表`;
+            render();
+        }
+
+        // 渲染列表（套用搜尋）
+        function render() {
+            const tbody = document.getElementById('org-tbody');
+            const noData = document.getElementById('no-data-view');
+            const kw = document.getElementById('search-input').value.trim().toLowerCase();
+            const list = orgData[activeCat];
+            // 保留原始索引以利編輯 / 切換狀態
+            const rows = list.map((r, i) => ({ r, i }))
+                .filter(({ r }) => !kw || r.code.toLowerCase().includes(kw) || r.name.toLowerCase().includes(kw));
+
+            tbody.innerHTML = '';
+
+            if (rows.length === 0) {
+                tbody.parentElement.classList.add('hidden');
+                noData.classList.remove('hidden');
+                document.getElementById('count-badge').innerText = '0 筆資料';
+                document.getElementById('pagination-info').innerText = '顯示第 0 到 0 筆，共 0 筆記錄';
+                return;
+            }
+            tbody.parentElement.classList.remove('hidden');
+            noData.classList.add('hidden');
+
+            rows.forEach(({ r, i }) => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-50/70 transition-colors';
+                const statusBadge = r.active
+                    ? '<span class="ui-badge ui-badge-success mx-auto">啟用</span>'
+                    : '<span class="ui-badge mx-auto bg-gray-100 text-gray-500">停用</span>';
+                // 停用/啟用 按鈕：依當前狀態顯示反向動作
+                const toggleBtn = r.active
+                    ? `<button onclick="toggleStatus(${i})" class="ui-btn ui-btn-sm text-amber-600 border border-amber-200 hover:bg-amber-50"><i class="fa-solid fa-ban"></i> 停用</button>`
+                    : `<button onclick="toggleStatus(${i})" class="ui-btn ui-btn-sm text-emerald-600 border border-emerald-200 hover:bg-emerald-50"><i class="fa-solid fa-circle-check"></i> 啟用</button>`;
+                tr.innerHTML = `
+                    <td class="text-left font-mono font-semibold text-gray-600">${r.code}</td>
+                    <td class="text-left font-medium text-gray-800">${r.name}</td>
+                    <td>${statusBadge}</td>
+                    <td>
+                        <div class="flex items-center justify-center gap-2">
+                            <button onclick="openEdit(${i})" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-pen-to-square"></i> 編輯</button>
+                            ${toggleBtn}
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('count-badge').innerText = `${rows.length} 筆資料`;
+            document.getElementById('pagination-info').innerText = `顯示第 1 到 ${rows.length} 筆，共 ${rows.length} 筆記錄`;
+        }
+
+        // 切換啟用 / 停用
+        function toggleStatus(i) {
+            const rec = orgData[activeCat][i];
+            rec.active = !rec.active;
+            showToast(rec.active ? 'success' : 'info', `已${rec.active ? '啟用' : '停用'}「${rec.name}」`);
+            render();
+        }
+
+        /* ============ 新增 / 編輯 彈窗 ============ */
+        function openCreate() {
+            editIndex = -1;
+            document.getElementById('modal-title').innerText = `新增${currentLabel()}`;
+            document.getElementById('field-code').value = '';
+            document.getElementById('field-name').value = '';
+            document.getElementById('field-status').value = 'true';
+            document.getElementById('field-code').disabled = false;
+            document.getElementById('edit-modal').classList.remove('hidden');
+        }
+
+        function openEdit(i) {
+            editIndex = i;
+            const rec = orgData[activeCat][i];
+            document.getElementById('modal-title').innerText = `編輯${currentLabel()}`;
+            document.getElementById('field-code').value = rec.code;
+            document.getElementById('field-name').value = rec.name;
+            document.getElementById('field-status').value = String(rec.active);
+            document.getElementById('field-code').disabled = false;
+            document.getElementById('edit-modal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('edit-modal').classList.add('hidden');
+        }
+
+        function saveRecord() {
+            const code = document.getElementById('field-code').value.trim();
+            const name = document.getElementById('field-name').value.trim();
+            const active = document.getElementById('field-status').value === 'true';
+
+            if (!code || !name) {
+                showToast('error', '請填寫代碼與名稱');
+                return;
+            }
+
+            const list = orgData[activeCat];
+            // 代碼不可重複（編輯時排除自己）
+            const dup = list.some((r, idx) => r.code.toLowerCase() === code.toLowerCase() && idx !== editIndex);
+            if (dup) {
+                showToast('error', `代碼「${code}」已存在`);
+                return;
+            }
+
+            if (editIndex === -1) {
+                list.push({ code, name, active });
+                showToast('success', `已新增${currentLabel()}「${name}」`);
+            } else {
+                list[editIndex] = { code, name, active };
+                showToast('success', `已更新${currentLabel()}「${name}」`);
+            }
+            closeModal();
+            render();
+        }
+
+        /* ============ Toast 提示控制 ============ */
+        function showToast(type, text) {
+            const toast = document.getElementById('toast');
+            const toastIcon = document.getElementById('toast-icon');
+            const toastText = document.getElementById('toast-text');
+            toastText.innerText = text;
+            if (type === 'success') {
+                toast.className = "fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform transition-all duration-300 border border-emerald-500/20";
+                toastIcon.className = "fa-solid fa-circle-check text-emerald-400 text-base";
+            } else if (type === 'error') {
+                toast.className = "fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform transition-all duration-300 border border-rose-500/20";
+                toastIcon.className = "fa-solid fa-circle-xmark text-rose-400 text-base";
+            } else {
+                toast.className = "fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform transition-all duration-300 border border-blue-500/20";
+                toastIcon.className = "fa-solid fa-circle-info text-blue-400 text-base";
+            }
+            toast.style.transform = 'translateY(0)';
+            toast.style.opacity = '1';
+            clearTimeout(window.__toastTimer);
+            window.__toastTimer = setTimeout(() => {
+                toast.style.transform = 'translateY(5rem)';
+                toast.style.opacity = '0';
+            }, 2600);
+        }
+
+        // 點擊彈窗外圍關閉
+        document.getElementById('edit-modal').addEventListener('click', e => {
+            if (e.target === e.currentTarget) closeModal();
+        });
+
+        // 初始化
+        window.onload = function () {
+            renderTabs();
+            render();
+        };
+    </script>
+</body>
+</html>

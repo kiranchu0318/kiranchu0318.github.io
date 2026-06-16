@@ -121,9 +121,25 @@
         <!-- 主要內容區塊 (卡片樣式) -->
         <section class="ui-card p-4 sm:p-6">
 
-            <!-- 表單列表標題 -->
-            <div class="mb-6 border-b border-gray-100 pb-4">
-                <h2 class="text-lg font-bold text-gray-900">表單定義列表</h2>
+            <!-- 表單列表標題 + 搜尋/篩選 -->
+            <div class="mb-6 border-b border-gray-100 pb-4 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+                <h2 class="text-lg font-bold text-gray-900 whitespace-nowrap">表單定義列表</h2>
+                <div class="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
+                    <!-- 搜尋表單名稱 -->
+                    <div class="ui-search w-full sm:w-64">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="searchFormName" oninput="filterForms()" placeholder="搜尋表單名稱..." class="ui-input ui-search-input">
+                    </div>
+                    <!-- 分類篩選 -->
+                    <select id="filterCategory" onchange="filterForms()" class="ui-select w-full sm:w-40">
+                        <option value="all">全部分類</option>
+                        <option value="商務">商務</option>
+                        <option value="合同">合同</option>
+                        <option value="財務">財務</option>
+                        <option value="PMO">PMO</option>
+                        <option value="HR">HR</option>
+                    </select>
+                </div>
             </div>
 
             <!-- 表格容器 -->
@@ -219,6 +235,11 @@
                                     <button type="button" onclick="toggleRowStatus(this)" class="px-3 py-1.5 text-sm font-medium text-white bg-orange-500 rounded shadow-sm hover:bg-orange-600 transition-colors btn-toggle-status">停用</button>
                                 </div>
                             </td>
+                        </tr>
+
+                        <!-- 查無資料列 (篩選後無符合項目時顯示) -->
+                        <tr id="noResultRow" class="hidden">
+                            <td colspan="6" class="text-center text-gray-400 py-10 text-sm">查無符合條件的表單</td>
                         </tr>
 
                     </tbody>
@@ -441,6 +462,35 @@
         
         let currentEditingRow = null; // 儲存當前正被編輯的表格列
         let currentTargetFormName = ""; // 儲存當前設定申請對象的表單名稱
+
+        /* -----------------------
+           搜尋表單名稱 + 分類篩選
+           ----------------------- */
+        function filterForms() {
+            const kw = document.getElementById('searchFormName').value.trim().toLowerCase();
+            const cat = document.getElementById('filterCategory').value;
+            const rows = document.querySelectorAll('tbody tr');
+            let visibleCount = 0;
+
+            rows.forEach(row => {
+                if (row.id === 'noResultRow') return; // 略過查無資料列
+                const nameEl = row.querySelector('.form-name');
+                const catEl = row.querySelector('.form-category');
+                if (!nameEl || !catEl) return;
+
+                const name = nameEl.textContent.trim().toLowerCase();
+                const category = catEl.textContent.trim();
+
+                const matchName = !kw || name.includes(kw);
+                const matchCat = cat === 'all' || category === cat;
+
+                const show = matchName && matchCat;
+                row.classList.toggle('hidden', !show);
+                if (show) visibleCount++;
+            });
+
+            document.getElementById('noResultRow').classList.toggle('hidden', visibleCount > 0);
+        }
 
         // 全域規則對應快照資料庫，以保持對象個數與表格「X 項」即時同步
         const formRulesMap = {
