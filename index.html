@@ -139,15 +139,19 @@
                 { title: '打卡' }, { title: '出勤紀錄' }, { title: '補卡申請' }, { title: '假期申請' } ] },
             { title: '電子表單', icon: 'file-text', children: [
                 { title: '申請', href: '申請.html' }, { title: '我的申請' }, { title: '簽核', badge: '3' } ] },
-            { title: '資訊中心', icon: 'info', children: [ { title: '公告' } ] },
+            { title: '資訊中心', icon: 'info', children: [ { title: '公告' }, { title: '文件庫', href: '文件庫.html' } ] },
             { title: '人事模塊', icon: 'user-cog', children: [
                 { title: '員工管理' }, { title: '組織配置' }, { title: '出勤管理' }, { title: '假期管理' }, { title: '薪資管理' }, { title: '績效管理' } ] },
             { title: '財務模塊', icon: 'wallet', children: [
                 { title: '採購申請管理' }, { title: '報銷審核' }, { title: '付款管理' }, { title: '費用分攤' }, { title: '財務報表' } ] },
             { title: '行政模塊', icon: 'building', children: [
                 { title: '公告管理' }, { title: '資產管理' }, { title: '行政申請' }, { title: '訪客管理' }, { title: '工號創建管理', href: '工號創建管理.html' }, { title: '會議室管理' } ] },
-            { title: '系統管理', icon: 'settings', children: [
-                { title: '帳號角色管理' }, { title: '角色與權限' }, { title: '電子表單設定' }, { title: '組織架構管理' }, { title: '審批流設定' }, { title: '分組設定' }, { title: '稽核日誌' }, { title: '模塊設定' }, { title: '系統設定' }, { title: '查詢Log' }, { title: '查詢User Log' }, { title: 'Operation' } ] }
+            { title: '系統管理', icon: 'settings', groups: [
+                [ { title: '帳號角色管理' }, { title: '角色與權限' } ],
+                [ { title: '電子表單設定' }, { title: '審批流設定' }, { title: '分組設定' } ],
+                [ { title: '稽核日誌' }, { title: '查詢Log' }, { title: '查詢User Log' }, { title: 'Operation' } ],
+                [ { title: '組織架構管理' }, { title: '模塊設定' }, { title: '系統設定' } ]
+            ] }
         ];
 
         const categoryBar = document.getElementById('category-bar');
@@ -174,16 +178,35 @@
             categoryBar.querySelectorAll('.menu-cat').forEach((el, idx) => { el.className = (idx === i) ? CAT_ON : CAT_OFF; });
             const cat = MENU[i];
             subnavBar.innerHTML = '';
-            (cat.children || []).forEach(item => {
+
+            // 渲染單一子項
+            const appendItem = (item) => {
                 const el = document.createElement('div');
                 el.className = SUB_OFF;
                 el.dataset.href = hrefOf(item);
                 el.innerHTML = `<span>${item.title}</span>` + (item.badge ? ` <span class="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none">${item.badge}</span>` : '');
                 el.addEventListener('click', () => loadPage(el));
                 subnavBar.appendChild(el);
-            });
+            };
+            // 群組間的垂直分隔線
+            const appendDivider = () => {
+                const sep = document.createElement('div');
+                sep.className = 'w-px h-5 bg-gray-200 mx-1 shrink-0 self-center';
+                subnavBar.appendChild(sep);
+            };
+
+            if (cat.groups) {
+                // 分組呈現：各組之間以垂直分隔線區隔
+                cat.groups.forEach((group, gi) => {
+                    if (gi > 0) appendDivider();
+                    group.forEach(appendItem);
+                });
+            } else {
+                (cat.children || []).forEach(appendItem);
+            }
+
             // 無子項（例如首頁）→ 直接載入該分類頁面
-            if (!cat.children || cat.children.length === 0) {
+            if (!cat.groups && (!cat.children || cat.children.length === 0)) {
                 iframe.src = hrefOf(cat);
             }
             lucide.createIcons();
