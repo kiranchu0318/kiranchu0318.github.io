@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>財務報表</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: { extend: {
+                colors: { primary: '#4A90E2', 'primary-light': '#EAF2FC', background: '#F8F9FB', card: '#FFFFFF',
+                    text: { main: '#1F2937', muted: '#6B7280', light: '#9CA3AF' } },
+                fontFamily: { sans: ['"Inter"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'] },
+                boxShadow: { 'card': '0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03)', 'modal': '0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)' }
+            } }
+        }
+    </script>
+    <style>
+        body { background-color: theme('colors.background'); font-family: theme('fontFamily.sans'); }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        /* 財報表格：科目列縮排 / 小計與合計列強調 */
+        .fin-table td { white-space: nowrap; }
+        .fin-table tr.row-sub td { background-color: #F9FAFB; font-weight: 700; }
+        .fin-table tr.row-total td { background-color: #EAF2FC; font-weight: 700; color: #1F2937; border-top: 2px solid #C9DDF6; }
+        .fin-table .acct-indent { padding-left: 2.5rem; }
+        .fin-table .num { font-family: 'Inter', monospace; text-align: right; }
+    </style>
+    <link rel="stylesheet" href="shared-ui.css">
+</head>
+<body class="ui-page text-text-main antialiased relative">
+
+    <div class="mx-auto w-full max-w-[1400px] space-y-6">
+
+        <!-- 頁面標題列 -->
+        <header class="ui-page-header">
+            <h1 class="ui-page-title">財務報表</h1>
+            <div class="flex flex-wrap items-center gap-2">
+                <div class="flex items-center gap-1.5">
+                    <select id="f-year" onchange="onPeriodChange()" class="ui-select w-28"></select>
+                    <select id="f-month" onchange="onPeriodChange()" class="ui-select w-24"></select>
+                </div>
+                <button onclick="mockExport()" class="ui-btn ui-btn-primary"><i class="fa-solid fa-file-export"></i> 匯出報表</button>
+            </div>
+        </header>
+
+        <!-- KPI 卡片列（永遠顯示） -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="ui-card p-5 border-l-4 border-l-blue-500">
+                <div class="flex items-start justify-between">
+                    <div>
+                        <p class="text-xs text-text-muted font-semibold">營業收入</p>
+                        <p id="kpi-rev" class="text-xl font-bold text-gray-900 mt-1.5 font-mono"></p>
+                    </div>
+                    <span class="w-9 h-9 rounded-lg bg-blue-50 text-blue-500 flex items-center justify-center shrink-0"><i class="fa-solid fa-sack-dollar"></i></span>
+                </div>
+                <p class="mt-3 text-xs"><span id="kpi-rev-chg" class="font-semibold"></span> <span class="text-text-light">較上期</span></p>
+                <p id="kpi-period-1" class="text-[11px] text-text-light mt-0.5"></p>
+            </div>
+            <div class="ui-card p-5 border-l-4 border-l-amber-500">
+                <div class="flex items-start justify-between">
+                    <div>
+                        <p class="text-xs text-text-muted font-semibold">營業費用</p>
+                        <p id="kpi-exp" class="text-xl font-bold text-gray-900 mt-1.5 font-mono"></p>
+                    </div>
+                    <span class="w-9 h-9 rounded-lg bg-amber-50 text-amber-500 flex items-center justify-center shrink-0"><i class="fa-solid fa-money-bill-trend-up"></i></span>
+                </div>
+                <p class="mt-3 text-xs"><span id="kpi-exp-chg" class="font-semibold"></span> <span class="text-text-light">較上期</span></p>
+                <p id="kpi-period-2" class="text-[11px] text-text-light mt-0.5"></p>
+            </div>
+            <div class="ui-card p-5 border-l-4 border-l-emerald-500">
+                <div class="flex items-start justify-between">
+                    <div>
+                        <p class="text-xs text-text-muted font-semibold">本期淨利</p>
+                        <p id="kpi-net" class="text-xl font-bold text-gray-900 mt-1.5 font-mono"></p>
+                    </div>
+                    <span class="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-500 flex items-center justify-center shrink-0"><i class="fa-solid fa-chart-line"></i></span>
+                </div>
+                <p class="mt-3 text-xs"><span id="kpi-net-chg" class="font-semibold"></span> <span class="text-text-light">較上期</span></p>
+                <p id="kpi-period-3" class="text-[11px] text-text-light mt-0.5"></p>
+            </div>
+            <div class="ui-card p-5 border-l-4 border-l-violet-500">
+                <div class="flex items-start justify-between">
+                    <div>
+                        <p class="text-xs text-text-muted font-semibold">現金餘額</p>
+                        <p id="kpi-cash" class="text-xl font-bold text-gray-900 mt-1.5 font-mono"></p>
+                    </div>
+                    <span class="w-9 h-9 rounded-lg bg-violet-50 text-violet-500 flex items-center justify-center shrink-0"><i class="fa-solid fa-wallet"></i></span>
+                </div>
+                <p class="mt-3 text-xs"><span id="kpi-cash-chg" class="font-semibold"></span> <span class="text-text-light">較上期</span></p>
+                <p id="kpi-period-4" class="text-[11px] text-text-light mt-0.5"></p>
+            </div>
+        </div>
+
+        <!-- 頁籤 -->
+        <div class="flex items-center gap-1 border-b border-gray-200 overflow-x-auto">
+            <button id="tab-btn-pl"   onclick="switchTab('pl')"   class="px-4 py-2.5 text-sm font-semibold text-primary border-b-2 border-primary -mb-px transition-colors whitespace-nowrap">損益表</button>
+            <button id="tab-btn-bs"   onclick="switchTab('bs')"   class="px-4 py-2.5 text-sm font-medium text-gray-500 border-b-2 border-transparent -mb-px hover:text-gray-700 transition-colors whitespace-nowrap">資產負債表</button>
+            <button id="tab-btn-cf"   onclick="switchTab('cf')"   class="px-4 py-2.5 text-sm font-medium text-gray-500 border-b-2 border-transparent -mb-px hover:text-gray-700 transition-colors whitespace-nowrap">現金流量</button>
+            <button id="tab-btn-dl"   onclick="switchTab('dl')"   class="px-4 py-2.5 text-sm font-medium text-gray-500 border-b-2 border-transparent -mb-px hover:text-gray-700 transition-colors whitespace-nowrap">報表下載</button>
+        </div>
+
+        <!-- ============ 頁籤 1：損益表 ============ -->
+        <div id="panel-pl" class="space-y-6">
+            <section class="ui-card p-4 sm:p-6">
+                <div class="flex items-center gap-2 mb-4">
+                    <h2 class="text-lg font-bold text-gray-900 whitespace-nowrap">損益摘要</h2>
+                    <span id="pl-period-badge" class="bg-blue-50 text-primary text-xs px-2.5 py-1 rounded-md font-bold"></span>
+                </div>
+                <div class="overflow-x-auto rounded-lg border border-gray-100 custom-scrollbar">
+                    <table class="ui-table fin-table">
+                        <thead>
+                            <tr>
+                                <th scope="col" class="text-left">會計科目</th>
+                                <th scope="col" class="text-right">本期金額</th>
+                                <th scope="col" class="text-right">上期金額</th>
+                                <th scope="col" class="text-right">增減%</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pl-tbody"></tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+
+        <!-- ============ 頁籤 2：資產負債表 ============ -->
+        <div id="panel-bs" class="space-y-6 hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <section class="ui-card p-4 sm:p-6">
+                    <div class="flex items-center gap-2 mb-4">
+                        <h2 class="text-lg font-bold text-gray-900 whitespace-nowrap">資產</h2>
+                        <span id="bs-period-badge-1" class="bg-blue-50 text-primary text-xs px-2.5 py-1 rounded-md font-bold"></span>
+                    </div>
+                    <div class="overflow-x-auto rounded-lg border border-gray-100 custom-scrollbar">
+                        <table class="ui-table fin-table">
+                            <thead>
+                                <tr>
+                                    <th scope="col" class="text-left">會計科目</th>
+                                    <th scope="col" class="text-right">金額</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bs-asset-tbody"></tbody>
+                        </table>
+                    </div>
+                </section>
+                <section class="ui-card p-4 sm:p-6">
+                    <div class="flex items-center gap-2 mb-4">
+                        <h2 class="text-lg font-bold text-gray-900 whitespace-nowrap">負債及權益</h2>
+                        <span id="bs-period-badge-2" class="bg-blue-50 text-primary text-xs px-2.5 py-1 rounded-md font-bold"></span>
+                    </div>
+                    <div class="overflow-x-auto rounded-lg border border-gray-100 custom-scrollbar">
+                        <table class="ui-table fin-table">
+                            <thead>
+                                <tr>
+                                    <th scope="col" class="text-left">會計科目</th>
+                                    <th scope="col" class="text-right">金額</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bs-liab-tbody"></tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+            <div class="ui-card p-4 flex items-center justify-center gap-2 text-sm">
+                <i class="fa-solid fa-scale-balanced text-emerald-500"></i>
+                <span class="text-text-muted">資產總計 = 負債及權益總計</span>
+                <span id="bs-balance-note" class="font-bold text-emerald-600 font-mono"></span>
+                <span class="ui-badge ui-badge-success">平衡</span>
+            </div>
+        </div>
+
+        <!-- ============ 頁籤 3：現金流量 ============ -->
+        <div id="panel-cf" class="space-y-6 hidden">
+            <section class="ui-card p-4 sm:p-6">
+                <div class="flex items-center gap-2 mb-4">
+                    <h2 class="text-lg font-bold text-gray-900 whitespace-nowrap">現金流量摘要</h2>
+                    <span id="cf-period-badge" class="bg-blue-50 text-primary text-xs px-2.5 py-1 rounded-md font-bold"></span>
+                </div>
+                <div class="overflow-x-auto rounded-lg border border-gray-100 custom-scrollbar">
+                    <table class="ui-table fin-table">
+                        <thead>
+                            <tr>
+                                <th scope="col" class="text-left">項目</th>
+                                <th scope="col" class="text-right">本期金額</th>
+                                <th scope="col" class="text-right">上期金額</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cf-tbody"></tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+
+        <!-- ============ 頁籤 4：報表下載 ============ -->
+        <div id="panel-dl" class="space-y-6 hidden">
+            <section class="ui-card p-4 sm:p-6">
+                <div class="flex items-center gap-2 mb-4">
+                    <h2 class="text-lg font-bold text-gray-900 whitespace-nowrap">報表清單</h2>
+                    <span id="dl-count-badge" class="bg-blue-50 text-primary text-xs px-2.5 py-1 rounded-md font-bold">0 筆資料</span>
+                </div>
+                <div class="overflow-x-auto rounded-lg border border-gray-100 custom-scrollbar">
+                    <table class="ui-table text-center">
+                        <thead>
+                            <tr>
+                                <th scope="col" class="text-left">報表名稱</th>
+                                <th scope="col">期間</th>
+                                <th scope="col">格式</th>
+                                <th scope="col">產製日期</th>
+                                <th scope="col" class="text-center">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dl-tbody"></tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+        <i id="toast-icon" class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
+        <span id="toast-text" class="text-sm font-medium">操作成功！</span>
+    </div>
+
+    <script>
+        // ===== 期間設定 =====
+        let curYear = 2026, curMonth = 6;
+
+        // ===== 金額格式化（千分位 + NT$ 前綴）=====
+        function fmt(n) {
+            const neg = n < 0;
+            const s = Math.abs(Math.round(n)).toLocaleString('en-US');
+            return (neg ? '-NT$ ' : 'NT$ ') + s;
+        }
+        function pct(cur, prev) {
+            if (!prev) return '—';
+            const v = (cur - prev) / Math.abs(prev) * 100;
+            const sign = v >= 0 ? '+' : '';
+            return sign + v.toFixed(1) + '%';
+        }
+        function chgHtml(cur, prev) {
+            const v = prev ? (cur - prev) / Math.abs(prev) * 100 : 0;
+            const up = v >= 0;
+            const cls = up ? 'text-emerald-600' : 'text-rose-600';
+            const icon = up ? 'fa-arrow-up' : 'fa-arrow-down';
+            return `<span class="${cls}"><i class="fa-solid ${icon} text-[10px]"></i> ${(up ? '+' : '') + v.toFixed(1)}%</span>`;
+        }
+
+        // ===== 損益表資料（內部一致：毛利=收入-成本 等）=====
+        // 本期
+        const pl = {
+            revenue: 12500000, cogs: 7200000,
+            // 營業費用明細
+            salary: 1850000, rent: 420000, depr: 280000, otherOpex: 510000,
+            // 業外
+            nonOp: 95000, tax: 0
+        };
+        pl.grossProfit = pl.revenue - pl.cogs;                                  // 營業毛利
+        pl.opex = pl.salary + pl.rent + pl.depr + pl.otherOpex;                 // 營業費用
+        pl.opIncome = pl.grossProfit - pl.opex;                                 // 營業淨利
+        pl.preTax = pl.opIncome + pl.nonOp;                                     // 稅前淨利
+        pl.tax = Math.round(pl.preTax * 0.20);                                  // 所得稅 20%
+        pl.netIncome = pl.preTax - pl.tax;                                      // 本期淨利
+
+        // 上期（約 92% 規模）
+        const plPrev = {
+            revenue: 11200000, cogs: 6650000,
+            salary: 1780000, rent: 420000, depr: 275000, otherOpex: 465000,
+            nonOp: 60000
+        };
+        plPrev.grossProfit = plPrev.revenue - plPrev.cogs;
+        plPrev.opex = plPrev.salary + plPrev.rent + plPrev.depr + plPrev.otherOpex;
+        plPrev.opIncome = plPrev.grossProfit - plPrev.opex;
+        plPrev.preTax = plPrev.opIncome + plPrev.nonOp;
+        plPrev.tax = Math.round(plPrev.preTax * 0.20);
+        plPrev.netIncome = plPrev.preTax - plPrev.tax;
+
+        // 現金餘額（資產負債表用）
+        const cashEnd = 8650000, cashEndPrev = 7980000;
+
+        // ===== 損益表列定義 =====
+        // type: 'item' 一般、'sub' 小計/毛利等、'total' 本期淨利
+        function plRows() {
+            return [
+                { name: '營業收入', cur: pl.revenue, prev: plPrev.revenue, type: 'sub' },
+                { name: '營業成本', cur: -pl.cogs, prev: -plPrev.cogs, type: 'item' },
+                { name: '營業毛利', cur: pl.grossProfit, prev: plPrev.grossProfit, type: 'sub' },
+                { name: '營業費用', cur: -pl.opex, prev: -plPrev.opex, type: 'sub' },
+                { name: '薪資費用', cur: -pl.salary, prev: -plPrev.salary, type: 'detail' },
+                { name: '租金費用', cur: -pl.rent, prev: -plPrev.rent, type: 'detail' },
+                { name: '折舊費用', cur: -pl.depr, prev: -plPrev.depr, type: 'detail' },
+                { name: '其他費用', cur: -pl.otherOpex, prev: -plPrev.otherOpex, type: 'detail' },
+                { name: '營業淨利', cur: pl.opIncome, prev: plPrev.opIncome, type: 'sub' },
+                { name: '業外收支', cur: pl.nonOp, prev: plPrev.nonOp, type: 'item' },
+                { name: '稅前淨利', cur: pl.preTax, prev: plPrev.preTax, type: 'sub' },
+                { name: '所得稅', cur: -pl.tax, prev: -plPrev.tax, type: 'item' },
+                { name: '本期淨利', cur: pl.netIncome, prev: plPrev.netIncome, type: 'total' }
+            ];
+        }
+
+        function renderPL() {
+            const tbody = document.getElementById('pl-tbody');
+            tbody.innerHTML = plRows().map(r => {
+                const rowCls = r.type === 'total' ? 'row-total' : (r.type === 'sub' ? 'row-sub' : '');
+                const nameCls = r.type === 'detail' ? 'acct-indent text-text-muted' : (r.type === 'item' ? 'pl-6 text-gray-700' : 'text-gray-900');
+                return `<tr class="${rowCls}">
+                    <td class="text-left ${nameCls}">${r.name}</td>
+                    <td class="num">${fmt(r.cur)}</td>
+                    <td class="num text-text-muted">${fmt(r.prev)}</td>
+                    <td class="num">${pct(r.cur, r.prev)}</td>
+                </tr>`;
+            }).join('');
+            document.getElementById('pl-period-badge').innerText = periodLabel();
+        }
+
+        // ===== 資產負債表（平衡）=====
+        const bs = {
+            // 流動資產
+            cash: 8650000, ar: 3200000, inventory: 2150000, prepaid: 480000,
+            // 非流動資產
+            ppe: 9800000, accDepr: -2400000, intangible: 1100000,
+            // 流動負債
+            ap: 2850000, shortLoan: 1500000, accrued: 920000,
+            // 非流動負債
+            longLoan: 4200000,
+            // 股東權益
+            capital: 10000000
+        };
+        bs.currentAssets = bs.cash + bs.ar + bs.inventory + bs.prepaid;
+        bs.nonCurrentAssets = bs.ppe + bs.accDepr + bs.intangible;
+        bs.totalAssets = bs.currentAssets + bs.nonCurrentAssets;
+        bs.currentLiab = bs.ap + bs.shortLoan + bs.accrued;
+        bs.nonCurrentLiab = bs.longLoan;
+        bs.totalLiab = bs.currentLiab + bs.nonCurrentLiab;
+        // 保留盈餘 = 資產總計 - 負債 - 股本（使兩端平衡）
+        bs.retained = bs.totalAssets - bs.totalLiab - bs.capital;
+        bs.equity = bs.capital + bs.retained;
+        bs.totalLiabEquity = bs.totalLiab + bs.equity;
+
+        function finRow(name, val, type) {
+            const rowCls = type === 'total' ? 'row-total' : (type === 'sub' ? 'row-sub' : '');
+            const nameCls = type === 'detail' ? 'acct-indent text-text-muted' : (type === 'sub' || type === 'total' ? 'text-gray-900' : 'text-gray-700 pl-6');
+            return `<tr class="${rowCls}"><td class="text-left ${nameCls}">${name}</td><td class="num">${fmt(val)}</td></tr>`;
+        }
+
+        function renderBS() {
+            document.getElementById('bs-asset-tbody').innerHTML = [
+                finRow('流動資產', bs.currentAssets, 'sub'),
+                finRow('現金及約當現金', bs.cash, 'detail'),
+                finRow('應收帳款', bs.ar, 'detail'),
+                finRow('存貨', bs.inventory, 'detail'),
+                finRow('預付費用', bs.prepaid, 'detail'),
+                finRow('非流動資產', bs.nonCurrentAssets, 'sub'),
+                finRow('不動產廠房及設備', bs.ppe, 'detail'),
+                finRow('減：累計折舊', bs.accDepr, 'detail'),
+                finRow('無形資產', bs.intangible, 'detail'),
+                finRow('資產總計', bs.totalAssets, 'total')
+            ].join('');
+
+            document.getElementById('bs-liab-tbody').innerHTML = [
+                finRow('流動負債', bs.currentLiab, 'sub'),
+                finRow('應付帳款', bs.ap, 'detail'),
+                finRow('短期借款', bs.shortLoan, 'detail'),
+                finRow('應付費用', bs.accrued, 'detail'),
+                finRow('非流動負債', bs.nonCurrentLiab, 'sub'),
+                finRow('長期借款', bs.longLoan, 'detail'),
+                finRow('股東權益', bs.equity, 'sub'),
+                finRow('股本', bs.capital, 'detail'),
+                finRow('保留盈餘', bs.retained, 'detail'),
+                finRow('負債及權益總計', bs.totalLiabEquity, 'total')
+            ].join('');
+
+            document.getElementById('bs-balance-note').innerText = fmt(bs.totalAssets);
+            document.getElementById('bs-period-badge-1').innerText = periodLabel();
+            document.getElementById('bs-period-badge-2').innerText = periodLabel();
+        }
+
+        // ===== 現金流量 =====
+        const cf = { op: 1820000, inv: -950000, fin: -200000, begin: 0 };
+        cf.netChange = cf.op + cf.inv + cf.fin;          // 本期淨現金流量
+        cf.begin = cashEnd - cf.netChange;               // 期初現金（使期末 = cashEnd）
+        cf.end = cf.begin + cf.netChange;                // 期末現金 = cashEnd
+
+        const cfPrev = { op: 1560000, inv: -820000, fin: -180000 };
+        cfPrev.netChange = cfPrev.op + cfPrev.inv + cfPrev.fin;
+        cfPrev.end = cashEndPrev;
+        cfPrev.begin = cfPrev.end - cfPrev.netChange;
+
+        function renderCF() {
+            const rows = [
+                { name: '營業活動現金流', cur: cf.op, prev: cfPrev.op, type: 'item' },
+                { name: '投資活動現金流', cur: cf.inv, prev: cfPrev.inv, type: 'item' },
+                { name: '融資活動現金流', cur: cf.fin, prev: cfPrev.fin, type: 'item' },
+                { name: '本期淨現金流量', cur: cf.netChange, prev: cfPrev.netChange, type: 'sub' },
+                { name: '期初現金', cur: cf.begin, prev: cfPrev.begin, type: 'item' },
+                { name: '期末現金', cur: cf.end, prev: cfPrev.end, type: 'total' }
+            ];
+            document.getElementById('cf-tbody').innerHTML = rows.map(r => {
+                const rowCls = r.type === 'total' ? 'row-total' : (r.type === 'sub' ? 'row-sub' : '');
+                const nameCls = r.type === 'sub' || r.type === 'total' ? 'text-gray-900' : 'text-gray-700';
+                return `<tr class="${rowCls}">
+                    <td class="text-left ${nameCls}">${r.name}</td>
+                    <td class="num">${fmt(r.cur)}</td>
+                    <td class="num text-text-muted">${fmt(r.prev)}</td>
+                </tr>`;
+            }).join('');
+            document.getElementById('cf-period-badge').innerText = periodLabel();
+        }
+
+        // ===== 報表下載清單 =====
+        const downloads = [
+            { name: '損益表', fmt: 'PDF',   gen: '2026-06-12' },
+            { name: '損益表', fmt: 'Excel', gen: '2026-06-12' },
+            { name: '資產負債表', fmt: 'PDF',   gen: '2026-06-12' },
+            { name: '資產負債表', fmt: 'Excel', gen: '2026-06-12' },
+            { name: '現金流量表', fmt: 'PDF',   gen: '2026-06-11' },
+            { name: '試算表', fmt: 'Excel', gen: '2026-06-10' },
+            { name: '總分類帳', fmt: 'Excel', gen: '2026-06-10' },
+            { name: '應收帳款明細表', fmt: 'PDF', gen: '2026-06-09' },
+            { name: '應付帳款明細表', fmt: 'PDF', gen: '2026-06-09' }
+        ];
+        function fmtBadge(f) {
+            return f === 'PDF'
+                ? '<span class="ui-badge ui-badge-danger mx-auto"><i class="fa-solid fa-file-pdf text-[10px]"></i> PDF</span>'
+                : '<span class="ui-badge ui-badge-success mx-auto"><i class="fa-solid fa-file-excel text-[10px]"></i> Excel</span>';
+        }
+        function renderDL() {
+            const tbody = document.getElementById('dl-tbody');
+            tbody.innerHTML = downloads.map((d, i) => `<tr class="hover:bg-gray-50/70 transition-colors">
+                <td class="text-left font-semibold text-gray-800">${d.name}</td>
+                <td class="text-gray-600">${periodLabel()}</td>
+                <td>${fmtBadge(d.fmt)}</td>
+                <td class="text-gray-600">${d.gen}</td>
+                <td><button onclick="mockDownload(${i})" class="ui-btn ui-btn-secondary ui-btn-sm mx-auto"><i class="fa-solid fa-download"></i> 下載</button></td>
+            </tr>`).join('');
+            document.getElementById('dl-count-badge').innerText = `${downloads.length} 筆資料`;
+        }
+
+        // ===== KPI =====
+        function renderKPI() {
+            document.getElementById('kpi-rev').innerText  = fmt(pl.revenue);
+            document.getElementById('kpi-exp').innerText  = fmt(pl.opex);
+            document.getElementById('kpi-net').innerText  = fmt(pl.netIncome);
+            document.getElementById('kpi-cash').innerText = fmt(cashEnd);
+            document.getElementById('kpi-rev-chg').innerHTML  = chgHtml(pl.revenue, plPrev.revenue);
+            document.getElementById('kpi-exp-chg').innerHTML  = chgHtml(pl.opex, plPrev.opex);
+            document.getElementById('kpi-net-chg').innerHTML  = chgHtml(pl.netIncome, plPrev.netIncome);
+            document.getElementById('kpi-cash-chg').innerHTML = chgHtml(cashEnd, cashEndPrev);
+            for (let i = 1; i <= 4; i++) document.getElementById('kpi-period-' + i).innerText = periodLabel();
+        }
+
+        // ===== 期間 =====
+        function periodLabel() { return `${curYear} 年 ${curMonth} 月`; }
+
+        function initPeriodSelectors() {
+            const ys = document.getElementById('f-year');
+            ys.innerHTML = '';
+            for (let y = 2026; y >= 2022; y--) ys.innerHTML += `<option value="${y}">${y} 年</option>`;
+            ys.value = curYear;
+            const ms = document.getElementById('f-month');
+            ms.innerHTML = '';
+            for (let m = 1; m <= 12; m++) ms.innerHTML += `<option value="${m}">${m} 月</option>`;
+            ms.value = curMonth;
+        }
+
+        function onPeriodChange() {
+            curYear = parseInt(document.getElementById('f-year').value, 10);
+            curMonth = parseInt(document.getElementById('f-month').value, 10);
+            renderAll();
+            showToast('info', `已切換期間：${periodLabel()}`);
+        }
+
+        function renderAll() {
+            renderKPI();
+            renderPL();
+            renderBS();
+            renderCF();
+            renderDL();
+        }
+
+        // ===== 頁籤切換 =====
+        function switchTab(tab) {
+            const tabs = ['pl', 'bs', 'cf', 'dl'];
+            const onCls = 'px-4 py-2.5 text-sm font-semibold text-primary border-b-2 border-primary -mb-px transition-colors whitespace-nowrap';
+            const offCls = 'px-4 py-2.5 text-sm font-medium text-gray-500 border-b-2 border-transparent -mb-px hover:text-gray-700 transition-colors whitespace-nowrap';
+            tabs.forEach(t => {
+                document.getElementById('panel-' + t).classList.toggle('hidden', t !== tab);
+                document.getElementById('tab-btn-' + t).className = (t === tab) ? onCls : offCls;
+            });
+        }
+
+        // ===== 匯出 / 下載 =====
+        function mockExport() { showToast('success', `${periodLabel()} 財務報表已開始匯出`); }
+        function mockDownload(i) { const d = downloads[i]; showToast('success', `已開始下載：${d.name}（${d.fmt}）`); }
+
+        // ===== Toast =====
+        function showToast(type, text) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-text').innerText = text;
+            const icon = document.getElementById('toast-icon');
+            if (type === 'success') { toast.className = "fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform transition-all duration-300 border border-emerald-500/20"; icon.className = "fa-solid fa-circle-check text-emerald-400 text-base"; }
+            else { toast.className = "fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform transition-all duration-300 border border-blue-500/20"; icon.className = "fa-solid fa-circle-info text-blue-400 text-base"; }
+            toast.style.transform = 'translateY(0)'; toast.style.opacity = '1';
+            clearTimeout(window.__t); window.__t = setTimeout(() => { toast.style.transform = 'translateY(5rem)'; toast.style.opacity = '0'; }, 2400);
+        }
+
+        window.onload = function() {
+            initPeriodSelectors();
+            renderAll();
+        };
+    </script>
+</body>
+</html>

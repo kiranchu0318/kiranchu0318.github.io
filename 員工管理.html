@@ -136,7 +136,7 @@
 </head>
 <body class="ui-page text-text-main antialiased">
 
-    <div class="max-w-7xl mx-auto space-y-8">
+    <div class="mx-auto w-full max-w-[1400px] space-y-8">
         
         <header class="ui-page-header">
             <div class="flex items-center gap-3">
@@ -358,6 +358,11 @@
                         <li>
                             <a href="#" id="btn-tab-leave" onclick="switchTab('tab-leave')" class="inline-block pb-2 text-gray-700 hover:text-gray-900 hover:border-b-[3px] hover:border-gray-300 border-b-[3px] border-transparent transition-colors">
                                 假期信息
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" id="btn-tab-asset" onclick="switchTab('tab-asset')" class="inline-block pb-2 text-gray-700 hover:text-gray-900 hover:border-b-[3px] hover:border-gray-300 border-b-[3px] border-transparent transition-colors">
+                                資產領用
                             </a>
                         </li>
                     </ul>
@@ -1002,6 +1007,70 @@
 
                     </div>
 
+                    <!-- ========================================== -->
+                    <!-- 頁籤內容：資產領用 -->
+                    <!-- ========================================== -->
+                    <div id="tab-asset" class="tab-content max-w-5xl mx-auto space-y-8">
+                        <div>
+                            <div class="flex flex-wrap items-center gap-2 mb-4 p-3 rounded-lg bg-emerald-50 border border-emerald-100">
+                                <i class="fa-solid fa-circle-check text-emerald-500"></i>
+                                <span class="text-sm font-medium text-gray-700">確認領用狀態：</span>
+                                <span class="ui-badge ui-badge-success">已確認領用</span>
+                                <span class="text-xs text-text-muted">員工已於 2024-01-12 閱讀資產使用條款並確認領用</span>
+                            </div>
+                            <div class="overflow-x-auto rounded-xl border border-slate-200">
+                                <table class="ui-table text-left">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">資產編號</th>
+                                            <th scope="col">資產名稱</th>
+                                            <th scope="col">類型</th>
+                                            <th scope="col">領用日期</th>
+                                            <th scope="col" class="text-center">狀態</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td class="font-mono text-slate-500">NB-2023-001</td>
+                                            <td class="font-medium text-slate-800">MacBook Pro 14"</td>
+                                            <td><span class="ui-badge ui-badge-info">筆電</span></td>
+                                            <td class="text-slate-600">2023-09-01</td>
+                                            <td class="text-center"><span class="ui-badge ui-badge-success">使用中</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="font-mono text-slate-500">PH-2024-014</td>
+                                            <td class="font-medium text-slate-800">iPhone 15 Pro</td>
+                                            <td><span class="ui-badge ui-badge-info">手機</span></td>
+                                            <td class="text-slate-600">2024-01-10</td>
+                                            <td class="text-center"><span class="ui-badge ui-badge-success">使用中</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="font-mono text-slate-500">MN-2022-220</td>
+                                            <td class="font-medium text-slate-800">Dell U2723QE 27"</td>
+                                            <td><span class="ui-badge ui-badge-info">顯示器</span></td>
+                                            <td class="text-slate-600">2022-04-05</td>
+                                            <td class="text-center"><span class="ui-badge ui-badge-success">使用中</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="font-mono text-slate-500">AC-2022-031</td>
+                                            <td class="font-medium text-slate-800">員工門禁卡</td>
+                                            <td><span class="ui-badge ui-badge-info">卡證</span></td>
+                                            <td class="text-slate-600">2022-04-01</td>
+                                            <td class="text-center"><span class="ui-badge ui-badge-success">使用中</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="font-mono text-slate-500">NB-2021-077</td>
+                                            <td class="font-medium text-slate-800">ThinkPad X1 Carbon</td>
+                                            <td><span class="ui-badge ui-badge-info">筆電</span></td>
+                                            <td class="text-slate-600">2021-05-12</td>
+                                            <td class="text-center"><span class="ui-badge ui-badge-gray">已歸還</span></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
 
                 <div class="px-6 sm:px-8 py-4 flex flex-col sm:flex-row justify-between items-center shrink-0 border-t border-gray-100 bg-white rounded-b-xl gap-3">
@@ -1056,19 +1125,19 @@
                 
                 <div class="px-6 pt-4 border-b border-gray-200 shrink-0 flex justify-between items-center bg-white">
                     <div class="overflow-x-auto custom-scrollbar flex-1 mr-4 hide-scrollbar">
-                        <ul class="flex text-[15px] font-medium gap-x-8 -mb-[1px] whitespace-nowrap">
+                        <ul class="flex gap-x-6 -mb-px whitespace-nowrap">
                             <li>
-                                <a href="#" id="btn-tab-add-personal" onclick="switchAddTab('tab-add-personal')" class="inline-block pb-3 text-gray-800 border-b-[3px] border-[#3b82f6] transition-colors">
+                                <a href="#" id="btn-tab-add-personal" onclick="switchAddTab('tab-add-personal')" class="inline-block pb-3 text-sm font-semibold text-primary border-b-2 border-primary transition-colors">
                                     個人信息
                                 </a>
                             </li>
                             <li>
-                                <a href="#" id="btn-tab-add-job" onclick="switchAddTab('tab-add-job')" class="inline-block pb-3 text-[#3b82f6] hover:text-blue-600 border-b-[3px] border-transparent transition-colors">
+                                <a href="#" id="btn-tab-add-job" onclick="switchAddTab('tab-add-job')" class="inline-block pb-3 text-sm font-medium text-gray-500 hover:text-gray-700 border-b-2 border-transparent transition-colors">
                                     職位信息
                                 </a>
                             </li>
                             <li>
-                                <a href="#" id="btn-tab-add-leave" onclick="switchAddTab('tab-add-leave')" class="inline-block pb-3 text-[#3b82f6] hover:text-blue-600 border-b-[3px] border-transparent transition-colors">
+                                <a href="#" id="btn-tab-add-leave" onclick="switchAddTab('tab-add-leave')" class="inline-block pb-3 text-sm font-medium text-gray-500 hover:text-gray-700 border-b-2 border-transparent transition-colors">
                                     假期信息
                                 </a>
                             </li>
@@ -1683,8 +1752,8 @@
             
             // 取消所有按鈕的高亮狀態
             document.querySelectorAll('[id^="btn-tab-add-"]').forEach(btn => {
-                btn.classList.remove('text-gray-800', 'border-[#3b82f6]');
-                btn.classList.add('text-[#3b82f6]', 'border-transparent', 'hover:text-blue-600');
+                btn.classList.remove('text-primary', 'border-primary', 'font-semibold');
+                btn.classList.add('text-gray-500', 'border-transparent', 'hover:text-gray-700', 'font-medium');
             });
 
             // 顯示目標內容
@@ -1696,8 +1765,8 @@
             // 高亮目標按鈕
             const activeBtn = document.getElementById('btn-' + tabId);
             if (activeBtn) {
-                activeBtn.classList.remove('text-[#3b82f6]', 'border-transparent', 'hover:text-blue-600');
-                activeBtn.classList.add('text-gray-800', 'border-[#3b82f6]');
+                activeBtn.classList.remove('text-gray-500', 'border-transparent', 'hover:text-gray-700', 'font-medium');
+                activeBtn.classList.add('text-primary', 'border-primary', 'font-semibold');
             }
         }
     </script>

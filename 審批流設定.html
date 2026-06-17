@@ -13,7 +13,7 @@
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   
   <!-- 載入 Babel 供瀏覽器即時編譯 JSX -->
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.7/babel.min.js"></script>
 
   <style>
     /* 自定義捲軸樣式 (僅針對表格區域) */
@@ -113,9 +113,9 @@
         setCurrentStepTemplate(row);
         // 載入符合截圖的初始資料
         setStepsData([
-          { id: 1, name: '直屬主管審核', signMethod: '串簽', allowAddSigner: false, approvers: ['申請人直屬主管'] },
-          { id: 2, name: '部門主管審核', signMethod: '串簽', allowAddSigner: false, approvers: ['部門主管'] },
-          { id: 3, name: '項目負責人確認', signMethod: '串簽', allowAddSigner: false, approvers: [''] }
+          { id: 1, kind: 'approval', signMethod: '串簽', allowAddSigner: false, approvers: ['申請人直屬主管'] },
+          { id: 2, kind: 'approval', signMethod: '串簽', allowAddSigner: false, approvers: ['部門主管'] },
+          { id: 3, kind: 'approval', signMethod: '串簽', allowAddSigner: false, approvers: [''] }
         ]);
         setIsStepModalOpen(true);
       };
@@ -200,6 +200,34 @@
         newSteps[stepIndex].approvers[approverIndex] = value;
         setStepsData(newSteps);
       };
+
+      // --- 新增審批步驟（插入於工作步驟之前）/ 新增工作步驟（附加於最後）/ 刪除步驟 ---
+      const nextStepId = (arr) => arr.reduce((m, s) => Math.max(m, s.id), 0) + 1;
+      const addApprovalStep = () => {
+        const newSteps = [...stepsData];
+        const approvalCount = newSteps.filter(s => s.kind === 'approval').length;
+        newSteps.splice(approvalCount, 0, { id: nextStepId(newSteps), kind: 'approval', signMethod: '串簽', allowAddSigner: false, approvers: [''] });
+        setStepsData(newSteps);
+      };
+      const addWorkStep = () => {
+        const newSteps = [...stepsData];
+        newSteps.push({ id: nextStepId(newSteps), kind: 'work', task: '', assignee: '' });
+        setStepsData(newSteps);
+      };
+      const removeStep = (index) => {
+        const newSteps = [...stepsData];
+        newSteps.splice(index, 1);
+        setStepsData(newSteps);
+      };
+      const updateWorkField = (index, field, value) => {
+        const newSteps = [...stepsData];
+        newSteps[index][field] = value;
+        setStepsData(newSteps);
+      };
+
+      // 依類型分組（保留原始索引以供操作）
+      const approvalSteps = stepsData.map((s, i) => ({ s, i })).filter(x => x.s.kind === 'approval');
+      const workSteps = stepsData.map((s, i) => ({ s, i })).filter(x => x.s.kind === 'work');
 
       return (
         <div className="min-h-screen bg-[#F5F6F8] font-sans text-gray-800 flex flex-col p-6">
@@ -659,123 +687,142 @@
                 {/* Body */}
                 <div className="p-6 pt-5 bg-[#F5F6F8] flex-1 overflow-y-auto">
                   
-                  {/* Top Action Bar */}
-                  <div className="flex items-center gap-4 mb-4">
-                    <button className="ui-btn ui-btn-primary">
-                      <Plus size={15} strokeWidth={2.5} /> 新增步驟
+                  {/* 操作列：新增審批 / 新增工作步驟 */}
+                  <div className="flex items-center gap-3 mb-5 flex-wrap">
+                    <button onClick={addApprovalStep} className="ui-btn ui-btn-primary">
+                      <Plus size={15} strokeWidth={2.5} /> 新增審批
                     </button>
-                    <span className="text-gray-600 text-[14px]">共 {stepsData.length} 個步驟</span>
+                    <button onClick={addWorkStep} className="ui-btn ui-btn-secondary">
+                      <Plus size={15} strokeWidth={2.5} /> 新增工作步驟
+                    </button>
+                    <span className="text-gray-500 text-[13px] ml-auto">共 {approvalSteps.length} 個審批步驟 · {workSteps.length} 個工作步驟</span>
                   </div>
 
-                  {/* Steps List */}
-                  <div className="space-y-4">
-                    {stepsData.map((step, index) => (
-                      <div 
-                        key={step.id} 
-                        draggable
-                        onDragStart={(e) => handleDragStart(e, index)}
-                        onDragEnter={(e) => handleDragEnter(e, index)}
-                        onDragOver={handleDragOver}
-                        onDrop={(e) => handleDrop(e, index)}
-                        onDragEnd={handleDragEnd}
-                        className={`bg-white border rounded-lg p-6 flex flex-col relative shadow-sm cursor-grab active:cursor-grabbing transition-all duration-200 ${
-                          draggedItemIndex === index ? 'opacity-40 border-dashed border-[#4A90E2] scale-[0.98]' : 
-                          dragOverItemIndex === index ? 'border-dashed border-2 border-[#4A90E2] bg-[#F0F7FF]' : 'border-gray-200'
-                        }`}
-                      >
-                        
-                        {/* Upper Section */}
-                        <div className="flex flex-col gap-5">
-                          {/* Row 1: Step Title & Actions */}
-                          <div className="flex items-center gap-4">
-                            <span className="text-[#3949AB] font-bold text-[15px] shrink-0 w-[80px] text-left">步驟 {index + 1}</span>
-                            <input
-                              type="text"
-                              defaultValue={step.name}
-                              className="ui-input flex-1 cursor-text"
-                              onClick={(e) => e.stopPropagation()}
-                              onMouseDown={(e) => e.stopPropagation()}
-                            />
-                            <div className="flex items-center shrink-0 pl-2">
-                              <button className="text-[#E53935] hover:text-red-700 text-[14px] font-bold transition-colors">刪除</button>
+                  {/* === 審批步驟 分區 === */}
+                  <div className="rounded-lg border border-[#D6E4F5] bg-[#F7FAFF] p-4 mb-5">
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="w-1.5 h-5 bg-[#4A90E2] rounded-full"></span>
+                      <h3 className="font-bold text-gray-800 text-[15px]">審批步驟</h3>
+                      <span className="text-[12px] text-gray-400">依序進行簽核</span>
+                    </div>
+
+                    <div className="space-y-3">
+                      {approvalSteps.length === 0 && (
+                        <p className="text-[13px] text-gray-400 text-center py-4">尚無審批步驟，請點擊「新增審批」。</p>
+                      )}
+                      {approvalSteps.map(({ s: step, i: index }, pos) => (
+                        <div
+                          key={step.id}
+                          draggable
+                          onDragStart={(e) => handleDragStart(e, index)}
+                          onDragEnter={(e) => handleDragEnter(e, index)}
+                          onDragOver={handleDragOver}
+                          onDrop={(e) => handleDrop(e, index)}
+                          onDragEnd={handleDragEnd}
+                          className={`bg-white border rounded-lg p-4 shadow-sm cursor-grab active:cursor-grabbing transition-all duration-200 ${
+                            draggedItemIndex === index ? 'opacity-40 border-dashed border-[#4A90E2] scale-[0.98]' :
+                            dragOverItemIndex === index ? 'border-dashed border-2 border-[#4A90E2] bg-[#F0F7FF]' : 'border-gray-200'
+                          }`}
+                        >
+                          {/* 步驟序號 + 審批人下拉 + 刪除 */}
+                          <div className="flex items-start gap-3">
+                            <span className="mt-1 shrink-0 inline-flex items-center justify-center px-2.5 py-1 rounded-md bg-[#EAF2FC] text-[#3949AB] font-bold text-[13px]">審批 {pos + 1}</span>
+                            <div className="flex-1 min-w-0 flex flex-col gap-2">
+                              {step.approvers.map((approver, aIdx) => (
+                                <div key={aIdx} className="flex items-center gap-2">
+                                  <select
+                                    value={approver}
+                                    onChange={(e) => updateApprover(index, aIdx, e.target.value)}
+                                    onMouseDown={(e) => e.stopPropagation()}
+                                    className="ui-select flex-1 max-w-[320px]"
+                                  >
+                                    <option value="" disabled hidden>請選擇審批人</option>
+                                    {roleData.map(r => (
+                                      <option key={r.code} value={r.name}>{r.name}</option>
+                                    ))}
+                                  </select>
+                                  {step.approvers.length > 1 && (
+                                    <button onClick={() => removeApprover(index, aIdx)} onMouseDown={(e) => e.stopPropagation()} className="text-[#D93025] hover:text-red-700 text-[13px] font-bold shrink-0">移除</button>
+                                  )}
+                                </div>
+                              ))}
+                              <button onClick={() => addApprover(index)} onMouseDown={(e) => e.stopPropagation()} className="text-[#4A90E2] hover:text-blue-700 text-[13px] font-medium flex items-center gap-1 self-start">
+                                <Plus size={14} strokeWidth={2} /> 新增審批人
+                              </button>
                             </div>
+                            <button onClick={() => removeStep(index)} onMouseDown={(e) => e.stopPropagation()} className="text-[#E53935] hover:text-red-700 text-[13px] font-bold shrink-0">刪除</button>
                           </div>
 
-                          {/* Row 2: Sign Method */}
-                          <div className="flex items-center gap-4">
-                            <span className="text-gray-800 font-bold text-[14px] shrink-0 w-[80px] text-left">簽署方式</span>
-                            <div className="flex border border-gray-200 rounded overflow-hidden text-[13px] shadow-sm">
+                          {/* 簽署方式 + 允許加簽 */}
+                          <div className="flex items-center gap-3 mt-3 pt-3 border-t border-gray-100 flex-wrap">
+                            <span className="text-gray-600 text-[13px] shrink-0">簽署方式</span>
+                            <div className="flex border border-gray-200 rounded overflow-hidden text-[12px] shadow-sm" onMouseDown={(e) => e.stopPropagation()}>
                               {['串簽', '並簽', '會簽', '抄送'].map((method, mIdx) => (
                                 <button
                                   key={method}
                                   onClick={() => updateSignMethod(index, method)}
-                                  className={`px-5 py-1.5 font-medium transition-colors ${
-                                    step.signMethod === method
-                                      ? 'bg-[#4A90E2] text-white'
-                                      : 'bg-white text-gray-700 hover:bg-gray-50'
+                                  className={`px-3.5 py-1.5 font-medium transition-colors ${
+                                    step.signMethod === method ? 'bg-[#4A90E2] text-white' : 'bg-white text-gray-700 hover:bg-gray-50'
                                   } ${mIdx > 0 ? 'border-l border-gray-200' : ''}`}
                                 >
                                   {method}
                                 </button>
                               ))}
                             </div>
-                            <div className="flex items-center gap-3 ml-6">
-                              <span className="text-gray-700 text-[14px]">允許加簽</span>
-                              <button 
-                                onClick={() => toggleAllowAddSigner(index)}
-                                className={`relative inline-flex h-5 w-[38px] items-center rounded-full transition-colors focus:outline-none ${step.allowAddSigner ? 'bg-[#4A90E2]' : 'bg-gray-300'}`}
-                              >
+                            <div className="flex items-center gap-2 ml-2">
+                              <span className="text-gray-600 text-[13px]">允許加簽</span>
+                              <button onClick={() => toggleAllowAddSigner(index)} onMouseDown={(e) => e.stopPropagation()} className={`relative inline-flex h-5 w-[38px] items-center rounded-full transition-colors focus:outline-none ${step.allowAddSigner ? 'bg-[#4A90E2]' : 'bg-gray-300'}`}>
                                 <span className={`inline-block h-[14px] w-[14px] transform rounded-full bg-white transition-transform ${step.allowAddSigner ? 'translate-x-[21px]' : 'translate-x-[3px]'}`} />
                               </button>
                             </div>
                           </div>
                         </div>
+                      ))}
+                    </div>
+                  </div>
 
-                        {/* Divider */}
-                        <hr className="border-gray-100 my-5" />
-
-                        {/* Lower Section: Approvers Setting */}
-                        <div className="flex flex-col gap-4">
-                          <div className="flex items-center justify-between">
-                            <span className="text-[14px] font-bold text-gray-800 shrink-0 w-[80px] text-left">審批人設定</span>
-                            <button 
-                              onClick={() => addApprover(index)}
-                              className="text-[#4A90E2] hover:text-blue-700 text-[14px] font-medium flex items-center gap-1 transition-colors"
-                            >
-                              <Plus size={15} strokeWidth={2} /> 新增審批人
-                            </button>
-                          </div>
-                          
-                          <div className="flex flex-col gap-3">
-                            {step.approvers.map((approver, aIdx) => (
-                              <div key={aIdx} className="flex items-center gap-4 border border-gray-200 rounded-md p-2.5 bg-white shadow-sm">
-                                <span className="text-gray-400 text-[14px] w-8 text-center shrink-0">{aIdx + 1}</span>
-                                <div className="w-full max-w-[300px]">
+                  {/* === 工作步驟 分區 === */}
+                  {workSteps.length > 0 && (
+                    <div className="rounded-lg border border-[#9FE3DE] bg-[#F0FBFA] p-4">
+                      <div className="flex items-center gap-2 mb-3">
+                        <span className="w-1.5 h-5 bg-[#0EA5A0] rounded-full"></span>
+                        <h3 className="font-bold text-gray-800 text-[15px]">工作步驟</h3>
+                        <span className="text-[12px] text-gray-400">審批通過後執行的作業</span>
+                      </div>
+                      <div className="space-y-3">
+                        {workSteps.map(({ s: step, i: index }, pos) => (
+                          <div key={step.id} className="bg-white border border-[#BFECE8] rounded-lg p-4 shadow-sm">
+                            <div className="flex items-start gap-3">
+                              <span className="mt-1 shrink-0 inline-flex items-center justify-center px-2.5 py-1 rounded-md bg-[#D7F5F2] text-[#0E7C77] font-bold text-[13px]">工作 {pos + 1}</span>
+                              <div className="flex-1 min-w-0 flex flex-col gap-2">
+                                <input
+                                  type="text"
+                                  value={step.task}
+                                  onChange={(e) => updateWorkField(index, 'task', e.target.value)}
+                                  placeholder="請輸入工作項目名稱（例如：建立員工帳號、寄送通知）"
+                                  className="ui-input"
+                                />
+                                <div className="flex items-center gap-2">
+                                  <span className="text-gray-600 text-[13px] shrink-0">負責人</span>
                                   <select
-                                    value={approver}
-                                    onChange={(e) => updateApprover(index, aIdx, e.target.value)}
-                                    className="ui-select"
+                                    value={step.assignee}
+                                    onChange={(e) => updateWorkField(index, 'assignee', e.target.value)}
+                                    className="ui-select flex-1 max-w-[320px]"
                                   >
-                                    <option value="" disabled hidden>請選擇</option>
+                                    <option value="" disabled hidden>請選擇負責人</option>
                                     {roleData.map(r => (
                                       <option key={r.code} value={r.name}>{r.name}</option>
                                     ))}
                                   </select>
                                 </div>
-                                <button 
-                                  onClick={() => removeApprover(index, aIdx)}
-                                  className="text-[#D93025] hover:text-red-700 text-[14px] font-bold transition-colors ml-auto pr-4"
-                                >
-                                  移除
-                                </button>
                               </div>
-                            ))}
+                              <button onClick={() => removeStep(index)} className="text-[#E53935] hover:text-red-700 text-[13px] font-bold shrink-0">刪除</button>
+                            </div>
                           </div>
-                        </div>
-
+                        ))}
                       </div>
-                    ))}
-                  </div>
+                    </div>
+                  )}
 
                 </div>
 

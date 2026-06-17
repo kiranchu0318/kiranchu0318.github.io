@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>角色與權限</title>
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 Font Awesome 用於圖標 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4A90E2',
+                        'primary-light': '#EAF2FC',
+                        background: '#F8F9FB',
+                        card: '#FFFFFF',
+                        text: { main: '#1F2937', muted: '#6B7280', light: '#9CA3AF' }
+                    },
+                    fontFamily: {
+                        sans: ['"Inter"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'card': '0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03)',
+                        'modal': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: theme('colors.background');
+            font-family: theme('fontFamily.sans');
+        }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .perm-check { width: 1rem; height: 1rem; accent-color: #4A90E2; cursor: pointer; }
+    </style>
+    <link rel="stylesheet" href="shared-ui.css">
+</head>
+<body class="ui-page text-text-main antialiased relative">
+
+    <div class="mx-auto w-full max-w-[1400px] space-y-6">
+
+        <!-- 頁面標題區塊 -->
+        <header class="ui-page-header">
+            <h1 class="ui-page-title">角色與權限</h1>
+        </header>
+
+        <!-- 主版面：左角色選單 + 右權限編輯 -->
+        <div class="ui-card overflow-hidden flex flex-col lg:flex-row min-h-[680px]">
+
+            <!-- 左側：角色選單 -->
+            <aside class="lg:w-80 shrink-0 border-b lg:border-b-0 lg:border-r border-gray-100 flex flex-col">
+                <div class="p-4 border-b border-gray-100 flex items-center justify-between gap-2">
+                    <h2 class="font-bold text-gray-900">角色</h2>
+                    <button onclick="openRoleCreate()" class="ui-btn ui-btn-primary ui-btn-sm">
+                        <i class="fa-solid fa-plus"></i> 新增
+                    </button>
+                </div>
+                <div class="p-3 border-b border-gray-100">
+                    <div class="ui-search">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="search-input" oninput="renderRoleList()" placeholder="搜尋角色..." class="ui-input ui-search-input">
+                    </div>
+                </div>
+                <div id="role-list" class="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-1 lg:max-h-[600px]"><!-- 動態渲染 --></div>
+            </aside>
+
+            <!-- 右側：權限編輯 -->
+            <section class="flex-1 flex flex-col min-w-0">
+
+                <!-- 未選取角色時的空狀態 -->
+                <div id="perm-empty" class="flex-1 flex flex-col items-center justify-center text-center p-10 gap-3">
+                    <div class="inline-flex p-4 bg-gray-50 text-gray-400 rounded-full"><i class="fa-solid fa-user-shield text-3xl"></i></div>
+                    <p class="text-sm text-text-muted font-medium">請從左側選擇角色以設定權限</p>
+                </div>
+
+                <!-- 角色權限面板 -->
+                <div id="perm-panel" class="hidden flex-1 flex flex-col min-h-0">
+                    <!-- 角色資訊與操作 -->
+                    <div class="p-5 border-b border-gray-100 flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                        <div class="min-w-0">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <h3 id="rp-name" class="text-lg font-bold text-gray-900"></h3>
+                                <span id="rp-status"></span>
+                            </div>
+                            <p id="rp-desc" class="text-sm text-text-muted mt-1"></p>
+                            <p class="text-xs text-text-light mt-1"><span id="rp-members"></span> 位成員 · 已授權 <span id="rp-granted" class="font-semibold text-primary"></span> 項</p>
+                        </div>
+                        <div class="flex items-center gap-2 shrink-0">
+                            <button onclick="openRoleEditCurrent()" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-pen-to-square"></i> 編輯</button>
+                            <button id="rp-toggle-btn" onclick="toggleStatusCurrent()" class="ui-btn ui-btn-sm"></button>
+                            <button onclick="deleteCurrent()" class="ui-btn ui-btn-sm text-rose-600 border border-rose-200 hover:bg-rose-50"><i class="fa-solid fa-trash-can"></i> 刪除</button>
+                        </div>
+                    </div>
+
+                    <!-- 權限工具列 -->
+                    <div class="px-5 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-gray-100 bg-gray-50/60">
+                        <p class="text-xs text-text-muted">設定此角色的頁面資料權限與可審批的申請單。</p>
+                        <div class="flex items-center gap-2 shrink-0">
+                            <button onclick="setAllPerms(true)" class="ui-btn ui-btn-secondary ui-btn-sm">全部勾選</button>
+                            <button onclick="setAllPerms(false)" class="ui-btn ui-btn-sm text-gray-600 border border-gray-200 hover:bg-gray-50">全部清除</button>
+                        </div>
+                    </div>
+
+                    <!-- 權限內容（兩大區塊） -->
+                    <div class="p-5 overflow-auto custom-scrollbar flex-1 space-y-7">
+
+                        <!-- 區塊 1：頁面資料權限 -->
+                        <div>
+                            <div class="flex items-center gap-2 mb-3">
+                                <i class="fa-solid fa-table-list text-primary"></i>
+                                <h4 class="text-sm font-bold text-gray-800">頁面資料權限</h4>
+                            </div>
+                            <div class="overflow-x-auto rounded-lg border border-gray-100">
+                                <table class="ui-table text-center">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col" class="text-left">頁面 / 功能</th>
+                                            <th scope="col">檢視</th>
+                                            <th scope="col">新增</th>
+                                            <th scope="col">編輯</th>
+                                            <th scope="col">刪除</th>
+                                            <th scope="col">匯出</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="data-perm-tbody"><!-- 動態渲染 --></tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- 區塊 2：可審批的申請單 -->
+                        <div>
+                            <div class="flex items-center justify-between gap-2 mb-3">
+                                <div class="flex items-center gap-2">
+                                    <i class="fa-solid fa-file-circle-check text-primary"></i>
+                                    <h4 class="text-sm font-bold text-gray-800">可審批的申請單</h4>
+                                </div>
+                                <div class="flex items-center gap-2 shrink-0">
+                                    <button onclick="setAllApprove(true)" class="text-xs text-primary font-semibold hover:underline">全選</button>
+                                    <span class="text-gray-300">|</span>
+                                    <button onclick="setAllApprove(false)" class="text-xs text-gray-500 font-semibold hover:underline">清除</button>
+                                </div>
+                            </div>
+                            <div id="approve-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2"><!-- 動態渲染 --></div>
+                        </div>
+
+                    </div>
+
+                    <!-- 儲存列 -->
+                    <div class="px-5 py-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-2.5">
+                        <button onclick="resetPerms()" class="ui-btn ui-btn-secondary">還原</button>
+                        <button onclick="savePerms()" class="ui-btn ui-btn-primary"><i class="fa-solid fa-check"></i> 儲存權限</button>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+    </div>
+
+    <!-- ============ 新增 / 編輯 角色 彈窗 ============ -->
+    <div id="role-modal" class="fixed inset-0 bg-black/40 z-50 flex justify-center items-center hidden p-4">
+        <div class="bg-white rounded-2xl shadow-modal w-full max-w-md overflow-hidden">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                <h3 id="role-modal-title" class="text-base font-bold text-gray-900">新增角色</h3>
+                <button onclick="closeRoleModal()" class="text-gray-400 hover:text-gray-600 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="px-6 py-5 space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">角色名稱 <span class="text-rose-500">*</span></label>
+                    <input type="text" id="role-name" placeholder="請輸入角色名稱" class="ui-input">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">說明</label>
+                    <textarea id="role-desc" rows="3" placeholder="請輸入角色說明（選填）" class="ui-input resize-none"></textarea>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">狀態</label>
+                    <select id="role-status" class="ui-select">
+                        <option value="true">啟用</option>
+                        <option value="false">停用</option>
+                    </select>
+                </div>
+            </div>
+            <div class="flex justify-end gap-2.5 px-6 py-4 bg-gray-50 border-t border-gray-100">
+                <button onclick="closeRoleModal()" class="ui-btn ui-btn-secondary">取消</button>
+                <button onclick="saveRole()" class="ui-btn ui-btn-primary">儲存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 提示消息 (Toast) -->
+    <div id="toast" class="fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+        <i id="toast-icon" class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
+        <span id="toast-text" class="text-sm font-medium">操作成功！</span>
+    </div>
+
+    <script>
+        /* ===== 權限定義 ===== */
+        // 頁面資料權限：各頁面可執行的操作（依分類分組）
+        const DATA_ACTIONS = ['檢視', '新增', '編輯', '刪除', '匯出'];
+        const DATA_PAGES = [
+            { key: 'employee',        name: '員工管理',     group: '人事管理' },
+            { key: 'attendance',      name: '出勤管理',     group: '人事管理' },
+            { key: 'leave',           name: '假期管理',     group: '人事管理' },
+            { key: 'salary',          name: '薪資管理',     group: '人事管理' },
+            { key: 'performance',     name: '績效管理',     group: '人事管理' },
+            { key: 'purchase_mgmt',   name: '採購申請管理', group: '財務管理' },
+            { key: 'reimburse_review',name: '報銷審核',     group: '財務管理' },
+            { key: 'payment',         name: '付款管理',     group: '財務管理' },
+            { key: 'finance_report',  name: '財務報表',     group: '財務管理' },
+            { key: 'announcement',    name: '公告管理',     group: '行政管理' },
+            { key: 'asset',           name: '資產管理',     group: '行政管理' },
+            { key: 'visitor',         name: '訪客管理',     group: '行政管理' },
+            { key: 'meeting_room',    name: '會議室管理',   group: '行政管理' },
+            { key: 'role_perm',       name: '角色與權限',   group: '系統設定' },
+            { key: 'org',             name: '組織架構管理', group: '系統設定' },
+            { key: 'eform',           name: '電子表單設定', group: '系統設定' }
+        ];
+        // 可審批的申請單
+        const APPROVAL_FORMS = [
+            { key: 'leave',            name: '請假申請單' },
+            { key: 'makeup',           name: '補卡申請單' },
+            { key: 'overtime',         name: '加班申請單' },
+            { key: 'business_trip',    name: '出差申請單' },
+            { key: 'purchase',         name: '採購申請單' },
+            { key: 'reimburse',        name: '費用報銷單' },
+            { key: 'asset_req',        name: '資產申請單' },
+            { key: 'personnel_change', name: '人事異動申請單' },
+            { key: 'termination',      name: '離職申請單' }
+        ];
+        const ALL_FORM_KEYS = APPROVAL_FORMS.map(f => f.key);
+        const FULL = ['檢視', '新增', '編輯', '刪除', '匯出'];
+
+        // 依 spec 建立完整的頁面資料權限（未列出的頁面為空陣列）
+        function buildData(spec) {
+            const d = {};
+            DATA_PAGES.forEach(p => d[p.key] = (spec[p.key] || []).slice());
+            return d;
+        }
+        function buildDataAll(actions) {
+            const d = {};
+            DATA_PAGES.forEach(p => d[p.key] = actions.slice());
+            return d;
+        }
+
+        // 角色資料庫
+        let roles = [
+            { name: '系統管理員', desc: '擁有系統所有功能與設定權限', members: 2, active: true,
+              perms: { data: buildDataAll(FULL), approve: ALL_FORM_KEYS.slice() } },
+            { name: '人資主管', desc: '管理人事與考勤相關作業，可審批人事類申請單', members: 5, active: true,
+              perms: { data: buildData({ employee: FULL, attendance: FULL, leave: FULL, salary: ['檢視', '編輯', '匯出'], performance: FULL, announcement: ['檢視', '新增', '編輯'] }),
+                       approve: ['leave', 'makeup', 'overtime', 'personnel_change', 'termination'] } },
+            { name: '財務主管', desc: '處理財務報銷、付款與報表，可審批財務類申請單', members: 4, active: true,
+              perms: { data: buildData({ purchase_mgmt: FULL, reimburse_review: FULL, payment: FULL, finance_report: ['檢視', '匯出'] }),
+                       approve: ['purchase', 'reimburse'] } },
+            { name: '一般員工', desc: '僅可檢視個人相關資訊，無審批權限', members: 120, active: true,
+              perms: { data: buildData({ employee: ['檢視'], attendance: ['檢視'], leave: ['檢視'], announcement: ['檢視'], asset: ['檢視'] }),
+                       approve: [] } },
+            { name: '稽核人員', desc: '唯讀稽核與報表匯出', members: 3, active: false,
+              perms: { data: buildDataAll(['檢視', '匯出']), approve: [] } }
+        ];
+
+        let selectedIndex = -1;    // 目前選取的角色
+        let editIndex = -1;        // 角色彈窗模式：-1=新增；>=0=編輯
+        let permDraft = { data: {}, approve: new Set() };
+
+        // 已授權項目總數 = 各頁面動作數 + 可審批申請單數
+        function grantedCount(role) {
+            let n = 0;
+            DATA_PAGES.forEach(p => n += (role.perms.data[p.key] || []).length);
+            n += (role.perms.approve || []).length;
+            return n;
+        }
+
+        /* ============ 左側角色選單 ============ */
+        function renderRoleList() {
+            const wrap = document.getElementById('role-list');
+            const kw = document.getElementById('search-input').value.trim().toLowerCase();
+            const rows = roles.map((r, i) => ({ r, i }))
+                .filter(({ r }) => !kw || r.name.toLowerCase().includes(kw) || (r.desc || '').toLowerCase().includes(kw));
+
+            if (rows.length === 0) {
+                wrap.innerHTML = '<p class="text-sm text-text-muted text-center py-10">查無符合的角色</p>';
+                return;
+            }
+
+            const onCls = 'w-full text-left px-3 py-2.5 rounded-lg border border-primary/40 bg-primary-light transition-colors';
+            const offCls = 'w-full text-left px-3 py-2.5 rounded-lg border border-transparent hover:bg-gray-50 transition-colors';
+            wrap.innerHTML = rows.map(({ r, i }) => {
+                const sel = i === selectedIndex;
+                const dot = `<span class="w-2 h-2 rounded-full shrink-0 ${r.active ? 'bg-emerald-500' : 'bg-gray-300'}" title="${r.active ? '啟用' : '停用'}"></span>`;
+                return `
+                    <button onclick="selectRole(${i})" class="${sel ? onCls : offCls}">
+                        <div class="flex items-center justify-between gap-2">
+                            <span class="font-semibold truncate ${sel ? 'text-primary' : 'text-gray-800'}">${r.name}</span>
+                            ${dot}
+                        </div>
+                        <div class="text-xs text-text-muted mt-0.5 truncate">${r.members} 位成員 · ${grantedCount(r)} 項權限</div>
+                    </button>`;
+            }).join('');
+        }
+
+        function selectRole(i) {
+            selectedIndex = i;
+            loadDraftFromRole();
+            renderRoleList();
+            renderRightPanel();
+        }
+
+        function loadDraftFromRole() {
+            const role = roles[selectedIndex];
+            permDraft = { data: {}, approve: new Set((role && role.perms.approve) || []) };
+            DATA_PAGES.forEach(p => permDraft.data[p.key] = new Set((role && role.perms.data[p.key]) || []));
+        }
+
+        /* ============ 右側權限面板 ============ */
+        function renderRightPanel() {
+            const empty = document.getElementById('perm-empty');
+            const panel = document.getElementById('perm-panel');
+            if (selectedIndex < 0 || !roles[selectedIndex]) {
+                empty.classList.remove('hidden');
+                panel.classList.add('hidden');
+                return;
+            }
+            empty.classList.add('hidden');
+            panel.classList.remove('hidden');
+
+            const r = roles[selectedIndex];
+            document.getElementById('rp-name').innerText = r.name;
+            document.getElementById('rp-desc').innerText = r.desc || '（尚無說明）';
+            document.getElementById('rp-members').innerText = r.members;
+            document.getElementById('rp-granted').innerText = grantedCount(r);
+            document.getElementById('rp-status').innerHTML = r.active
+                ? '<span class="ui-badge ui-badge-success">啟用</span>'
+                : '<span class="ui-badge bg-gray-100 text-gray-500">停用</span>';
+            const toggle = document.getElementById('rp-toggle-btn');
+            toggle.className = r.active
+                ? 'ui-btn ui-btn-sm text-amber-600 border border-amber-200 hover:bg-amber-50'
+                : 'ui-btn ui-btn-sm text-emerald-600 border border-emerald-200 hover:bg-emerald-50';
+            toggle.innerHTML = r.active ? '<i class="fa-solid fa-ban"></i> 停用' : '<i class="fa-solid fa-circle-check"></i> 啟用';
+
+            renderPermSections();
+        }
+
+        function renderPermSections() {
+            // 頁面資料權限（依分類分組）
+            const tbody = document.getElementById('data-perm-tbody');
+            let html = '';
+            let lastGroup = null;
+            DATA_PAGES.forEach(p => {
+                if (p.group !== lastGroup) {
+                    lastGroup = p.group;
+                    html += `<tr class="bg-gray-50/80"><td colspan="6" class="text-left text-xs font-bold text-gray-500 tracking-wide">${p.group}</td></tr>`;
+                }
+                const cells = DATA_ACTIONS.map(a =>
+                    `<td class="text-center"><input type="checkbox" class="perm-check" ${permDraft.data[p.key].has(a) ? 'checked' : ''} onchange="togglePerm('${p.key}','${a}',this.checked)"></td>`
+                ).join('');
+                html += `<tr class="hover:bg-gray-50/70 transition-colors"><td class="text-left font-medium text-gray-800">${p.name}</td>${cells}</tr>`;
+            });
+            tbody.innerHTML = html;
+
+            // 可審批的申請單
+            const al = document.getElementById('approve-list');
+            al.innerHTML = APPROVAL_FORMS.map(f => `
+                <label class="flex items-center gap-2.5 p-2.5 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+                    <input type="checkbox" class="perm-check" ${permDraft.approve.has(f.key) ? 'checked' : ''} onchange="toggleApprove('${f.key}',this.checked)">
+                    <span class="text-sm text-gray-700">${f.name}</span>
+                </label>`).join('');
+        }
+
+        function togglePerm(pageKey, action, checked) {
+            if (checked) permDraft.data[pageKey].add(action); else permDraft.data[pageKey].delete(action);
+        }
+        function toggleApprove(formKey, checked) {
+            if (checked) permDraft.approve.add(formKey); else permDraft.approve.delete(formKey);
+        }
+
+        function setAllPerms(on) {
+            DATA_PAGES.forEach(p => permDraft.data[p.key] = on ? new Set(DATA_ACTIONS) : new Set());
+            permDraft.approve = on ? new Set(ALL_FORM_KEYS) : new Set();
+            renderPermSections();
+        }
+        function setAllApprove(on) {
+            permDraft.approve = on ? new Set(ALL_FORM_KEYS) : new Set();
+            renderPermSections();
+        }
+
+        function resetPerms() {
+            loadDraftFromRole();
+            renderPermSections();
+            showToast('info', '已還原為儲存前的權限');
+        }
+
+        function savePerms() {
+            const role = roles[selectedIndex];
+            const data = {};
+            DATA_PAGES.forEach(p => data[p.key] = DATA_ACTIONS.filter(a => permDraft.data[p.key].has(a)));
+            role.perms = { data, approve: ALL_FORM_KEYS.filter(k => permDraft.approve.has(k)) };
+            renderRoleList();
+            renderRightPanel();
+            showToast('success', `已更新「${role.name}」的權限設定`);
+        }
+
+        /* ============ 角色操作（右側） ============ */
+        function toggleStatusCurrent() {
+            const r = roles[selectedIndex];
+            r.active = !r.active;
+            renderRoleList();
+            renderRightPanel();
+            showToast(r.active ? 'success' : 'info', `已${r.active ? '啟用' : '停用'}角色「${r.name}」`);
+        }
+
+        function deleteCurrent() {
+            const r = roles[selectedIndex];
+            if (!confirm(`確定要刪除角色「${r.name}」嗎？此動作無法復原。`)) return;
+            const name = r.name;
+            roles.splice(selectedIndex, 1);
+            selectedIndex = roles.length ? 0 : -1;
+            if (selectedIndex >= 0) loadDraftFromRole();
+            renderRoleList();
+            renderRightPanel();
+            showToast('info', `已刪除角色「${name}」`);
+        }
+
+        /* ============ 新增 / 編輯 角色 彈窗 ============ */
+        function openRoleCreate() {
+            editIndex = -1;
+            document.getElementById('role-modal-title').innerText = '新增角色';
+            document.getElementById('role-name').value = '';
+            document.getElementById('role-desc').value = '';
+            document.getElementById('role-status').value = 'true';
+            document.getElementById('role-modal').classList.remove('hidden');
+        }
+
+        function openRoleEditCurrent() {
+            editIndex = selectedIndex;
+            const r = roles[selectedIndex];
+            document.getElementById('role-modal-title').innerText = '編輯角色';
+            document.getElementById('role-name').value = r.name;
+            document.getElementById('role-desc').value = r.desc || '';
+            document.getElementById('role-status').value = String(r.active);
+            document.getElementById('role-modal').classList.remove('hidden');
+        }
+
+        function closeRoleModal() { document.getElementById('role-modal').classList.add('hidden'); }
+
+        function saveRole() {
+            const name = document.getElementById('role-name').value.trim();
+            const desc = document.getElementById('role-desc').value.trim();
+            const active = document.getElementById('role-status').value === 'true';
+            if (!name) { showToast('error', '請填寫角色名稱'); return; }
+            const dup = roles.some((r, idx) => r.name === name && idx !== editIndex);
+            if (dup) { showToast('error', `角色「${name}」已存在`); return; }
+
+            if (editIndex === -1) {
+                roles.push({ name, desc, members: 0, active, perms: { data: buildData({}), approve: [] } });
+                selectedIndex = roles.length - 1;
+                loadDraftFromRole();
+                showToast('success', `已新增角色「${name}」`);
+            } else {
+                roles[editIndex] = { ...roles[editIndex], name, desc, active };
+                showToast('success', `已更新角色「${name}」`);
+            }
+            closeRoleModal();
+            document.getElementById('search-input').value = '';
+            renderRoleList();
+            renderRightPanel();
+        }
+
+        /* ============ Toast 提示控制 ============ */
+        function showToast(type, text) {
+            const toast = document.getElementById('toast');
+            const toastIcon = document.getElementById('toast-icon');
+            const toastText = document.getElementById('toast-text');
+            toastText.innerText = text;
+            if (type === 'success') {
+                toast.className = "fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform transition-all duration-300 border border-emerald-500/20";
+                toastIcon.className = "fa-solid fa-circle-check text-emerald-400 text-base";
+            } else if (type === 'error') {
+                toast.className = "fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform transition-all duration-300 border border-rose-500/20";
+                toastIcon.className = "fa-solid fa-circle-xmark text-rose-400 text-base";
+            } else {
+                toast.className = "fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform transition-all duration-300 border border-blue-500/20";
+                toastIcon.className = "fa-solid fa-circle-info text-blue-400 text-base";
+            }
+            toast.style.transform = 'translateY(0)';
+            toast.style.opacity = '1';
+            clearTimeout(window.__toastTimer);
+            window.__toastTimer = setTimeout(() => {
+                toast.style.transform = 'translateY(5rem)';
+                toast.style.opacity = '0';
+            }, 2600);
+        }
+
+        // 點背景關閉角色彈窗
+        document.getElementById('role-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeRoleModal(); });
+
+        // 初始化：預設選取第一個角色
+        window.onload = function () {
+            if (roles.length) { selectedIndex = 0; loadDraftFromRole(); }
+            renderRoleList();
+            renderRightPanel();
+        };
+    </script>
+</body>
+</html>

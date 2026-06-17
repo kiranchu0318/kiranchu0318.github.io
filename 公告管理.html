@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>公告管理系統</title>
+    <title>公告管理</title>
     <!-- 引入 Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- 引入 Font Awesome -->
@@ -41,15 +41,21 @@
 <body class=" text-gray-800 p-4 md:p-8 min-h-screen flex justify-center">
 
     <div class="w-full max-w-[1400px] mx-auto">
-        
-        <!-- 頂部標題區 -->
-        <div class="flex items-center mb-6 px-1">
-            <h1 class="ui-page-title">公告</h1>
+
+        <!-- 頂部標題與操作區 -->
+        <div class="flex justify-between items-center mb-6 px-1">
+            <h1 class="ui-page-title">公告管理</h1>
+
+            <!-- 新增公告按鈕 -->
+            <button onclick="openModal()" class="ui-btn ui-btn-primary">
+                <i class="fa-solid fa-plus"></i>
+                新增公告
+            </button>
         </div>
 
         <!-- 主要內容區 -->
         <div class="ui-card p-2 sm:p-8">
-            
+
             <!-- 公告表格 -->
             <div class="overflow-x-auto">
                 <table class="ui-table text-left min-w-[800px]">
@@ -60,6 +66,7 @@
                             <th class="w-48">發佈人</th>
                             <th class="w-36">時間</th>
                             <th class="text-right w-24">瀏覽數</th>
+                            <th class="text-center w-40">操作</th>
                         </tr>
                     </thead>
                     <tbody id="announcementTableBody">
@@ -85,7 +92,7 @@
     <!-- 新增公告互動視窗 (Modal) - 參考附圖重構為高密度專業版面 -->
     <div id="addModal" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm hidden flex items-center justify-center z-50 transition-opacity">
         <div class="bg-white rounded-2xl w-full max-w-4xl mx-4 overflow-hidden shadow-2xl transform scale-95 transition-transform duration-200" id="modalContent">
-            
+
             <!-- 視窗標題 -->
             <div class="p-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
                 <h2 class="text-lg font-bold text-gray-800 flex items-center gap-2">
@@ -96,10 +103,10 @@
                     <i class="fa-solid fa-xmark text-xl"></i>
                 </button>
             </div>
-            
+
             <!-- 視窗內容 (完全重現附圖配置與欄位) -->
             <div class="p-6 space-y-4">
-                
+
                 <!-- 控制區：地區、選擇地區、必須確認、重置 -->
                 <div class="flex flex-wrap items-center justify-between gap-4">
                     <div class="flex items-center gap-3">
@@ -109,12 +116,12 @@
                                 地區 <i class="fa-solid fa-caret-down text-xs"></i>
                             </button>
                         </div>
-                        
+
                         <!-- 選擇地區按鈕 -->
                         <button class="bg-emerald-700 hover:bg-emerald-800 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm">
                             選擇地區
                         </button>
-                        
+
                         <!-- 必須確認 複選框 (Custom Style) -->
                         <label class="flex items-center gap-2 cursor-pointer select-none ml-2">
                             <div class="relative">
@@ -126,7 +133,7 @@
                             <span class="text-sm font-semibold text-gray-700">必須已讀</span>
                         </label>
                     </div>
-                    
+
                     <!-- 重置按鈕 -->
                     <button onclick="resetForm()" class="ui-btn ui-btn-primary">
                         重置
@@ -181,7 +188,7 @@
                             <button type="button" class="font-bold text-xs hover:text-black transition" title="清除格式">CB</button>
                         </div>
                     </div>
-                    
+
                     <!-- 編輯區 -->
                     <textarea id="announcementContent" class="w-full px-4 py-3 min-h-[180px] focus:outline-none resize-none text-gray-700 placeholder-gray-400 text-sm" placeholder="輸入公告內容...">test</textarea>
                 </div>
@@ -200,7 +207,7 @@
                         <input type="file" id="announcementFile" class="hidden" onchange="handleFileChange(this)">
                     </div>
 
-                    <!-- 臨時保存 / 上傳 送出按鈕組 (紫藍色皇家風格) -->
+                    <!-- 送出按鈕組 -->
                     <div class="flex items-center gap-3 justify-end">
                         <button onclick="submitForm()" class="ui-btn ui-btn-primary">
                             發布
@@ -231,6 +238,8 @@
                     </div>
                 </div>
                 <div class="flex items-center gap-2 shrink-0">
+                    <button onclick="editFromDetail()" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-pen-to-square"></i> 編輯</button>
+                    <button onclick="deleteFromDetail()" class="ui-btn ui-btn-sm text-rose-600 border border-rose-200 hover:bg-rose-50"><i class="fa-solid fa-trash-can"></i> 刪除</button>
                     <button onclick="closeDetail()" class="text-gray-400 hover:text-gray-600 transition ml-1 p-1"><i class="fa-solid fa-xmark text-xl"></i></button>
                 </div>
             </div>
@@ -298,6 +307,13 @@
                     <td>${item.author}</td>
                     <td>${item.date}</td>
                     <td class="text-right">${item.views.toLocaleString()}</td>
+                    <td>
+                        <div class="flex items-center justify-center gap-2">
+                            <button onclick="openDetail(${item.id})" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-eye"></i> 檢視</button>
+                            <button onclick="openEdit(${item.id})" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-pen-to-square"></i> 編輯</button>
+                            <button onclick="deleteAnnouncement(${item.id})" class="ui-btn ui-btn-sm text-rose-600 border border-rose-200 hover:bg-rose-50"><i class="fa-solid fa-trash-can"></i> 下架</button>
+                        </div>
+                    </td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -387,6 +403,16 @@
             }, 10);
         }
 
+        // 由列表「下架」
+        function deleteAnnouncement(id) {
+            const item = announcements.find(a => a.id === id);
+            if (!item) return;
+            if (!confirm(`確定要下架公告「${item.title}」嗎？下架後將不再顯示於公告列表。`)) return;
+            announcements = announcements.filter(a => a.id !== id);
+            renderTable();
+            showToast('公告已下架', true);
+        }
+
         // 由檢視彈窗點「刪除」
         function deleteFromDetail() {
             const item = announcements.find(a => a.id === currentDetailId);
@@ -402,7 +428,7 @@
         function closeModal() {
             const modal = document.getElementById('addModal');
             const modalContent = document.getElementById('modalContent');
-            
+
             modalContent.classList.remove('scale-100');
             modalContent.classList.add('scale-95');
             setTimeout(() => {
@@ -428,7 +454,7 @@
             document.getElementById('announcementContent').value = '';
             document.getElementById('fileNameDisplay').innerText = '未選擇任何檔案';
             document.getElementById('announcementFile').value = '';
-            
+
             const checkbox = document.getElementById('mustConfirm');
             checkbox.checked = false;
             toggleConfirmCheckbox(checkbox);
@@ -505,7 +531,7 @@
             const toast = document.getElementById('toast');
             const toastText = document.getElementById('toastText');
             toastText.innerText = message;
-            
+
             const icon = toast.querySelector('i');
             if (isSuccess) {
                 icon.className = "fa-solid fa-circle-check text-emerald-400";

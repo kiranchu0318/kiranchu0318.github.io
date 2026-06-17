@@ -68,7 +68,9 @@
 
         /* 出勤紀錄列表：欄位不換行，前兩欄（工號、姓名）與操作欄固定，中間可左右捲動 */
         .ui-table.att-table th,
-        .ui-table.att-table td { white-space: nowrap; }
+        .ui-table.att-table td,
+        .ui-table.mk-table th,
+        .ui-table.mk-table td { white-space: nowrap; }
         .att-table .col-id,
         .att-table .col-name,
         .att-table .col-action { position: sticky; z-index: 2; }
@@ -90,6 +92,16 @@
         /* 固定欄與捲動區交界處的陰影提示 */
         .att-table .col-name   { box-shadow: 6px 0 6px -6px rgba(0,0,0,.10); }
         .att-table .col-action { box-shadow: -6px 0 6px -6px rgba(0,0,0,.10); }
+
+        /* 補卡紀錄 / 外出紀錄：操作欄固定於右側 */
+        .mk-table .col-action,
+        .out-table .col-action { position: sticky; right: 0; z-index: 2; box-shadow: -6px 0 6px -6px rgba(0,0,0,.10); }
+        .mk-table thead .col-action,
+        .out-table thead .col-action { background: var(--ui-bg-subtle); z-index: 3; }
+        .mk-table tbody td.col-action,
+        .out-table tbody td.col-action { background: #fff; }
+        .mk-table tbody tr:hover td.col-action,
+        .out-table tbody tr:hover td.col-action { background: var(--ui-bg-subtle); }
     </style>
     <link rel="stylesheet" href="shared-ui.css">
 </head>
@@ -313,7 +325,7 @@
                 </div>
 
                 <div class="overflow-x-auto rounded-lg border border-gray-100 custom-scrollbar">
-                    <table class="ui-table text-center whitespace-nowrap">
+                    <table class="ui-table mk-table text-center whitespace-nowrap">
                         <thead>
                             <tr>
                                 <th scope="col" class="text-left">工號</th>
@@ -327,9 +339,9 @@
                                 <th scope="col">時段</th>
                                 <th scope="col">補卡時間</th>
                                 <th scope="col">補卡原因</th>
-                                <th scope="col" class="text-left min-w-[200px]">種類</th>
+                                <th scope="col" class="text-left">種類</th>
                                 <th scope="col" class="w-24">狀態</th>
-                                <th scope="col">操作</th>
+                                <th scope="col" class="col-action">操作</th>
                             </tr>
                         </thead>
                         <tbody id="makeup-tbody"><!-- 動態由 JavaScript 渲染 --></tbody>
@@ -429,7 +441,7 @@
                 </div>
 
                 <div class="overflow-x-auto rounded-lg border border-gray-100 custom-scrollbar">
-                    <table class="ui-table text-center whitespace-nowrap">
+                    <table class="ui-table out-table text-center whitespace-nowrap">
                         <thead>
                             <tr>
                                 <th scope="col" class="text-left">工號</th>
@@ -443,7 +455,7 @@
                                 <th scope="col">返回時間</th>
                                 <th scope="col" class="text-left min-w-[200px]">外出事由</th>
                                 <th scope="col" class="w-24">狀態</th>
-                                <th scope="col">操作</th>
+                                <th scope="col" class="col-action">操作</th>
                             </tr>
                         </thead>
                         <tbody id="outing-tbody"><!-- 動態由 JavaScript 渲染 --></tbody>
@@ -992,9 +1004,9 @@
                     <td class="text-gray-700">${record.period}</td>
                     <td class="font-mono text-gray-700">${record.time}</td>
                     <td>${makeupReasonBadge(record.reason)}</td>
-                    <td class="text-left text-gray-600 whitespace-normal break-words max-w-[280px]">${record.desc || '—'}</td>
+                    <td class="text-left text-gray-600">${record.desc || '—'}</td>
                     <td>${makeupStatusBadge(record.status)}</td>
-                    <td>
+                    <td class="col-action">
                         <button onclick="openMakeupModal(${actualIndex})" class="ui-btn ui-btn-secondary ui-btn-sm mx-auto">
                             <i class="fa-solid fa-circle-info"></i> 詳情
                         </button>
@@ -1051,7 +1063,7 @@
                     <td class="font-mono">${backCell}</td>
                     <td class="text-left text-gray-600 whitespace-normal break-words max-w-[280px]">${record.reason || '—'}</td>
                     <td>${outingStatusBadge(record.status)}</td>
-                    <td>
+                    <td class="col-action">
                         <button onclick="openOutingModal(${actualIndex})" class="ui-btn ui-btn-secondary ui-btn-sm mx-auto">
                             <i class="fa-solid fa-circle-info"></i> 詳情
                         </button>
