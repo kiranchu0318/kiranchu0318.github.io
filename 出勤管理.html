@@ -176,7 +176,6 @@
                                 <th scope="col" class="min-w-[160px]">打卡地點</th>
                                 <th scope="col" class="min-w-[140px]">出勤狀況</th>
                                 <th scope="col" class="w-24">狀態</th>
-                                <th scope="col" class="col-action">操作</th>
                             </tr>
                         </thead>
                         <tbody id="attendance-tbody"><!-- 動態由 JavaScript 渲染 --></tbody>
@@ -959,11 +958,6 @@
                     <td class="text-left">${locCell}</td>
                     <td class="text-left">${attendanceDocsCell(record.id, record.date)}</td>
                     <td>${statusBadgeHtml(record)}</td>
-                    <td class="col-action">
-                        <button onclick="openDetailModal(${actualIndex})" class="ui-btn ui-btn-secondary ui-btn-sm mx-auto">
-                            <i class="fa-solid fa-circle-info"></i> 詳情
-                        </button>
-                    </td>
                 `;
                 tbody.appendChild(tr);
             });
