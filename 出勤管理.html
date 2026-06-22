@@ -123,7 +123,8 @@
                         <select id="att-status" onchange="applyAttendanceFilters()" class="ui-select">
                             <option value="all">全部狀態</option>
                             <option value="正常">正常</option>
-                            <option value="異常">異常</option>
+                            <option value="遲到">遲到</option>
+                            <option value="缺卡">缺卡</option>
                         </select>
                     </div>
                     <div>
@@ -827,15 +828,20 @@
             return makeup ? `${time}（補卡）` : time;
         }
 
-        // 整體狀態徽章：異常再依各班別節點細分為「遲到 / 早退 / 缺卡」，可同時並存
-        function statusBadgeHtml(record) {
+        // 由各班別節點推導出勤異常標籤（遲到 / 早退 / 缺卡），可同時並存
+        function attStatusLabels(record) {
             const labels = [];
             getShifts(record).forEach(s => {
                 if (s.ciState === '遲到') labels.push('遲到');
                 if (s.coState === '早退') labels.push('早退');
                 if (s.ciState === '未打卡' || s.coState === '未打卡') labels.push('缺卡');
             });
-            const uniq = [...new Set(labels)];
+            return [...new Set(labels)];
+        }
+
+        // 整體狀態徽章：異常再依各班別節點細分為「遲到 / 早退 / 缺卡」，可同時並存
+        function statusBadgeHtml(record) {
+            const uniq = attStatusLabels(record);
             if (uniq.length === 0) {
                 return `<span class="ui-badge ui-badge-success"><i class="fa-solid fa-circle-check text-[10px]"></i>正常</span>`;
             }
@@ -1169,7 +1175,8 @@
                 (bus.length === 0 || bus.includes(r.bu)) &&
                 (items.length === 0 || items.includes(r.item)) &&
                 (depts.length === 0 || depts.includes(r.dept)) &&
-                (statusValue === 'all' || r.status === statusValue) &&
+                (statusValue === 'all'
+                    || (statusValue === '正常' ? attStatusLabels(r).length === 0 : attStatusLabels(r).includes(statusValue))) &&
                 (!dateStart || r.date >= dateStart) &&
                 (!dateEnd || r.date <= dateEnd));
             renderTable(filtered);
