@@ -275,114 +275,82 @@
     <!-- ========================================== -->
     <!-- 彈出視窗：假期審批內容 Modal (全面參照附圖增強) -->
     <!-- ========================================== -->
-    <div id="review-modal" class="fixed inset-0 z-50 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-        <!-- 背景遮罩 -->
-        <div class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm transition-opacity" onclick="closeReviewModal()"></div>
-
-        <!-- 彈窗內容容器 -->
-        <div class="fixed inset-0 z-10 overflow-y-auto flex items-center justify-center p-4">
-            <div class="relative bg-white rounded-lg shadow-modal w-full max-w-[850px] transform transition-all modal-enter flex flex-col my-8">
-                
-                <!-- 標頭 (附圖 1 的標頭樣式) -->
-                <div class="px-6 py-4 flex justify-between items-center border-b border-gray-100">
-                    <div class="flex items-center gap-2">
-                        <h3 class="font-bold text-lg text-[#3245B1] tracking-wide">假期申請詳情</h3>
+        <div id="review-modal" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true">
+            <div class="fixed inset-0 bg-black/40 backdrop-blur-sm" onclick="closeReviewModal()"></div>
+            <div class="fixed inset-0 z-10 flex items-center justify-center p-4">
+                <div class="bg-[#F0F2F5] rounded-xl shadow-2xl w-full max-w-[1100px] h-[90vh] flex flex-col overflow-hidden text-left">
+                    <div class="bg-[#EEF2F6] px-6 py-3.5 flex items-center justify-between border-b border-gray-200 flex-shrink-0">
+                        <span class="font-bold text-gray-800 text-base">請假申請單 (A)</span>
+                        <button onclick="closeReviewModal()" class="bg-[#3F51B5] hover:bg-blue-800 text-white w-7 h-7 flex items-center justify-center rounded transition-colors">
+                            <i class="fa-solid fa-xmark text-sm"></i>
+                        </button>
                     </div>
-                    <button onclick="closeReviewModal()" class="w-8 h-8 flex items-center justify-center bg-[#4A90E2] text-white rounded-md hover:bg-opacity-95 transition-colors shadow-sm">
-                        <i class="fa-solid fa-xmark text-sm"></i>
-                    </button>
-                </div>
-                
-                <!-- 內容 (彈出視窗主體，附圖 1, 2, 3 的大整合) -->
-                <div class="p-6 space-y-6 max-h-[80vh] overflow-y-auto custom-scrollbar">
-                    
-                    <!-- 1. 申請資訊（整齊兩欄網格） -->
-                    <div class="space-y-3">
-                        <h4 class="font-bold text-sm text-gray-800 border-b border-gray-100 pb-2">申請資訊</h4>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
-                            <div class="space-y-1">
-                                <span class="text-sm font-medium text-gray-700">申請日期</span>
-                                <input type="text" id="modal-app-date" readonly class="ui-input">
-                            </div>
-                            <div class="space-y-1">
-                                <span class="text-sm font-medium text-gray-700">假期種類</span>
-                                <input type="text" id="modal-leave-type" readonly class="ui-input">
-                            </div>
-                            <div class="space-y-1">
-                                <span class="text-sm font-medium text-gray-700">開始日</span>
-                                <input type="text" id="modal-leave-start" readonly class="ui-input">
-                            </div>
-                            <div class="space-y-1">
-                                <span class="text-sm font-medium text-gray-700">結束日</span>
-                                <input type="text" id="modal-leave-end" readonly class="ui-input">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 2. 每日工時分配 + 申請說明（並排） -->
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <div class="space-y-2">
-                            <span class="text-sm font-medium text-gray-700 block">每日工時分配 <span id="modal-hour-used" class="text-xs font-normal text-gray-400">&lt; Hour used: 0 &gt;</span></span>
-                            <div class="border border-gray-200 rounded-md w-full overflow-hidden bg-white shadow-sm">
-                                <div id="modal-daily-hours-container" class="p-3 space-y-3 max-h-[200px] overflow-y-auto custom-scrollbar">
-                                    <!-- 由 JS 動態注入各日工時分配 -->
+                    <div class="flex-1 flex flex-col lg:flex-row overflow-hidden">
+                        <div class="flex-1 min-w-0 flex flex-col overflow-hidden">
+                            <div class="flex-1 overflow-y-auto p-6 space-y-6">
+                                <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-5">
+                                    <div class="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2">基本資訊</div>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                        <div><label class="block text-gray-700 text-xs mb-1.5 font-medium">文件編號</label><input id="rv-docno" type="text" disabled class="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 font-mono cursor-not-allowed"></div>
+                                        <div><label class="block text-gray-700 text-xs mb-1.5 font-medium">申請日期</label><input id="rv-appdate" type="text" disabled class="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 cursor-not-allowed"></div>
+                                        <div><label class="block text-gray-700 text-xs mb-1.5 font-medium">申請人</label><input id="rv-name" type="text" disabled class="w-full bg-white border border-gray-200 rounded px-3 py-2 text-sm text-gray-800"></div>
+                                        <div><label class="block text-gray-700 text-xs mb-1.5 font-medium">工號</label><input id="rv-empno" type="text" disabled class="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 cursor-not-allowed"></div>
+                                        <div><label class="block text-gray-700 text-xs mb-1.5 font-medium">項目</label><input id="rv-project" type="text" disabled class="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 cursor-not-allowed"></div>
+                                        <div><label class="block text-gray-700 text-xs mb-1.5 font-medium">部門</label><input id="rv-dept" type="text" disabled class="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 cursor-not-allowed"></div>
+                                    </div>
                                 </div>
-                                <div class="bg-gray-50 border-t border-gray-100 p-2.5 px-4 text-sm font-bold text-gray-700" id="modal-total-hours">
-                                    Total : 0 Hours
+                                <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-5">
+                                    <div class="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2">請假資訊</div>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                        <div><label class="block text-gray-700 text-xs mb-1.5 font-medium">假期種類</label><input id="rv-type" type="text" disabled class="w-full bg-white border border-gray-200 rounded px-3 py-2 text-sm text-gray-800"></div>
+                                        <div><label class="block text-gray-700 text-xs mb-1.5 font-medium">開始時間</label><input id="rv-start" type="text" disabled class="w-full bg-white border border-gray-200 rounded px-3 py-2 text-sm text-gray-800"></div>
+                                        <div><label class="block text-gray-700 text-xs mb-1.5 font-medium">結束時間</label><input id="rv-end" type="text" disabled class="w-full bg-white border border-gray-200 rounded px-3 py-2 text-sm text-gray-800"></div>
+                                        <div><label class="block text-gray-700 text-xs mb-1.5 font-medium">請假時數（小時／最小單位 0.5）</label><input id="rv-hours" type="text" disabled class="w-full bg-white border border-gray-200 rounded px-3 py-2 text-sm text-gray-800"></div>
+                                    </div>
+                                    <div><label class="block text-gray-700 text-xs mb-1.5 font-medium">申請事由</label><textarea id="rv-reason" disabled class="w-full bg-white border border-gray-200 rounded px-3 py-2 text-sm text-gray-800 h-20 resize-none cursor-not-allowed"></textarea></div>
+                                </div>
+                                <div class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+                                    <div class="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 px-6 py-3">審批信息</div>
+                                    <div class="overflow-x-auto">
+                                        <table class="ui-table text-center whitespace-nowrap">
+                                            <thead><tr><th>分類</th><th>工號</th><th>姓名</th><th>項目</th><th>部門</th><th>職位</th><th>狀態</th><th>審批日期</th></tr></thead>
+                                            <tbody id="modal-approval-flow-tbody" class="font-medium"></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-3">
+                                    <div class="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2">備註</div>
+                                    <textarea id="rv-remark" placeholder="請輸入審批備註..." class="w-full bg-white border border-gray-200 rounded px-3 py-2 text-sm text-gray-800 h-24 resize-none focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary"></textarea>
                                 </div>
                             </div>
+                            <div class="bg-[#F8F9FA] border-t border-gray-200 px-6 py-4 flex justify-center gap-3 flex-shrink-0 shadow-[0_-2px_8px_rgba(0,0,0,0.04)]">
+                                <button onclick="closeReviewModal()" class="ui-btn ui-btn-secondary">關閉</button>
+                                <button onclick="closeReviewModal()" class="ui-btn ui-btn-success ui-btn-lg">審批</button>
+                            </div>
                         </div>
-                        <div class="space-y-1.5">
-                            <span class="text-sm font-medium text-gray-700 block">申請說明</span>
-                            <textarea id="modal-reason" readonly class="ui-input italic h-[180px] cursor-not-allowed resize-none"></textarea>
-                        </div>
-                    </div>
-
-                    <!-- 3. 審批信息 (簽核歷程，檢視用) -->
-                    <div class="space-y-3">
-                        <div class="bg-[#E9EDF9] p-2.5 px-4 rounded-t-md border-b border-gray-200 flex items-center">
-                            <h4 class="font-bold text-gray-800 text-sm">審批信息</h4>
-                        </div>
-                        <div class="overflow-x-auto rounded-b-md border border-gray-200">
-                            <table class="ui-table text-center whitespace-nowrap">
-                                <thead>
-                                    <tr>
-                                        <th>分類</th>
-                                        <th>工號</th>
-                                        <th>姓名</th>
-                                        <th>項目</th>
-                                        <th>部門</th>
-                                        <th>職位</th>
-                                        <th>狀態</th>
-                                        <th>審批日期</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="modal-approval-flow-tbody" class="font-medium">
-                                    <!-- 由 JS 動態注入簽核節點流 -->
-                                </tbody>
-                            </table>
+                        <div class="w-full lg:w-[320px] bg-white border-t lg:border-t-0 lg:border-l border-gray-200 overflow-y-auto flex flex-col flex-shrink-0">
+                            <div class="bg-[#0097A7] text-white px-4 py-3.5 font-bold text-sm tracking-wide">審批線預覽</div>
+                            <div class="p-1 flex-1 overflow-y-auto">
+                                <table class="w-full table-fixed text-xs text-center border-collapse">
+                                    <thead>
+                                        <tr class="border-b border-gray-200 bg-gray-50 text-gray-500 font-bold">
+                                            <th class="px-2 py-2 w-10 border-r border-gray-200">序號</th>
+                                            <th class="px-2 py-2 w-14 border-r border-gray-200">條件</th>
+                                            <th class="px-2 py-2 border-r border-gray-200">職稱</th>
+                                            <th class="px-2 py-2 w-12">簽名</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-100 font-semibold text-gray-700">
+                                        <tr class="border-b border-gray-200"><td class="px-2 py-3 border-r border-gray-200 font-bold text-center text-gray-800">1</td><td class="px-2 py-3 border-r border-gray-200 text-gray-500">直屬主管</td><td class="px-2 py-3 border-r border-gray-200 text-gray-500">-</td><td class="px-2 py-3 text-center text-gray-400">-</td></tr>
+                                        <tr class="border-b border-gray-200"><td class="px-2 py-3 border-r border-gray-200 font-bold text-center text-gray-800">2</td><td class="px-2 py-3 border-r border-gray-200 text-gray-500">人資審核</td><td class="px-2 py-3 border-r border-gray-200 text-gray-500">-</td><td class="px-2 py-3 text-center text-gray-400">-</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
-
-                    <!-- 8. 評論 (僅顯示) -->
-                    <div class="space-y-3 pt-2">
-                        <h4 class="font-bold text-sm text-gray-800 border-b border-gray-100 pb-2">評論</h4>
-                        <div id="modal-comment-display" class="flex items-start gap-4">
-                            <!-- 由 JS 動態注入該筆評論；無評論時顯示提示 -->
-                        </div>
-                    </div>
-
-                </div>
-
-                <!-- 底部按鈕（僅檢視，關閉） -->
-                <div class="px-6 py-4 flex justify-end border-t border-gray-100 bg-gray-50/50 rounded-b-lg" id="modal-action-footer">
-                    <button onclick="closeReviewModal()" class="ui-btn ui-btn-secondary">
-                        關閉
-                    </button>
                 </div>
             </div>
         </div>
-    </div>
 
     <!-- 提示消息彈窗 (Toast Alert) -->
     <div id="toast" class="fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
@@ -656,78 +624,22 @@
 
         function openReviewModal(dbIndex) {
             activeReviewIndex = dbIndex;
-            const record = leaveDb[dbIndex];
-
-            // A. 基本輸入框填充 (附圖 1 風格)
-            document.getElementById('modal-app-date').value = record.appDate.split(' ')[0]; // 提取年月日
-            document.getElementById('modal-leave-start').value = record.startDate;
-            document.getElementById('modal-leave-end').value = record.endDate;
-            document.getElementById('modal-leave-type').value = record.type;
-            document.getElementById('modal-reason').value = record.reason || '無補充事由。';
-
-            // B. 每日工時分配盒生成 (附圖 1 的日期列表)
-            const dates = getDatesInRange(record.startDate, record.endDate);
-            const container = document.getElementById('modal-daily-hours-container');
-            container.innerHTML = '';
-            
-            let accumulatedHours = 0;
-            dates.forEach((dateStr, idx) => {
-                // 如果是最後一天且天數有小數，分配4小時，否則一般1天配8~10小時
-                let currentDayHour = 8;
-                if (record.days === 0.5) {
-                    currentDayHour = 4;
-                } else if (idx === dates.length - 1 && (record.days % 1 !== 0)) {
-                    currentDayHour = 4;
-                } else if (record.type === "陪產假" && idx < 2) {
-                    currentDayHour = 10; // 模擬附圖 1 的 10 單位
-                }
-
-                accumulatedHours += currentDayHour;
-
-                const rowDiv = document.createElement('div');
-                rowDiv.className = "flex items-center justify-between text-sm py-1 border-b border-gray-50";
-                rowDiv.innerHTML = `
-                    <span class="text-gray-700 font-medium font-mono">${dateStr}</span>
-                    <div class="flex items-center gap-2">
-                        <input type="text" readonly value="${currentDayHour}" class="w-12 text-center bg-gray-100 border border-gray-200 rounded text-gray-700 text-xs py-1 font-bold outline-none">
-                        <span class="text-xs text-gray-400">單位</span>
-                    </div>
-                `;
-                container.appendChild(rowDiv);
-            });
-
-            document.getElementById('modal-hour-used').innerText = `< Hour used: 0 >`;
-            document.getElementById('modal-total-hours').innerText = `Total : ${accumulatedHours} Hours`;
-
-            // C. 審批信息歷程流動表 (附圖 2 / 3 風格)
-            renderApprovalFlowTable(record);
-
-            // D. 評論（僅顯示該筆評論）
-            const commentDisplay = document.getElementById('modal-comment-display');
-            if (record.comment && record.comment.trim()) {
-                commentDisplay.innerHTML = `
-                    <div class="w-16 pt-0.5 font-mono font-bold text-sm text-gray-600 shrink-0">100344</div>
-                    <div class="flex-1 text-sm text-gray-700 bg-gray-50 border border-gray-100 rounded-lg p-3 leading-relaxed">${record.comment.trim()}</div>
-                `;
-            } else {
-                commentDisplay.innerHTML = `<div class="text-sm text-gray-400 italic py-2">尚無評論</div>`;
-            }
-
-            // E. 僅檢視：底部固定顯示「關閉」按鈕
-            const footer = document.getElementById('modal-action-footer');
-            footer.innerHTML = `
-                <button onclick="closeReviewModal()" class="ui-btn ui-btn-secondary">
-                    關閉
-                </button>
-            `;
-
-            const modal = document.getElementById('review-modal');
-            const panel = modal.querySelector('.transform');
-            modal.classList.remove('hidden');
-            setTimeout(() => {
-                panel.classList.add('modal-enter-active');
-                panel.classList.remove('modal-enter');
-            }, 10);
+            const r = leaveDb[dbIndex];
+            document.getElementById('rv-docno').value = `A-${r.dept || ''}-${r.id || ''}-${(r.startDate || '').replaceAll('-', '')}`;
+            document.getElementById('rv-appdate').value = (r.appDate || '').split(' ')[0];
+            document.getElementById('rv-name').value = r.name || '-';
+            document.getElementById('rv-empno').value = r.id || '-';
+            document.getElementById('rv-project').value = r.item || 'GT';
+            document.getElementById('rv-dept').value = r.dept || '-';
+            document.getElementById('rv-type').value = r.type || '-';
+            document.getElementById('rv-start').value = r.startDate ? `${r.startDate} 09:00` : '-';
+            document.getElementById('rv-end').value = r.endDate ? `${r.endDate} 18:00` : '-';
+            const hrs = (parseFloat(r.days) || 0) * 8;
+            document.getElementById('rv-hours').value = `${hrs.toFixed(1)} 小時`;
+            document.getElementById('rv-reason').value = r.reason || '無補充事由。';
+            document.getElementById('rv-remark').value = r.comment || '';
+            renderApprovalFlowTable(r);
+            document.getElementById('review-modal').classList.remove('hidden');
         }
 
         function renderApprovalFlowTable(record) {
@@ -781,14 +693,8 @@
 
         // 關閉 Modal
         function closeReviewModal() {
-            const modal = document.getElementById('review-modal');
-            const panel = modal.querySelector('.transform');
-            panel.classList.remove('modal-enter-active');
-            panel.classList.add('modal-enter');
-            setTimeout(() => {
-                modal.classList.add('hidden');
-                activeReviewIndex = null;
-            }, 200);
+            document.getElementById('review-modal').classList.add('hidden');
+            activeReviewIndex = null;
         }
 
         // Toast 提示控制中心
