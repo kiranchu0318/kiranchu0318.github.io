@@ -57,7 +57,7 @@
             </div>
 
             <!-- 列表表格 -->
-            <div class="overflow-y-auto flex-1 relative">
+            <div class="overflow-auto flex-1 relative">
                 <table class="ui-table text-left">
                     <thead class="sticky top-0 bg-white z-10">
                         <tr>
@@ -177,7 +177,7 @@
 
             <!-- 詳細資訊表格 (預設隱藏，點擊左側後顯示) -->
             <!-- 大幅優化：無垂直格線、淺綠色背景行 -->
-            <div id="rightContentTable" class="overflow-y-auto flex-1 hidden">
+            <div id="rightContentTable" class="overflow-auto flex-1 hidden">
                 <table class="ui-table text-left">
                     <thead class="sticky top-0 bg-white z-10">
                         <tr class="text-center">
@@ -306,7 +306,7 @@
             </div>
             
             <!-- Body -->
-            <div class="p-6 flex flex-col gap-4 overflow-y-auto flex-1">
+            <div class="p-6 flex flex-col gap-4 overflow-auto flex-1">
                 <!-- Top Input -->
                 <div class="w-full shrink-0">
                     <input type="text" id="memberSettingsTitleInput" value="內部合同單" readonly class="ui-input font-bold">
@@ -318,7 +318,7 @@
                     <!-- Column 1: 職稱列表 -->
                     <div class="lg:col-span-3 flex flex-col ui-card overflow-hidden">
                         <div class="bg-white px-5 py-3.5 border-b-2 border-slate-100 font-bold text-slate-800 text-[13px] shrink-0 text-center">職稱</div>
-                        <div class="p-4 flex flex-col gap-3 overflow-y-auto flex-1 custom-scrollbar">
+                        <div class="p-4 flex flex-col gap-3 overflow-auto flex-1 custom-scrollbar">
                             <div class="relative w-full shrink-0 dropdown-container">
                                 <button onclick="toggleDropdown(this)" class="w-full text-left border border-slate-200 rounded-lg px-3 py-2.5 flex justify-between items-center bg-white shadow-sm hover:bg-slate-50 text-slate-800">
                                     <span class="dropdown-label text-[14px] font-medium tracking-wide">全體</span> <span class="material-icons text-[22px] text-slate-500">arrow_drop_down</span>
@@ -340,7 +340,7 @@
                     <!-- Column 2: 簽核線編輯區 -->
                     <div class="lg:col-span-6 flex flex-col ui-card overflow-hidden">
                         <div class="bg-white px-5 py-3.5 border-b-2 border-slate-100 font-bold text-slate-800 text-[13px] shrink-0 text-center">簽核線</div>
-                        <div class="overflow-y-auto flex-1 custom-scrollbar">
+                        <div class="overflow-auto flex-1 custom-scrollbar">
                             <table class="ui-table text-center">
                                 <thead>
                                     <tr>
@@ -417,7 +417,7 @@
                     <!-- Column 3: 抄送編輯區 -->
                     <div class="lg:col-span-3 flex flex-col ui-card overflow-hidden">
                         <div class="bg-white px-5 py-3.5 border-b-2 border-slate-100 font-bold text-slate-800 text-[13px] shrink-0 text-center">抄送</div>
-                        <div class="overflow-y-auto flex-1 custom-scrollbar">
+                        <div class="overflow-auto flex-1 custom-scrollbar">
                             <table class="ui-table text-center">
                                 <thead>
                                     <tr>

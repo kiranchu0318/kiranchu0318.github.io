@@ -26,7 +26,7 @@
 </head>
 <body class="ui-page text-text-main antialiased relative">
 
-    <div class="mx-auto w-full max-w-[1400px] space-y-6">
+    <div class="mx-auto w-full space-y-6">
 
         <header class="ui-page-header">
             <h1 class="ui-page-title">費用分攤</h1>
@@ -104,9 +104,7 @@
                     </select>
                 </div>
             </div>
-            <div class="flex justify-end pt-1">
-                <button onclick="resetFilters()" class="text-xs text-primary font-semibold hover:underline flex items-center gap-1.5"><i class="fa-solid fa-arrows-rotate"></i> 重設篩選條件</button>
-            </div>
+            <div class="flex justify-end items-center gap-2 pt-1"><button onclick="render()" class="ui-btn ui-btn-primary ui-btn-sm"><i class="fa-solid fa-magnifying-glass"></i> 查詢</button><button onclick="resetFilters()" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-arrows-rotate"></i> 重置</button></div>
         </div>
 
         <!-- 列表 -->

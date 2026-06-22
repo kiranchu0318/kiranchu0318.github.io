@@ -104,7 +104,7 @@
 </head>
 <body class="ui-page text-text-main antialiased relative">
 
-    <div class="relative mx-auto w-full max-w-[1400px] space-y-6">
+    <div class="relative mx-auto w-full space-y-6">
         
         <!-- 頁面標題區塊 -->
         <header class="ui-page-header">
@@ -193,9 +193,8 @@
 
             <!-- 快速時間標籤 & 重設按鈕 -->
             <div class="flex flex-wrap items-center justify-end pt-2 gap-2">
-                <button onclick="resetFilters()" class="text-xs text-primary font-semibold hover:underline flex items-center gap-1.5">
-                    <i class="fa-solid fa-arrows-rotate"></i> 重設所有篩選條件
-                </button>
+                <button onclick="applyFilters()" class="ui-btn ui-btn-primary ui-btn-sm"><i class="fa-solid fa-magnifying-glass"></i> 查詢</button>
+                <button onclick="resetFilters()" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-arrows-rotate"></i> 重置</button>
             </div>
         </div>
 
@@ -412,7 +411,10 @@
             { id: "101566", name: "洪曉君", dept: "HR", jobTitle: "教育訓練專員", startDate: "2026-05-26", endDate: "2026-05-28", type: "特休", days: 3.0, reason: "規劃連假出國旅遊行程。", status: "待審核", appDate: "2026-05-22 09:50:40" },
             { id: "101588", name: "曾國維", dept: "IA1", jobTitle: "Internal Auditor", startDate: "2026-05-21", endDate: "2026-05-21", type: "公假", days: 1.0, reason: "代表公司至主管機關出席法遵說明會。", status: "已核准", appDate: "2026-05-19 13:15:00", comment: "請於會後繳交出席證明。" },
             { id: "101601", name: "潘怡君", dept: "MKT", jobTitle: "社群行銷專員", startDate: "2026-05-18", endDate: "2026-05-19", type: "事假", days: 2.0, reason: "陪同家人北上就醫並照護。", status: "已駁回", appDate: "2026-05-15 16:05:55", comment: "當期事假額度已用罄，且未檢附佐證，故予駁回。" },
-            { id: "101623", name: "孫立群", dept: "FIN", jobTitle: "Finance Manager", startDate: "2026-05-14", endDate: "2026-05-16", type: "喪假", days: 3.0, reason: "外婆辭世，返鄉協助處理後事。", status: "已核准", appDate: "2026-05-12 10:40:00", comment: "節哀，後續再補正相關文件即可。" }
+            { id: "101623", name: "孫立群", dept: "FIN", jobTitle: "Finance Manager", startDate: "2026-05-14", endDate: "2026-05-16", type: "喪假", days: 3.0, reason: "外婆辭世，返鄉協助處理後事。", status: "已核准", appDate: "2026-05-12 10:40:00", comment: "節哀，後續再補正相關文件即可。" },
+            { id: "101645", name: "葉俊宏", dept: "RD", jobTitle: "後端工程師", startDate: "2026-06-22", endDate: "2026-06-26", type: "特休", days: 5.0, reason: "規劃全家出國旅遊，連續安排五日特休。", status: "待審核", appDate: "2026-06-15 10:30:00" },
+            { id: "101667", name: "許雅芳", dept: "MKT", jobTitle: "品牌行銷專員", startDate: "2026-06-22", endDate: "2026-06-26", type: "病假", days: 5.0, reason: "接受手術後需住院並在家休養觀察。", status: "已核准", appDate: "2026-06-16 09:00:00", comment: "已附醫療證明，准予病假五日。" },
+            { id: "101689", name: "趙文彬", dept: "FIN", jobTitle: "資深會計", startDate: "2026-06-22", endDate: "2026-06-26", type: "事假", days: 5.0, reason: "返鄉處理家中房產過戶等相關事務。", status: "待審核", appDate: "2026-06-17 14:20:10" }
         ];
 
         // 地區 / 事業部 / 項目 歸屬（依工號與部門推導，與系統一致）

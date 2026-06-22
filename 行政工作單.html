@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>報銷審核</title>
+    <title>行政工作單</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script>
@@ -26,10 +26,10 @@
 </head>
 <body class="ui-page text-text-main antialiased relative">
 
-    <div class="mx-auto w-full space-y-6">
+    <div class="mx-auto w-full max-w-[1400px] space-y-6">
 
         <header class="ui-page-header">
-            <h1 class="ui-page-title">報銷審核</h1>
+            <h1 class="ui-page-title">行政工作單</h1>
             <button onclick="mockExport()" class="ui-btn ui-btn-secondary"><i class="fa-solid fa-download"></i> 匯出報表</button>
         </header>
 
@@ -37,11 +37,23 @@
         <div class="ui-card p-5 space-y-4">
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div>
-                    <label class="block text-xs font-semibold text-text-muted mb-1.5">搜尋（單號/申請人/項目）</label>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">搜尋（單號/申請人/工作項目）</label>
                     <div class="ui-search">
                         <i class="fa-solid fa-magnifying-glass"></i>
                         <input type="text" id="f-search" oninput="render()" placeholder="輸入關鍵字..." class="ui-input ui-search-input">
                     </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">工作類型</label>
+                    <select id="f-type" onchange="render()" class="ui-select">
+                        <option value="all">全部</option>
+                        <option value="用印申請">用印申請</option>
+                        <option value="設備維修">設備維修</option>
+                        <option value="門禁開通">門禁開通</option>
+                        <option value="名片印製">名片印製</option>
+                        <option value="場地借用">場地借用</option>
+                        <option value="文具請領">文具請領</option>
+                    </select>
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-text-muted mb-1.5">工作狀態</label>
@@ -67,7 +79,7 @@
         <!-- 列表 -->
         <section class="ui-card p-4 sm:p-6">
             <div class="flex items-center gap-2 mb-4">
-                <h2 class="text-lg font-bold text-gray-900 whitespace-nowrap">報銷審核列表</h2>
+                <h2 class="text-lg font-bold text-gray-900 whitespace-nowrap">行政工作單列表</h2>
                 <span id="count-badge" class="bg-blue-50 text-primary text-xs px-2.5 py-1 rounded-md font-bold">0 筆資料</span>
             </div>
 
@@ -78,8 +90,8 @@
                             <th scope="col" class="text-left">單號</th>
                             <th scope="col">申請人</th>
                             <th scope="col">部門</th>
-                            <th scope="col" class="text-left">報銷項目</th>
-                            <th scope="col" class="text-right">金額</th>
+                            <th scope="col" class="text-left">工作項目</th>
+                            <th scope="col">類型</th>
                             <th scope="col">申請日期</th>
                             <th scope="col">工作狀態</th>
                             <th scope="col">工作流進度</th>
@@ -91,8 +103,8 @@
             </div>
 
             <div id="no-data" class="hidden py-16 text-center space-y-3">
-                <div class="inline-flex p-4 bg-gray-50 text-gray-400 rounded-full"><i class="fa-solid fa-receipt text-3xl"></i></div>
-                <p class="text-sm text-text-muted font-medium">查無符合條件的報銷簽核單</p>
+                <div class="inline-flex p-4 bg-gray-50 text-gray-400 rounded-full"><i class="fa-solid fa-clipboard-list text-3xl"></i></div>
+                <p class="text-sm text-text-muted font-medium">查無符合條件的行政工作單</p>
                 <button onclick="resetFilters()" class="text-xs text-primary font-semibold hover:underline">清除篩選條件</button>
             </div>
 
@@ -109,13 +121,13 @@
 
     <!-- 詳情彈窗 -->
     <div id="detail-modal" class="fixed inset-0 bg-black/40 z-50 flex justify-center items-center hidden p-4">
-        <div class="bg-[#F0F2F5] rounded-xl shadow-2xl w-full max-w-[1450px] h-[90vh] flex flex-col overflow-hidden text-left">
+        <div class="bg-[#F0F2F5] rounded-xl shadow-2xl w-full max-w-[1450px] h-[90vh] flex flex-col overflow-hidden">
 
             <!-- 彈窗標題與關閉按鈕 -->
             <div class="bg-[#EEF2F6] px-6 py-3.5 flex items-center justify-between border-b border-gray-200 flex-shrink-0">
-                <span id="d-title" class="font-bold text-gray-800 text-base">費用報銷單</span>
+                <span class="font-bold text-gray-800 text-base"><span id="d-title">行政工作單</span></span>
                 <button onclick="closeDetail()" class="bg-[#3F51B5] hover:bg-blue-800 text-white p-1 rounded transition-colors">
-                    <i class="fa-solid fa-xmark text-lg leading-none"></i>
+                    <i class="fa-solid fa-xmark text-lg leading-none px-0.5"></i>
                 </button>
             </div>
 
@@ -132,30 +144,23 @@
                         </div>
                         <div>
                             <label class="block text-gray-700 text-xs mb-1.5 font-medium">申請日期</label>
-                            <div class="flex items-center bg-[#EAECEF] border border-gray-300 rounded px-3 py-2 text-sm text-gray-700">
-                                <i class="fa-regular fa-calendar mr-2 text-gray-500"></i>
-                                <span id="d-date"></span>
-                            </div>
+                            <input type="text" disabled id="d-date" class="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 cursor-not-allowed">
                         </div>
                         <div>
-                            <label class="block text-gray-700 text-xs mb-1.5 font-medium">標題</label>
-                            <input type="text" disabled id="d-title-field" class="w-full bg-white border border-gray-200 rounded px-3 py-2 text-sm text-gray-800 font-medium">
+                            <label class="block text-gray-700 text-xs mb-1.5 font-medium">工作項目</label>
+                            <input type="text" disabled id="d-title-field" class="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 cursor-not-allowed">
                         </div>
                         <div>
                             <label class="block text-gray-700 text-xs mb-1.5 font-medium">申請人</label>
-                            <input type="text" disabled id="d-applicant" class="w-full bg-white border border-gray-200 rounded px-3 py-2 text-sm text-gray-800">
+                            <input type="text" disabled id="d-applicant" class="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 cursor-not-allowed">
                         </div>
                         <div>
                             <label class="block text-gray-700 text-xs mb-1.5 font-medium">部門</label>
                             <input type="text" disabled id="d-dept" class="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 cursor-not-allowed">
                         </div>
                         <div>
-                            <label class="block text-gray-700 text-xs mb-1.5 font-medium">項目</label>
-                            <input type="text" disabled value="GT" class="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 cursor-not-allowed">
-                        </div>
-                        <div>
-                            <label class="block text-gray-700 text-xs mb-1.5 font-medium">區域</label>
-                            <input type="text" disabled value="T1" class="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 cursor-not-allowed">
+                            <label class="block text-gray-700 text-xs mb-1.5 font-medium">類型</label>
+                            <input type="text" disabled id="d-type" class="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 cursor-not-allowed">
                         </div>
                         <div>
                             <label class="block text-gray-700 text-xs mb-1.5 font-medium">簽核狀態</label>
@@ -164,20 +169,17 @@
                     </div>
                 </div>
 
-                <!-- 報銷明細卡片 -->
+                <!-- 工作內容卡片 -->
                 <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-5">
-                    <div class="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2">報銷明細</div>
+                    <div class="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2">工作內容</div>
                     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
                         <div class="lg:col-span-8">
-                            <label class="block text-gray-700 text-xs mb-1.5 font-semibold">報銷項目</label>
+                            <label class="block text-gray-700 text-xs mb-1.5 font-semibold">工作項目</label>
                             <input type="text" disabled id="d-item" class="w-full bg-white border border-gray-200 rounded px-3 py-2 text-sm text-gray-800 font-medium">
                         </div>
                         <div class="lg:col-span-4">
-                            <label class="block text-gray-700 text-xs mb-1.5 font-semibold">金額</label>
-                            <div class="flex items-center border border-gray-200 rounded overflow-hidden">
-                                <span class="bg-gray-50 border-r border-gray-200 px-3 py-2 text-sm text-gray-500 font-medium select-none">TWD</span>
-                                <input type="text" disabled id="d-amount" class="w-full bg-white px-3 py-2 text-sm text-gray-800 font-medium focus:outline-none">
-                            </div>
+                            <label class="block text-gray-700 text-xs mb-1.5 font-semibold">類型</label>
+                            <input type="text" disabled id="d-type2" class="w-full bg-white border border-gray-200 rounded px-3 py-2 text-sm text-gray-800 font-medium">
                         </div>
                     </div>
                 </div>
@@ -188,19 +190,19 @@
                     <textarea disabled rows="4" class="w-full border border-gray-200 rounded-lg p-3 text-sm text-gray-700 bg-white h-32 focus:outline-none"></textarea>
                 </div>
 
-                <!-- 審批線詳情表格區塊 -->
+                <!-- 審批線詳情卡片 -->
                 <div class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
                     <div class="bg-[#EEF2F6] px-6 py-3.5 flex items-center justify-between border-b border-gray-200">
                         <span class="font-bold text-[#1A237E] text-[15px]">審批線詳情</span>
                     </div>
-                    <div class="p-4 space-y-4">
+                    <div class="p-4">
                         <div class="overflow-x-auto border border-gray-100 rounded-lg">
                             <table class="w-full text-left text-xs border-collapse">
                                 <thead>
                                     <tr class="border-b border-gray-200 bg-gray-50 text-gray-700 font-bold">
                                         <th class="px-4 py-3 text-center w-16">序號</th>
                                         <th class="px-4 py-3 text-center w-28">審批狀態</th>
-                                        <th class="px-4 py-3 text-center w-28">級別</th>
+                                        <th class="px-4 py-3 text-center w-24">級別</th>
                                         <th class="px-4 py-3">職稱</th>
                                         <th class="px-4 py-3">簽名</th>
                                         <th class="px-4 py-3 w-28">ID</th>
@@ -215,7 +217,7 @@
 
             </div>
 
-            <!-- 底部按鈕區塊 -->
+            <!-- 固定底部按鈕區塊 -->
             <div class="bg-[#F8F9FA] border-t border-gray-200 px-6 py-4 flex flex-wrap justify-end gap-2.5 flex-shrink-0">
                 <button onclick="closeDetail()" class="ui-btn ui-btn-secondary">關閉</button>
                 <button onclick="withdrawDoc()" class="ui-btn bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"><i class="fa-solid fa-rotate-left"></i> 撤回</button>
@@ -232,27 +234,31 @@
     </div>
 
     <script>
-        // 費用報銷（含工作流）簽核單。實務上由「簽核」建立後同步至此；此為原型示意資料。
+        // 行政工作單（含工作流）。實務上由「簽核」建立後同步至此；此為原型示意資料。
         const docs = [
-            { docNo: 'C-20260605-002', applicant: '101372', dept: 'RD', title: '一般費用報銷（差旅交通）', amount: 'TWD 2,000', date: '2026-06-05', signStatus: '待簽核',
-              approvals: [{ role: '部門主管', status: '待審批' }, { role: '財務人員', status: '待審批' }],
-              workflow: [{ task: '發票／單據查核', owner: '財務人員', status: '待處理' }, { task: '付款排程', owner: '財務人員', status: '待處理' }, { task: '撥款', owner: '出納', status: '待處理' }] },
-            { docNo: 'C-20260603-019', applicant: 'KKKKK', dept: '財務', title: '客戶招待費報銷', amount: 'TWD 8,600', date: '2026-06-03', signStatus: '簽核中',
-              approvals: [{ role: '部門主管', status: '已核准' }, { role: '財務主管', status: '審批中' }],
-              workflow: [{ task: '發票／單據查核', owner: '財務人員', status: '處理中' }, { task: '付款排程', owner: '財務人員', status: '待處理' }, { task: '撥款', owner: '出納', status: '待處理' }] },
-            { docNo: 'C-20260530-011', applicant: 'Bertha W', dept: 'MKT', title: '行銷活動雜支報銷', amount: 'TWD 15,400', date: '2026-05-30', signStatus: '簽核完成',
-              approvals: [{ role: '部門主管', status: '已核准' }, { role: '財務主管', status: '已核准' }],
-              workflow: [{ task: '發票／單據查核', owner: '財務人員', status: '已完成' }, { task: '付款排程', owner: '財務人員', status: '已完成' }, { task: '撥款', owner: '出納', status: '處理中' }] },
-            { docNo: 'C-20260527-006', applicant: 'Derrick', dept: 'IA1', title: '證照考試費用報銷', amount: 'TWD 4,500', date: '2026-05-27', signStatus: '簽核完成',
-              approvals: [{ role: '部門主管', status: '已核准' }, { role: '財務人員', status: '已核准' }],
-              workflow: [{ task: '發票／單據查核', owner: '財務人員', status: '已完成' }, { task: '付款排程', owner: '財務人員', status: '已完成' }, { task: '撥款', owner: '出納', status: '已完成' }] },
-            { docNo: 'C-20260521-018', applicant: 'Liz G', dept: 'RD', title: '超額餐費報銷（已駁回）', amount: 'TWD 3,200', date: '2026-05-21', signStatus: '駁回',
-              approvals: [{ role: '部門主管', status: '駁回' }],
-              workflow: [{ task: '發票／單據查核', owner: '財務人員', status: '待處理' }] }
+            { docNo: 'AW-20260612-001', applicant: '林雅婷', dept: 'RD', title: '研發部門名片印製 ×20', type: '名片印製', date: '2026-06-12', signStatus: '簽核中',
+              approvals: [{ role: '申請人直屬主管', status: '已核准' }, { role: '行政主管', status: '審批中' }],
+              workflow: [{ task: '確認名片版型與數量', owner: '行政人員', status: '已完成' }, { task: '送印廠商下單', owner: '行政人員', status: '處理中' }, { task: '到貨發放', owner: '行政人員', status: '待處理' }] },
+            { docNo: 'AW-20260610-007', applicant: '張家豪', dept: 'HR', title: '福爾摩沙會議室冷氣維修', type: '設備維修', date: '2026-06-10', signStatus: '簽核完成',
+              approvals: [{ role: '申請人直屬主管', status: '已核准' }, { role: '行政主管', status: '已核准' }],
+              workflow: [{ task: '派工維修廠商', owner: '總務', status: '已完成' }, { task: '維修完成驗收', owner: '總務', status: '已完成' }] },
+            { docNo: 'AW-20260608-013', applicant: '陳小明', dept: 'RD', title: '新進員工門禁卡開通', type: '門禁開通', date: '2026-06-08', signStatus: '待簽核',
+              approvals: [{ role: '申請人直屬主管', status: '待審批' }, { role: '資訊安全', status: '待審批' }],
+              workflow: [{ task: '建立門禁權限', owner: '資安人員', status: '待處理' }, { task: '發放門禁卡', owner: '行政人員', status: '待處理' }] },
+            { docNo: 'AW-20260605-021', applicant: '黃淑芬', dept: 'MKT', title: '客戶合約用印申請', type: '用印申請', date: '2026-06-05', signStatus: '簽核中',
+              approvals: [{ role: '申請人直屬主管', status: '已核准' }, { role: '法務', status: '審批中' }, { role: '行政主管', status: '待審批' }],
+              workflow: [{ task: '核對用印文件', owner: '行政人員', status: '處理中' }, { task: '用印與登記', owner: '行政人員', status: '待處理' }, { task: '文件歸檔', owner: '行政人員', status: '待處理' }] },
+            { docNo: 'AW-20260601-005', applicant: '李美玲', dept: 'HR', title: '季度大會場地借用', type: '場地借用', date: '2026-06-01', signStatus: '簽核完成',
+              approvals: [{ role: '申請人直屬主管', status: '已核准' }, { role: '行政主管', status: '已核准' }],
+              workflow: [{ task: '場地預約', owner: '行政人員', status: '已完成' }, { task: '設備與茶水準備', owner: '行政人員', status: '處理中' }] },
+            { docNo: 'AW-20260528-018', applicant: '劉建國', dept: 'IA1', title: '部門文具請領（超量，已駁回）', type: '文具請領', date: '2026-05-28', signStatus: '駁回',
+              approvals: [{ role: '申請人直屬主管', status: '駁回' }],
+              workflow: [{ task: '備貨與發放', owner: '行政人員', status: '待處理' }] }
         ];
 
         let currentIndex = -1;
 
+        /* ===== 狀態徽章 ===== */
         function signBadge(s) {
             const map = { '待簽核': 'ui-badge-info', '簽核中': 'ui-badge-warning', '簽核完成': 'ui-badge-success', '駁回': 'ui-badge-danger', '撤回': 'ui-badge-gray', '待補件': 'ui-badge-warning' };
             return `<span class="ui-badge ${map[s] || 'ui-badge-gray'} mx-auto">${s}</span>`;
@@ -284,14 +290,17 @@
                     </div>`;
         }
 
+        /* ===== 列表渲染與篩選 ===== */
         function render() {
             const kw = document.getElementById('f-search').value.trim().toLowerCase();
+            const type = document.getElementById('f-type').value;
             const work = document.getElementById('f-work').value;
             const start = document.getElementById('f-start').value;
             const end = document.getElementById('f-end').value;
 
             const rows = docs.map((d, i) => ({ d, i })).filter(({ d }) =>
                 (!kw || d.docNo.toLowerCase().includes(kw) || d.applicant.toLowerCase().includes(kw) || d.title.toLowerCase().includes(kw)) &&
+                (type === 'all' || d.type === type) &&
                 (work === 'all' || workStatus(d) === work) &&
                 (!start || d.date >= start) && (!end || d.date <= end));
 
@@ -317,7 +326,7 @@
                     <td class="text-gray-700">${d.applicant}</td>
                     <td><span class="px-2 py-0.5 bg-gray-100 rounded text-xs font-semibold text-gray-700">${d.dept}</span></td>
                     <td class="text-left text-gray-800">${d.title}</td>
-                    <td class="text-right font-mono text-gray-700">${d.amount}</td>
+                    <td><span class="px-2 py-0.5 bg-blue-50 text-primary rounded text-xs font-semibold">${d.type}</span></td>
                     <td class="text-gray-600">${d.date}</td>
                     <td>${workBadge(workStatus(d))}</td>
                     <td>${flowProgressHtml(d)}</td>
@@ -334,26 +343,34 @@
 
         function resetFilters() {
             document.getElementById('f-search').value = '';
+            document.getElementById('f-type').value = 'all';
             document.getElementById('f-work').value = 'all';
             document.getElementById('f-start').value = '';
             document.getElementById('f-end').value = '';
             render();
         }
 
+        /* ===== 詳情 ===== */
         function openDetail(i) {
             currentIndex = i;
             const d = docs[i];
-            document.getElementById('d-title').innerText = `費用報銷單 — ${d.docNo}`;
+            document.getElementById('d-title').innerText = `行政工作單 — ${d.docNo}`;
+
+            // 基本資訊
             document.getElementById('d-docno').value = d.docNo;
-            document.getElementById('d-date').innerText = d.date;
+            document.getElementById('d-date').value = d.date;
             document.getElementById('d-title-field').value = d.title;
             document.getElementById('d-applicant').value = d.applicant;
             document.getElementById('d-dept').value = d.dept;
+            document.getElementById('d-type').value = d.type;
             document.getElementById('d-status').innerHTML = signBadge(d.signStatus).replace(' mx-auto', '');
-            document.getElementById('d-item').value = d.title;
-            document.getElementById('d-amount').value = d.amount.replace(/^TWD\s*/, '');
 
-            const approvalRows = d.approvals.map((a, idx) => `
+            // 工作內容
+            document.getElementById('d-item').value = d.title;
+            document.getElementById('d-type2').value = d.type;
+
+            // 審批線詳情：審批人 + 後續工作
+            let rows = d.approvals.map((a, idx) => `
                 <tr>
                     <td class="px-4 py-3 text-center font-bold text-gray-800">${idx + 1}</td>
                     <td class="px-4 py-3 text-center">${stepBadge(a.status)}</td>
@@ -364,18 +381,22 @@
                     <td class="px-4 py-3 text-gray-400">-</td>
                 </tr>`).join('');
 
-            const workflowRows = d.workflow.map((w, idx) => `
+            rows += `
                 <tr class="bg-gray-50/50">
-                    <td class="px-4 py-3 text-center text-gray-400 font-bold">後續</td>
+                    <td colspan="7" class="px-4 py-2 text-[11px] font-bold text-gray-500">後續工作（審批通過後執行）</td>
+                </tr>`;
+            rows += d.workflow.map((w, idx) => `
+                <tr class="bg-gray-50/50">
+                    <td class="px-4 py-3 text-center text-gray-400 font-bold">${idx + 1}</td>
                     <td class="px-4 py-3 text-center">${stepBadge(w.status)}</td>
-                    <td class="px-4 py-3 text-center text-gray-400">後續工作</td>
-                    <td class="px-4 py-3 text-gray-500">${w.task}</td>
+                    <td class="px-4 py-3 text-center text-gray-400">location</td>
+                    <td class="px-4 py-3 text-gray-600">${w.task}</td>
                     <td class="px-4 py-3 text-gray-500">${w.owner}</td>
                     <td class="px-4 py-3 text-gray-400 font-mono">-</td>
                     <td class="px-4 py-3 text-gray-400">-</td>
                 </tr>`).join('');
 
-            document.getElementById('d-approval-rows').innerHTML = approvalRows + workflowRows;
+            document.getElementById('d-approval-rows').innerHTML = rows;
 
             document.getElementById('detail-modal').classList.remove('hidden');
         }
@@ -401,7 +422,7 @@
         }
         function closeDetail() { document.getElementById('detail-modal').classList.add('hidden'); }
 
-        function mockExport() { showToast('success', '報銷審核報表已開始匯出'); }
+        function mockExport() { showToast('success', '行政工作單報表已開始匯出'); }
 
         function showToast(type, text) {
             const toast = document.getElementById('toast');

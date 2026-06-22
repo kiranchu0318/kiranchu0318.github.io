@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>組織架構管理</title>
+    <title>員工資料來源</title>
     <!-- 引入 Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- 引入 Font Awesome 用於圖標 -->
@@ -51,17 +51,24 @@
 
         <!-- 頁面標題區塊 -->
         <header class="ui-page-header">
-            <h1 class="ui-page-title">組織架構管理</h1>
+            <h1 class="ui-page-title">員工資料來源</h1>
         </header>
 
-        <!-- 頁籤：地區 / 公司 / 事業部 / 項目 / 部門 / 職位 / 職級 -->
-        <div id="tab-bar" class="flex items-center gap-1 border-b border-gray-200 overflow-x-auto custom-scrollbar"><!-- 動態由 JavaScript 渲染 --></div>
+        <!-- 主版面：左側資料來源選單 + 右側列表 -->
+        <div class="ui-card overflow-hidden flex flex-col lg:flex-row min-h-[640px]">
 
-        <!-- 列表區塊（七個分頁共用，依當前分頁切換資料） -->
-        <div class="space-y-6">
+            <!-- 左側：資料來源選單 -->
+            <aside class="lg:w-56 shrink-0 border-b lg:border-b-0 lg:border-r border-gray-100 flex flex-col">
+                <div class="px-4 py-3 border-b border-gray-100">
+                    <h2 class="font-bold text-gray-900 text-sm">資料來源</h2>
+                </div>
+                <div id="tab-bar" class="flex-1 overflow-y-auto p-2 space-y-0.5 custom-scrollbar lg:max-h-[600px]"><!-- 動態由 JavaScript 渲染 --></div>
+            </aside>
 
-            <!-- 工具列：搜尋 + 新增 -->
-            <div class="ui-card p-5">
+            <!-- 右側：列表 -->
+            <section class="flex-1 min-w-0 flex flex-col p-4 sm:p-6 space-y-4">
+
+                <!-- 工具列：搜尋 + 新增 -->
                 <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
                     <div class="flex items-center gap-2">
                         <div class="ui-search w-full sm:w-80">
@@ -74,15 +81,10 @@
                         <i class="fa-solid fa-plus"></i> 新增
                     </button>
                 </div>
-            </div>
 
-            <!-- 列表 -->
-            <section class="ui-card p-4 sm:p-6">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
-                    <div class="flex items-center gap-2">
-                        <h2 id="list-title" class="text-lg font-bold text-gray-900 whitespace-nowrap">地區列表</h2>
-                        <span id="count-badge" class="bg-blue-50 text-primary text-xs px-2.5 py-1 rounded-md font-bold">0 筆資料</span>
-                    </div>
+                <div class="flex items-center gap-2">
+                    <h2 id="list-title" class="text-lg font-bold text-gray-900 whitespace-nowrap">結算日列表</h2>
+                    <span id="count-badge" class="bg-blue-50 text-primary text-xs px-2.5 py-1 rounded-md font-bold">0 筆資料</span>
                 </div>
 
                 <div class="overflow-x-auto rounded-lg border border-gray-100 custom-scrollbar">
@@ -90,7 +92,6 @@
                         <thead>
                             <tr>
                                 <th scope="col" class="text-left">名稱</th>
-                                <th scope="col">狀態</th>
                                 <th scope="col" class="text-center">操作</th>
                             </tr>
                         </thead>
@@ -103,7 +104,7 @@
                     <p class="text-sm text-text-muted font-medium">查無符合條件的資料</p>
                 </div>
 
-                <div class="flex items-center justify-between mt-6 pt-4 border-t border-gray-100">
+                <div class="flex items-center justify-between pt-4 mt-auto border-t border-gray-100">
                     <span id="pagination-info" class="text-sm text-gray-500">顯示第 0 到 0 筆，共 0 筆記錄</span>
                     <div class="flex gap-1">
                         <button class="ui-page-btn"><i class="fa-solid fa-chevron-left text-xs"></i></button>
@@ -120,7 +121,7 @@
     <div id="edit-modal" class="fixed inset-0 bg-black/40 z-50 flex justify-center items-center hidden p-4">
         <div class="bg-white rounded-2xl shadow-modal w-full max-w-md overflow-hidden">
             <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-                <h3 id="modal-title" class="text-base font-bold text-gray-900">新增地區</h3>
+                <h3 id="modal-title" class="text-base font-bold text-gray-900">新增結算日</h3>
                 <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
@@ -152,69 +153,157 @@
     </div>
 
     <script>
-        // 七個分頁設定
+        // 各資料來源分頁設定
         const CATEGORIES = [
-            { key: 'region',   label: '地區' },
-            { key: 'company',  label: '公司' },
-            { key: 'bu',       label: '事業部' },
-            { key: 'project',  label: '項目' },
-            { key: 'dept',     label: '部門' },
-            { key: 'position', label: '職位' },
-            { key: 'grade',    label: '職級' }
+            { key: 'settleDay',     label: '結算日' },
+            { key: 'currency',      label: '貨幣類型' },
+            { key: 'payment',       label: '支付方式' },
+            { key: 'bonus',         label: '獎金類型' },
+            { key: 'teamBuild',     label: '團建分類' },
+            { key: 'approvalLevel', label: '審批層級' },
+            { key: 'acctStatus',    label: '帳號狀態' },
+            { key: 'salutation',    label: '稱呼' },
+            { key: 'resumeSource',  label: '履歷來源' },
+            { key: 'employType',    label: '僱傭類型' },
+            { key: 'hrManager',     label: '人事經理' },
+            { key: 'marital',       label: '婚姻狀況' },
+            { key: 'grade',         label: '職級' },
+            { key: 'relation',      label: '與員工的關係' },
+            { key: 'gender',        label: '性別' },
+            { key: 'approvalOrder', label: '審批層級排序' },
+            { key: 'countryCode',   label: '國家代碼' },
+            { key: 'timezone',      label: '時區' },
+            { key: 'benefit',       label: '福利制度' }
         ];
 
-        // 各分頁資料庫（代碼 / 名稱 / 啟用狀態）
-        const orgData = {
-            region: [
-                { code: 'TW', name: '台灣', active: true },
-                { code: 'US', name: '美國', active: true },
-                { code: 'JP', name: '日本', active: true },
-                { code: 'CN', name: '中國', active: true },
-                { code: 'SG', name: '新加坡', active: false }
+        // 各分頁資料庫（名稱 / 啟用狀態）
+        const dataStore = {
+            settleDay: [
+                { name: '每月 10 日', active: true },
+                { name: '每月 15 日', active: true },
+                { name: '每月 25 日', active: true },
+                { name: '每月最後一日', active: true }
             ],
-            company: [
-                { code: 'KH-TW', name: '知為股份有限公司', active: true },
-                { code: 'KH-US', name: 'KnowHow USA Inc.', active: true },
-                { code: 'KH-JP', name: 'ノウハウ株式会社', active: true },
-                { code: 'KH-CN', name: '知為（上海）科技有限公司', active: false }
+            currency: [
+                { name: 'TWD（新台幣）', active: true },
+                { name: 'USD（美元）', active: true },
+                { name: 'CNY（人民幣）', active: true },
+                { name: 'JPY（日圓）', active: true },
+                { name: 'VND（越南盾）', active: false }
             ],
-            bu: [
-                { code: 'BU01', name: '軟體事業部', active: true },
-                { code: 'BU02', name: '硬體事業部', active: true },
-                { code: 'BU03', name: '雲端服務事業部', active: true },
-                { code: 'BU04', name: '行銷事業部', active: false }
+            payment: [
+                { name: 'Autopay（自動轉帳）', active: true },
+                { name: '銀行轉帳', active: true },
+                { name: '支票', active: true },
+                { name: '現金', active: false }
             ],
-            project: [
-                { code: 'GT', name: 'GT 專案', active: true },
-                { code: 'NX', name: 'NX 新平台', active: true },
-                { code: 'AI', name: 'AI 研究專案', active: true },
-                { code: 'OLD', name: '舊版維運專案', active: false }
+            bonus: [
+                { name: 'A', active: true },
+                { name: 'B', active: true },
+                { name: 'C', active: true },
+                { name: '無獎金', active: true }
             ],
-            dept: [
-                { code: 'RD', name: '研發部', active: true },
-                { code: 'HR', name: '人資部', active: true },
-                { code: 'FIN', name: '財務部', active: true },
-                { code: 'MKT', name: '行銷部', active: true },
-                { code: 'IA1', name: '內稽部', active: false }
+            teamBuild: [
+                { name: '團建分類-一般', active: true },
+                { name: '團建分類-主管', active: true },
+                { name: '團建分類-高階', active: true }
             ],
-            position: [
-                { code: 'PM', name: '專案經理', active: true },
-                { code: 'FE', name: '前端工程師', active: true },
-                { code: 'BE', name: '後端工程師', active: true },
-                { code: 'UI', name: 'UI/UX 設計師', active: true },
-                { code: 'QA', name: '測試工程師', active: false }
+            approvalLevel: [
+                { name: '1', active: true },
+                { name: '2', active: true },
+                { name: '3', active: true },
+                { name: '4', active: true },
+                { name: '5', active: true }
+            ],
+            acctStatus: [
+                { name: 'Active（啟用）', active: true },
+                { name: 'Inactive（停用）', active: true },
+                { name: 'Suspended（暫停）', active: true },
+                { name: 'Resigned（離職）', active: true }
+            ],
+            salutation: [
+                { name: 'Mr', active: true },
+                { name: 'Ms', active: true },
+                { name: 'Mrs', active: true },
+                { name: 'Dr', active: true },
+                { name: 'Prefer not to say', active: true }
+            ],
+            resumeSource: [
+                { name: '自招 / Internal Recruit', active: true },
+                { name: '人力銀行', active: true },
+                { name: '員工推薦', active: true },
+                { name: '獵頭', active: true },
+                { name: 'Unknown', active: false }
+            ],
+            employType: [
+                { name: 'Full-Time', active: true },
+                { name: 'Part-Time', active: true },
+                { name: 'Contract', active: true },
+                { name: 'Intern', active: true },
+                { name: 'Dispatch', active: false }
+            ],
+            hrManager: [
+                { name: '林雅婷（100423）', active: true },
+                { name: '王建中（100479）', active: true },
+                { name: '陳怡君（100139）', active: true },
+                { name: '李美玲（100645）', active: false }
+            ],
+            marital: [
+                { name: 'Single', active: true },
+                { name: 'Married', active: true },
+                { name: 'Divorced', active: true },
+                { name: 'Widowed', active: true }
             ],
             grade: [
-                { code: 'P1', name: '助理工程師', active: true },
-                { code: 'P2', name: '工程師', active: true },
-                { code: 'P3', name: '資深工程師', active: true },
-                { code: 'M1', name: '初階主管', active: true },
-                { code: 'M2', name: '中階主管', active: false }
+                { name: 'X', active: true },
+                { name: 'P1', active: true },
+                { name: 'P2', active: true },
+                { name: 'P3', active: true },
+                { name: 'M1', active: true },
+                { name: 'M2', active: true }
+            ],
+            relation: [
+                { name: 'Mother', active: true },
+                { name: 'Father', active: true },
+                { name: 'Spouse', active: true },
+                { name: 'Sibling', active: true },
+                { name: 'Friend', active: true }
+            ],
+            gender: [
+                { name: 'Male', active: true },
+                { name: 'Female', active: true },
+                { name: 'Prefer not to say', active: true }
+            ],
+            approvalOrder: [
+                { name: '第 1 順位', active: true },
+                { name: '第 2 順位', active: true },
+                { name: '第 3 順位', active: true },
+                { name: '第 4 順位', active: true }
+            ],
+            countryCode: [
+                { name: 'TW', active: true },
+                { name: 'US', active: true },
+                { name: 'CN', active: true },
+                { name: 'JP', active: true },
+                { name: 'GB', active: true },
+                { name: 'VN', active: false }
+            ],
+            timezone: [
+                { name: 'Asia/Taipei', active: true },
+                { name: 'America/New_York', active: true },
+                { name: 'Asia/Shanghai', active: true },
+                { name: 'Asia/Tokyo', active: true },
+                { name: 'Europe/London', active: false }
+            ],
+            benefit: [
+                { name: '一般福利制度', active: true },
+                { name: '主管福利制度', active: true },
+                { name: 'T區法幣_TRG-HR-001-員工手冊暨人力資源管理制度-V1.0', active: true }
             ]
         };
 
-        let activeCat = 'region';
-        let editIndex = -1;   // -1 = 新增；>=0 = 編輯第幾筆（指向 orgData[activeCat] 的索引）
+        let activeCat = 'settleDay';
+        let editIndex = -1;   // -1 = 新增；>=0 = 編輯第幾筆（指向 dataStore[activeCat] 的索引）
 
         function currentLabel() {
             return CATEGORIES.find(c => c.key === activeCat).label;
@@ -223,8 +312,8 @@
         // 渲染頁籤
         function renderTabs() {
             const bar = document.getElementById('tab-bar');
-            const onCls = 'px-4 py-2.5 text-sm font-semibold text-primary border-b-2 border-primary -mb-px transition-colors whitespace-nowrap';
-            const offCls = 'px-4 py-2.5 text-sm font-medium text-gray-500 border-b-2 border-transparent -mb-px hover:text-gray-700 transition-colors whitespace-nowrap';
+            const onCls = 'w-full text-left px-3 py-2 rounded-lg text-sm font-semibold text-primary bg-primary-light transition-colors';
+            const offCls = 'w-full text-left px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors';
             bar.innerHTML = CATEGORIES.map(c =>
                 `<button onclick="switchCat('${c.key}')" class="${c.key === activeCat ? onCls : offCls}">${c.label}</button>`
             ).join('');
@@ -243,8 +332,7 @@
             const tbody = document.getElementById('org-tbody');
             const noData = document.getElementById('no-data-view');
             const kw = document.getElementById('search-input').value.trim().toLowerCase();
-            const list = orgData[activeCat];
-            // 保留原始索引以利編輯 / 切換狀態
+            const list = dataStore[activeCat];
             const rows = list.map((r, i) => ({ r, i }))
                 .filter(({ r }) => !kw || r.name.toLowerCase().includes(kw));
 
@@ -266,13 +354,11 @@
                 const statusBadge = r.active
                     ? '<span class="ui-badge ui-badge-success mx-auto">啟用</span>'
                     : '<span class="ui-badge mx-auto bg-gray-100 text-gray-500">停用</span>';
-                // 停用/啟用 按鈕：依當前狀態顯示反向動作
                 const toggleBtn = r.active
                     ? `<button onclick="toggleStatus(${i})" class="ui-btn ui-btn-sm text-amber-600 border border-amber-200 hover:bg-amber-50"><i class="fa-solid fa-ban"></i> 停用</button>`
                     : `<button onclick="toggleStatus(${i})" class="ui-btn ui-btn-sm text-emerald-600 border border-emerald-200 hover:bg-emerald-50"><i class="fa-solid fa-circle-check"></i> 啟用</button>`;
                 tr.innerHTML = `
                     <td class="text-left font-medium text-gray-800">${r.name}</td>
-                    <td>${statusBadge}</td>
                     <td>
                         <div class="flex items-center justify-center gap-2">
                             <button onclick="openEdit(${i})" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-pen-to-square"></i> 編輯</button>
@@ -289,7 +375,7 @@
 
         // 切換啟用 / 停用
         function toggleStatus(i) {
-            const rec = orgData[activeCat][i];
+            const rec = dataStore[activeCat][i];
             rec.active = !rec.active;
             showToast(rec.active ? 'success' : 'info', `已${rec.active ? '啟用' : '停用'}「${rec.name}」`);
             render();
@@ -306,7 +392,7 @@
 
         function openEdit(i) {
             editIndex = i;
-            const rec = orgData[activeCat][i];
+            const rec = dataStore[activeCat][i];
             document.getElementById('modal-title').innerText = `編輯${currentLabel()}`;
             document.getElementById('field-name').value = rec.name;
             document.getElementById('field-status').value = String(rec.active);
@@ -326,8 +412,7 @@
                 return;
             }
 
-            const list = orgData[activeCat];
-            // 名稱不可重複（編輯時排除自己）
+            const list = dataStore[activeCat];
             const dup = list.some((r, idx) => r.name === name && idx !== editIndex);
             if (dup) {
                 showToast('error', `「${name}」已存在`);
@@ -378,6 +463,7 @@
         // 初始化
         window.onload = function () {
             renderTabs();
+            document.getElementById('list-title').innerText = `${currentLabel()}列表`;
             render();
         };
     </script>

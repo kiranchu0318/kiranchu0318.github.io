@@ -26,7 +26,7 @@
 </head>
 <body class="ui-page text-text-main antialiased relative">
 
-    <div class="mx-auto w-full max-w-[1400px] space-y-6">
+    <div class="mx-auto w-full space-y-6">
 
         <header class="ui-page-header">
             <h1 class="ui-page-title">採購申請管理</h1>
@@ -61,9 +61,7 @@
                     </div>
                 </div>
             </div>
-            <div class="flex justify-end pt-1">
-                <button onclick="resetFilters()" class="text-xs text-primary font-semibold hover:underline flex items-center gap-1.5"><i class="fa-solid fa-arrows-rotate"></i> 重設篩選條件</button>
-            </div>
+            <div class="flex justify-end items-center gap-2 pt-1"><button onclick="render()" class="ui-btn ui-btn-primary ui-btn-sm"><i class="fa-solid fa-magnifying-glass"></i> 查詢</button><button onclick="resetFilters()" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-arrows-rotate"></i> 重置</button></div>
         </div>
 
         <!-- 列表 -->
@@ -111,30 +109,130 @@
 
     <!-- 詳情彈窗 -->
     <div id="detail-modal" class="fixed inset-0 bg-black/40 z-50 flex justify-center items-center hidden p-4">
-        <div class="bg-white rounded-2xl shadow-modal w-full max-w-2xl flex flex-col max-h-[88vh] overflow-hidden">
-            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 shrink-0">
-                <h3 id="d-title" class="text-base font-bold text-gray-900">採購申請單</h3>
-                <button onclick="closeDetail()" class="text-gray-400 hover:text-gray-600 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100"><i class="fa-solid fa-xmark"></i></button>
+        <div class="bg-[#F0F2F5] rounded-xl shadow-2xl w-full max-w-[1450px] h-[90vh] flex flex-col overflow-hidden text-left">
+
+            <!-- 彈窗標題與關閉按鈕 -->
+            <div class="bg-[#EEF2F6] px-6 py-3.5 flex items-center justify-between border-b border-gray-200 flex-shrink-0">
+                <span class="font-bold text-gray-800 text-base"><span id="d-title">採購申請單</span></span>
+                <button onclick="closeDetail()" class="bg-[#3F51B5] hover:bg-blue-800 text-white p-1 rounded transition-colors">
+                    <i class="fa-solid fa-xmark text-lg leading-none px-0.5"></i>
+                </button>
             </div>
-            <div class="px-6 py-5 overflow-y-auto custom-scrollbar space-y-6">
-                <!-- 表單資訊 -->
-                <div>
-                    <h4 class="text-sm font-bold text-gray-800 border-b border-gray-100 pb-2 mb-3">表單資訊</h4>
-                    <div id="d-info" class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-sm"></div>
+
+            <!-- 內容滾動區 -->
+            <div class="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-6">
+
+                <!-- 基本資訊卡片 -->
+                <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-5">
+                    <div class="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2">基本資訊</div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div>
+                            <label class="block text-gray-700 text-xs mb-1.5 font-medium">文件編號</label>
+                            <input type="text" disabled id="d-docno" class="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 cursor-not-allowed font-mono">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-xs mb-1.5 font-medium">申請日期</label>
+                            <input type="text" disabled id="d-date" class="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 cursor-not-allowed">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-xs mb-1.5 font-medium">標題</label>
+                            <input type="text" disabled id="d-title-field" class="w-full bg-white border border-gray-200 rounded px-3 py-2 text-sm text-gray-800 font-medium">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-xs mb-1.5 font-medium">申請人</label>
+                            <input type="text" disabled id="d-applicant" class="w-full bg-white border border-gray-200 rounded px-3 py-2 text-sm text-gray-800">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-xs mb-1.5 font-medium">部門</label>
+                            <input type="text" disabled id="d-dept" class="w-full bg-white border border-gray-200 rounded px-3 py-2 text-sm text-gray-800">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-xs mb-1.5 font-medium">項目</label>
+                            <input type="text" disabled value="GT" class="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 cursor-not-allowed">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-xs mb-1.5 font-medium">區域</label>
+                            <input type="text" disabled id="d-area" class="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 cursor-not-allowed">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-xs mb-1.5 font-medium">簽核狀態</label>
+                            <div id="d-status" class="flex items-center h-[38px]"></div>
+                        </div>
+                    </div>
                 </div>
-                <!-- 審批進度 -->
-                <div>
-                    <h4 class="text-sm font-bold text-gray-800 border-b border-gray-100 pb-2 mb-3">審批進度</h4>
-                    <div id="d-approvals" class="space-y-2"></div>
+
+                <!-- 採購明細卡片 -->
+                <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-5">
+                    <div class="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2">採購明細</div>
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                        <div class="lg:col-span-8">
+                            <label class="block text-gray-700 text-xs mb-1.5 font-semibold">採購項目</label>
+                            <input type="text" disabled id="d-item" class="w-full bg-white border border-gray-200 rounded px-3 py-2 text-sm text-gray-800 font-medium">
+                        </div>
+                        <div class="lg:col-span-4">
+                            <label class="block text-gray-700 text-xs mb-1.5 font-semibold">金額</label>
+                            <div class="flex items-center border border-gray-200 rounded overflow-hidden">
+                                <span class="bg-gray-50 border-r border-gray-200 px-3 py-2 text-sm text-gray-500 font-medium select-none">TWD</span>
+                                <input type="text" disabled id="d-amount" class="w-full bg-white px-3 py-2 text-sm text-gray-800 font-medium focus:outline-none">
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <!-- 工作流進度 -->
-                <div>
-                    <h4 class="text-sm font-bold text-gray-800 border-b border-gray-100 pb-2 mb-3 flex items-center gap-2">工作流進度 <span class="text-[11px] font-normal text-text-light">（審批通過後執行）</span></h4>
-                    <div id="d-workflow" class="space-y-2"></div>
+
+                <!-- 備註卡片 -->
+                <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-3">
+                    <div class="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2">備註</div>
+                    <textarea disabled rows="4" class="w-full border border-gray-200 rounded-lg p-3 text-sm text-gray-700 bg-white h-32 focus:outline-none"></textarea>
                 </div>
+
+                <!-- 審批線詳情卡片 -->
+                <div class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+                    <div class="bg-[#EEF2F6] px-6 py-3.5 flex items-center justify-between border-b border-gray-200">
+                        <span class="font-bold text-[#1A237E] text-[15px]">審批線詳情</span>
+                    </div>
+                    <div class="p-4 space-y-4">
+                        <div class="overflow-x-auto border border-gray-100 rounded-lg">
+                            <table class="w-full text-left text-xs border-collapse">
+                                <thead>
+                                    <tr class="border-b border-gray-200 bg-gray-50 text-gray-700 font-bold">
+                                        <th class="px-4 py-3 text-center w-16">序號</th>
+                                        <th class="px-4 py-3 text-center w-28">審批狀態</th>
+                                        <th class="px-4 py-3 text-center w-24">級別</th>
+                                        <th class="px-4 py-3">職稱</th>
+                                        <th class="px-4 py-3">簽名</th>
+                                        <th class="px-4 py-3 w-28">ID</th>
+                                        <th class="px-4 py-3 w-40">審批時間</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="d-approval-rows" class="divide-y divide-gray-100 font-medium"></tbody>
+                            </table>
+                        </div>
+
+                        <div class="text-xs font-semibold text-gray-500 pt-2">後續工作</div>
+                        <div class="overflow-x-auto border border-gray-100 rounded-lg">
+                            <table class="w-full text-left text-xs border-collapse">
+                                <thead>
+                                    <tr class="border-b border-gray-200 bg-gray-50 text-gray-700 font-bold">
+                                        <th class="px-4 py-3 text-center w-16">序號</th>
+                                        <th class="px-4 py-3 text-center w-28">狀態</th>
+                                        <th class="px-4 py-3">工作項目</th>
+                                        <th class="px-4 py-3">負責人</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="d-workflow-rows" class="divide-y divide-gray-100 font-medium"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
             </div>
-            <div class="flex justify-end gap-2.5 px-6 py-4 bg-gray-50 border-t border-gray-100 shrink-0">
+
+            <!-- 固定底部按鈕區 -->
+            <div class="bg-[#F8F9FA] border-t border-gray-200 px-6 py-4 flex flex-wrap justify-end gap-2.5 flex-shrink-0">
                 <button onclick="closeDetail()" class="ui-btn ui-btn-secondary">關閉</button>
+                <button onclick="withdrawDoc()" class="ui-btn bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"><i class="fa-solid fa-rotate-left"></i> 撤回</button>
+                <button onclick="supplementDoc()" class="ui-btn bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100"><i class="fa-solid fa-circle-exclamation"></i> 要求補件</button>
+                <button onclick="approveDoc()" class="ui-btn ui-btn-primary"><i class="fa-solid fa-circle-check"></i> 審批通過</button>
             </div>
         </div>
     </div>
@@ -165,9 +263,11 @@
               workflow: [{ task: '採購單建檔', owner: '採購人員', status: '待處理' }] }
         ];
 
+        let currentIndex = -1;
+
         /* ===== 狀態徽章 ===== */
         function signBadge(s) {
-            const map = { '待簽核': 'ui-badge-info', '簽核中': 'ui-badge-warning', '簽核完成': 'ui-badge-success', '駁回': 'ui-badge-danger' };
+            const map = { '待簽核': 'ui-badge-info', '簽核中': 'ui-badge-warning', '簽核完成': 'ui-badge-success', '駁回': 'ui-badge-danger', '撤回': 'ui-badge-gray', '待補件': 'ui-badge-warning' };
             return `<span class="ui-badge ${map[s] || 'ui-badge-gray'} mx-auto">${s}</span>`;
         }
         function stepBadge(s) {
@@ -256,34 +356,59 @@
 
         /* ===== 詳情 ===== */
         function openDetail(i) {
+            currentIndex = i;
             const d = docs[i];
             document.getElementById('d-title').innerText = `採購申請單 — ${d.docNo}`;
-            document.getElementById('d-info').innerHTML = `
-                <div><span class="text-text-muted">申請人：</span><span class="font-medium text-gray-800">${d.applicant}</span></div>
-                <div><span class="text-text-muted">部門：</span><span class="font-medium text-gray-800">${d.dept}</span></div>
-                <div class="sm:col-span-2"><span class="text-text-muted">採購項目：</span><span class="font-medium text-gray-800">${d.title}</span></div>
-                <div><span class="text-text-muted">金額：</span><span class="font-medium text-gray-800 font-mono">${d.amount}</span></div>
-                <div><span class="text-text-muted">申請日期：</span><span class="font-medium text-gray-800">${d.date}</span></div>
-                <div><span class="text-text-muted">簽核狀態：</span>${signBadge(d.signStatus).replace(' mx-auto', '')}</div>`;
+            document.getElementById('d-docno').value = d.docNo;
+            document.getElementById('d-date').value = d.date;
+            document.getElementById('d-title-field').value = d.title;
+            document.getElementById('d-applicant').value = d.applicant;
+            document.getElementById('d-dept').value = d.dept;
+            document.getElementById('d-area').value = d.dept || 'T1';
+            document.getElementById('d-status').innerHTML = signBadge(d.signStatus).replace(' mx-auto', '');
+            document.getElementById('d-item').value = d.title;
+            document.getElementById('d-amount').value = d.amount;
 
-            document.getElementById('d-approvals').innerHTML = d.approvals.map((a, idx) => `
-                <div class="flex items-center gap-3 p-2.5 border border-gray-100 rounded-lg">
-                    <span class="w-6 h-6 rounded-full bg-blue-50 text-primary text-xs font-bold flex items-center justify-center shrink-0">${idx + 1}</span>
-                    <span class="text-sm text-gray-800 flex-1">${a.role}</span>
-                    ${stepBadge(a.status)}
-                </div>`).join('');
+            document.getElementById('d-approval-rows').innerHTML = d.approvals.map((a, idx) => `
+                <tr>
+                    <td class="px-4 py-3 text-center font-bold text-gray-800">${idx + 1}</td>
+                    <td class="px-4 py-3 text-center">${stepBadge(a.status)}</td>
+                    <td class="px-4 py-3 text-center text-gray-500">location</td>
+                    <td class="px-4 py-3 text-gray-800">${a.role}</td>
+                    <td class="px-4 py-3 text-gray-400">-</td>
+                    <td class="px-4 py-3 text-gray-400 font-mono">-</td>
+                    <td class="px-4 py-3 text-gray-400">-</td>
+                </tr>`).join('');
 
-            document.getElementById('d-workflow').innerHTML = d.workflow.map((w, idx) => `
-                <div class="flex items-center gap-3 p-2.5 border border-gray-100 rounded-lg bg-[#F0FBFA]/50">
-                    <span class="w-6 h-6 rounded-full bg-[#D7F5F2] text-[#0E7C77] text-xs font-bold flex items-center justify-center shrink-0">${idx + 1}</span>
-                    <div class="flex-1 min-w-0">
-                        <div class="text-sm text-gray-800">${w.task}</div>
-                        <div class="text-xs text-text-muted">負責人：${w.owner}</div>
-                    </div>
-                    ${stepBadge(w.status)}
-                </div>`).join('');
+            document.getElementById('d-workflow-rows').innerHTML = d.workflow.map((w, idx) => `
+                <tr>
+                    <td class="px-4 py-3 text-center font-bold text-gray-800">${idx + 1}</td>
+                    <td class="px-4 py-3 text-center">${stepBadge(w.status)}</td>
+                    <td class="px-4 py-3 text-gray-800">${w.task}</td>
+                    <td class="px-4 py-3 text-gray-600">${w.owner}</td>
+                </tr>`).join('');
 
             document.getElementById('detail-modal').classList.remove('hidden');
+        }
+        function approveDoc() {
+            if (currentIndex < 0) return;
+            const d = docs[currentIndex];
+            d.signStatus = '簽核完成';
+            d.approvals.forEach(a => a.status = '已核准');
+            closeDetail(); render();
+            showToast('success', `已審批通過 ${d.docNo}`);
+        }
+        function supplementDoc() {
+            if (currentIndex < 0) return;
+            docs[currentIndex].signStatus = '待補件';
+            closeDetail(); render();
+            showToast('info', `已要求補件 ${docs[currentIndex].docNo}`);
+        }
+        function withdrawDoc() {
+            if (currentIndex < 0) return;
+            docs[currentIndex].signStatus = '撤回';
+            closeDetail(); render();
+            showToast('info', `已撤回 ${docs[currentIndex].docNo}`);
         }
         function closeDetail() { document.getElementById('detail-modal').classList.add('hidden'); }
 

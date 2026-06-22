@@ -83,7 +83,6 @@
                 <table class="ui-table text-center whitespace-nowrap">
                     <thead>
                         <tr>
-                            <th scope="col" class="text-left w-32">分組編號</th>
                             <th scope="col" class="text-left w-48">分組名稱</th>
                             <th scope="col" class="text-left">組內成員名單</th>
                             <th scope="col" class="w-40">操作</th>
@@ -310,7 +309,6 @@
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-gray-50/70 transition-colors";
                 tr.innerHTML = `
-                    <td class="text-left font-mono font-semibold text-gray-500">${g.id}</td>
                     <td class="text-left font-bold text-gray-800">${g.name}</td>
                     <td class="text-left">
                         <div class="flex flex-wrap items-center gap-1.5">

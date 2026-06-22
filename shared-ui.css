@@ -181,7 +181,7 @@
     font-weight: 500;
     border: none;
     border-bottom: 1px solid var(--ui-border);
-    white-space: normal;
+    white-space: nowrap;
 }
 .ui-table tbody td {
     padding: 0.875rem 1.25rem;      /* py-3.5 px-5 */
@@ -197,13 +197,12 @@
 .ui-table tbody tr:hover { background-color: var(--ui-bg-subtle); }
 .ui-table tbody tr:last-child td { border-bottom: none; }
 
-/* 列表自適應：表格滿版、欄位寬度隨容器/螢幕縮放；內容過長改為換行而非固定不換行造成橫向捲動。
-   （此規則的優先序高於各頁面在 <table>/<td> 上加的 whitespace-nowrap，故所有 ui-table 列表皆會自適應） */
+/* 列表行為：欄位內容一律不換行；當螢幕縮減、總寬超出容器時，由外層捲動容器（.ui-table-scroll / overflow-x-auto）左右滑動，而非把欄位文字折行。 */
 .ui-table { table-layout: auto; }
 .ui-table th,
-.ui-table td { white-space: normal; overflow-wrap: break-word; word-break: break-word; }
-/* 狀態徽章維持單行（不被上面規則影響） */
-.ui-table .ui-badge { white-space: nowrap; }
+.ui-table td { white-space: nowrap; }
+/* 為 ui-table 提供統一的橫向捲動容器，避免各頁需自行包 overflow-x-auto */
+.ui-table-scroll { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
 
 /* =====================================================================
    4. 狀態標籤 / 徽章 Badge

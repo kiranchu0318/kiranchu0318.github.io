@@ -139,6 +139,8 @@
                         <option value="PMO">PMO</option>
                         <option value="HR">HR</option>
                     </select>
+                    <!-- 查詢按鈕 -->
+                    <button onclick="filterForms()" class="ui-btn ui-btn-primary ui-btn-sm"><i class="fa-solid fa-magnifying-glass"></i> 查詢</button>
                 </div>
             </div>
 
@@ -148,11 +150,11 @@
                     <thead>
                         <tr>
                             <th scope="col">表單名稱</th>
-                            <th scope="col">類型代碼</th>
-                            <th scope="col">分類</th>
-                            <th scope="col">申請對象</th>
+                            <th scope="col" class="w-28">分類</th>
+                            <th scope="col" class="w-20 text-center">排序</th>
                             <th scope="col" class="w-24">狀態</th>
-                            <th scope="col">操作</th>
+                            <th scope="col" class="min-w-[220px]">說明</th>
+                            <th scope="col" class="w-60">操作</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -160,19 +162,17 @@
                         <!-- 資料列 1: OA資產申請單 -->
                         <tr>
                             <td class="font-medium text-gray-800 form-name">OA資產申請單</td>
-                            <td><span class="px-2 py-1 bg-gray-100 rounded text-xs text-gray-600 font-mono">asset_request</span></td>
                             <td class="form-category"><span class="ui-badge ui-badge-info">行政</span></td>
-                            <td class="form-rules-count">1 項</td>
+                            <td class="form-sort text-center font-medium text-gray-700">1</td>
                             <td class="form-status">
                                 <span class="ui-badge ui-badge-success">
                                     啟用
                                 </span>
                             </td>
+                            <td class="form-desc text-gray-600 text-sm">員工申請領用 OA／IT 資產設備之表單。</td>
                             <td>
                                 <div class="flex items-center gap-2">
-                                    <button type="button" onclick="openEditSettingModal(this)" class="ui-btn ui-btn-secondary ui-btn-sm">編輯基本設定</button>
-                                    <button type="button" onclick="openTargetModal(this)" class="ui-btn ui-btn-secondary ui-btn-sm">設定申請對象</button>
-                                    <button type="button" onclick="toggleRowStatus(this)" class="px-3 py-1.5 text-sm font-medium text-white bg-orange-500 rounded shadow-sm hover:bg-orange-600 transition-colors btn-toggle-status">停用</button>
+                                    <button type="button" onclick="openEditSettingModal(this)" class="ui-btn ui-btn-secondary ui-btn-sm">編輯基本設定</button>                                    <button type="button" onclick="toggleRowStatus(this)" class="px-3 py-1.5 text-sm font-medium text-white bg-orange-500 rounded shadow-sm hover:bg-orange-600 transition-colors btn-toggle-status">停用</button>
                                 </div>
                             </td>
                         </tr>
@@ -180,19 +180,17 @@
                         <!-- 資料列 2: 資訊需求申請 -->
                         <tr>
                             <td class="font-medium text-gray-800 form-name">資訊需求申請</td>
-                            <td><span class="px-2 py-1 bg-gray-100 rounded text-xs text-gray-600 font-mono">it_request</span></td>
                             <td class="form-category"><span class="ui-badge ui-badge-info">行政</span></td>
-                            <td class="form-rules-count">0 項</td>
+                            <td class="form-sort text-center font-medium text-gray-700">2</td>
                             <td class="form-status">
                                 <span class="ui-badge ui-badge-success">
                                     啟用
                                 </span>
                             </td>
+                            <td class="form-desc text-gray-600 text-sm">提出資訊系統、軟體或設備需求之申請。</td>
                             <td>
                                 <div class="flex items-center gap-2">
-                                    <button type="button" onclick="openEditSettingModal(this)" class="ui-btn ui-btn-secondary ui-btn-sm">編輯基本設定</button>
-                                    <button type="button" onclick="openTargetModal(this)" class="ui-btn ui-btn-secondary ui-btn-sm">設定申請對象</button>
-                                    <button type="button" onclick="toggleRowStatus(this)" class="px-3 py-1.5 text-sm font-medium text-white bg-orange-500 rounded shadow-sm hover:bg-orange-600 transition-colors btn-toggle-status">停用</button>
+                                    <button type="button" onclick="openEditSettingModal(this)" class="ui-btn ui-btn-secondary ui-btn-sm">編輯基本設定</button>                                    <button type="button" onclick="toggleRowStatus(this)" class="px-3 py-1.5 text-sm font-medium text-white bg-orange-500 rounded shadow-sm hover:bg-orange-600 transition-colors btn-toggle-status">停用</button>
                                 </div>
                             </td>
                         </tr>
@@ -200,19 +198,17 @@
                         <!-- 資料列 3: 出差申請 -->
                         <tr>
                             <td class="font-medium text-gray-800 form-name">出差申請</td>
-                            <td><span class="px-2 py-1 bg-gray-100 rounded text-xs text-gray-600 font-mono">business_trip</span></td>
                             <td class="form-category"><span class="ui-badge ui-badge-info">商務</span></td>
-                            <td class="form-rules-count">0 項</td>
+                            <td class="form-sort text-center font-medium text-gray-700">3</td>
                             <td class="form-status">
                                 <span class="ui-badge ui-badge-success">
                                     啟用
                                 </span>
                             </td>
+                            <td class="form-desc text-gray-600 text-sm">員工因公出差之行程與費用申請。</td>
                             <td>
                                 <div class="flex items-center gap-2">
-                                    <button type="button" onclick="openEditSettingModal(this)" class="ui-btn ui-btn-secondary ui-btn-sm">編輯基本設定</button>
-                                    <button type="button" onclick="openTargetModal(this)" class="ui-btn ui-btn-secondary ui-btn-sm">設定申請對象</button>
-                                    <button type="button" onclick="toggleRowStatus(this)" class="px-3 py-1.5 text-sm font-medium text-white bg-orange-500 rounded shadow-sm hover:bg-orange-600 transition-colors btn-toggle-status">停用</button>
+                                    <button type="button" onclick="openEditSettingModal(this)" class="ui-btn ui-btn-secondary ui-btn-sm">編輯基本設定</button>                                    <button type="button" onclick="toggleRowStatus(this)" class="px-3 py-1.5 text-sm font-medium text-white bg-orange-500 rounded shadow-sm hover:bg-orange-600 transition-colors btn-toggle-status">停用</button>
                                 </div>
                             </td>
                         </tr>
@@ -220,19 +216,17 @@
                         <!-- 資料列 4: 採購申請 -->
                         <tr>
                             <td class="font-medium text-gray-800 form-name">採購申請</td>
-                            <td><span class="px-2 py-1 bg-gray-100 rounded text-xs text-gray-600 font-mono">purchase_request</span></td>
                             <td class="form-category"><span class="ui-badge ui-badge-info">財務</span></td>
-                            <td class="form-rules-count">0 項</td>
+                            <td class="form-sort text-center font-medium text-gray-700">4</td>
                             <td class="form-status">
                                 <span class="ui-badge ui-badge-success">
                                     啟用
                                 </span>
                             </td>
+                            <td class="form-desc text-gray-600 text-sm">部門採購物品或服務之請購表單。</td>
                             <td>
                                 <div class="flex items-center gap-2">
-                                    <button type="button" onclick="openEditSettingModal(this)" class="ui-btn ui-btn-secondary ui-btn-sm">編輯基本設定</button>
-                                    <button type="button" onclick="openTargetModal(this)" class="ui-btn ui-btn-secondary ui-btn-sm">設定申請對象</button>
-                                    <button type="button" onclick="toggleRowStatus(this)" class="px-3 py-1.5 text-sm font-medium text-white bg-orange-500 rounded shadow-sm hover:bg-orange-600 transition-colors btn-toggle-status">停用</button>
+                                    <button type="button" onclick="openEditSettingModal(this)" class="ui-btn ui-btn-secondary ui-btn-sm">編輯基本設定</button>                                    <button type="button" onclick="toggleRowStatus(this)" class="px-3 py-1.5 text-sm font-medium text-white bg-orange-500 rounded shadow-sm hover:bg-orange-600 transition-colors btn-toggle-status">停用</button>
                                 </div>
                             </td>
                         </tr>
@@ -296,7 +290,7 @@
                         <!-- 說明 (多行文字) -->
                         <div class="grid grid-cols-[120px_1fr] items-start gap-4">
                             <label class="text-sm font-medium text-gray-700 text-right pt-2">說明</label>
-                            <textarea class="ui-input resize-none" rows="3" placeholder="選填"></textarea>
+                            <textarea id="modalDescription" class="ui-input resize-none" rows="3" placeholder="選填"></textarea>
                         </div>
 
                         <!-- 排序 (增減控制) -->
@@ -518,11 +512,15 @@
             const formNameText = currentEditingRow.querySelector('.form-name').textContent.trim();
             const categoryText = currentEditingRow.querySelector('.form-category span').textContent.trim();
             const statusText = currentEditingRow.querySelector('.form-status span').textContent.trim();
-            
+            const sortText = currentEditingRow.querySelector('.form-sort') ? currentEditingRow.querySelector('.form-sort').textContent.trim() : '1';
+
             // 動態塞入 Modal 欄位
             modalFormName.value = formNameText;
             modalCategorySelect.value = categoryText;
             modalStatusCheckbox.checked = (statusText === '啟用');
+            document.getElementById('modalSortOrder').value = sortText;
+            const descCellEl = currentEditingRow.querySelector('.form-desc');
+            document.getElementById('modalDescription').value = descCellEl ? descCellEl.textContent.trim() : '';
 
             editSettingModal.classList.remove('hidden');
             setTimeout(() => {
@@ -562,6 +560,14 @@
                 currentEditingRow.querySelector('.form-category').innerHTML = `
                     <span class="ui-badge ui-badge-info">${newCategory}</span>
                 `;
+
+                // 更新排序
+                const sortCell = currentEditingRow.querySelector('.form-sort');
+                if (sortCell) sortCell.textContent = document.getElementById('modalSortOrder').value.trim() || '1';
+
+                // 更新說明
+                const descCell = currentEditingRow.querySelector('.form-desc');
+                if (descCell) descCell.textContent = document.getElementById('modalDescription').value.trim();
 
                 // 更新狀態與按鈕
                 const statusCell = currentEditingRow.querySelector('.form-status');

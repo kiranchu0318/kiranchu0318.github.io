@@ -107,6 +107,14 @@
             <h1 class="ui-page-title">帳號角色管理</h1>
         </header>
 
+        <!-- 主分頁：帳號角色 / 審批角色 -->
+        <div class="flex items-center gap-1 border-b border-gray-200 mb-6">
+            <button id="mtab-roles" onclick="switchMainTab('roles')" class="px-4 py-2.5 text-sm font-semibold text-primary border-b-2 border-primary -mb-px transition-colors">帳號角色設置</button>
+            <button id="mtab-approval" onclick="switchMainTab('approval')" class="px-4 py-2.5 text-sm font-medium text-gray-500 border-b-2 border-transparent -mb-px hover:text-gray-700 transition-colors">審批角色</button>
+        </div>
+
+        <!-- ============ 分頁 1：帳號角色 ============ -->
+        <div id="acct-tab-roles">
         <!-- 主要內容區塊 (卡片樣式) -->
         <section class="ui-card p-4 sm:p-6">
 
@@ -117,17 +125,20 @@
                     <!-- 搜尋框 -->
                     <div class="ui-search w-full sm:w-[280px]">
                         <i class="fa-solid fa-magnifying-glass"></i>
-                        <input type="text" placeholder="搜尋員工編號、姓名或 Email" class="ui-input ui-search-input">
+                        <input type="text" id="acctSearch" oninput="filterAccounts()" placeholder="搜尋員工編號、姓名或 Email" class="ui-input ui-search-input">
                     </div>
 
                     <!-- 狀態下拉選單 -->
                     <div class="w-full sm:w-[150px]">
-                        <select class="ui-select">
+                        <select id="acctStatus" onchange="filterAccounts()" class="ui-select">
                             <option value="all" selected>全部</option>
                             <option value="active">啟用</option>
                             <option value="inactive">停用</option>
                         </select>
                     </div>
+
+                    <!-- 查詢按鈕 -->
+                    <button onclick="filterAccounts()" class="ui-btn ui-btn-primary ui-btn-sm"><i class="fa-solid fa-magnifying-glass"></i> 查詢</button>
                 </div>
 
                 <!-- 新增按鈕 -->
@@ -149,61 +160,52 @@
                             <th scope="col" class="min-w-[150px]">操作</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="acctTbody">
 
                         <!-- 資料列 1 -->
-                        <tr>
+                        <tr class="acct-row">
                             <td>50030</td>
                             <td>Ellie Nelson</td>
                             <td>財務主管、財務人員、人事專員</td>
-                            <td>
-                                <span class="ui-badge ui-badge-success">
-                                    啟用
-                                </span>
-                            </td>
+                            <td><span class="acct-status-badge ui-badge ui-badge-success">啟用</span></td>
                             <td>
                                 <div class="flex items-center justify-center gap-2">
                                     <button onclick="openApprovalModal()" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-pen"></i> 編輯角色</button>
-                                    <button class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-circle-info"></i> 停用</button>
+                                    <button onclick="toggleAccountStatus(this)" class="acct-toggle ui-btn ui-btn-sm text-amber-600 border border-amber-200 hover:bg-amber-50"><i class="fa-solid fa-ban"></i> 停用</button>
                                 </div>
                             </td>
                         </tr>
 
                         <!-- 資料列 2 -->
-                        <tr>
+                        <tr class="acct-row">
                             <td>50029</td>
                             <td>Logan Adams</td>
                             <td>人事專員</td>
-                            <td>
-                                <span class="ui-badge ui-badge-success">
-                                    啟用
-                                </span>
-                            </td>
+                            <td><span class="acct-status-badge ui-badge ui-badge-success">啟用</span></td>
                             <td>
                                 <div class="flex items-center justify-center gap-2">
                                     <button onclick="openApprovalModal()" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-pen"></i> 編輯角色</button>
-                                    <button class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-circle-info"></i> 停用</button>
+                                    <button onclick="toggleAccountStatus(this)" class="acct-toggle ui-btn ui-btn-sm text-amber-600 border border-amber-200 hover:bg-amber-50"><i class="fa-solid fa-ban"></i> 停用</button>
                                 </div>
                             </td>
                         </tr>
 
                         <!-- 資料列 3 -->
-                        <tr>
+                        <tr class="acct-row">
                             <td>50028</td>
                             <td>Poppy Baker</td>
                             <td>財務主管、財務人員</td>
-                            <td>
-                                <span class="ui-badge ui-badge-danger">
-                                    停用
-                                </span>
-                            </td>
+                            <td><span class="acct-status-badge ui-badge bg-gray-100 text-gray-500">停用</span></td>
                             <td>
                                 <div class="flex items-center justify-center gap-2">
                                     <button onclick="openApprovalModal()" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-pen"></i> 編輯角色</button>
-                                    <button class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-circle-info"></i> 啟用</button>
+                                    <button onclick="toggleAccountStatus(this)" class="acct-toggle ui-btn ui-btn-sm text-emerald-600 border border-emerald-200 hover:bg-emerald-50"><i class="fa-solid fa-circle-check"></i> 啟用</button>
                                 </div>
                             </td>
                         </tr>
+
+                        <!-- 查無資料 -->
+                        <tr id="acctNoData" class="hidden"><td colspan="5" class="text-center text-gray-400 py-10 text-sm">查無符合條件的帳號</td></tr>
 
                     </tbody>
                 </table>
@@ -234,7 +236,58 @@
             </div>
 
         </section>
+        </div>
 
+        <!-- ============ 分頁 2：審批角色（由審批流設定移入）============ -->
+        <div id="acct-tab-approval" class="hidden">
+            <section class="ui-card p-4 sm:p-6">
+                <div class="flex justify-end mb-4">
+                    <button onclick="openApprovalRoleModal()" class="ui-btn ui-btn-primary"><i class="fa-solid fa-plus"></i> 新增審批角色</button>
+                </div>
+                <div class="overflow-x-auto rounded-lg border border-gray-100">
+                    <table class="ui-table text-left">
+                        <thead>
+                            <tr>
+                                <th scope="col" class="w-1/4">角色名稱</th>
+                                <th scope="col">說明</th>
+                            </tr>
+                        </thead>
+                        <tbody id="approval-role-tbody"><!-- 動態渲染 --></tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+
+    </div>
+
+    <!-- 新增審批角色 彈窗 -->
+    <div id="approvalRoleModal" class="fixed inset-0 bg-black/40 z-50 flex justify-center items-center hidden p-4">
+        <div class="bg-white rounded-2xl shadow-modal w-full max-w-md overflow-hidden">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                <h3 class="text-base font-bold text-gray-900">新增審批角色</h3>
+                <button onclick="closeApprovalRoleModal()" class="text-gray-400 hover:text-gray-600 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="px-6 py-5 space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">角色名稱 <span class="text-rose-500">*</span></label>
+                    <input type="text" id="approvalRoleName" placeholder="請輸入角色名稱" class="ui-input">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">說明</label>
+                    <textarea id="approvalRoleDesc" rows="3" placeholder="請輸入角色說明（選填）" class="ui-input resize-none"></textarea>
+                </div>
+            </div>
+            <div class="flex justify-end gap-2.5 px-6 py-4 bg-gray-50 border-t border-gray-100">
+                <button onclick="closeApprovalRoleModal()" class="ui-btn ui-btn-secondary">取消</button>
+                <button onclick="saveApprovalRole()" class="ui-btn ui-btn-primary">儲存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 提示消息 (Toast) -->
+    <div id="toast" class="fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+        <i id="toast-icon" class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
+        <span id="toast-text" class="text-sm font-medium">操作成功！</span>
     </div>
 
     <!-- ========================================== -->
@@ -1707,6 +1760,112 @@
                 closeAllSelects();
             }
         });
+
+        /* ===== 主分頁切換（帳號角色 / 審批角色）===== */
+        function switchMainTab(tab) {
+            const onCls = 'px-4 py-2.5 text-sm font-semibold text-primary border-b-2 border-primary -mb-px transition-colors';
+            const offCls = 'px-4 py-2.5 text-sm font-medium text-gray-500 border-b-2 border-transparent -mb-px hover:text-gray-700 transition-colors';
+            document.getElementById('acct-tab-roles').classList.toggle('hidden', tab !== 'roles');
+            document.getElementById('acct-tab-approval').classList.toggle('hidden', tab !== 'approval');
+            document.getElementById('mtab-roles').className = tab === 'roles' ? onCls : offCls;
+            document.getElementById('mtab-approval').className = tab === 'approval' ? onCls : offCls;
+        }
+
+        /* ===== 審批角色（由審批流設定移入）===== */
+        let approvalRoles = [
+            { name: '申請人直屬主管', desc: '從員工組織歸屬中取得直屬主管，動態解析，無需設定群組' },
+            { name: '部門主管', desc: '從部門資料解析部門主管，動態解析，無需設定群組' },
+            { name: '負責人', desc: '依分組類型從審批對應解析對應負責人 (需同時選擇分組)' },
+            { name: '人事專員', desc: '依分組類型從審批對應解析對應人事專員' },
+            { name: '人事主管', desc: '依分組類型從審批對應解析對應人事主管' },
+            { name: '財務人員', desc: '依分組類型從審批對應解析對應財務人員' },
+            { name: '財務主管', desc: '依分組類型從審批對應解析對應財務主管' },
+            { name: '執行長', desc: '特殊層級，從審批對應解析，需在帳號管理設定 scopeType=special' },
+            { name: '董事長', desc: '特殊層級，從審批對應解析，需在帳號管理設定 scopeType=special' }
+        ];
+
+        function renderApprovalRoles() {
+            const tbody = document.getElementById('approval-role-tbody');
+            if (!tbody) return;
+            tbody.innerHTML = approvalRoles.map(r => `
+                <tr class="hover:bg-gray-50/70 transition-colors">
+                    <td class="font-medium text-gray-800">${r.name}</td>
+                    <td class="whitespace-normal leading-relaxed text-gray-600">${r.desc}</td>
+                </tr>`).join('');
+        }
+
+        function openApprovalRoleModal() {
+            document.getElementById('approvalRoleName').value = '';
+            document.getElementById('approvalRoleDesc').value = '';
+            document.getElementById('approvalRoleModal').classList.remove('hidden');
+        }
+        function closeApprovalRoleModal() { document.getElementById('approvalRoleModal').classList.add('hidden'); }
+        function saveApprovalRole() {
+            const name = document.getElementById('approvalRoleName').value.trim();
+            const desc = document.getElementById('approvalRoleDesc').value.trim();
+            if (!name) { showToast('error', '請填寫角色名稱'); return; }
+            if (approvalRoles.some(r => r.name === name)) { showToast('error', `角色「${name}」已存在`); return; }
+            approvalRoles.push({ name, desc: desc || '—' });
+            renderApprovalRoles();
+            closeApprovalRoleModal();
+            showToast('success', `已新增審批角色「${name}」`);
+        }
+
+        function showToast(type, text) {
+            const toast = document.getElementById('toast');
+            const icon = document.getElementById('toast-icon');
+            document.getElementById('toast-text').innerText = text;
+            if (type === 'success') { toast.className = 'fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform transition-all duration-300 border border-emerald-500/20'; icon.className = 'fa-solid fa-circle-check text-emerald-400 text-base'; }
+            else if (type === 'error') { toast.className = 'fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform transition-all duration-300 border border-rose-500/20'; icon.className = 'fa-solid fa-circle-xmark text-rose-400 text-base'; }
+            else { toast.className = 'fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform transition-all duration-300 border border-blue-500/20'; icon.className = 'fa-solid fa-circle-info text-blue-400 text-base'; }
+            toast.style.transform = 'translateY(0)'; toast.style.opacity = '1';
+            clearTimeout(window.__t); window.__t = setTimeout(() => { toast.style.transform = 'translateY(5rem)'; toast.style.opacity = '0'; }, 2400);
+        }
+
+        document.getElementById('approvalRoleModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeApprovalRoleModal(); });
+
+        /* ===== 帳號角色清單：搜尋 / 狀態篩選 / 啟用停用切換（模擬交互）===== */
+        function filterAccounts() {
+            const kw = (document.getElementById('acctSearch').value || '').trim().toLowerCase();
+            const st = document.getElementById('acctStatus').value;
+            let visible = 0;
+            document.querySelectorAll('#acctTbody .acct-row').forEach(row => {
+                const id = row.children[0].textContent.toLowerCase();
+                const name = row.children[1].textContent.toLowerCase();
+                const status = row.querySelector('.acct-status-badge').textContent.trim() === '啟用' ? 'active' : 'inactive';
+                const matchKw = !kw || id.includes(kw) || name.includes(kw);
+                const matchSt = st === 'all' || st === status;
+                const show = matchKw && matchSt;
+                row.style.display = show ? '' : 'none';
+                if (show) visible++;
+            });
+            const noData = document.getElementById('acctNoData');
+            if (noData) noData.classList.toggle('hidden', visible > 0);
+        }
+
+        function toggleAccountStatus(btn) {
+            const row = btn.closest('tr');
+            const badge = row.querySelector('.acct-status-badge');
+            const name = row.children[1].textContent.trim();
+            const isActive = badge.textContent.trim() === '啟用';
+            if (isActive) {
+                badge.className = 'acct-status-badge ui-badge bg-gray-100 text-gray-500';
+                badge.textContent = '停用';
+                btn.className = 'acct-toggle ui-btn ui-btn-sm text-emerald-600 border border-emerald-200 hover:bg-emerald-50';
+                btn.innerHTML = '<i class="fa-solid fa-circle-check"></i> 啟用';
+                showToast('info', `已停用帳號 ${name}`);
+            } else {
+                badge.className = 'acct-status-badge ui-badge ui-badge-success';
+                badge.textContent = '啟用';
+                btn.className = 'acct-toggle ui-btn ui-btn-sm text-amber-600 border border-amber-200 hover:bg-amber-50';
+                btn.innerHTML = '<i class="fa-solid fa-ban"></i> 停用';
+                showToast('success', `已啟用帳號 ${name}`);
+            }
+            filterAccounts();
+        }
+
+        // 初始化審批角色清單
+        renderApprovalRoles();
     </script>
 </body>
 </html>
