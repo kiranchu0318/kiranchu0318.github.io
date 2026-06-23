@@ -47,21 +47,28 @@
 </head>
 <body class="ui-page text-text-main antialiased relative">
 
-    <div class="relative mx-auto w-full max-w-[1400px] space-y-6">
+    <div class="relative mx-auto w-full space-y-6">
 
         <!-- 頁面標題區塊 -->
         <header class="ui-page-header">
             <h1 class="ui-page-title">組織架構管理</h1>
         </header>
 
-        <!-- 頁籤：地區 / 公司 / 事業部 / 項目 / 部門 / 職位 / 職級 -->
-        <div id="tab-bar" class="flex items-center gap-1 border-b border-gray-200 overflow-x-auto custom-scrollbar"><!-- 動態由 JavaScript 渲染 --></div>
+        <!-- 主版面：左側分類選單 + 右側列表（比照員工資料來源樣式）-->
+        <div class="ui-card overflow-hidden flex flex-col lg:flex-row min-h-[640px]">
 
-        <!-- 列表區塊（七個分頁共用，依當前分頁切換資料） -->
-        <div class="space-y-6">
+            <!-- 左側：分類選單 -->
+            <aside class="lg:w-56 shrink-0 border-b lg:border-b-0 lg:border-r border-gray-100 flex flex-col">
+                <div class="px-4 py-3 border-b border-gray-100">
+                    <h2 class="font-bold text-gray-900 text-sm">分類</h2>
+                </div>
+                <div id="tab-bar" class="flex-1 overflow-y-auto p-2 space-y-0.5 custom-scrollbar lg:max-h-[600px]"><!-- 動態由 JavaScript 渲染 --></div>
+            </aside>
 
-            <!-- 工具列：搜尋 + 新增 -->
-            <div class="ui-card p-5">
+            <!-- 右側：列表 -->
+            <section class="flex-1 min-w-0 flex flex-col p-4 sm:p-6 space-y-4">
+
+                <!-- 工具列：搜尋 + 新增 -->
                 <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
                     <div class="flex items-center gap-2">
                         <div class="ui-search w-full sm:w-80">
@@ -74,15 +81,10 @@
                         <i class="fa-solid fa-plus"></i> 新增
                     </button>
                 </div>
-            </div>
 
-            <!-- 列表 -->
-            <section class="ui-card p-4 sm:p-6">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
-                    <div class="flex items-center gap-2">
-                        <h2 id="list-title" class="text-lg font-bold text-gray-900 whitespace-nowrap">地區列表</h2>
-                        <span id="count-badge" class="bg-blue-50 text-primary text-xs px-2.5 py-1 rounded-md font-bold">0 筆資料</span>
-                    </div>
+                <div class="flex items-center gap-2">
+                    <h2 id="list-title" class="text-lg font-bold text-gray-900 whitespace-nowrap">地區列表</h2>
+                    <span id="count-badge" class="bg-blue-50 text-primary text-xs px-2.5 py-1 rounded-md font-bold">0 筆資料</span>
                 </div>
 
                 <div class="overflow-x-auto rounded-lg border border-gray-100 custom-scrollbar">
@@ -103,7 +105,7 @@
                     <p class="text-sm text-text-muted font-medium">查無符合條件的資料</p>
                 </div>
 
-                <div class="flex items-center justify-between mt-6 pt-4 border-t border-gray-100">
+                <div class="flex items-center justify-between pt-4 mt-auto border-t border-gray-100">
                     <span id="pagination-info" class="text-sm text-gray-500">顯示第 0 到 0 筆，共 0 筆記錄</span>
                     <div class="flex gap-1">
                         <button class="ui-page-btn"><i class="fa-solid fa-chevron-left text-xs"></i></button>
@@ -205,11 +207,35 @@
                 { code: 'QA', name: '測試工程師', active: false }
             ],
             grade: [
-                { code: 'P1', name: '助理工程師', active: true },
-                { code: 'P2', name: '工程師', active: true },
-                { code: 'P3', name: '資深工程師', active: true },
-                { code: 'M1', name: '初階主管', active: true },
-                { code: 'M2', name: '中階主管', active: false }
+                { code: 'P1', name: 'P1', active: true },
+                { code: 'P2', name: 'P2', active: true },
+                { code: 'P3', name: 'P3', active: true },
+                { code: 'P4', name: 'P4', active: true },
+                { code: 'P5', name: 'P5', active: true },
+                { code: 'P6', name: 'P6', active: true },
+                { code: 'P7', name: 'P7', active: true },
+                { code: 'P8', name: 'P8', active: true },
+                { code: 'P9', name: 'P9', active: true },
+                { code: 'P10', name: 'P10', active: true },
+                { code: 'M1', name: 'M1', active: true },
+                { code: 'M2', name: 'M2', active: true },
+                { code: 'M3', name: 'M3', active: true },
+                { code: 'M4', name: 'M4', active: true },
+                { code: 'M5', name: 'M5', active: true },
+                { code: 'M6', name: 'M6', active: true },
+                { code: 'M7', name: 'M7', active: true },
+                { code: 'M8', name: 'M8', active: true },
+                { code: 'M9', name: 'M9', active: true },
+                { code: 'R', name: 'R', active: true },
+                { code: 'K', name: 'K', active: true },
+                { code: 'H', name: 'H', active: true },
+                { code: 'N', name: 'N', active: true },
+                { code: 'G', name: 'G', active: true },
+                { code: 'Y', name: 'Y', active: true },
+                { code: 'X', name: 'X', active: true },
+                { code: 'C', name: 'C', active: true },
+                { code: 'BOSS', name: 'BOSS', active: true },
+                { code: '顾问/C类', name: '顾问/C类', active: true }
             ]
         };
 
@@ -223,8 +249,8 @@
         // 渲染頁籤
         function renderTabs() {
             const bar = document.getElementById('tab-bar');
-            const onCls = 'px-4 py-2.5 text-sm font-semibold text-primary border-b-2 border-primary -mb-px transition-colors whitespace-nowrap';
-            const offCls = 'px-4 py-2.5 text-sm font-medium text-gray-500 border-b-2 border-transparent -mb-px hover:text-gray-700 transition-colors whitespace-nowrap';
+            const onCls = 'w-full text-left px-3 py-2 rounded-lg text-sm font-semibold text-primary bg-primary-light transition-colors';
+            const offCls = 'w-full text-left px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors';
             bar.innerHTML = CATEGORIES.map(c =>
                 `<button onclick="switchCat('${c.key}')" class="${c.key === activeCat ? onCls : offCls}">${c.label}</button>`
             ).join('');

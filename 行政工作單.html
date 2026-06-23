@@ -90,11 +90,11 @@
                             <th scope="col" class="text-left">單號</th>
                             <th scope="col">申請人</th>
                             <th scope="col">部門</th>
+                            <th scope="col">執行人</th>
                             <th scope="col" class="text-left">工作項目</th>
                             <th scope="col">類型</th>
                             <th scope="col">申請日期</th>
                             <th scope="col">工作狀態</th>
-                            <th scope="col">工作流進度</th>
                             <th scope="col" class="text-center">操作</th>
                         </tr>
                     </thead>
@@ -184,6 +184,25 @@
                     </div>
                 </div>
 
+                <!-- 人員帳號異動明細卡片（僅帳號異動類型顯示） -->
+                <div id="d-account-section" class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-4 hidden">
+                    <div class="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2">人員帳號異動明細</div>
+                    <div class="overflow-x-auto border border-gray-200 rounded-lg">
+                        <table class="w-full text-sm text-left whitespace-nowrap">
+                            <thead class="bg-gray-50 text-gray-500 text-xs">
+                                <tr>
+                                    <th class="px-4 py-2.5 font-medium">欄位</th>
+                                    <th class="px-4 py-2.5 font-medium">異動類型</th>
+                                    <th class="px-4 py-2.5 font-medium">異動內容 / 刪除方式</th>
+                                    <th class="px-4 py-2.5 font-medium">備註</th>
+                                    <th class="px-4 py-2.5 font-medium">附件</th>
+                                </tr>
+                            </thead>
+                            <tbody id="d-account-rows" class="divide-y divide-gray-100 text-gray-800"></tbody>
+                        </table>
+                    </div>
+                </div>
+
                 <!-- 備註卡片 -->
                 <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-3">
                     <div class="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2">備註</div>
@@ -236,24 +255,26 @@
     <script>
         // 行政工作單（含工作流）。實務上由「簽核」建立後同步至此；此為原型示意資料。
         const docs = [
-            { docNo: 'AW-20260612-001', applicant: '林雅婷', dept: 'RD', title: '研發部門名片印製 ×20', type: '名片印製', date: '2026-06-12', signStatus: '簽核中',
-              approvals: [{ role: '申請人直屬主管', status: '已核准' }, { role: '行政主管', status: '審批中' }],
-              workflow: [{ task: '確認名片版型與數量', owner: '行政人員', status: '已完成' }, { task: '送印廠商下單', owner: '行政人員', status: '處理中' }, { task: '到貨發放', owner: '行政人員', status: '待處理' }] },
-            { docNo: 'AW-20260610-007', applicant: '張家豪', dept: 'HR', title: '福爾摩沙會議室冷氣維修', type: '設備維修', date: '2026-06-10', signStatus: '簽核完成',
-              approvals: [{ role: '申請人直屬主管', status: '已核准' }, { role: '行政主管', status: '已核准' }],
-              workflow: [{ task: '派工維修廠商', owner: '總務', status: '已完成' }, { task: '維修完成驗收', owner: '總務', status: '已完成' }] },
-            { docNo: 'AW-20260608-013', applicant: '陳小明', dept: 'RD', title: '新進員工門禁卡開通', type: '門禁開通', date: '2026-06-08', signStatus: '待簽核',
+            { docNo: 'AW-20260613-002-1', applicant: '楊吉伯', dept: 'RD', owner: 'IT 郵件管理員', title: '人員帳號異動 — E-mail 修改', type: '人員帳號異動', date: '2026-06-13', signStatus: '簽核中',
+              approvals: [{ role: '申請人直屬主管', status: '已核准' }, { role: '資訊安全', status: '審批中' }],
+              workflow: [{ task: '設定郵件帳號更名／轉址', owner: 'IT 郵件管理員', status: '處理中' }, { task: '通知申請人確認', owner: 'IT 郵件管理員', status: '待處理' }],
+              accountChanges: [{ field: 'E-mail', action: '修改', detail: 'gibson.yang@roycetech.com', note: '配合網域整併調整', attach: '異動申請表.pdf' }] },
+            { docNo: 'AW-20260613-002-2', applicant: '楊吉伯', dept: 'RD', owner: 'IT 系統管理員', title: '人員帳號異動 — Jira 新增', type: '人員帳號異動', date: '2026-06-13', signStatus: '待簽核',
               approvals: [{ role: '申請人直屬主管', status: '待審批' }, { role: '資訊安全', status: '待審批' }],
-              workflow: [{ task: '建立門禁權限', owner: '資安人員', status: '待處理' }, { task: '發放門禁卡', owner: '行政人員', status: '待處理' }] },
-            { docNo: 'AW-20260605-021', applicant: '黃淑芬', dept: 'MKT', title: '客戶合約用印申請', type: '用印申請', date: '2026-06-05', signStatus: '簽核中',
-              approvals: [{ role: '申請人直屬主管', status: '已核准' }, { role: '法務', status: '審批中' }, { role: '行政主管', status: '待審批' }],
-              workflow: [{ task: '核對用印文件', owner: '行政人員', status: '處理中' }, { task: '用印與登記', owner: '行政人員', status: '待處理' }, { task: '文件歸檔', owner: '行政人員', status: '待處理' }] },
-            { docNo: 'AW-20260601-005', applicant: '李美玲', dept: 'HR', title: '季度大會場地借用', type: '場地借用', date: '2026-06-01', signStatus: '簽核完成',
+              workflow: [{ task: '建立 Jira 帳號與專案權限', owner: 'IT 系統管理員', status: '待處理' }],
+              accountChanges: [{ field: 'Jira', action: '新增', detail: 'gibsonyang', note: '專案協作需求', attach: '' }] },
+            { docNo: 'AW-20260613-002-3', applicant: '楊吉伯', dept: 'RD', owner: '行政總務', title: '人員帳號異動 — 門禁卡片 刪除', type: '人員帳號異動', date: '2026-06-13', signStatus: '簽核完成',
               approvals: [{ role: '申請人直屬主管', status: '已核准' }, { role: '行政主管', status: '已核准' }],
-              workflow: [{ task: '場地預約', owner: '行政人員', status: '已完成' }, { task: '設備與茶水準備', owner: '行政人員', status: '處理中' }] },
-            { docNo: 'AW-20260528-018', applicant: '劉建國', dept: 'IA1', title: '部門文具請領（超量，已駁回）', type: '文具請領', date: '2026-05-28', signStatus: '駁回',
-              approvals: [{ role: '申請人直屬主管', status: '駁回' }],
-              workflow: [{ task: '備貨與發放', owner: '行政人員', status: '待處理' }] }
+              workflow: [{ task: '停用門禁卡片', owner: '行政總務', status: '已完成' }, { task: '卡片回收／註記遺失', owner: '行政總務', status: '處理中' }],
+              accountChanges: [{ field: '門禁卡片', action: '刪除', detail: '立即刪除', note: '原卡片遺失，立即停用', attach: '遺失聲明.jpg' }] },
+            { docNo: 'AW-20260613-002-4', applicant: '楊吉伯', dept: 'RD', owner: '資訊安全', title: '人員帳號異動 — 指紋 刪除', type: '人員帳號異動', date: '2026-06-13', signStatus: '簽核中',
+              approvals: [{ role: '申請人直屬主管', status: '已核准' }, { role: '資訊安全', status: '審批中' }],
+              workflow: [{ task: '指紋資料轉移至新門禁系統', owner: '資訊安全', status: '處理中' }, { task: '原系統指紋資料刪除', owner: '資訊安全', status: '待處理' }],
+              accountChanges: [{ field: '指紋', action: '刪除', detail: '資料轉移', note: '轉移至新門禁系統', attach: '' }] },
+            { docNo: 'AW-20260613-002-5', applicant: '楊吉伯', dept: 'RD', owner: 'OA 系統管理員', title: '人員帳號異動 — OA 刪除', type: '人員帳號異動', date: '2026-06-13', signStatus: '待簽核',
+              approvals: [{ role: '申請人直屬主管', status: '待審批' }, { role: '行政主管', status: '待審批' }],
+              workflow: [{ task: 'OA 帳號設為暫時保留／停用', owner: 'OA 系統管理員', status: '待處理' }],
+              accountChanges: [{ field: 'OA', action: '刪除', detail: '暫時保留', note: '留職停薪期間先行保留', attach: '' }] }
         ];
 
         let currentIndex = -1;
@@ -277,17 +298,6 @@
         function workBadge(s) {
             const map = { '待執行': 'ui-badge-gray', '執行中': 'ui-badge-warning', '執行完成': 'ui-badge-success' };
             return `<span class="ui-badge ${map[s] || 'ui-badge-gray'} mx-auto">${s}</span>`;
-        }
-        function flowProgressHtml(d) {
-            const done = d.workflow.filter(w => w.status === '已完成').length;
-            const total = d.workflow.length;
-            const status = workStatus(d);
-            const color = status === '執行完成' ? 'bg-emerald-500' : status === '執行中' ? 'bg-amber-500' : 'bg-gray-300';
-            const pct = total ? Math.round(done / total * 100) : 0;
-            return `<div class="flex items-center gap-2 justify-center">
-                        <div class="w-20 h-1.5 bg-gray-100 rounded-full overflow-hidden"><div class="h-full ${color}" style="width:${pct}%"></div></div>
-                        <span class="text-xs text-gray-600 whitespace-nowrap">${done}/${total}</span>
-                    </div>`;
         }
 
         /* ===== 列表渲染與篩選 ===== */
@@ -325,11 +335,11 @@
                     <td class="text-left font-mono font-semibold text-gray-600">${d.docNo}</td>
                     <td class="text-gray-700">${d.applicant}</td>
                     <td><span class="px-2 py-0.5 bg-gray-100 rounded text-xs font-semibold text-gray-700">${d.dept}</span></td>
+                    <td class="text-gray-700 whitespace-nowrap">${d.owner || '—'}</td>
                     <td class="text-left text-gray-800">${d.title}</td>
                     <td><span class="px-2 py-0.5 bg-blue-50 text-primary rounded text-xs font-semibold">${d.type}</span></td>
                     <td class="text-gray-600">${d.date}</td>
                     <td>${workBadge(workStatus(d))}</td>
-                    <td>${flowProgressHtml(d)}</td>
                     <td>
                         <button onclick="openDetail(${i})" class="ui-btn ui-btn-secondary ui-btn-sm mx-auto"><i class="fa-solid fa-circle-info"></i> 詳情</button>
                     </td>
@@ -368,6 +378,31 @@
             // 工作內容
             document.getElementById('d-item').value = d.title;
             document.getElementById('d-type2').value = d.type;
+
+            // 人員帳號異動明細（若此工作單為帳號異動申請）
+            const acctSec = document.getElementById('d-account-section');
+            const acctRows = document.getElementById('d-account-rows');
+            if (d.accountChanges && d.accountChanges.length) {
+                acctRows.innerHTML = d.accountChanges.map(c => {
+                    const actCls = c.action === '新增' ? 'ui-badge-success' : (c.action === '修改' ? 'ui-badge-info' : 'ui-badge-danger');
+                    const detail = c.action === '刪除'
+                        ? `<span class="ui-badge ui-badge-warning">${c.detail}</span>`
+                        : (c.detail || '—');
+                    const attach = c.attach
+                        ? `<span class="text-primary"><i class="fa-solid fa-paperclip mr-1"></i>${c.attach}</span>`
+                        : '<span class="text-gray-300">—</span>';
+                    return `<tr>
+                        <td class="px-4 py-2.5 font-medium">${c.field}</td>
+                        <td class="px-4 py-2.5"><span class="ui-badge ${actCls}">${c.action}</span></td>
+                        <td class="px-4 py-2.5">${detail}</td>
+                        <td class="px-4 py-2.5 text-gray-600">${c.note || '—'}</td>
+                        <td class="px-4 py-2.5">${attach}</td>
+                    </tr>`;
+                }).join('');
+                acctSec.classList.remove('hidden');
+            } else {
+                acctSec.classList.add('hidden');
+            }
 
             // 審批線詳情：審批人 + 後續工作
             let rows = d.approvals.map((a, idx) => `

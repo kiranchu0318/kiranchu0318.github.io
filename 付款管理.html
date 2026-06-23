@@ -47,7 +47,7 @@
             <div class="ui-card p-5 border-l-4 border-amber-500">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-xs text-text-muted font-medium">待付款筆數</p>
+                        <p class="text-xs text-text-muted font-medium">待放款筆數</p>
                         <p id="kpi-pending" class="text-2xl font-bold text-gray-900 mt-1">0 筆</p>
                     </div>
                     <div class="w-11 h-11 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center shrink-0"><i class="fa-solid fa-clock text-lg"></i></div>
@@ -56,8 +56,8 @@
             <div class="ui-card p-5 border-l-4 border-red-500">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-xs text-text-muted font-medium">逾期未付金額</p>
-                        <p id="kpi-overdue" class="text-2xl font-bold text-red-600 mt-1 font-mono">NT$0</p>
+                        <p class="text-xs text-text-muted font-medium">未拋轉筆數</p>
+                        <p id="kpi-unposted" class="text-2xl font-bold text-red-600 mt-1">0 筆</p>
                     </div>
                     <div class="w-11 h-11 rounded-xl bg-red-50 text-red-500 flex items-center justify-center shrink-0"><i class="fa-solid fa-triangle-exclamation text-lg"></i></div>
                 </div>
@@ -65,7 +65,7 @@
             <div class="ui-card p-5 border-l-4 border-emerald-500">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-xs text-text-muted font-medium">本月已付金額</p>
+                        <p class="text-xs text-text-muted font-medium">本月已放款金額</p>
                         <p id="kpi-paid" class="text-2xl font-bold text-emerald-600 mt-1 font-mono">NT$0</p>
                     </div>
                     <div class="w-11 h-11 rounded-xl bg-emerald-50 text-emerald-500 flex items-center justify-center shrink-0"><i class="fa-solid fa-circle-check text-lg"></i></div>
@@ -73,116 +73,307 @@
             </div>
         </div>
 
-        <!-- 篩選台 -->
-        <div class="ui-card p-5 space-y-4">
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div>
-                    <label class="block text-xs font-semibold text-text-muted mb-1.5">搜尋（付款單號/收款對象）</label>
-                    <div class="ui-search">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                        <input type="text" id="f-search" oninput="render()" placeholder="輸入關鍵字..." class="ui-input ui-search-input">
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-text-muted mb-1.5">付款狀態</label>
-                    <select id="f-status" onchange="render()" class="ui-select">
-                        <option value="all">全部</option>
-                        <option value="待付款">待付款</option>
-                        <option value="已排程">已排程</option>
-                        <option value="已付款">已付款</option>
-                        <option value="已退回">已退回</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-text-muted mb-1.5">付款方式</label>
-                    <select id="f-method" onchange="render()" class="ui-select">
-                        <option value="all">全部</option>
-                        <option value="銀行轉帳">銀行轉帳</option>
-                        <option value="支票">支票</option>
-                        <option value="現金">現金</option>
-                        <option value="電匯">電匯</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-text-muted mb-1.5">到期日區間</label>
-                    <div class="flex items-center gap-1.5">
-                        <input type="date" id="f-start" onchange="render()" class="ui-input flex-1 min-w-0">
-                        <span class="text-gray-400 text-xs shrink-0">至</span>
-                        <input type="date" id="f-end" onchange="render()" class="ui-input flex-1 min-w-0">
-                    </div>
-                </div>
-            </div>
-            <div class="flex justify-end items-center gap-2 pt-1"><button onclick="render()" class="ui-btn ui-btn-primary ui-btn-sm"><i class="fa-solid fa-magnifying-glass"></i> 查詢</button><button onclick="resetFilters()" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-arrows-rotate"></i> 重置</button></div>
+        <!-- 頁籤 -->
+        <div class="flex items-center gap-1 border-b border-gray-200 overflow-x-auto">
+            <button id="tab-btn-pay" onclick="switchTab('pay')" class="px-4 py-2.5 text-sm font-semibold text-primary border-b-2 border-primary -mb-px transition-colors whitespace-nowrap">付款放款</button>
+            <button id="tab-btn-deduct" onclick="switchTab('deduct')" class="px-4 py-2.5 text-sm font-medium text-gray-500 border-b-2 border-transparent -mb-px hover:text-gray-700 transition-colors whitespace-nowrap">無表單扣款認領</button>
         </div>
 
-        <!-- 列表 -->
-        <section class="ui-card p-4 sm:p-6">
-            <div class="flex items-center gap-2 mb-4">
-                <h2 class="text-lg font-bold text-gray-900 whitespace-nowrap">付款列表</h2>
-                <span id="count-badge" class="bg-blue-50 text-primary text-xs px-2.5 py-1 rounded-md font-bold">0 筆資料</span>
-            </div>
+        <!-- ====== 頁籤 1：付款放款 ====== -->
+        <div id="panel-pay" class="space-y-6">
 
-            <div class="overflow-x-auto rounded-lg border border-gray-100 custom-scrollbar">
-                <table class="ui-table text-center">
-                    <thead>
-                        <tr>
-                            <th scope="col" class="text-left">付款單號</th>
-                            <th scope="col">收款對象</th>
-                            <th scope="col" class="text-left">來源單據</th>
-                            <th scope="col" class="text-right">金額</th>
-                            <th scope="col">到期日</th>
-                            <th scope="col">付款方式</th>
-                            <th scope="col">狀態</th>
-                            <th scope="col" class="text-center">操作</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tbody"></tbody>
-                </table>
-            </div>
-
-            <div id="no-data" class="hidden py-16 text-center space-y-3">
-                <div class="inline-flex p-4 bg-gray-50 text-gray-400 rounded-full"><i class="fa-solid fa-money-check-dollar text-3xl"></i></div>
-                <p class="text-sm text-text-muted font-medium">查無符合條件的付款單</p>
-                <button onclick="resetFilters()" class="text-xs text-primary font-semibold hover:underline">清除篩選條件</button>
-            </div>
-
-            <div class="flex items-center justify-between mt-6 pt-4 border-t border-gray-100">
-                <span id="pagination-info" class="text-sm text-gray-500">顯示第 0 到 0 筆，共 0 筆記錄</span>
-                <div class="flex gap-1">
-                    <button class="ui-page-btn"><i class="fa-solid fa-chevron-left text-xs"></i></button>
-                    <button class="ui-page-btn is-active">1</button>
-                    <button class="ui-page-btn"><i class="fa-solid fa-chevron-right text-xs"></i></button>
+            <!-- 篩選台 -->
+            <div class="ui-card p-5 space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-text-muted mb-1.5">搜尋（付款單號/收款對象）</label>
+                        <div class="ui-search">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="text" id="f-search" oninput="render()" placeholder="輸入關鍵字..." class="ui-input ui-search-input">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-text-muted mb-1.5">付款狀態</label>
+                        <select id="f-status" onchange="render()" class="ui-select">
+                            <option value="all">全部</option>
+                            <option value="待放款">待放款</option>
+                            <option value="已放款">已放款（PAID）</option>
+                            <option value="已拋轉">已拋轉</option>
+                            <option value="已退回">已退回</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-text-muted mb-1.5">付款方式</label>
+                        <select id="f-method" onchange="render()" class="ui-select">
+                            <option value="all">全部</option>
+                            <option value="銀行轉帳">銀行轉帳</option>
+                            <option value="支票">支票</option>
+                            <option value="現金">現金</option>
+                            <option value="電匯">電匯</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-text-muted mb-1.5">到期日區間</label>
+                        <div class="flex items-center gap-1.5">
+                            <input type="date" id="f-start" onchange="render()" class="ui-input flex-1 min-w-0">
+                            <span class="text-gray-400 text-xs shrink-0">至</span>
+                            <input type="date" id="f-end" onchange="render()" class="ui-input flex-1 min-w-0">
+                        </div>
+                    </div>
+                </div>
+                <div class="flex justify-end items-center gap-2 pt-1">
+                    <button onclick="render()" class="ui-btn ui-btn-primary ui-btn-sm"><i class="fa-solid fa-magnifying-glass"></i> 查詢</button>
+                    <button onclick="resetFilters()" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-arrows-rotate"></i> 重置</button>
                 </div>
             </div>
-        </section>
+
+            <!-- 列表 -->
+            <section class="ui-card p-4 sm:p-6">
+                <div class="flex items-center gap-2 mb-4">
+                    <h2 class="text-lg font-bold text-gray-900 whitespace-nowrap">付款列表</h2>
+                    <span id="count-badge" class="bg-blue-50 text-primary text-xs px-2.5 py-1 rounded-md font-bold">0 筆資料</span>
+                </div>
+
+                <div class="overflow-x-auto rounded-lg border border-gray-100 custom-scrollbar">
+                    <table class="ui-table text-center">
+                        <thead>
+                            <tr>
+                                <th scope="col" class="text-left whitespace-nowrap">付款單號</th>
+                                <th scope="col" class="whitespace-nowrap">收款對象</th>
+                                <th scope="col" class="text-left whitespace-nowrap">來源單據</th>
+                                <th scope="col" class="text-right whitespace-nowrap">金額</th>
+                                <th scope="col" class="whitespace-nowrap">到期日</th>
+                                <th scope="col" class="whitespace-nowrap">付款方式</th>
+                                <th scope="col" class="whitespace-nowrap">付款狀態</th>
+                                <th scope="col" class="whitespace-nowrap">拋轉狀態</th>
+                                <th scope="col" class="whitespace-nowrap">拋轉類型</th>
+                                <th scope="col" class="text-center whitespace-nowrap">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody"></tbody>
+                    </table>
+                </div>
+
+                <div id="no-data" class="hidden py-16 text-center space-y-3">
+                    <div class="inline-flex p-4 bg-gray-50 text-gray-400 rounded-full"><i class="fa-solid fa-money-check-dollar text-3xl"></i></div>
+                    <p class="text-sm text-text-muted font-medium">查無符合條件的付款單</p>
+                    <button onclick="resetFilters()" class="text-xs text-primary font-semibold hover:underline">清除篩選條件</button>
+                </div>
+
+                <div class="flex items-center justify-between mt-6 pt-4 border-t border-gray-100">
+                    <span id="pagination-info" class="text-sm text-gray-500">顯示第 0 到 0 筆，共 0 筆記錄</span>
+                    <div class="flex gap-1">
+                        <button class="ui-page-btn"><i class="fa-solid fa-chevron-left text-xs"></i></button>
+                        <button class="ui-page-btn is-active">1</button>
+                        <button class="ui-page-btn"><i class="fa-solid fa-chevron-right text-xs"></i></button>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- ====== 頁籤 2：無表單扣款認領 ====== -->
+        <div id="panel-deduct" class="space-y-6 hidden">
+            <div class="ui-card p-4 sm:p-6">
+                <div class="flex items-center gap-2 mb-2">
+                    <h2 class="text-lg font-bold text-gray-900 whitespace-nowrap">銀行扣款明細池</h2>
+                    <span id="deduct-count-badge" class="bg-blue-50 text-primary text-xs px-2.5 py-1 rounded-md font-bold">0 筆資料</span>
+                </div>
+                <p class="text-xs text-text-muted mb-4">銀行自動扣款認領：員工填單勾選綁定後可直接拋轉，不走放款流程。</p>
+                <div class="overflow-x-auto rounded-lg border border-gray-100 custom-scrollbar">
+                    <table class="ui-table text-center">
+                        <thead>
+                            <tr>
+                                <th scope="col" class="text-left whitespace-nowrap">扣款日期</th>
+                                <th scope="col" class="whitespace-nowrap">銀行</th>
+                                <th scope="col" class="text-left whitespace-nowrap">摘要</th>
+                                <th scope="col" class="text-right whitespace-nowrap">金額</th>
+                                <th scope="col" class="whitespace-nowrap">員工/說明</th>
+                                <th scope="col" class="whitespace-nowrap">認領狀態</th>
+                                <th scope="col" class="whitespace-nowrap">拋轉狀態</th>
+                                <th scope="col" class="text-center whitespace-nowrap">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="deduct-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <!-- 詳情彈窗 -->
     <div id="detail-modal" class="fixed inset-0 bg-black/40 z-50 flex justify-center items-center hidden p-4">
-        <div class="bg-white rounded-2xl shadow-modal w-full max-w-2xl flex flex-col max-h-[88vh] overflow-hidden">
-            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 shrink-0">
-                <h3 id="d-title" class="text-base font-bold text-gray-900">付款單</h3>
-                <button onclick="closeDetail()" class="text-gray-400 hover:text-gray-600 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100"><i class="fa-solid fa-xmark"></i></button>
+        <div class="bg-[#F0F2F5] rounded-xl shadow-2xl w-full max-w-[1450px] h-[90vh] flex flex-col overflow-hidden text-left">
+
+            <!-- 彈窗標題與關閉按鈕 -->
+            <div class="bg-[#EEF2F6] px-6 py-3.5 flex items-center justify-between border-b border-gray-200 flex-shrink-0">
+                <span class="font-bold text-gray-800 text-base"><span id="d-title">付款單</span></span>
+                <button onclick="closeDetail()" class="bg-[#3F51B5] hover:bg-blue-800 text-white p-1 rounded transition-colors">
+                    <i class="fa-solid fa-xmark text-lg leading-none px-0.5"></i>
+                </button>
             </div>
-            <div class="px-6 py-5 overflow-y-auto custom-scrollbar space-y-6">
-                <!-- 付款資訊 -->
-                <div>
-                    <h4 class="text-sm font-bold text-gray-800 border-b border-gray-100 pb-2 mb-3">付款資訊</h4>
-                    <div id="d-info" class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-sm"></div>
+
+            <!-- 兩欄主體：左側滾動內容 + 右側固定側板 -->
+            <div class="flex-1 flex overflow-hidden">
+
+                <!-- 左側：可滾動卡片區 -->
+                <div class="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-6">
+
+                    <!-- 基本資訊卡片 -->
+                    <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-5">
+                        <div class="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2">基本資訊</div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <div>
+                                <label class="block text-gray-700 text-xs mb-1.5 font-medium">付款單號</label>
+                                <input type="text" disabled id="d-payno" class="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 cursor-not-allowed font-mono">
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 text-xs mb-1.5 font-medium">收款對象</label>
+                                <input type="text" disabled id="d-payee" class="w-full bg-white border border-gray-200 rounded px-3 py-2 text-sm text-gray-800">
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 text-xs mb-1.5 font-medium">來源單據</label>
+                                <input type="text" disabled id="d-source" class="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 cursor-not-allowed font-mono">
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 text-xs mb-1.5 font-medium">付款方式</label>
+                                <input type="text" disabled id="d-method" class="w-full bg-white border border-gray-200 rounded px-3 py-2 text-sm text-gray-800">
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 text-xs mb-1.5 font-medium">到期日</label>
+                                <input type="text" disabled id="d-due" class="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 cursor-not-allowed">
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 text-xs mb-1.5 font-medium">付款狀態</label>
+                                <div id="d-status" class="flex items-center h-[38px]"></div>
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 text-xs mb-1.5 font-medium">實際付款日</label>
+                                <input type="text" disabled id="d-paydate" class="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 cursor-not-allowed">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 付款金額卡片 -->
+                    <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-5">
+                        <div class="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2">付款金額</div>
+                        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                            <div class="lg:col-span-4">
+                                <label class="block text-gray-700 text-xs mb-1.5 font-semibold">金額</label>
+                                <div class="flex items-center border border-gray-200 rounded overflow-hidden">
+                                    <span class="bg-gray-50 border-r border-gray-200 px-3 py-2 text-sm text-gray-500 font-medium select-none">TWD</span>
+                                    <input type="text" disabled id="d-amount" class="w-full bg-white px-3 py-2 text-sm text-gray-800 font-medium focus:outline-none">
+                                </div>
+                            </div>
+                        </div>
+                        <!-- 多退少補資訊（條件顯示） -->
+                        <div id="d-adjust-section" class="hidden space-y-4 pt-2">
+                            <div class="text-[#B45309] font-bold text-[13px] border-b border-amber-100 pb-2 flex items-center gap-2">
+                                <i class="fa-solid fa-right-left text-amber-500"></i> 多退少補資訊
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 bg-amber-50 rounded-lg p-4">
+                                <div>
+                                    <label class="block text-gray-700 text-xs mb-1.5 font-medium">原借款單號</label>
+                                    <input type="text" disabled id="d-orig-loan" class="w-full bg-white border border-amber-200 rounded px-3 py-2 text-sm text-amber-800 cursor-not-allowed font-mono">
+                                </div>
+                                <div>
+                                    <label class="block text-gray-700 text-xs mb-1.5 font-medium">預付款（沖銷暫付款）</label>
+                                    <input type="text" disabled id="d-prepaid" class="w-full bg-white border border-amber-200 rounded px-3 py-2 text-sm text-gray-800 cursor-not-allowed font-mono">
+                                </div>
+                                <div>
+                                    <label class="block text-gray-700 text-xs mb-1.5 font-medium">實際費用（差額補足）</label>
+                                    <input type="text" disabled id="d-actual" class="w-full bg-white border border-amber-200 rounded px-3 py-2 text-sm text-gray-800 cursor-not-allowed font-mono">
+                                </div>
+                                <div class="lg:col-span-3">
+                                    <label class="block text-gray-700 text-xs mb-1.5 font-medium">差額說明</label>
+                                    <input type="text" disabled id="d-adjust-note" class="w-full bg-white border border-amber-200 rounded px-3 py-2 text-sm text-gray-700 cursor-not-allowed">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 收款帳戶卡片 -->
+                    <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-5">
+                        <div class="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2">收款帳戶</div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                            <div>
+                                <label class="block text-gray-700 text-xs mb-1.5 font-medium">銀行</label>
+                                <input type="text" disabled id="d-bank" class="w-full bg-white border border-gray-200 rounded px-3 py-2 text-sm text-gray-800">
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 text-xs mb-1.5 font-medium">分行</label>
+                                <input type="text" disabled id="d-branch" class="w-full bg-white border border-gray-200 rounded px-3 py-2 text-sm text-gray-800">
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 text-xs mb-1.5 font-medium">帳號</label>
+                                <input type="text" disabled id="d-accno" class="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 cursor-not-allowed font-mono">
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 text-xs mb-1.5 font-medium">戶名</label>
+                                <input type="text" disabled id="d-accname" class="w-full bg-white border border-gray-200 rounded px-3 py-2 text-sm text-gray-800">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 拋轉記帳卡片 -->
+                    <div class="bg-white p-6 rounded-lg border border-blue-200 shadow-sm space-y-5">
+                        <div class="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2 flex items-center gap-2">
+                            <i class="fa-solid fa-book text-blue-500"></i> 拋轉記帳
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <div>
+                                <label class="block text-gray-700 text-xs mb-1.5 font-medium">拋轉類型</label>
+                                <div id="d-post-type" class="flex items-center h-[38px]"></div>
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 text-xs mb-1.5 font-medium">拋轉狀態</label>
+                                <div id="d-post-status" class="flex items-center h-[38px]"></div>
+                            </div>
+                            <div id="d-postdate-wrap" class="hidden">
+                                <label class="block text-gray-700 text-xs mb-1.5 font-medium">記帳入帳日</label>
+                                <input type="text" disabled id="d-postdate" class="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 cursor-not-allowed font-mono">
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
-                <!-- 收款帳戶 -->
-                <div>
-                    <h4 class="text-sm font-bold text-gray-800 border-b border-gray-100 pb-2 mb-3">收款帳戶</h4>
-                    <div id="d-account" class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-sm"></div>
+
+                <!-- 右側：固定側板 — 付款 / 拋轉歷程 -->
+                <div class="w-80 flex-shrink-0 border-l border-gray-200 bg-[#F8F9FA] flex flex-col overflow-hidden">
+                    <div class="bg-[#EEF2F6] px-5 py-3.5 border-b border-gray-200 flex-shrink-0">
+                        <span class="font-bold text-[#1A237E] text-[14px]">付款 / 拋轉歷程</span>
+                    </div>
+                    <div class="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-4">
+                        <!-- 簽核線預覽 -->
+                        <div>
+                            <div class="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wide">來源簽核線</div>
+                            <div class="overflow-x-auto border border-gray-100 rounded-lg">
+                                <table class="w-full text-left text-xs border-collapse">
+                                    <thead>
+                                        <tr class="border-b border-gray-200 bg-gray-50 text-gray-700 font-bold">
+                                            <th class="px-3 py-2 text-center w-8">#</th>
+                                            <th class="px-3 py-2">角色</th>
+                                            <th class="px-3 py-2 text-center w-20">狀態</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="d-approval-rows" class="divide-y divide-gray-100 font-medium"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <!-- 操作歷程 -->
+                        <div>
+                            <div class="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wide">操作歷程</div>
+                            <div class="space-y-2" id="d-history"></div>
+                        </div>
+                    </div>
                 </div>
-                <!-- 審核紀錄 -->
-                <div>
-                    <h4 class="text-sm font-bold text-gray-800 border-b border-gray-100 pb-2 mb-3">審核紀錄</h4>
-                    <div id="d-approvals" class="space-y-2"></div>
-                </div>
+
             </div>
-            <div class="flex justify-end gap-2.5 px-6 py-4 bg-gray-50 border-t border-gray-100 shrink-0">
-                <button id="d-pay-btn" onclick="markPaidFromModal()" class="ui-btn ui-btn-success hidden"><i class="fa-solid fa-circle-check"></i> 標記已付</button>
+
+            <!-- 固定底部按鈕區 -->
+            <div class="bg-[#F8F9FA] border-t border-gray-200 px-6 py-4 flex flex-wrap justify-end gap-2.5 flex-shrink-0">
+                <button id="d-release-btn" onclick="markReleasedFromModal()" class="ui-btn ui-btn-warning hidden"><i class="fa-solid fa-money-bill-transfer"></i> 放款</button>
+                <button id="d-post-btn" onclick="postJournalFromModal()" class="ui-btn ui-btn-success hidden"><i class="fa-solid fa-book"></i> 拋轉記帳</button>
                 <button onclick="closeDetail()" class="ui-btn ui-btn-secondary">關閉</button>
             </div>
         </div>
@@ -195,65 +386,166 @@
     </div>
 
     <script>
-        // 付款（應付帳款）單據。實務上由報銷/採購核准後同步至此產生付款單；此為原型示意資料。
-        const TODAY = '2026-06-17';
+        // ===== 常數 =====
+        const TODAY = '2026-06-22';
+
+        // ===== 付款（放款）資料 =====
+        // status 流程：待放款 → 已放款(PAID) → 已拋轉
+        // postStatus: '未拋轉' | '已拋轉'
+        // postType: '一般拋轉' | '多退少補' | '無表單扣款' | null
         const payments = [
-            { payNo: 'PAY-20260601-001', payee: '宏碁資訊股份有限公司', payeeType: '廠商', source: '採購單 PU-20260605-001', amount: 100000, due: '2026-06-20', method: '銀行轉帳', status: '待付款',
-              account: { bank: '台新銀行', branch: '內湖分行', no: '2008-1234-567890', name: '宏碁資訊股份有限公司' },
-              approvals: [{ role: '申請（請款人）', status: '已完成' }, { role: '財務覆核', status: '已核准' }, { role: '主管核准', status: '審批中' }] },
-            { payNo: 'PAY-20260530-014', payee: 'Katherine（員工報銷）', payeeType: '員工', source: '報銷單 C-20260528-009', amount: 8650, due: '2026-06-10', method: '銀行轉帳', status: '已付款',
-              account: { bank: '國泰世華銀行', branch: '南港分行', no: '0451-2266-778899', name: 'Katherine Wu' },
-              approvals: [{ role: '申請（請款人）', status: '已完成' }, { role: '財務覆核', status: '已核准' }, { role: '主管核准', status: '已核准' }] },
-            { payNo: 'PAY-20260525-007', payee: '大同辦公設備有限公司', payeeType: '廠商', source: '採購單 PU-20260520-018', amount: 256000, due: '2026-06-08', method: '電匯', status: '待付款',
-              account: { bank: '兆豐國際商銀', branch: '敦化分行', no: '0171-0099-112233', name: '大同辦公設備有限公司' },
-              approvals: [{ role: '申請（請款人）', status: '已完成' }, { role: '財務覆核', status: '審批中' }, { role: '主管核准', status: '待審批' }] },
-            { payNo: 'PAY-20260522-003', payee: '聯強國際股份有限公司', payeeType: '廠商', source: '採購單 PU-20260515-002', amount: 48000, due: '2026-06-25', method: '支票', status: '已排程',
-              account: { bank: '中國信託', branch: '松山分行', no: '8220-3344-556677', name: '聯強國際股份有限公司' },
-              approvals: [{ role: '申請（請款人）', status: '已完成' }, { role: '財務覆核', status: '已核准' }, { role: '主管核准', status: '已核准' }] },
-            { payNo: 'PAY-20260518-021', payee: 'Derrick（員工報銷）', payeeType: '員工', source: '報銷單 C-20260514-004', amount: 12500, due: '2026-06-30', method: '銀行轉帳', status: '已排程',
-              account: { bank: '玉山銀行', branch: '信義分行', no: '0099-1122-334455', name: 'Derrick Lin' },
-              approvals: [{ role: '申請（請款人）', status: '已完成' }, { role: '財務覆核', status: '已核准' }, { role: '主管核准', status: '已核准' }] },
-            { payNo: 'PAY-20260512-009', payee: '王牌清潔服務社', payeeType: '廠商', source: '採購單 PU-20260508-031', amount: 6300, due: '2026-06-30', method: '現金', status: '已付款',
-              account: { bank: '—', branch: '—', no: '—（現金支付）', name: '王牌清潔服務社' },
-              approvals: [{ role: '申請（請款人）', status: '已完成' }, { role: '財務覆核', status: '已核准' }, { role: '主管核准', status: '已核准' }] },
-            { payNo: 'PAY-20260508-002', payee: 'Liz G（員工報銷）', payeeType: '員工', source: '報銷單 C-20260505-012', amount: 21800, due: '2026-06-15', method: '銀行轉帳', status: '已退回',
-              account: { bank: '第一銀行', branch: '士林分行', no: '1532-5566-778800', name: 'Liz Garcia' },
-              approvals: [{ role: '申請（請款人）', status: '已完成' }, { role: '財務覆核', status: '駁回' }] },
-            { payNo: 'PAY-20260605-031', payee: '台灣大哥大股份有限公司', payeeType: '廠商', source: '採購單 PU-20260601-044', amount: 18900, due: '2026-06-22', method: '銀行轉帳', status: '待付款',
-              account: { bank: '台北富邦銀行', branch: '大安分行', no: '7011-8899-001122', name: '台灣大哥大股份有限公司' },
-              approvals: [{ role: '申請（請款人）', status: '已完成' }, { role: '財務覆核', status: '已核准' }, { role: '主管核准', status: '已核准' }] }
+            {
+                payNo: 'PAY-20260601-001', payee: '宏碁資訊股份有限公司', payeeType: '廠商',
+                source: '採購單 PU-20260605-001', amount: 100000, due: '2026-06-20',
+                method: '銀行轉帳', status: '待放款', postStatus: '未拋轉', postType: '一般拋轉',
+                payDate: null, postDate: null,
+                account: { bank: '台新銀行', branch: '內湖分行', no: '2008-1234-567890', name: '宏碁資訊股份有限公司' },
+                approvals: [{ role: '申請（請款人）', status: '已完成' }, { role: '財務覆核', status: '已核准' }, { role: '主管核准', status: '已核准' }]
+            },
+            {
+                payNo: 'PAY-20260530-014', payee: 'Katherine（員工報銷）', payeeType: '員工',
+                source: '報銷單 C-20260528-009', amount: 8650, due: '2026-06-10',
+                method: '銀行轉帳', status: '已放款', postStatus: '未拋轉', postType: '一般拋轉',
+                payDate: '2026-06-10', postDate: null,
+                account: { bank: '國泰世華銀行', branch: '南港分行', no: '0451-2266-778899', name: 'Katherine Wu' },
+                approvals: [{ role: '申請（請款人）', status: '已完成' }, { role: '財務覆核', status: '已核准' }, { role: '主管核准', status: '已核准' }]
+            },
+            {
+                payNo: 'PAY-20260525-007', payee: '大同辦公設備有限公司', payeeType: '廠商',
+                source: '採購單 PU-20260520-018', amount: 256000, due: '2026-06-08',
+                method: '電匯', status: '待放款', postStatus: '未拋轉', postType: '一般拋轉',
+                payDate: null, postDate: null,
+                account: { bank: '兆豐國際商銀', branch: '敦化分行', no: '0171-0099-112233', name: '大同辦公設備有限公司' },
+                approvals: [{ role: '申請（請款人）', status: '已完成' }, { role: '財務覆核', status: '已核准' }, { role: '主管核准', status: '已核准' }]
+            },
+            {
+                payNo: 'PAY-20260522-003', payee: '聯強國際股份有限公司', payeeType: '廠商',
+                source: '採購單 PU-20260515-002', amount: 48000, due: '2026-06-25',
+                method: '支票', status: '已拋轉', postStatus: '已拋轉', postType: '一般拋轉',
+                payDate: '2026-06-18', postDate: '2026-06-19',
+                account: { bank: '中國信託', branch: '松山分行', no: '8220-3344-556677', name: '聯強國際股份有限公司' },
+                approvals: [{ role: '申請（請款人）', status: '已完成' }, { role: '財務覆核', status: '已核准' }, { role: '主管核准', status: '已核准' }]
+            },
+            {
+                payNo: 'PAY-20260518-021', payee: 'Derrick（員工報銷）', payeeType: '員工',
+                source: '報銷單 C-20260514-004', amount: 12500, due: '2026-06-30',
+                method: '銀行轉帳', status: '已放款', postStatus: '未拋轉', postType: '一般拋轉',
+                payDate: '2026-06-20', postDate: null,
+                account: { bank: '玉山銀行', branch: '信義分行', no: '0099-1122-334455', name: 'Derrick Lin' },
+                approvals: [{ role: '申請（請款人）', status: '已完成' }, { role: '財務覆核', status: '已核准' }, { role: '主管核准', status: '已核准' }]
+            },
+            {
+                payNo: 'PAY-20260512-009', payee: '王牌清潔服務社', payeeType: '廠商',
+                source: '採購單 PU-20260508-031', amount: 6300, due: '2026-06-30',
+                method: '現金', status: '已拋轉', postStatus: '已拋轉', postType: '一般拋轉',
+                payDate: '2026-06-12', postDate: '2026-06-12',
+                account: { bank: '—', branch: '—', no: '—（現金支付）', name: '王牌清潔服務社' },
+                approvals: [{ role: '申請（請款人）', status: '已完成' }, { role: '財務覆核', status: '已核准' }, { role: '主管核准', status: '已核准' }]
+            },
+            {
+                payNo: 'PAY-20260508-002', payee: 'Liz G（員工報銷）', payeeType: '員工',
+                source: '報銷單 C-20260505-012', amount: 21800, due: '2026-06-15',
+                method: '銀行轉帳', status: '已退回', postStatus: '未拋轉', postType: null,
+                payDate: null, postDate: null,
+                account: { bank: '第一銀行', branch: '士林分行', no: '1532-5566-778800', name: 'Liz Garcia' },
+                approvals: [{ role: '申請（請款人）', status: '已完成' }, { role: '財務覆核', status: '駁回' }]
+            },
+            {
+                payNo: 'PAY-20260605-031', payee: '台灣大哥大股份有限公司', payeeType: '廠商',
+                source: '採購單 PU-20260601-044', amount: 18900, due: '2026-06-22',
+                method: '銀行轉帳', status: '已放款', postStatus: '未拋轉', postType: '一般拋轉',
+                payDate: '2026-06-22', postDate: null,
+                account: { bank: '台北富邦銀行', branch: '大安分行', no: '7011-8899-001122', name: '台灣大哥大股份有限公司' },
+                approvals: [{ role: '申請（請款人）', status: '已完成' }, { role: '財務覆核', status: '已核准' }, { role: '主管核准', status: '已核准' }]
+            },
+            // 多退少補範例
+            {
+                payNo: 'PAY-20260610-042', payee: 'Marcus（預付款核銷）', payeeType: '員工',
+                source: '預付款核銷單 ADV-20260608-003', amount: -3200, due: '2026-06-15',
+                method: '銀行轉帳', status: '已放款', postStatus: '未拋轉', postType: '多退少補',
+                payDate: '2026-06-15', postDate: null,
+                origLoanNo: 'ADV-20260520-001',
+                prepaidOffset: 18000,
+                actualExpense: 14800,
+                adjustNote: '預付款 NT$18,000，實際費用 NT$14,800，差額 NT$3,200 退回',
+                account: { bank: '玉山銀行', branch: '中山分行', no: '0099-3344-667788', name: 'Marcus Chen' },
+                approvals: [{ role: '申請（請款人）', status: '已完成' }, { role: '財務覆核', status: '已核准' }, { role: '主管核准', status: '已核准' }]
+            },
+            {
+                payNo: 'PAY-20260612-055', payee: 'Vivian（預付款核銷）', payeeType: '員工',
+                source: '預付款核銷單 ADV-20260611-007', amount: 4500, due: '2026-06-20',
+                method: '銀行轉帳', status: '已拋轉', postStatus: '已拋轉', postType: '多退少補',
+                payDate: '2026-06-18', postDate: '2026-06-18',
+                origLoanNo: 'ADV-20260530-002',
+                prepaidOffset: 10000,
+                actualExpense: 14500,
+                adjustNote: '預付款 NT$10,000，實際費用 NT$14,500，差額 NT$4,500 補付',
+                account: { bank: '台新銀行', branch: '信義分行', no: '2008-5566-112233', name: 'Vivian Huang' },
+                approvals: [{ role: '申請（請款人）', status: '已完成' }, { role: '財務覆核', status: '已核准' }, { role: '主管核准', status: '已核准' }]
+            }
+        ];
+
+        // ===== 無表單扣款明細池 =====
+        // claimStatus: '未認領' | '已綁定'
+        // postStatus: '未拋轉' | '已拋轉'
+        const deductions = [
+            { id: 'DED-20260601-001', date: '2026-06-01', bank: '台新銀行', summary: '6月辦公室租金自動扣繳', amount: 85000, claimStatus: '已綁定', postStatus: '已拋轉', employee: '財務部－林美慧', bindDoc: 'RENT-2026-06' },
+            { id: 'DED-20260605-002', date: '2026-06-05', bank: '國泰世華銀行', summary: '企業行動通訊月租費', amount: 28600, claimStatus: '已綁定', postStatus: '未拋轉', employee: 'IT部－陳建宏', bindDoc: 'TEL-20260605-001' },
+            { id: 'DED-20260610-003', date: '2026-06-10', bank: '中國信託', summary: '員工福利保險費（6月）', amount: 43200, claimStatus: '未認領', postStatus: '未拋轉', employee: '—', bindDoc: null },
+            { id: 'DED-20260612-004', date: '2026-06-12', bank: '兆豐國際商銀', summary: '廠房水電費自動扣款', amount: 17450, claimStatus: '未認領', postStatus: '未拋轉', employee: '—', bindDoc: null },
+            { id: 'DED-20260615-005', date: '2026-06-15', bank: '玉山銀行', summary: '雲端訂閱服務費（AWS）', amount: 62000, claimStatus: '已綁定', postStatus: '未拋轉', employee: 'IT部－張志豪', bindDoc: 'IT-20260615-008' },
+            { id: 'DED-20260618-006', date: '2026-06-18', bank: '台北富邦銀行', summary: '設備維保合約年費（按月分攤）', amount: 9800, claimStatus: '未認領', postStatus: '未拋轉', employee: '—', bindDoc: null },
+            { id: 'DED-20260520-007', date: '2026-05-20', bank: '台新銀行', summary: '5月辦公室租金自動扣繳', amount: 85000, claimStatus: '已綁定', postStatus: '已拋轉', employee: '財務部－林美慧', bindDoc: 'RENT-2026-05' }
         ];
 
         /* ===== 金額格式化 ===== */
-        function fmt(n) { return 'NT$' + Number(n).toLocaleString('en-US'); }
+        function fmt(n) {
+            const neg = n < 0;
+            return (neg ? '-NT$' : 'NT$') + Math.abs(n).toLocaleString('en-US');
+        }
 
-        /* ===== 狀態徽章 ===== */
-        function statusBadge(s, center) {
-            const map = { '待付款': 'ui-badge-info', '已排程': 'ui-badge-warning', '已付款': 'ui-badge-success', '已退回': 'ui-badge-danger' };
-            return `<span class="ui-badge ${map[s] || 'ui-badge-gray'}${center ? ' mx-auto' : ''}">${s}</span>`;
+        /* ===== 徽章 ===== */
+        function statusBadge(s) {
+            const map = { '待放款': 'ui-badge-warning', '已放款': 'ui-badge-info', '已拋轉': 'ui-badge-success', '已退回': 'ui-badge-danger' };
+            return `<span class="ui-badge ${map[s] || 'ui-badge-gray'} mx-auto">${s}</span>`;
+        }
+        function postStatusBadge(s) {
+            return s === '已拋轉'
+                ? '<span class="ui-badge ui-badge-success mx-auto">已拋轉</span>'
+                : '<span class="ui-badge ui-badge-gray mx-auto">未拋轉</span>';
+        }
+        function postTypeBadge(t) {
+            if (!t) return '<span class="text-gray-400 text-xs">—</span>';
+            const map = { '一般拋轉': 'ui-badge-info', '多退少補': 'ui-badge-warning', '無表單扣款': 'ui-badge-gray' };
+            return `<span class="ui-badge ${map[t] || 'ui-badge-gray'} mx-auto">${t}</span>`;
+        }
+        function claimBadge(s) {
+            return s === '已綁定'
+                ? '<span class="ui-badge ui-badge-success mx-auto">已綁定</span>'
+                : '<span class="ui-badge ui-badge-warning mx-auto">未認領</span>';
         }
         function stepBadge(s) {
             const map = { '待審批': 'ui-badge-gray', '審批中': 'ui-badge-warning', '已核准': 'ui-badge-success', '已完成': 'ui-badge-success', '駁回': 'ui-badge-danger' };
             return `<span class="ui-badge ${map[s] || 'ui-badge-gray'}">${s}</span>`;
         }
         function methodBadge(m) {
-            return `<span class="px-2 py-0.5 bg-gray-100 rounded text-xs font-semibold text-gray-700">${m}</span>`;
+            return `<span class="px-2 py-0.5 bg-gray-100 rounded text-xs font-semibold text-gray-700 whitespace-nowrap">${m}</span>`;
         }
-        function isOverdue(p) { return p.status !== '已付款' && p.status !== '已退回' && p.due < TODAY; }
+        function isOverdue(p) { return p.status === '待放款' && p.due < TODAY; }
 
         /* ===== KPI 計算 ===== */
         function recomputeKpi() {
-            const total = payments.filter(p => p.status !== '已退回').reduce((s, p) => s + p.amount, 0);
-            const pendingCount = payments.filter(p => p.status === '待付款').length;
-            const overdue = payments.filter(isOverdue).reduce((s, p) => s + p.amount, 0);
-            const paid = payments.filter(p => p.status === '已付款').reduce((s, p) => s + p.amount, 0);
+            const total = payments.filter(p => p.status !== '已退回').reduce((s, p) => s + Math.abs(p.amount), 0);
+            const pendingCount = payments.filter(p => p.status === '待放款').length;
+            const unposted = payments.filter(p => p.status === '已放款' && p.postStatus === '未拋轉').length;
+            const paid = payments.filter(p => p.status === '已放款' || p.status === '已拋轉').reduce((s, p) => s + Math.abs(p.amount), 0);
             document.getElementById('kpi-total').innerText = fmt(total);
             document.getElementById('kpi-pending').innerText = pendingCount + ' 筆';
-            document.getElementById('kpi-overdue').innerText = fmt(overdue);
+            document.getElementById('kpi-unposted').innerText = unposted + ' 筆';
             document.getElementById('kpi-paid').innerText = fmt(paid);
         }
 
-        /* ===== 列表渲染與篩選 ===== */
+        /* ===== 付款列表渲染 ===== */
         function render() {
             const kw = document.getElementById('f-search').value.trim().toLowerCase();
             const status = document.getElementById('f-status').value;
@@ -261,11 +553,14 @@
             const start = document.getElementById('f-start').value;
             const end = document.getElementById('f-end').value;
 
-            const rows = payments.map((p, i) => ({ p, i })).filter(({ p }) =>
-                (!kw || p.payNo.toLowerCase().includes(kw) || p.payee.toLowerCase().includes(kw)) &&
-                (status === 'all' || p.status === status) &&
-                (method === 'all' || p.method === method) &&
-                (!start || p.due >= start) && (!end || p.due <= end));
+            const rows = payments.map((p, i) => ({ p, i })).filter(function(item) {
+                var p = item.p;
+                var statusMatch = status === 'all' || p.status === status;
+                return (!kw || p.payNo.toLowerCase().includes(kw) || p.payee.toLowerCase().includes(kw)) &&
+                    statusMatch &&
+                    (method === 'all' || p.method === method) &&
+                    (!start || p.due >= start) && (!end || p.due <= end);
+            });
 
             const tbody = document.getElementById('tbody');
             const noData = document.getElementById('no-data');
@@ -276,35 +571,44 @@
                 noData.classList.remove('hidden');
                 document.getElementById('count-badge').innerText = '0 筆資料';
                 document.getElementById('pagination-info').innerText = '顯示第 0 到 0 筆，共 0 筆記錄';
+                recomputeKpi();
                 return;
             }
             tbody.parentElement.classList.remove('hidden');
             noData.classList.add('hidden');
 
-            rows.forEach(({ p, i }) => {
-                const overdue = isOverdue(p);
-                const tr = document.createElement('tr');
+            rows.forEach(function(item) {
+                var p = item.p;
+                var i = item.i;
+                var overdue = isOverdue(p);
+                var tr = document.createElement('tr');
                 tr.className = 'hover:bg-gray-50/70 transition-colors';
-                tr.innerHTML = `
-                    <td class="text-left font-mono font-semibold text-gray-600">${p.payNo}</td>
-                    <td class="text-gray-700">${p.payee}</td>
-                    <td class="text-left text-gray-600 font-mono text-xs">${p.source}</td>
-                    <td class="text-right font-mono font-semibold text-gray-800">${fmt(p.amount)}</td>
-                    <td class="${overdue ? 'text-red-600 font-semibold' : 'text-gray-600'}">${p.due}${overdue ? ' <i class="fa-solid fa-triangle-exclamation text-xs"></i>' : ''}</td>
-                    <td>${methodBadge(p.method)}</td>
-                    <td>${statusBadge(p.status, true)}</td>
-                    <td>
-                        <div class="flex items-center justify-center gap-1.5">
-                            <button onclick="openDetail(${i})" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-circle-info"></i> 檢視</button>
-                            ${p.status === '待付款' ? `<button onclick="markPaid(${i})" class="ui-btn ui-btn-success ui-btn-sm"><i class="fa-solid fa-check"></i> 標記已付</button>` : ''}
-                        </div>
-                    </td>
-                `;
+
+                // Actions
+                var actions = '<button onclick="openDetail(' + i + ')" class="ui-btn ui-btn-secondary ui-btn-sm whitespace-nowrap"><i class="fa-solid fa-circle-info"></i> 檢視</button>';
+                if (p.status === '待放款') {
+                    actions += ' <button onclick="markReleased(' + i + ')" class="ui-btn ui-btn-warning ui-btn-sm whitespace-nowrap"><i class="fa-solid fa-money-bill-transfer"></i> 放款</button>';
+                }
+                if (p.status === '已放款' && p.postStatus === '未拋轉') {
+                    actions += ' <button onclick="postJournal(' + i + ')" class="ui-btn ui-btn-success ui-btn-sm whitespace-nowrap"><i class="fa-solid fa-book"></i> 拋轉記帳</button>';
+                }
+
+                tr.innerHTML =
+                    '<td class="text-left font-mono font-semibold text-gray-600 whitespace-nowrap">' + p.payNo + '</td>' +
+                    '<td class="text-gray-700 whitespace-nowrap">' + p.payee + '</td>' +
+                    '<td class="text-left text-gray-600 font-mono text-xs whitespace-nowrap">' + p.source + '</td>' +
+                    '<td class="text-right font-mono font-semibold whitespace-nowrap ' + (p.amount < 0 ? 'text-red-600' : 'text-gray-800') + '">' + fmt(p.amount) + '</td>' +
+                    '<td class="whitespace-nowrap ' + (overdue ? 'text-red-600 font-semibold' : 'text-gray-600') + '">' + p.due + (overdue ? ' <i class="fa-solid fa-triangle-exclamation text-xs"></i>' : '') + '</td>' +
+                    '<td class="whitespace-nowrap">' + methodBadge(p.method) + '</td>' +
+                    '<td class="whitespace-nowrap">' + statusBadge(p.status) + '</td>' +
+                    '<td class="whitespace-nowrap">' + postStatusBadge(p.postStatus) + '</td>' +
+                    '<td class="whitespace-nowrap">' + postTypeBadge(p.postType) + '</td>' +
+                    '<td><div class="flex items-center justify-center gap-1.5 whitespace-nowrap">' + actions + '</div></td>';
                 tbody.appendChild(tr);
             });
 
-            document.getElementById('count-badge').innerText = `${rows.length} 筆資料`;
-            document.getElementById('pagination-info').innerText = `顯示第 1 到 ${rows.length} 筆，共 ${rows.length} 筆記錄`;
+            document.getElementById('count-badge').innerText = rows.length + ' 筆資料';
+            document.getElementById('pagination-info').innerText = '顯示第 1 到 ' + rows.length + ' 筆，共 ' + rows.length + ' 筆記錄';
             recomputeKpi();
         }
 
@@ -317,49 +621,179 @@
             render();
         }
 
-        /* ===== 標記已付 ===== */
-        function markPaid(i) {
-            const p = payments[i];
-            if (p.status !== '待付款') return;
-            p.status = '已付款';
+        /* ===== 放款 ===== */
+        function markReleased(i) {
+            var p = payments[i];
+            if (p.status !== '待放款') return;
+            p.status = '已放款';
+            p.payDate = TODAY;
             render();
-            showToast('success', `${p.payNo} 已標記為已付款`);
+            showToast('success', p.payNo + ' 已完成放款（PAID），付款日：' + TODAY);
+        }
+
+        /* ===== 拋轉記帳 ===== */
+        function postJournal(i) {
+            var p = payments[i];
+            if (p.status !== '已放款' || p.postStatus !== '未拋轉') return;
+            p.postStatus = '已拋轉';
+            p.status = '已拋轉';
+            p.postDate = TODAY;
+            render();
+            showToast('success', p.payNo + ' 已拋轉記帳，入帳日：' + p.payDate);
+        }
+
+        /* ===== 無表單扣款：綁定單據 ===== */
+        function bindDeduction(i) {
+            var d = deductions[i];
+            if (d.claimStatus === '已綁定') return;
+            d.claimStatus = '已綁定';
+            d.employee = '財務部（已認領）';
+            d.bindDoc = 'BIND-' + d.id;
+            renderDeductions();
+            showToast('success', d.summary + ' 已完成綁定，可執行拋轉。');
+        }
+
+        /* ===== 無表單扣款：拋轉 ===== */
+        function postDeduction(i) {
+            var d = deductions[i];
+            if (d.claimStatus !== '已綁定' || d.postStatus !== '未拋轉') return;
+            d.postStatus = '已拋轉';
+            renderDeductions();
+            showToast('success', d.summary + ' 已直接拋轉記帳（入帳日：' + TODAY + '）');
+        }
+
+        /* ===== 無表單扣款列表渲染 ===== */
+        function renderDeductions() {
+            var tbody = document.getElementById('deduct-tbody');
+            tbody.innerHTML = '';
+            deductions.forEach(function(d, i) {
+                var tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-50/70 transition-colors';
+
+                var actions = '';
+                if (d.claimStatus === '未認領') {
+                    actions += '<button onclick="bindDeduction(' + i + ')" class="ui-btn ui-btn-primary ui-btn-sm whitespace-nowrap"><i class="fa-solid fa-link"></i> 綁定單據</button>';
+                } else if (d.postStatus === '未拋轉') {
+                    actions += '<button onclick="postDeduction(' + i + ')" class="ui-btn ui-btn-success ui-btn-sm whitespace-nowrap"><i class="fa-solid fa-book"></i> 拋轉記帳</button>';
+                } else {
+                    actions += '<span class="text-xs text-text-muted">—</span>';
+                }
+
+                tr.innerHTML =
+                    '<td class="text-left text-gray-700 whitespace-nowrap font-mono text-xs">' + d.date + '</td>' +
+                    '<td class="text-gray-700 whitespace-nowrap">' + d.bank + '</td>' +
+                    '<td class="text-left text-gray-800 whitespace-nowrap">' + d.summary + '</td>' +
+                    '<td class="text-right font-mono font-semibold text-gray-800 whitespace-nowrap">' + fmt(d.amount) + '</td>' +
+                    '<td class="text-gray-600 whitespace-nowrap text-xs">' + (d.bindDoc ? '<span class="font-mono text-primary">' + d.bindDoc + '</span><br><span class="text-text-muted">' + d.employee + '</span>' : '<span class="text-text-muted">—</span>') + '</td>' +
+                    '<td class="whitespace-nowrap">' + claimBadge(d.claimStatus) + '</td>' +
+                    '<td class="whitespace-nowrap">' + postStatusBadge(d.postStatus) + '</td>' +
+                    '<td><div class="flex items-center justify-center gap-1.5 whitespace-nowrap">' + actions + '</div></td>';
+                tbody.appendChild(tr);
+            });
+            document.getElementById('deduct-count-badge').innerText = deductions.length + ' 筆資料';
         }
 
         /* ===== 詳情 ===== */
-        let currentIdx = null;
+        var currentIdx = null;
         function openDetail(i) {
             currentIdx = i;
-            const p = payments[i];
-            document.getElementById('d-title').innerText = `付款單 — ${p.payNo}`;
-            document.getElementById('d-info').innerHTML = `
-                <div><span class="text-text-muted">付款單號：</span><span class="font-medium text-gray-800 font-mono">${p.payNo}</span></div>
-                <div><span class="text-text-muted">收款對象：</span><span class="font-medium text-gray-800">${p.payee}</span></div>
-                <div class="sm:col-span-2"><span class="text-text-muted">來源單據：</span><span class="font-medium text-gray-800 font-mono">${p.source}</span></div>
-                <div><span class="text-text-muted">金額：</span><span class="font-medium text-gray-800 font-mono">${fmt(p.amount)}</span></div>
-                <div><span class="text-text-muted">到期日：</span><span class="font-medium ${isOverdue(p) ? 'text-red-600' : 'text-gray-800'}">${p.due}${isOverdue(p) ? '（逾期）' : ''}</span></div>
-                <div><span class="text-text-muted">付款方式：</span><span class="font-medium text-gray-800">${p.method}</span></div>
-                <div><span class="text-text-muted">狀態：</span>${statusBadge(p.status, false)}</div>`;
+            var p = payments[i];
 
-            document.getElementById('d-account').innerHTML = `
-                <div><span class="text-text-muted">銀行：</span><span class="font-medium text-gray-800">${p.account.bank}</span></div>
-                <div><span class="text-text-muted">分行：</span><span class="font-medium text-gray-800">${p.account.branch}</span></div>
-                <div><span class="text-text-muted">帳號：</span><span class="font-medium text-gray-800 font-mono">${p.account.no}</span></div>
-                <div><span class="text-text-muted">戶名：</span><span class="font-medium text-gray-800">${p.account.name}</span></div>`;
+            // 標題
+            document.getElementById('d-title').innerText = '付款單 — ' + p.payNo;
 
-            document.getElementById('d-approvals').innerHTML = p.approvals.map((a, idx) => `
-                <div class="flex items-center gap-3 p-2.5 border border-gray-100 rounded-lg">
-                    <span class="w-6 h-6 rounded-full bg-blue-50 text-primary text-xs font-bold flex items-center justify-center shrink-0">${idx + 1}</span>
-                    <span class="text-sm text-gray-800 flex-1">${a.role}</span>
-                    ${stepBadge(a.status)}
-                </div>`).join('');
+            // 基本資訊
+            document.getElementById('d-payno').value = p.payNo;
+            document.getElementById('d-payee').value = p.payee;
+            document.getElementById('d-source').value = p.source;
+            document.getElementById('d-method').value = p.method;
+            var dueEl = document.getElementById('d-due');
+            dueEl.value = p.due + (isOverdue(p) ? '（逾期）' : '');
+            dueEl.className = 'w-full border rounded px-3 py-2 text-sm cursor-not-allowed ' + (isOverdue(p) ? 'bg-red-50 border-red-300 text-red-700' : 'bg-[#EAECEF] border-gray-300 text-gray-700');
+            document.getElementById('d-paydate').value = p.payDate || '—';
+            document.getElementById('d-status').innerHTML = statusBadge(p.status).replace('mx-auto', '');
 
-            document.getElementById('d-pay-btn').classList.toggle('hidden', p.status !== '待付款');
+            // 付款金額
+            var amtEl = document.getElementById('d-amount');
+            amtEl.value = Math.abs(p.amount).toLocaleString('en-US');
+            amtEl.className = 'w-full bg-white px-3 py-2 text-sm font-medium focus:outline-none ' + (p.amount < 0 ? 'text-red-600' : 'text-gray-800');
+
+            // 多退少補區塊
+            var adjSection = document.getElementById('d-adjust-section');
+            if (p.postType === '多退少補' && p.origLoanNo) {
+                adjSection.classList.remove('hidden');
+                document.getElementById('d-orig-loan').value = p.origLoanNo;
+                document.getElementById('d-prepaid').value = fmt(p.prepaidOffset);
+                document.getElementById('d-actual').value = fmt(p.actualExpense);
+                document.getElementById('d-adjust-note').value = p.adjustNote;
+            } else {
+                adjSection.classList.add('hidden');
+            }
+
+            // 收款帳戶
+            document.getElementById('d-bank').value = p.account.bank;
+            document.getElementById('d-branch').value = p.account.branch;
+            document.getElementById('d-accno').value = p.account.no;
+            document.getElementById('d-accname').value = p.account.name;
+
+            // 拋轉記帳
+            document.getElementById('d-post-type').innerHTML = postTypeBadge(p.postType);
+            document.getElementById('d-post-status').innerHTML = postStatusBadge(p.postStatus).replace('mx-auto', '');
+            var pdWrap = document.getElementById('d-postdate-wrap');
+            if (p.postStatus === '已拋轉' && p.postDate) {
+                pdWrap.classList.remove('hidden');
+                document.getElementById('d-postdate').value = p.postDate;
+            } else {
+                pdWrap.classList.add('hidden');
+            }
+
+            // 右側：來源簽核線
+            document.getElementById('d-approval-rows').innerHTML = p.approvals.map(function(a, idx) {
+                return '<tr class="hover:bg-gray-50/70">' +
+                    '<td class="px-3 py-2 text-center text-gray-500">' + (idx + 1) + '</td>' +
+                    '<td class="px-3 py-2 text-gray-800 whitespace-nowrap">' + a.role + '</td>' +
+                    '<td class="px-3 py-2 text-center">' + stepBadge(a.status) + '</td>' +
+                    '</tr>';
+            }).join('');
+
+            // 右側：操作歷程
+            var histHtml = '';
+            histHtml += '<div class="flex items-start gap-2.5 p-2.5 border border-gray-100 rounded-lg bg-white">' +
+                '<span class="w-2 h-2 rounded-full bg-blue-400 mt-1.5 shrink-0"></span>' +
+                '<div><div class="text-xs font-semibold text-gray-700">請款申請建立</div>' +
+                '<div class="text-xs text-gray-500 mt-0.5">' + p.source + '</div></div></div>';
+            if (p.payDate) {
+                histHtml += '<div class="flex items-start gap-2.5 p-2.5 border border-emerald-100 rounded-lg bg-emerald-50">' +
+                    '<span class="w-2 h-2 rounded-full bg-emerald-500 mt-1.5 shrink-0"></span>' +
+                    '<div><div class="text-xs font-semibold text-emerald-700">已放款（PAID）</div>' +
+                    '<div class="text-xs text-emerald-600 mt-0.5">付款日：' + p.payDate + '</div></div></div>';
+            }
+            if (p.postDate) {
+                histHtml += '<div class="flex items-start gap-2.5 p-2.5 border border-blue-100 rounded-lg bg-blue-50">' +
+                    '<span class="w-2 h-2 rounded-full bg-blue-500 mt-1.5 shrink-0"></span>' +
+                    '<div><div class="text-xs font-semibold text-blue-700">已拋轉記帳</div>' +
+                    '<div class="text-xs text-blue-600 mt-0.5">入帳日：' + p.postDate + '</div></div></div>';
+            }
+            if (!p.payDate && !p.postDate) {
+                histHtml += '<div class="text-xs text-gray-400 text-center py-4">尚無操作歷程</div>';
+            }
+            document.getElementById('d-history').innerHTML = histHtml;
+
+            // 按鈕顯示
+            document.getElementById('d-release-btn').classList.toggle('hidden', p.status !== '待放款');
+            document.getElementById('d-post-btn').classList.toggle('hidden', !(p.status === '已放款' && p.postStatus === '未拋轉'));
+
             document.getElementById('detail-modal').classList.remove('hidden');
         }
-        function markPaidFromModal() {
+
+        function markReleasedFromModal() {
             if (currentIdx === null) return;
-            markPaid(currentIdx);
+            markReleased(currentIdx);
+            closeDetail();
+        }
+        function postJournalFromModal() {
+            if (currentIdx === null) return;
+            postJournal(currentIdx);
             closeDetail();
         }
         function closeDetail() { document.getElementById('detail-modal').classList.add('hidden'); currentIdx = null; }
@@ -367,17 +801,37 @@
         function mockExport() { showToast('success', '付款報表已開始匯出'); }
 
         function showToast(type, text) {
-            const toast = document.getElementById('toast');
+            var toast = document.getElementById('toast');
             document.getElementById('toast-text').innerText = text;
-            const icon = document.getElementById('toast-icon');
-            if (type === 'success') { toast.className = "fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform transition-all duration-300 border border-emerald-500/20"; icon.className = "fa-solid fa-circle-check text-emerald-400 text-base"; }
-            else { toast.className = "fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform transition-all duration-300 border border-blue-500/20"; icon.className = "fa-solid fa-circle-info text-blue-400 text-base"; }
+            var icon = document.getElementById('toast-icon');
+            if (type === 'success') {
+                toast.className = "fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform transition-all duration-300 border border-emerald-500/20";
+                icon.className = "fa-solid fa-circle-check text-emerald-400 text-base";
+            } else {
+                toast.className = "fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform transition-all duration-300 border border-blue-500/20";
+                icon.className = "fa-solid fa-circle-info text-blue-400 text-base";
+            }
             toast.style.transform = 'translateY(0)'; toast.style.opacity = '1';
-            clearTimeout(window.__t); window.__t = setTimeout(() => { toast.style.transform = 'translateY(5rem)'; toast.style.opacity = '0'; }, 2400);
+            clearTimeout(window.__t); window.__t = setTimeout(function() { toast.style.transform = 'translateY(5rem)'; toast.style.opacity = '0'; }, 2400);
         }
 
-        document.getElementById('detail-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeDetail(); });
-        window.onload = render;
+        // ===== 頁籤切換（同 財務報表.html 模式）=====
+        function switchTab(tab) {
+            var tabs = ['pay', 'deduct'];
+            var onCls = 'px-4 py-2.5 text-sm font-semibold text-primary border-b-2 border-primary -mb-px transition-colors whitespace-nowrap';
+            var offCls = 'px-4 py-2.5 text-sm font-medium text-gray-500 border-b-2 border-transparent -mb-px hover:text-gray-700 transition-colors whitespace-nowrap';
+            tabs.forEach(function(t) {
+                document.getElementById('panel-' + t).classList.toggle('hidden', t !== tab);
+                document.getElementById('tab-btn-' + t).className = (t === tab) ? onCls : offCls;
+            });
+        }
+
+        document.getElementById('detail-modal').addEventListener('click', function(e) { if (e.target === e.currentTarget) closeDetail(); });
+
+        window.onload = function() {
+            render();
+            renderDeductions();
+        };
     </script>
 </body>
 </html>

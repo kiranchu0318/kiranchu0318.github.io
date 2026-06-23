@@ -98,6 +98,9 @@
             <button id="tab-btn-pl"   onclick="switchTab('pl')"   class="px-4 py-2.5 text-sm font-semibold text-primary border-b-2 border-primary -mb-px transition-colors whitespace-nowrap">損益表</button>
             <button id="tab-btn-bs"   onclick="switchTab('bs')"   class="px-4 py-2.5 text-sm font-medium text-gray-500 border-b-2 border-transparent -mb-px hover:text-gray-700 transition-colors whitespace-nowrap">資產負債表</button>
             <button id="tab-btn-cf"   onclick="switchTab('cf')"   class="px-4 py-2.5 text-sm font-medium text-gray-500 border-b-2 border-transparent -mb-px hover:text-gray-700 transition-colors whitespace-nowrap">現金流量</button>
+            <button id="tab-btn-jl"   onclick="switchTab('jl')"   class="px-4 py-2.5 text-sm font-medium text-gray-500 border-b-2 border-transparent -mb-px hover:text-gray-700 transition-colors whitespace-nowrap">分錄帳</button>
+            <button id="tab-btn-bal"  onclick="switchTab('bal')"  class="px-4 py-2.5 text-sm font-medium text-gray-500 border-b-2 border-transparent -mb-px hover:text-gray-700 transition-colors whitespace-nowrap">餘額表</button>
+            <button id="tab-btn-ma"   onclick="switchTab('ma')"   class="px-4 py-2.5 text-sm font-medium text-gray-500 border-b-2 border-transparent -mb-px hover:text-gray-700 transition-colors whitespace-nowrap">多維度分析</button>
             <button id="tab-btn-dl"   onclick="switchTab('dl')"   class="px-4 py-2.5 text-sm font-medium text-gray-500 border-b-2 border-transparent -mb-px hover:text-gray-700 transition-colors whitespace-nowrap">報表下載</button>
         </div>
 
@@ -192,7 +195,166 @@
             </section>
         </div>
 
-        <!-- ============ 頁籤 4：報表下載 ============ -->
+        <!-- ============ 頁籤 4：分錄帳 ============ -->
+        <div id="panel-jl" class="space-y-6 hidden">
+            <!-- 內頁切換小按鈕 -->
+            <div class="flex items-center gap-2 flex-wrap">
+                <button id="jl-btn-exp"  onclick="switchJL('exp')"  class="ui-btn ui-btn-primary ui-btn-sm">支出匯總表</button>
+                <button id="jl-btn-tmp"  onclick="switchJL('tmp')"  class="ui-btn ui-btn-secondary ui-btn-sm">暫付款餘額表</button>
+                <button id="jl-btn-pre"  onclick="switchJL('pre')"  class="ui-btn ui-btn-secondary ui-btn-sm">預付款餘額表</button>
+                <button id="jl-btn-oth"  onclick="switchJL('oth')"  class="ui-btn ui-btn-secondary ui-btn-sm">其他科目餘額表</button>
+            </div>
+            <!-- 支出匯總表 -->
+            <section id="jl-sec-exp" class="ui-card p-4 sm:p-6">
+                <div class="flex items-center gap-2 mb-4">
+                    <h2 class="text-lg font-bold text-gray-900 whitespace-nowrap">支出匯總表</h2>
+                    <span id="jl-exp-badge" class="bg-blue-50 text-primary text-xs px-2.5 py-1 rounded-md font-bold"></span>
+                </div>
+                <div class="overflow-x-auto rounded-lg border border-gray-100 custom-scrollbar">
+                    <table class="ui-table fin-table whitespace-nowrap">
+                        <thead><tr>
+                            <th class="text-left">會計科目</th>
+                            <th class="text-right">本期金額</th>
+                            <th class="text-right">筆數</th>
+                        </tr></thead>
+                        <tbody id="jl-exp-tbody"></tbody>
+                    </table>
+                </div>
+            </section>
+            <!-- 暫付款餘額表 -->
+            <section id="jl-sec-tmp" class="ui-card p-4 sm:p-6 hidden">
+                <div class="flex items-center gap-2 mb-4">
+                    <h2 class="text-lg font-bold text-gray-900 whitespace-nowrap">暫付款餘額表</h2>
+                    <span id="jl-tmp-badge" class="bg-amber-50 text-amber-700 text-xs px-2.5 py-1 rounded-md font-bold"></span>
+                </div>
+                <div class="overflow-x-auto rounded-lg border border-gray-100 custom-scrollbar">
+                    <table class="ui-table fin-table whitespace-nowrap">
+                        <thead><tr>
+                            <th class="text-left">人員</th>
+                            <th class="text-left">單號</th>
+                            <th class="text-right">暫付金額</th>
+                            <th class="text-right">已沖銷</th>
+                            <th class="text-right">餘額</th>
+                            <th class="text-center">狀態</th>
+                        </tr></thead>
+                        <tbody id="jl-tmp-tbody"></tbody>
+                    </table>
+                </div>
+            </section>
+            <!-- 預付款餘額表 -->
+            <section id="jl-sec-pre" class="ui-card p-4 sm:p-6 hidden">
+                <div class="flex items-center gap-2 mb-4">
+                    <h2 class="text-lg font-bold text-gray-900 whitespace-nowrap">預付款餘額表</h2>
+                    <span id="jl-pre-badge" class="bg-violet-50 text-violet-700 text-xs px-2.5 py-1 rounded-md font-bold"></span>
+                </div>
+                <div class="overflow-x-auto rounded-lg border border-gray-100 custom-scrollbar">
+                    <table class="ui-table fin-table whitespace-nowrap">
+                        <thead><tr>
+                            <th class="text-left">項目</th>
+                            <th class="text-right">預付金額</th>
+                            <th class="text-right">已攤銷</th>
+                            <th class="text-right">餘額</th>
+                        </tr></thead>
+                        <tbody id="jl-pre-tbody"></tbody>
+                    </table>
+                </div>
+            </section>
+            <!-- 其他科目餘額表 -->
+            <section id="jl-sec-oth" class="ui-card p-4 sm:p-6 hidden">
+                <div class="flex items-center gap-2 mb-4">
+                    <h2 class="text-lg font-bold text-gray-900 whitespace-nowrap">其他科目餘額表</h2>
+                    <span id="jl-oth-badge" class="bg-emerald-50 text-emerald-700 text-xs px-2.5 py-1 rounded-md font-bold"></span>
+                </div>
+                <div class="overflow-x-auto rounded-lg border border-gray-100 custom-scrollbar">
+                    <table class="ui-table fin-table whitespace-nowrap">
+                        <thead><tr>
+                            <th class="text-left">科目</th>
+                            <th class="text-right">借方</th>
+                            <th class="text-right">貸方</th>
+                            <th class="text-right">餘額</th>
+                        </tr></thead>
+                        <tbody id="jl-oth-tbody"></tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+
+        <!-- ============ 頁籤 5：餘額表 ============ -->
+        <div id="panel-bal" class="space-y-6 hidden">
+            <!-- 無還回表 -->
+            <section class="ui-card p-4 sm:p-6">
+                <div class="flex items-center gap-2 mb-4">
+                    <h2 class="text-lg font-bold text-gray-900 whitespace-nowrap">無還回表</h2>
+                    <span id="bal-nr-badge" class="bg-rose-50 text-rose-700 text-xs px-2.5 py-1 rounded-md font-bold"></span>
+                </div>
+                <div class="overflow-x-auto rounded-lg border border-gray-100 custom-scrollbar">
+                    <table class="ui-table fin-table whitespace-nowrap">
+                        <thead><tr>
+                            <th class="text-left">借款人</th>
+                            <th class="text-left">單號</th>
+                            <th class="text-right">借款額</th>
+                            <th class="text-right">應還回</th>
+                            <th class="text-right">逾期天數</th>
+                            <th class="text-center">狀態</th>
+                        </tr></thead>
+                        <tbody id="bal-nr-tbody"></tbody>
+                    </table>
+                </div>
+            </section>
+            <!-- 項目摘要表 -->
+            <section class="ui-card p-4 sm:p-6">
+                <div class="flex items-center gap-2 mb-4">
+                    <h2 class="text-lg font-bold text-gray-900 whitespace-nowrap">項目摘要表</h2>
+                    <span id="bal-sum-badge" class="bg-blue-50 text-primary text-xs px-2.5 py-1 rounded-md font-bold"></span>
+                </div>
+                <div class="overflow-x-auto rounded-lg border border-gray-100 custom-scrollbar">
+                    <table class="ui-table fin-table whitespace-nowrap">
+                        <thead><tr>
+                            <th class="text-left">項目</th>
+                            <th class="text-right">收入</th>
+                            <th class="text-right">支出</th>
+                            <th class="text-right">淨額</th>
+                        </tr></thead>
+                        <tbody id="bal-sum-tbody"></tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+
+        <!-- ============ 頁籤 6：多維度分析 ============ -->
+        <div id="panel-ma" class="space-y-6 hidden">
+            <section class="ui-card p-4 sm:p-6">
+                <div class="flex flex-wrap items-center gap-3 mb-5">
+                    <h2 class="text-lg font-bold text-gray-900 whitespace-nowrap">對比分析</h2>
+                    <div class="flex items-center gap-2">
+                        <label class="text-sm text-text-muted font-medium whitespace-nowrap">分析維度</label>
+                        <select id="ma-dim" onchange="renderMA()" class="ui-select w-36">
+                            <option value="acct">費用科目</option>
+                            <option value="proj">項目</option>
+                            <option value="dept">部門</option>
+                        </select>
+                    </div>
+                    <span id="ma-period-badge" class="bg-blue-50 text-primary text-xs px-2.5 py-1 rounded-md font-bold ml-auto"></span>
+                </div>
+                <!-- 明細對比表 -->
+                <div class="overflow-x-auto rounded-lg border border-gray-100 custom-scrollbar mb-6">
+                    <table class="ui-table fin-table whitespace-nowrap">
+                        <thead><tr>
+                            <th class="text-left">項目</th>
+                            <th class="text-right">本期</th>
+                            <th class="text-right">上期</th>
+                            <th class="text-right">增減%</th>
+                        </tr></thead>
+                        <tbody id="ma-tbody"></tbody>
+                    </table>
+                </div>
+                <!-- 長條圖（div 模擬，不引入圖表庫）-->
+                <h3 class="text-sm font-bold text-gray-700 mb-3">本期費用分佈</h3>
+                <div id="ma-bars" class="space-y-2.5"></div>
+            </section>
+        </div>
+
+        <!-- ============ 頁籤 7：報表下載 ============ -->
         <div id="panel-dl" class="space-y-6 hidden">
             <section class="ui-card p-4 sm:p-6">
                 <div class="flex items-center gap-2 mb-4">
@@ -477,18 +639,192 @@
             renderPL();
             renderBS();
             renderCF();
+            renderJL();
+            renderBAL();
+            renderMA();
             renderDL();
         }
 
         // ===== 頁籤切換 =====
         function switchTab(tab) {
-            const tabs = ['pl', 'bs', 'cf', 'dl'];
+            const tabs = ['pl', 'bs', 'cf', 'jl', 'bal', 'ma', 'dl'];
             const onCls = 'px-4 py-2.5 text-sm font-semibold text-primary border-b-2 border-primary -mb-px transition-colors whitespace-nowrap';
             const offCls = 'px-4 py-2.5 text-sm font-medium text-gray-500 border-b-2 border-transparent -mb-px hover:text-gray-700 transition-colors whitespace-nowrap';
             tabs.forEach(t => {
                 document.getElementById('panel-' + t).classList.toggle('hidden', t !== tab);
                 document.getElementById('tab-btn-' + t).className = (t === tab) ? onCls : offCls;
             });
+        }
+
+        // ===== 分錄帳：內頁子切換 =====
+        let curJL = 'exp';
+        function switchJL(sec) {
+            const secs = ['exp', 'tmp', 'pre', 'oth'];
+            const onCls = 'ui-btn ui-btn-primary ui-btn-sm';
+            const offCls = 'ui-btn ui-btn-secondary ui-btn-sm';
+            curJL = sec;
+            secs.forEach(s => {
+                document.getElementById('jl-sec-' + s).classList.toggle('hidden', s !== sec);
+                document.getElementById('jl-btn-' + s).className = (s === sec) ? onCls : offCls;
+            });
+        }
+
+        // ===== 分錄帳 Mock Data =====
+        const jlExpData = [
+            { acct: '招待費',       amt: 285000,  cnt: 18 },
+            { acct: '差旅費',       amt: 432000,  cnt: 34 },
+            { acct: '辦公費',       amt: 97500,   cnt: 22 },
+            { acct: '郵電費',       amt: 23400,   cnt: 11 },
+            { acct: '廣告費',       amt: 168000,  cnt: 8  },
+            { acct: '雜支',         amt: 44100,   cnt: 15 },
+        ];
+        const jlTmpData = [
+            { person: '王大明', no: 'TP-2026-0041', amt: 50000,  cleared: 50000,  bal: 0       },
+            { person: '林小華', no: 'TP-2026-0055', amt: 80000,  cleared: 30000,  bal: 50000   },
+            { person: '陳美玲', no: 'TP-2026-0062', amt: 25000,  cleared: 0,      bal: 25000   },
+            { person: '張志偉', no: 'TP-2026-0078', amt: 120000, cleared: 120000, bal: 0       },
+            { person: '李俊豪', no: 'TP-2026-0083', amt: 35000,  cleared: 10000,  bal: 25000   },
+        ];
+        const jlPreData = [
+            { proj: '年度軟體維護合約', amt: 360000, amort: 180000, bal: 180000 },
+            { proj: '辦公室裝修預付',   amt: 500000, amort: 500000, bal: 0      },
+            { proj: '展覽費用預付',     amt: 150000, amort: 50000,  bal: 100000 },
+            { proj: '保險費預付',       amt: 96000,  amort: 48000,  bal: 48000  },
+        ];
+        const jlOthData = [
+            { acct: '存出保證金', debit: 200000,  credit: 0,      bal: 200000  },
+            { acct: '其他應收款', debit: 87500,   credit: 30000,  bal: 57500   },
+            { acct: '其他應付款', debit: 0,       credit: 143000, bal: -143000 },
+            { acct: '備供出售金融資產', debit: 500000, credit: 120000, bal: 380000 },
+            { acct: '遞延所得稅資產',   debit: 62000,  credit: 0,      bal: 62000  },
+        ];
+
+        function renderJL() {
+            const lbl = periodLabel();
+            // 支出匯總表
+            const expTotal = jlExpData.reduce((s, r) => s + r.amt, 0);
+            const cntTotal = jlExpData.reduce((s, r) => s + r.cnt, 0);
+            document.getElementById('jl-exp-badge').innerText = lbl;
+            document.getElementById('jl-exp-tbody').innerHTML =
+                jlExpData.map(r => `<tr><td class="text-left text-gray-700">${r.acct}</td><td class="num">${fmt(r.amt)}</td><td class="num text-text-muted">${r.cnt}</td></tr>`).join('') +
+                `<tr class="row-total"><td class="text-left">合計</td><td class="num">${fmt(expTotal)}</td><td class="num">${cntTotal}</td></tr>`;
+            // 暫付款餘額表
+            document.getElementById('jl-tmp-badge').innerText = lbl;
+            document.getElementById('jl-tmp-tbody').innerHTML = jlTmpData.map(r => {
+                const badge = r.bal === 0 ? '<span class="ui-badge ui-badge-success mx-auto">已沖銷</span>' : '<span class="ui-badge ui-badge-warning mx-auto">未沖銷</span>';
+                return `<tr><td class="text-left text-gray-700">${r.person}</td><td class="text-gray-500 text-xs">${r.no}</td><td class="num">${fmt(r.amt)}</td><td class="num text-text-muted">${fmt(r.cleared)}</td><td class="num font-semibold ${r.bal > 0 ? 'text-rose-600' : 'text-emerald-600'}">${fmt(r.bal)}</td><td class="text-center">${badge}</td></tr>`;
+            }).join('');
+            // 預付款餘額表
+            document.getElementById('jl-pre-badge').innerText = lbl;
+            document.getElementById('jl-pre-tbody').innerHTML = jlPreData.map(r => {
+                return `<tr><td class="text-left text-gray-700">${r.proj}</td><td class="num">${fmt(r.amt)}</td><td class="num text-text-muted">${fmt(r.amort)}</td><td class="num font-semibold ${r.bal > 0 ? 'text-amber-600' : 'text-emerald-600'}">${fmt(r.bal)}</td></tr>`;
+            }).join('');
+            // 其他科目餘額表
+            document.getElementById('jl-oth-badge').innerText = lbl;
+            document.getElementById('jl-oth-tbody').innerHTML = jlOthData.map(r => {
+                const sign = r.bal >= 0 ? '' : 'text-rose-600';
+                return `<tr><td class="text-left text-gray-700">${r.acct}</td><td class="num">${fmt(r.debit)}</td><td class="num text-text-muted">${fmt(r.credit)}</td><td class="num font-semibold ${sign}">${fmt(r.bal)}</td></tr>`;
+            }).join('');
+        }
+
+        // ===== 餘額表 Mock Data =====
+        const balNRData = [
+            { person: '吳建國', no: 'LN-2026-0012', loan: 100000, due: 100000, overdue: 45 },
+            { person: '許淑芬', no: 'LN-2026-0019', loan: 50000,  due: 50000,  overdue: 12 },
+            { person: '蔡明哲', no: 'LN-2026-0023', loan: 200000, due: 200000, overdue: 68 },
+            { person: '黃雅婷', no: 'LN-2026-0031', loan: 30000,  due: 30000,  overdue: 3  },
+        ];
+        const balSumData = [
+            { proj: 'A產品開發計畫', income: 3200000, expense: 1850000 },
+            { proj: 'B市場拓展計畫', income: 2100000, expense: 1420000 },
+            { proj: 'C設備升級計畫', income: 0,       expense: 980000  },
+            { proj: 'D品牌宣傳計畫', income: 500000,  expense: 620000  },
+            { proj: 'E客戶關係計畫', income: 1800000, expense: 730000  },
+        ];
+
+        function renderBAL() {
+            const lbl = periodLabel();
+            // 無還回表
+            document.getElementById('bal-nr-badge').innerText = `${balNRData.length} 筆逾期`;
+            document.getElementById('bal-nr-tbody').innerHTML = balNRData.map(r => {
+                const urgCls = r.overdue >= 60 ? 'text-rose-600 font-bold' : (r.overdue >= 30 ? 'text-amber-600 font-semibold' : 'text-gray-600');
+                const badge = r.overdue >= 60
+                    ? '<span class="ui-badge ui-badge-danger mx-auto">嚴重逾期</span>'
+                    : (r.overdue >= 30 ? '<span class="ui-badge ui-badge-warning mx-auto">逾期</span>' : '<span class="ui-badge ui-badge-info mx-auto">追蹤中</span>');
+                return `<tr><td class="text-left text-gray-700 font-semibold">${r.person}</td><td class="text-gray-500 text-xs">${r.no}</td><td class="num">${fmt(r.loan)}</td><td class="num">${fmt(r.due)}</td><td class="num ${urgCls}">${r.overdue} 天</td><td class="text-center">${badge}</td></tr>`;
+            }).join('');
+            // 項目摘要表
+            const totIncome  = balSumData.reduce((s, r) => s + r.income, 0);
+            const totExpense = balSumData.reduce((s, r) => s + r.expense, 0);
+            const totNet     = totIncome - totExpense;
+            document.getElementById('bal-sum-badge').innerText = lbl;
+            document.getElementById('bal-sum-tbody').innerHTML =
+                balSumData.map(r => {
+                    const net = r.income - r.expense;
+                    return `<tr><td class="text-left text-gray-700">${r.proj}</td><td class="num text-emerald-600">${fmt(r.income)}</td><td class="num text-rose-600">${fmt(r.expense)}</td><td class="num font-semibold ${net >= 0 ? 'text-emerald-700' : 'text-rose-700'}">${fmt(net)}</td></tr>`;
+                }).join('') +
+                `<tr class="row-total"><td class="text-left">合計</td><td class="num text-emerald-600">${fmt(totIncome)}</td><td class="num text-rose-600">${fmt(totExpense)}</td><td class="num font-semibold ${totNet >= 0 ? 'text-emerald-700' : 'text-rose-700'}">${fmt(totNet)}</td></tr>`;
+        }
+
+        // ===== 多維度分析 Mock Data =====
+        const maDimData = {
+            acct: [
+                { label: '招待費',   cur: 285000,  prev: 240000  },
+                { label: '差旅費',   cur: 432000,  prev: 380000  },
+                { label: '辦公費',   cur: 97500,   prev: 88000   },
+                { label: '郵電費',   cur: 23400,   prev: 21000   },
+                { label: '廣告費',   cur: 168000,  prev: 195000  },
+                { label: '雜支',     cur: 44100,   prev: 39000   },
+            ],
+            proj: [
+                { label: 'A產品開發計畫', cur: 520000,  prev: 480000  },
+                { label: 'B市場拓展計畫', cur: 340000,  prev: 310000  },
+                { label: 'C設備升級計畫', cur: 980000,  prev: 430000  },
+                { label: 'D品牌宣傳計畫', cur: 620000,  prev: 590000  },
+                { label: 'E客戶關係計畫', cur: 290000,  prev: 275000  },
+            ],
+            dept: [
+                { label: '業務部',   cur: 680000,  prev: 610000  },
+                { label: '研發部',   cur: 520000,  prev: 495000  },
+                { label: '管理部',   cur: 310000,  prev: 290000  },
+                { label: '財務部',   cur: 175000,  prev: 168000  },
+                { label: '人資部',   cur: 140000,  prev: 130000  },
+            ]
+        };
+
+        function renderMA() {
+            const dim = document.getElementById('ma-dim') ? document.getElementById('ma-dim').value : 'acct';
+            const rows = maDimData[dim] || maDimData['acct'];
+            document.getElementById('ma-period-badge').innerText = periodLabel();
+            // 對比表
+            const maxCur = Math.max(...rows.map(r => r.cur));
+            document.getElementById('ma-tbody').innerHTML =
+                rows.map(r => {
+                    const chg = r.prev ? (r.cur - r.prev) / Math.abs(r.prev) * 100 : 0;
+                    const sign = chg >= 0 ? '+' : '';
+                    const chgCls = chg >= 0 ? 'text-rose-600' : 'text-emerald-600';
+                    return `<tr><td class="text-left text-gray-700">${r.label}</td><td class="num">${fmt(r.cur)}</td><td class="num text-text-muted">${fmt(r.prev)}</td><td class="num font-semibold ${chgCls}">${sign}${chg.toFixed(1)}%</td></tr>`;
+                }).join('') +
+                (() => {
+                    const totCur  = rows.reduce((s, r) => s + r.cur, 0);
+                    const totPrev = rows.reduce((s, r) => s + r.prev, 0);
+                    const chg = totPrev ? (totCur - totPrev) / Math.abs(totPrev) * 100 : 0;
+                    const sign = chg >= 0 ? '+' : '';
+                    const chgCls = chg >= 0 ? 'text-rose-600' : 'text-emerald-600';
+                    return `<tr class="row-total"><td class="text-left">合計</td><td class="num">${fmt(totCur)}</td><td class="num text-text-muted">${fmt(totPrev)}</td><td class="num font-semibold ${chgCls}">${sign}${chg.toFixed(1)}%</td></tr>`;
+                })();
+            // 長條圖
+            const barsEl = document.getElementById('ma-bars');
+            barsEl.innerHTML = rows.map(r => {
+                const pctVal = maxCur > 0 ? Math.round(r.cur / maxCur * 100) : 0;
+                return `<div class="flex items-center gap-3">
+                    <span class="text-xs text-gray-600 w-28 shrink-0 text-right truncate">${r.label}</span>
+                    <div class="flex-1 bg-gray-100 rounded-full h-5 overflow-hidden">
+                        <div class="h-5 rounded-full bg-primary transition-all duration-500" style="width:${pctVal}%"></div>
+                    </div>
+                    <span class="text-xs font-mono text-gray-700 w-28 shrink-0">${fmt(r.cur)}</span>
+                </div>`;
+            }).join('');
         }
 
         // ===== 匯出 / 下載 =====

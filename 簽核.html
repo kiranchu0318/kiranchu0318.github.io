@@ -140,6 +140,8 @@
       const [isModalOpen, setIsModalOpen] = useState(false);
       // 請假 / 補卡「檢視」詳情彈窗（依電子表單簽核彈窗樣式製作）
       const [viewItem, setViewItem] = useState(null); // { kind: 'leave' | 'timesheet', data: row }
+      // 電子表單簽核：點擊編號開啟詳情彈窗時，記住該列資料以帶入彈窗內容
+      const [modalRow, setModalRow] = useState(null);
       const [showOpinions, setShowOpinions] = useState(false);
       const [activeExportModal, setActiveExportModal] = useState(null);
       const [selectedBookkeeping, setSelectedBookkeeping] = useState([]);
@@ -408,13 +410,12 @@
       );
 
       const mockData = [
-        { oa: '財務', location: 'T1', type: 'BC', title: 'T1—一般費用-20260605', applicant: 'KKKKK', signature: 'KKKKK', amounts: ['TWD 1,000,000,000', 'CNY 225,733,634.31'], date: '2026-05-26 14:14:05', approver: '部門主管', refNo: '-', status: '待簽核', isGreen: true },
-        { oa: '財務', location: 'T1', type: 'C', title: 'T1—一般費用-20260525', applicant: '101372', signature: '101372', amounts: ['TWD 2,000', 'CNY 451.47'], date: '2026-05-25 15:36:45', approver: '部門主管', refNo: '-', status: '待簽核', isGreen: true },
-        { oa: '合同', location: 'THQ', type: 'IC', title: 'THQ-内部合同单-20260428', applicant: 'Yen', signature: 'Yen H', amounts: ['0'], date: '2026-04-28 15:05:09', approver: '部門主管', refNo: '-', status: '待簽核', isGreen: true },
-        { oa: '合同', location: 'THQ', type: 'IC', title: 'THQ-内部合同单-20260428', applicant: 'Yen', signature: 'Yen H', amounts: ['TWD 11,111'], date: '2026-04-28 15:01:16', approver: '部門主管', refNo: '-', status: '待簽核', isGreen: true },
-        { oa: '合同', location: 'THQ', type: 'IC', title: 'T2-内部合同单-20260428', applicant: 'Katherine', signature: 'Katherine C', amounts: ['TWD 11,111,111'], date: '2026-04-28 15:00:00', approver: '部門主管', refNo: '-', status: '待簽核', isGreen: true },
-        { oa: '行政', location: 'T2', type: 'SA', title: 'T2-用印申請-20260428', applicant: 'Katherine C', signature: 'Katherine C', amounts: ['0'], date: '2026-04-28 13:54:39', approver: '部門主管', refNo: '-', status: '待簽核', isGreen: true },
-        { oa: '行政', location: 'T0', type: 'PU', title: 'T0-資產及列管品採購-20260428', applicant: 'Yen', signature: 'Yen H', amounts: ['TWD 100,000', 'CNY 22,573.36'], date: '2026-04-28 13:26:16', approver: '部門主管', refNo: '-', status: '待簽核', isGreen: true },
+        { oa: '財務', location: 'THQ', type: 'B',  docNo: 'B-THQ-000003',  applicant: 'aaa123', signature: 'aaa123', amounts: ['TWD 8,000', 'CNY 2137.09'],        date: '2026-05-30 15:36:45', approver: '部門主管', refNo: '-', status: '待簽核', isGreen: false },
+        { oa: '合同', location: 'THQ', type: 'IC', docNo: 'IC-THQ-000002', applicant: 'aaa123', signature: 'aaa123', amounts: ['TWD 2,000,000', 'CNY 427407.40'], date: '2026-05-20 15:36:45', approver: '部門主管', refNo: '-', status: '簽核完成', isGreen: true },
+        { oa: '行政', location: 'THQ', type: 'PU', docNo: 'PU-THQ-000003', applicant: 'aaa123', signature: 'aaa123', amounts: ['TWD 8,000', 'CNY 2137.09'],        date: '2026-05-12 15:36:45', approver: '部門主管', refNo: '-', status: '待簽核', isGreen: false },
+        { oa: '行政', location: 'THQ', type: 'PU', docNo: 'PU-THQ-000002', applicant: 'aaa123', signature: 'aaa123', amounts: ['TWD 2,000,000', 'CNY 427407.40'], date: '2026-04-30 12:36:10', approver: '部門主管', refNo: '-', status: '簽核完成', isGreen: true },
+        { oa: '財務', location: 'THQ', type: 'C',  docNo: 'C-THQ-000001',  applicant: 'aaa123', signature: 'aaa123', amounts: ['TWD 2,000', 'CNY 451.47'],          date: '2026-04-26 19:00:45', approver: '部門主管', refNo: '-', status: '待簽核', isGreen: false },
+        { oa: '行政', location: 'THQ', type: 'PU', docNo: 'PU-THQ-000001', applicant: 'aaa123', signature: 'aaa123', amounts: ['TWD 2,000', 'CNY 451.47'],          date: '2026-04-25 19:00:45', approver: '部門主管', refNo: '-', status: '簽核完成', isGreen: true },
       ];
 
       // 計算各頁籤未處理數量
@@ -435,6 +436,9 @@
         }
         if (status === '簽核中') {
           return <span className="ui-badge ui-badge-info">簽核中</span>;
+        }
+        if (status === '簽核完成') {
+          return <span className="ui-badge ui-badge-success">簽核完成</span>;
         }
         return <span>{status}</span>;
       };
@@ -515,16 +519,12 @@
                             <td>{row.location}</td>
                             <td>{row.type}</td>
                             <td className="text-left">
-                              {row.title === 'T1—一般費用-20260605' ? (
-                                <button
-                                  onClick={() => setIsModalOpen(true)}
-                                  className="text-[#4A90E2] hover:underline font-medium text-left"
-                                >
-                                  {`${row.type}-GT-GT-${row.location}-AAA H-${row.date.slice(0,10).replace(/-/g,'')}-${String(idx+1).padStart(2,'0')}`}
-                                </button>
-                              ) : (
-                                <a href="#" className="text-[#4A90E2] hover:underline font-medium">{`${row.type}-GT-GT-${row.location}-AAA H-${row.date.slice(0,10).replace(/-/g,'')}-${String(idx+1).padStart(2,'0')}`}</a>
-                              )}
+                              <button
+                                onClick={() => { setModalRow(row); setIsModalOpen(true); }}
+                                className="text-[#4A90E2] hover:underline font-medium text-left"
+                              >
+                                {row.docNo}
+                              </button>
                             </td>
                             <td>{row.applicant}</td>
                             <td>{row.signature}</td>
@@ -847,13 +847,13 @@
           {isModalOpen && (
             <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-center justify-center p-4 overflow-y-auto" onClick={() => setIsModalOpen(false)}>
               <div 
-                className="bg-[#F0F2F5] rounded-xl shadow-2xl w-full max-w-[1450px] h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200 text-left"
+                className="bg-[#F0F2F5] rounded-xl shadow-2xl w-full max-w-[1600px] max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200 text-left"
                 onClick={e => e.stopPropagation()}
               >
                 
                 {/* 彈窗標題與關閉按鈕 */}
                 <div className="bg-[#EEF2F6] px-6 py-3.5 flex items-center justify-between border-b border-gray-200 flex-shrink-0">
-                  <span className="font-bold text-gray-800 text-base">費用申請單 (B)</span>
+                  <span className="font-bold text-gray-800 text-base">{`${({ B: '費用申請單', C: '費用報銷單', IC: '內部合同審批單', PU: '採購申請單' })[modalRow?.type] || '費用申請單'} (${modalRow?.type || 'B'})`}</span>
                   <button 
                     onClick={() => setIsModalOpen(false)}
                     className="bg-[#3F51B5] hover:bg-blue-800 text-white p-1 rounded transition-colors"
@@ -869,232 +869,185 @@
                   <div className="flex-1 flex flex-col overflow-hidden">
                     
                     {/* 表單卡片（可垂直滾動） */}
-                    <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                    <div className="flex-1 overflow-y-auto p-5 space-y-4">
 
                       {/* 基本資訊卡片 */}
-                      <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-5">
+                      <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm space-y-4">
                         <div className="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2">基本資訊</div>
                         
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-x-6 gap-y-3">
                           {/* 文件編號 */}
                           <div>
-                            <label className="block text-gray-700 text-xs mb-1.5 font-medium">文件編號</label>
-                            <input 
-                              type="text" 
-                              disabled 
-                              value="B-BU4-API-T1-KKKKK-20260526-01" 
-                              className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 cursor-not-allowed font-mono" 
-                            />
+                            <div className="text-gray-500 text-xs mb-1 font-medium whitespace-nowrap">文件編號</div>
+                            <div className="text-gray-800 text-sm font-medium whitespace-nowrap">{modalRow?.docNo || '—'}</div>
                           </div>
 
                           {/* 申請日期 */}
                           <div>
-                            <label className="block text-gray-700 text-xs mb-1.5 font-medium">申請日期</label>
-                            <div className="flex items-center bg-[#EAECEF] border border-gray-300 rounded px-3 py-2 text-sm text-gray-700">
-                              <Calendar size={14} className="mr-2 text-gray-500" />
-                              <span>2026-05-26</span>
-                            </div>
+                            <div className="text-gray-500 text-xs mb-1 font-medium whitespace-nowrap">申請日期</div>
+                            <div className="text-gray-800 text-sm font-medium whitespace-nowrap">{(modalRow?.date || '').slice(0, 10) || '—'}</div>
                           </div>
 
                           {/* 標題 */}
                           <div>
-                            <label className="block text-gray-700 text-xs mb-1.5 font-medium">標題</label>
-                            <input 
-                              type="text" 
-                              disabled
-                              value="T1—一般費用-20260605" 
-                              className="w-full bg-white border border-gray-200 rounded px-3 py-2 text-sm text-gray-800 font-medium" 
-                            />
+                            <div className="text-gray-500 text-xs mb-1 font-medium whitespace-nowrap">標題</div>
+                            <div className="text-gray-800 text-sm font-medium whitespace-nowrap">{modalRow ? `${modalRow.oa}申請單` : '—'}</div>
                           </div>
 
                           {/* 申請人 */}
                           <div>
-                            <label className="block text-gray-700 text-xs mb-1.5 font-medium">申請人</label>
-                            <input 
-                              type="text" 
-                              disabled
-                              value="KKKKK" 
-                              className="w-full bg-white border border-gray-200 rounded px-3 py-2 text-sm text-gray-800" 
-                            />
+                            <div className="text-gray-500 text-xs mb-1 font-medium whitespace-nowrap">申請人</div>
+                            <div className="text-gray-800 text-sm font-medium whitespace-nowrap">{modalRow?.applicant || '—'}</div>
                           </div>
 
                           {/* 總部審批 */}
-                          <div className="flex flex-col justify-start">
-                            <span className="text-gray-700 text-xs mb-1.5 font-medium">總部審批</span>
-                            <div className="flex items-center h-full">
-                              <input type="checkbox" disabled className="w-4 h-4 rounded border-gray-300 text-blue-600 cursor-not-allowed" />
-                            </div>
+                          <div>
+                            <div className="text-gray-500 text-xs mb-1 font-medium whitespace-nowrap">總部審批</div>
+                            <div className="text-gray-800 text-sm font-medium whitespace-nowrap">否</div>
                           </div>
 
                           {/* 服務類型 */}
                           <div>
-                            <label className="block text-gray-700 text-xs mb-1.5 font-medium">服務類型</label>
-                            <input 
-                              type="text" 
-                              disabled
-                              value="一般費用" 
-                              className="w-full bg-white border border-gray-200 rounded px-3 py-2 text-sm text-gray-800" 
-                            />
+                            <div className="text-gray-500 text-xs mb-1 font-medium whitespace-nowrap">服務類型</div>
+                            <div className="text-gray-800 text-sm font-medium whitespace-nowrap">一般費用</div>
                           </div>
 
                           {/* 項目 */}
                           <div>
-                            <label className="block text-gray-700 text-xs mb-1.5 font-medium">項目</label>
-                            <input 
-                              type="text" 
-                              disabled
-                              value="GT" 
-                              className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 cursor-not-allowed h-[38px]" 
-                            />
+                            <div className="text-gray-500 text-xs mb-1 font-medium whitespace-nowrap">項目</div>
+                            <div className="text-gray-800 text-sm font-medium whitespace-nowrap">GT</div>
                           </div>
 
                           {/* 區域 */}
                           <div>
-                            <label className="block text-gray-700 text-xs mb-1.5 font-medium">區域</label>
-                            <input 
-                              type="text" 
-                              disabled
-                              value="T1" 
-                              className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 cursor-not-allowed" 
-                            />
+                            <div className="text-gray-500 text-xs mb-1 font-medium whitespace-nowrap">區域</div>
+                            <div className="text-gray-800 text-sm font-medium whitespace-nowrap">{modalRow?.location || '—'}</div>
                           </div>
                         </div>
                       </div>
 
                       {/* 費用申請卡片 */}
-                      <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-5">
+                      <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm space-y-4">
                         <div className="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2">費用申請</div>
                         
-                        <div className="space-y-4">
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-x-6 gap-y-3">
                           {/* 是否關聯其他單號 */}
                           <div>
-                            <label className="block text-gray-700 text-xs mb-2 font-medium">是否關聯其他單號</label>
-                            <input type="checkbox" disabled className="w-4 h-4 rounded border-gray-300 text-blue-600 cursor-not-allowed" />
+                            <div className="text-gray-500 text-xs mb-1 font-medium whitespace-nowrap">是否關聯其他單號</div>
+                            <div className="text-gray-800 text-sm font-medium whitespace-nowrap">否</div>
                           </div>
 
-                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {/* 公司別 */}
                             <div>
-                              <label className="block text-gray-700 text-xs mb-1.5 font-medium">公司別</label>
-                              <input 
-                                type="text" 
-                                disabled 
-                                value="TC" 
-                                className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 cursor-not-allowed" 
-                              />
+                              <div className="text-gray-500 text-xs mb-1 font-medium whitespace-nowrap">公司別</div>
+                              <div className="text-gray-800 text-sm font-medium whitespace-nowrap">TC</div>
                             </div>
 
                             {/* 部門 */}
                             <div>
-                              <label className="block text-gray-700 text-xs mb-1.5 font-medium">部門</label>
-                              <input 
-                                type="text" 
-                                disabled 
-                                value="RD" 
-                                className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 cursor-not-allowed" 
-                              />
+                              <div className="text-gray-500 text-xs mb-1 font-medium whitespace-nowrap">部門</div>
+                              <div className="text-gray-800 text-sm font-medium whitespace-nowrap">RD</div>
                             </div>
 
                             {/* 部門主管 */}
                             <div>
-                              <label className="block text-gray-700 text-xs mb-1.5 font-medium">部門主管</label>
-                              <input 
-                                type="text" 
-                                disabled 
-                                value="Kidd" 
-                                className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 cursor-not-allowed" 
-                              />
+                              <div className="text-gray-500 text-xs mb-1 font-medium whitespace-nowrap">部門主管</div>
+                              <div className="text-gray-800 text-sm font-medium whitespace-nowrap">bbb123</div>
                             </div>
 
                             {/* 開戶行姓名 */}
                             <div>
-                              <label className="block text-gray-700 text-xs mb-1.5 font-medium">開戶行姓名</label>
-                              <input 
-                                type="text" 
-                                disabled 
-                                value="" 
-                                className="w-full bg-white border border-gray-200 rounded px-3 py-2 text-sm text-gray-800 h-[38px]" 
-                              />
+                              <div className="text-gray-500 text-xs mb-1 font-medium whitespace-nowrap">開戶行姓名</div>
+                              <div className="text-gray-800 text-sm font-medium whitespace-nowrap">—</div>
                             </div>
 
                             {/* 開戶銀行 */}
                             <div>
-                              <label className="block text-gray-700 text-xs mb-1.5 font-medium">開戶銀行</label>
-                              <input 
-                                type="text" 
-                                disabled 
-                                value="" 
-                                className="w-full bg-white border border-gray-200 rounded px-3 py-2 text-sm text-gray-800 h-[38px]" 
-                              />
+                              <div className="text-gray-500 text-xs mb-1 font-medium whitespace-nowrap">開戶銀行</div>
+                              <div className="text-gray-800 text-sm font-medium whitespace-nowrap">—</div>
                             </div>
 
                             {/* 銀行帳號 */}
                             <div>
-                              <label className="block text-gray-700 text-xs mb-1.5 font-medium">銀行帳號</label>
-                              <input 
-                                type="text" 
-                                disabled 
-                                value="" 
-                                className="w-full bg-white border border-gray-200 rounded px-3 py-2 text-sm text-gray-800 h-[38px]" 
-                              />
+                              <div className="text-gray-500 text-xs mb-1 font-medium whitespace-nowrap">銀行帳號</div>
+                              <div className="text-gray-800 text-sm font-medium whitespace-nowrap">—</div>
                             </div>
 
                             {/* 貨幣 */}
                             <div>
-                              <label className="block text-gray-700 text-xs mb-1.5 font-medium">貨幣</label>
-                              <input 
-                                type="text" 
-                                disabled 
-                                value="TWD" 
-                                className="w-full bg-white border border-gray-200 rounded px-3 py-2 text-sm text-gray-800" 
-                              />
+                              <div className="text-gray-500 text-xs mb-1 font-medium whitespace-nowrap">貨幣</div>
+                              <div className="text-gray-800 text-sm font-medium whitespace-nowrap">TWD</div>
                             </div>
 
                             {/* 此單有特批 */}
-                            <div className="flex flex-col justify-start">
-                              <span className="text-gray-700 text-xs mb-1.5 font-medium">此單有特批</span>
-                              <div className="flex items-center h-full">
-                                <input type="checkbox" disabled className="w-4 h-4 rounded border-gray-300 text-blue-600 cursor-not-allowed" />
-                              </div>
+                            <div>
+                              <div className="text-gray-500 text-xs mb-1 font-medium whitespace-nowrap">此單有特批</div>
+                              <div className="text-gray-800 text-sm font-medium whitespace-nowrap">否</div>
                             </div>
                           </div>
-                        </div>
                       </div>
 
                       {/* 費用申請明細卡片 */}
-                      <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-5">
+                      <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm space-y-4">
                         <div className="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2">費用申請明細</div>
                         
-                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                          {/* 內容 */}
-                          <div className="lg:col-span-8">
-                            <label className="block text-gray-700 text-xs mb-1.5 font-semibold">內容</label>
-                            <input 
-                              type="text" 
-                              disabled 
-                              value="300坪+5個停車位" 
-                              className="w-full bg-white border border-gray-200 rounded px-3 py-2 text-sm text-gray-800 font-medium" 
-                            />
-                          </div>
-
-                          {/* 金額 */}
-                          <div className="lg:col-span-4">
-                            <label className="block text-gray-700 text-xs mb-1.5 font-semibold">金額</label>
-                            <div className="flex items-center border border-gray-200 rounded overflow-hidden">
-                              <span className="bg-gray-50 border-r border-gray-200 px-3 py-2 text-sm text-gray-500 font-medium select-none">TWD</span>
-                              <input 
-                                type="text" 
-                                disabled 
-                                value="1000000000" 
-                                className="w-full bg-white px-3 py-2 text-sm text-gray-800 font-medium focus:outline-none" 
-                              />
-                            </div>
-                          </div>
+                        <div className="overflow-x-auto border border-gray-100 rounded-lg">
+                          <table className="w-full text-sm whitespace-nowrap">
+                            <thead className="bg-gray-50 text-gray-500 text-xs">
+                              <tr>
+                                <th className="px-4 py-2.5 text-left font-medium">科目</th>
+                                <th className="px-4 py-2.5 text-left font-medium">內容</th>
+                                <th className="px-4 py-2.5 text-right font-medium">金額</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-100 text-gray-800">
+                              <tr>
+                                <td className="px-4 py-2.5">
+                                  <select defaultValue="差旅_交通费" className="border border-gray-300 rounded-md px-2.5 py-1.5 text-sm bg-white text-gray-800 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#4A90E2]/40 focus:border-[#4A90E2]">
+                                    <option>差旅_交通费</option><option>差旅_住宿费</option><option>差旅_机票费</option><option>差旅_其他费</option><option>差旅_餐补</option><option>旅游签证费</option>
+                                  </select>
+                                </td>
+                                <td className="px-4 py-2.5 font-medium">客戶業務餐敘</td>
+                                <td className="px-4 py-2.5 text-right font-medium">TWD 8,000</td>
+                              </tr>
+                              <tr>
+                                <td className="px-4 py-2.5">
+                                  <select defaultValue="差旅_住宿费" className="border border-gray-300 rounded-md px-2.5 py-1.5 text-sm bg-white text-gray-800 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#4A90E2]/40 focus:border-[#4A90E2]">
+                                    <option>差旅_交通费</option><option>差旅_住宿费</option><option>差旅_机票费</option><option>差旅_其他费</option><option>差旅_餐补</option><option>旅游签证费</option>
+                                  </select>
+                                </td>
+                                <td className="px-4 py-2.5 font-medium">出差住宿（3 晚）</td>
+                                <td className="px-4 py-2.5 text-right font-medium">TWD 12,600</td>
+                              </tr>
+                              <tr>
+                                <td className="px-4 py-2.5">
+                                  <select defaultValue="差旅_机票费" className="border border-gray-300 rounded-md px-2.5 py-1.5 text-sm bg-white text-gray-800 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#4A90E2]/40 focus:border-[#4A90E2]">
+                                    <option>差旅_交通费</option><option>差旅_住宿费</option><option>差旅_机票费</option><option>差旅_其他费</option><option>差旅_餐补</option><option>旅游签证费</option>
+                                  </select>
+                                </td>
+                                <td className="px-4 py-2.5 font-medium">文具與耗材採購</td>
+                                <td className="px-4 py-2.5 text-right font-medium">TWD 3,400</td>
+                              </tr>
+                              <tr>
+                                <td className="px-4 py-2.5">
+                                  <select defaultValue="差旅_其他费" className="border border-gray-300 rounded-md px-2.5 py-1.5 text-sm bg-white text-gray-800 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#4A90E2]/40 focus:border-[#4A90E2]">
+                                    <option>差旅_交通费</option><option>差旅_住宿费</option><option>差旅_机票费</option><option>差旅_其他费</option><option>差旅_餐补</option><option>旅游签证费</option>
+                                  </select>
+                                </td>
+                                <td className="px-4 py-2.5 font-medium">線上廣告投放</td>
+                                <td className="px-4 py-2.5 text-right font-medium">TWD 50,000</td>
+                              </tr>
+                              <tr className="bg-gray-50/60 font-bold">
+                                <td className="px-4 py-2.5 text-right text-gray-600" colSpan="2">合計</td>
+                                <td className="px-4 py-2.5 text-right text-gray-800">TWD 74,000</td>
+                              </tr>
+                            </tbody>
+                          </table>
                         </div>
                       </div>
 
                       {/* 備註卡片 */}
-                      <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-3">
+                      <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm space-y-3">
                         <div className="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2">備註</div>
                         <textarea 
                           disabled
@@ -1169,7 +1122,7 @@
                                   <td className="px-4 py-3 text-center text-gray-500">串聯</td>
                                   <td className="px-4 py-3 text-center text-gray-500">location</td>
                                   <td className="px-4 py-3 text-gray-800">項目負責人</td>
-                                  <td className="px-4 py-3 text-gray-800">Derrick</td>
+                                  <td className="px-4 py-3 text-gray-800">ccc123</td>
                                   <td className="px-4 py-3 text-gray-600 font-mono">100962</td>
                                   <td className="px-4 py-3 text-gray-400">-</td>
                                 </tr>
@@ -1356,11 +1309,11 @@
                       <div className="flex flex-col items-end text-sm text-gray-800 font-medium space-y-1 w-full">
                         <div className="flex justify-end gap-12 w-full">
                           <span className="text-gray-500 font-semibold text-xs tracking-wide">TOTAL AMOUNT</span>
-                          <span className="w-48 text-right font-bold text-gray-800">TWD 1,000,000,000.00</span>
+                          <span className="w-48 text-right font-bold text-gray-800">{(modalRow?.amounts && modalRow.amounts[0]) || '-'}</span>
                         </div>
                         <div className="flex justify-end gap-12 w-full">
                           <span className="text-gray-500 font-semibold text-xs tracking-wide">TOTAL AMOUNT CNY</span>
-                          <span className="w-48 text-right font-bold text-gray-800">CNY 225,733,634.31</span>
+                          <span className="w-48 text-right font-bold text-gray-800">{(modalRow?.amounts && modalRow.amounts[1]) || '-'}</span>
                         </div>
                       </div>
 

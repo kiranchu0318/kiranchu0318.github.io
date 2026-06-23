@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>資金支付管理</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: { extend: {
+                colors: { primary: '#4A90E2', 'primary-light': '#EAF2FC', background: '#F8F9FB', card: '#FFFFFF',
+                    text: { main: '#1F2937', muted: '#6B7280', light: '#9CA3AF' } },
+                fontFamily: { sans: ['"Inter"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'] },
+                boxShadow: { 'card': '0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03)', 'modal': '0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)' }
+            } }
+        }
+    </script>
+    <style>
+        body { background-color: theme('colors.background'); font-family: theme('fontFamily.sans'); }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+    </style>
+    <link rel="stylesheet" href="shared-ui.css">
+</head>
+<body class="ui-page text-text-main antialiased relative">
+
+    <div class="mx-auto w-full space-y-6">
+
+        <header class="ui-page-header">
+            <h1 class="ui-page-title">資金支付管理</h1>
+            <button onclick="mockExport()" class="ui-btn ui-btn-secondary"><i class="fa-solid fa-download"></i> 匯出報表</button>
+        </header>
+
+        <!-- 篩選台 -->
+        <div class="ui-card p-5 space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">搜尋（單號/申請人/項目）</label>
+                    <div class="ui-search">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="f-search" oninput="render()" placeholder="輸入關鍵字..." class="ui-input ui-search-input">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">工作狀態</label>
+                    <select id="f-work" onchange="render()" class="ui-select">
+                        <option value="all">全部</option>
+                        <option value="待執行">待執行</option>
+                        <option value="執行中">執行中</option>
+                        <option value="執行完成">執行完成</option>
+                        <option value="駁回">駁回</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">支付計算型態</label>
+                    <select id="f-paytype" onchange="render()" class="ui-select">
+                        <option value="all">全部</option>
+                        <option value="實報實銷">實報實銷</option>
+                        <option value="定額補貼">定額補貼</option>
+                        <option value="預付款">預付款</option>
+                        <option value="代墊款">代墊款</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">申請日期區間</label>
+                    <div class="flex items-center gap-1.5">
+                        <input type="date" id="f-start" onchange="render()" class="ui-input flex-1 min-w-0">
+                        <span class="text-gray-400 text-xs shrink-0">至</span>
+                        <input type="date" id="f-end" onchange="render()" class="ui-input flex-1 min-w-0">
+                    </div>
+                </div>
+            </div>
+            <div class="flex justify-end items-center gap-2 pt-1"><button onclick="render()" class="ui-btn ui-btn-primary ui-btn-sm"><i class="fa-solid fa-magnifying-glass"></i> 查詢</button><button onclick="resetFilters()" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-arrows-rotate"></i> 重置</button></div>
+        </div>
+
+        <!-- 列表 -->
+        <section class="ui-card p-4 sm:p-6">
+            <div class="flex items-center gap-2 mb-4">
+                <h2 class="text-lg font-bold text-gray-900 whitespace-nowrap">報銷審核列表</h2>
+                <span id="count-badge" class="bg-blue-50 text-primary text-xs px-2.5 py-1 rounded-md font-bold">0 筆資料</span>
+            </div>
+
+            <div class="overflow-x-auto rounded-lg border border-gray-100 custom-scrollbar">
+                <table class="ui-table text-center whitespace-nowrap">
+                    <thead>
+                        <tr>
+                            <th scope="col" class="text-left">單號</th>
+                            <th scope="col">申請人</th>
+                            <th scope="col">部門</th>
+                            <th scope="col" class="text-left">報銷項目</th>
+                            <th scope="col" class="text-left">會計科目</th>
+                            <th scope="col">支付計算型態</th>
+                            <th scope="col" class="text-right">原幣金額</th>
+                            <th scope="col" class="text-right">出幣別/換算金額</th>
+                            <th scope="col">申請日期</th>
+                            <th scope="col">工作狀態</th>
+                            <th scope="col" class="text-center">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody"></tbody>
+                </table>
+            </div>
+
+            <div id="no-data" class="hidden py-16 text-center space-y-3">
+                <div class="inline-flex p-4 bg-gray-50 text-gray-400 rounded-full"><i class="fa-solid fa-receipt text-3xl"></i></div>
+                <p class="text-sm text-text-muted font-medium">查無符合條件的報銷簽核單</p>
+                <button onclick="resetFilters()" class="text-xs text-primary font-semibold hover:underline">清除篩選條件</button>
+            </div>
+
+            <div class="flex items-center justify-between mt-6 pt-4 border-t border-gray-100">
+                <span id="pagination-info" class="text-sm text-gray-500">顯示第 0 到 0 筆，共 0 筆記錄</span>
+                <div class="flex gap-1">
+                    <button class="ui-page-btn"><i class="fa-solid fa-chevron-left text-xs"></i></button>
+                    <button class="ui-page-btn is-active">1</button>
+                    <button class="ui-page-btn"><i class="fa-solid fa-chevron-right text-xs"></i></button>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- 詳情彈窗 -->
+    <div id="detail-modal" class="fixed inset-0 bg-black/40 z-50 flex justify-center items-center hidden p-4">
+        <div class="bg-[#F0F2F5] rounded-xl shadow-2xl w-full max-w-[1450px] h-[90vh] flex flex-col overflow-hidden text-left">
+
+            <!-- 彈窗標題與關閉按鈕 -->
+            <div class="bg-[#EEF2F6] px-6 py-3.5 flex items-center justify-between border-b border-gray-200 flex-shrink-0">
+                <span id="d-title" class="font-bold text-gray-800 text-base">費用報銷單</span>
+                <button onclick="closeDetail()" class="bg-[#3F51B5] hover:bg-blue-800 text-white p-1 rounded transition-colors">
+                    <i class="fa-solid fa-xmark text-lg leading-none"></i>
+                </button>
+            </div>
+
+            <!-- 表單卡片（可垂直滾動） -->
+            <div class="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
+
+                <!-- 基本資訊卡片 -->
+                <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-5">
+                    <div class="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2">基本資訊</div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div>
+                            <label class="block text-gray-700 text-xs mb-1.5 font-medium">文件編號</label>
+                            <input type="text" disabled id="d-docno" class="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 cursor-not-allowed font-mono">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-xs mb-1.5 font-medium">申請日期</label>
+                            <div class="flex items-center bg-[#EAECEF] border border-gray-300 rounded px-3 py-2 text-sm text-gray-700">
+                                <i class="fa-regular fa-calendar mr-2 text-gray-500"></i>
+                                <span id="d-date"></span>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-xs mb-1.5 font-medium">標題</label>
+                            <input type="text" disabled id="d-title-field" class="w-full bg-white border border-gray-200 rounded px-3 py-2 text-sm text-gray-800 font-medium">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-xs mb-1.5 font-medium">申請人</label>
+                            <input type="text" disabled id="d-applicant" class="w-full bg-white border border-gray-200 rounded px-3 py-2 text-sm text-gray-800">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-xs mb-1.5 font-medium">部門</label>
+                            <input type="text" disabled id="d-dept" class="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 cursor-not-allowed">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-xs mb-1.5 font-medium">項目</label>
+                            <input type="text" disabled value="GT" class="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 cursor-not-allowed">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-xs mb-1.5 font-medium">區域</label>
+                            <input type="text" disabled value="T1" class="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 cursor-not-allowed">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-xs mb-1.5 font-medium">簽核狀態</label>
+                            <div id="d-status" class="flex items-center h-[38px]"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 報銷明細卡片 -->
+                <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-5">
+                    <div class="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2">報銷明細</div>
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                        <div class="lg:col-span-8">
+                            <label class="block text-gray-700 text-xs mb-1.5 font-semibold">報銷項目</label>
+                            <input type="text" disabled id="d-item" class="w-full bg-white border border-gray-200 rounded px-3 py-2 text-sm text-gray-800 font-medium">
+                        </div>
+                        <div class="lg:col-span-4">
+                            <label class="block text-gray-700 text-xs mb-1.5 font-semibold">金額</label>
+                            <div class="flex items-center border border-gray-200 rounded overflow-hidden">
+                                <span class="bg-gray-50 border-r border-gray-200 px-3 py-2 text-sm text-gray-500 font-medium select-none">TWD</span>
+                                <input type="text" disabled id="d-amount" class="w-full bg-white px-3 py-2 text-sm text-gray-800 font-medium focus:outline-none">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 資金支付卡片 -->
+                <div class="bg-white p-6 rounded-lg border border-blue-200 shadow-sm space-y-5">
+                    <div class="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-circle-dollar-to-slot text-primary text-sm"></i> 資金支付
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                        <div>
+                            <label class="block text-gray-700 text-xs mb-1.5 font-semibold">會計科目</label>
+                            <select id="d-account" onchange="updatePayCalc()" class="ui-select w-full">
+                                <option value="">— 請選擇科目 —</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-xs mb-1.5 font-semibold">原幣金額</label>
+                            <div class="flex items-center border border-gray-200 rounded overflow-hidden">
+                                <select id="d-src-ccy" onchange="updatePayCalc()" class="bg-gray-50 border-r border-gray-200 px-2 py-2 text-sm text-gray-600 font-medium focus:outline-none">
+                                    <option value="TWD">TWD</option>
+                                    <option value="CNY">CNY</option>
+                                    <option value="USD">USD</option>
+                                </select>
+                                <input type="number" id="d-src-amt" oninput="updatePayCalc()" placeholder="0" min="0" class="w-full bg-white px-3 py-2 text-sm text-gray-800 font-medium focus:outline-none">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-xs mb-1.5 font-semibold">支付計算型態</label>
+                            <select id="d-paytype" onchange="updatePayCalc()" class="ui-select w-full">
+                                <option value="">— 請選擇 —</option>
+                                <option value="實報實銷">實報實銷</option>
+                                <option value="定額補貼">定額補貼</option>
+                                <option value="預付款">預付款</option>
+                                <option value="代墊款">代墊款</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-xs mb-1.5 font-semibold">出幣別</label>
+                            <select id="d-out-ccy" onchange="updatePayCalc()" class="ui-select w-full">
+                                <option value="TWD">TWD</option>
+                                <option value="CNY">CNY</option>
+                                <option value="USD">USD</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-xs mb-1.5 font-semibold">換算後金額</label>
+                            <div id="d-converted" class="flex items-center bg-[#EAF2FC] border border-blue-200 rounded px-3 py-2 text-sm text-blue-800 font-bold h-[38px]">—</div>
+                        </div>
+                    </div>
+                    <div class="flex justify-end pt-1">
+                        <button onclick="confirmPayment()" class="ui-btn ui-btn-primary"><i class="fa-solid fa-circle-check"></i> 確認支付資訊</button>
+                    </div>
+                </div>
+
+                <!-- 備註卡片 -->
+                <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-3">
+                    <div class="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2">備註</div>
+                    <textarea disabled rows="4" class="w-full border border-gray-200 rounded-lg p-3 text-sm text-gray-700 bg-white h-32 focus:outline-none"></textarea>
+                </div>
+
+                <!-- 審批線詳情表格區塊 -->
+                <div class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+                    <div class="bg-[#EEF2F6] px-6 py-3.5 flex items-center justify-between border-b border-gray-200">
+                        <span class="font-bold text-[#1A237E] text-[15px]">審批線詳情</span>
+                    </div>
+                    <div class="p-4 space-y-4">
+                        <div class="overflow-x-auto border border-gray-100 rounded-lg">
+                            <table class="w-full text-left text-xs border-collapse whitespace-nowrap">
+                                <thead>
+                                    <tr class="border-b border-gray-200 bg-gray-50 text-gray-700 font-bold">
+                                        <th class="px-4 py-3 text-center w-16">序號</th>
+                                        <th class="px-4 py-3 text-center w-28">審批狀態</th>
+                                        <th class="px-4 py-3 text-center w-28">級別</th>
+                                        <th class="px-4 py-3">職稱</th>
+                                        <th class="px-4 py-3">簽名</th>
+                                        <th class="px-4 py-3 w-28">ID</th>
+                                        <th class="px-4 py-3 w-40">審批時間</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="d-approval-rows" class="divide-y divide-gray-100 font-medium"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- 底部按鈕區塊 -->
+            <div class="bg-[#F8F9FA] border-t border-gray-200 px-6 py-4 flex flex-wrap justify-end gap-2.5 flex-shrink-0">
+                <button onclick="closeDetail()" class="ui-btn ui-btn-secondary">關閉</button>
+                <button onclick="withdrawDoc()" class="ui-btn bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"><i class="fa-solid fa-rotate-left"></i> 撤回</button>
+                <button onclick="supplementDoc()" class="ui-btn bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100"><i class="fa-solid fa-circle-exclamation"></i> 要求補件</button>
+                <button onclick="approveDoc()" class="ui-btn ui-btn-primary"><i class="fa-solid fa-circle-check"></i> 審批通過</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+        <i id="toast-icon" class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
+        <span id="toast-text" class="text-sm font-medium">操作成功！</span>
+    </div>
+
+    <script>
+        // 會計科目
+        var ACCOUNTS = [
+            {group:'運營費用', items:[['5-1000-01','BU3客服費'],['5-1000-07','廣告&行銷費']]},
+            {group:'招待費', items:[['6-2100-04','招待_餐費'],['6-2100-02','招待_機票']]},
+            {group:'差旅費', items:[['6-6300-01','差旅_交通費'],['6-6300-02','差旅_住宿費'],['6-6300-05','差旅_餐補']]},
+            {group:'人力成本', items:[['6-1100-06','薪資'],['6-1100-03','KPI績效']]},
+            {group:'辦公費', items:[['6-6200-03','團建費'],['6-6200-08','軟件']]},
+            {group:'員工福利費', items:[['6-1200-06','員工餐費'],['6-1200-07','年會費用']]}
+        ];
+
+        // 匯率表（以 TWD 為基準）
+        var FX = { TWD: 1, CNY: 4.5, USD: 32 };
+
+        function convertAmt(amount, fromCcy, toCcy) {
+            if (!amount || isNaN(amount)) return null;
+            var twdAmt = amount * FX[fromCcy];
+            return twdAmt / FX[toCcy];
+        }
+
+        function fmtAmt(ccy, amt) {
+            return ccy + ' ' + amt.toLocaleString('zh-TW', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+        }
+
+        // 費用報銷（含工作流）簽核單。實務上由「簽核」建立後同步至此；此為原型示意資料。
+        var docs = [
+            { docNo: 'C-20260605-002', applicant: '101372', dept: 'RD', title: '一般費用報銷（差旅交通）', amount: 'TWD 2,000', date: '2026-06-05', signStatus: '待簽核',
+              accountCode: '6-6300-01', accountName: '差旅_交通費', payType: '實報實銷', srcCcy: 'TWD', srcAmt: 2000, outCcy: 'TWD',
+              approvals: [{ role: '部門主管', status: '待審批' }, { role: '財務人員', status: '待審批' }],
+              workflow: [{ task: '發票／單據查核', owner: '財務人員', status: '待處理' }, { task: '付款排程', owner: '財務人員', status: '待處理' }, { task: '撥款', owner: '出納', status: '待處理' }] },
+            { docNo: 'C-20260603-019', applicant: 'KKKKK', dept: '財務', title: '客戶招待費報銷', amount: 'TWD 8,600', date: '2026-06-03', signStatus: '簽核中',
+              accountCode: '6-2100-04', accountName: '招待_餐費', payType: '實報實銷', srcCcy: 'CNY', srcAmt: 1911, outCcy: 'TWD',
+              approvals: [{ role: '部門主管', status: '已核准' }, { role: '財務主管', status: '審批中' }],
+              workflow: [{ task: '發票／單據查核', owner: '財務人員', status: '處理中' }, { task: '付款排程', owner: '財務人員', status: '待處理' }, { task: '撥款', owner: '出納', status: '待處理' }] },
+            { docNo: 'C-20260530-011', applicant: 'Bertha W', dept: 'MKT', title: '行銷活動雜支報銷', amount: 'TWD 15,400', date: '2026-05-30', signStatus: '簽核完成',
+              accountCode: '5-1000-07', accountName: '廣告&行銷費', payType: '定額補貼', srcCcy: 'USD', srcAmt: 481, outCcy: 'TWD',
+              approvals: [{ role: '部門主管', status: '已核准' }, { role: '財務主管', status: '已核准' }],
+              workflow: [{ task: '發票／單據查核', owner: '財務人員', status: '已完成' }, { task: '付款排程', owner: '財務人員', status: '已完成' }, { task: '撥款', owner: '出納', status: '處理中' }] },
+            { docNo: 'C-20260527-006', applicant: 'Derrick', dept: 'IA1', title: '證照考試費用報銷', amount: 'TWD 4,500', date: '2026-05-27', signStatus: '簽核完成',
+              accountCode: '6-6200-08', accountName: '軟件', payType: '預付款', srcCcy: 'USD', srcAmt: 140, outCcy: 'USD',
+              approvals: [{ role: '部門主管', status: '已核准' }, { role: '財務人員', status: '已核准' }],
+              workflow: [{ task: '發票／單據查核', owner: '財務人員', status: '已完成' }, { task: '付款排程', owner: '財務人員', status: '已完成' }, { task: '撥款', owner: '出納', status: '已完成' }] },
+            { docNo: 'C-20260521-018', applicant: 'Liz G', dept: 'RD', title: '超額餐費報銷（已駁回）', amount: 'TWD 3,200', date: '2026-05-21', signStatus: '駁回',
+              accountCode: '6-1200-06', accountName: '員工餐費', payType: '代墊款', srcCcy: 'TWD', srcAmt: 3200, outCcy: 'TWD',
+              approvals: [{ role: '部門主管', status: '駁回' }],
+              workflow: [{ task: '發票／單據查核', owner: '財務人員', status: '待處理' }] }
+        ];
+
+        var currentIndex = -1;
+
+        function signBadge(s) {
+            var map = { '待簽核': 'ui-badge-info', '簽核中': 'ui-badge-warning', '簽核完成': 'ui-badge-success', '駁回': 'ui-badge-danger', '撤回': 'ui-badge-gray', '待補件': 'ui-badge-warning' };
+            return '<span class="ui-badge ' + (map[s] || 'ui-badge-gray') + ' mx-auto">' + s + '</span>';
+        }
+        function stepBadge(s) {
+            var map = { '待處理': 'ui-badge-gray', '待審批': 'ui-badge-gray', '處理中': 'ui-badge-warning', '審批中': 'ui-badge-warning', '已完成': 'ui-badge-success', '已核准': 'ui-badge-success', '駁回': 'ui-badge-danger' };
+            return '<span class="ui-badge ' + (map[s] || 'ui-badge-gray') + '">' + s + '</span>';
+        }
+        function payTypeBadge(s) {
+            var map = { '實報實銷': 'ui-badge-info', '定額補貼': 'ui-badge-success', '預付款': 'ui-badge-warning', '代墊款': 'bg-purple-100 text-purple-700' };
+            var cls = map[s] || 'ui-badge-gray';
+            return '<span class="ui-badge ' + cls + ' mx-auto">' + s + '</span>';
+        }
+        // 工作狀態：全完成→執行完成；有進行/完成→執行中；否則待執行
+        function workStatus(d) {
+            if (d.signStatus === '駁回') return '駁回';
+            var st = d.workflow.map(function(w) { return w.status; });
+            if (st.length && st.every(function(s) { return s === '已完成'; })) return '執行完成';
+            if (st.some(function(s) { return s === '處理中' || s === '已完成'; })) return '執行中';
+            return '待執行';
+        }
+        function workBadge(s) {
+            var map = { '待執行': 'ui-badge-gray', '執行中': 'ui-badge-warning', '執行完成': 'ui-badge-success', '駁回': 'ui-badge-danger' };
+            return '<span class="ui-badge ' + (map[s] || 'ui-badge-gray') + ' mx-auto">' + s + '</span>';
+        }
+
+        function getConvertedDisplay(d) {
+            var converted = convertAmt(d.srcAmt, d.srcCcy, d.outCcy);
+            if (converted === null) return '<span class="text-gray-400">—</span>';
+            return '<span class="font-mono font-semibold text-blue-700">' + fmtAmt(d.outCcy, converted) + '</span>';
+        }
+
+        function render() {
+            var kw = document.getElementById('f-search').value.trim().toLowerCase();
+            var work = document.getElementById('f-work').value;
+            var paytype = document.getElementById('f-paytype').value;
+            var start = document.getElementById('f-start').value;
+            var end = document.getElementById('f-end').value;
+
+            var rows = [];
+            for (var idx = 0; idx < docs.length; idx++) {
+                var d = docs[idx];
+                if (kw && !(d.docNo.toLowerCase().indexOf(kw) >= 0 || d.applicant.toLowerCase().indexOf(kw) >= 0 || d.title.toLowerCase().indexOf(kw) >= 0)) continue;
+                if (work !== 'all' && workStatus(d) !== work) continue;
+                if (paytype !== 'all' && d.payType !== paytype) continue;
+                if (start && d.date < start) continue;
+                if (end && d.date > end) continue;
+                rows.push({ d: d, i: idx });
+            }
+
+            var tbody = document.getElementById('tbody');
+            var noData = document.getElementById('no-data');
+            tbody.innerHTML = '';
+
+            if (rows.length === 0) {
+                tbody.parentElement.classList.add('hidden');
+                noData.classList.remove('hidden');
+                document.getElementById('count-badge').innerText = '0 筆資料';
+                document.getElementById('pagination-info').innerText = '顯示第 0 到 0 筆，共 0 筆記錄';
+                return;
+            }
+            tbody.parentElement.classList.remove('hidden');
+            noData.classList.add('hidden');
+
+            rows.forEach(function(item) {
+                var d = item.d;
+                var i = item.i;
+                var srcAmtDisplay = d.srcAmt ? fmtAmt(d.srcCcy, d.srcAmt) : '—';
+                var convertedDisplay = getConvertedDisplay(d);
+                var accountDisplay = d.accountCode ? (d.accountCode + ' ' + d.accountName) : '—';
+                var tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-50/70 transition-colors';
+                tr.innerHTML =
+                    '<td class="text-left font-mono font-semibold text-gray-600">' + d.docNo + '</td>' +
+                    '<td class="text-gray-700">' + d.applicant + '</td>' +
+                    '<td><span class="px-2 py-0.5 bg-gray-100 rounded text-xs font-semibold text-gray-700">' + d.dept + '</span></td>' +
+                    '<td class="text-left text-gray-800">' + d.title + '</td>' +
+                    '<td class="text-left text-gray-600 text-xs font-mono">' + accountDisplay + '</td>' +
+                    '<td>' + (d.payType ? payTypeBadge(d.payType) : '<span class="text-gray-400">—</span>') + '</td>' +
+                    '<td class="text-right font-mono text-gray-700">' + srcAmtDisplay + '</td>' +
+                    '<td class="text-right">' + convertedDisplay + '</td>' +
+                    '<td class="text-gray-600">' + d.date + '</td>' +
+                    '<td>' + workBadge(workStatus(d)) + '</td>' +
+                    '<td><button onclick="openDetail(' + i + ')" class="ui-btn ui-btn-secondary ui-btn-sm mx-auto"><i class="fa-solid fa-circle-info"></i> 詳情</button></td>';
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('count-badge').innerText = rows.length + ' 筆資料';
+            document.getElementById('pagination-info').innerText = '顯示第 1 到 ' + rows.length + ' 筆，共 ' + rows.length + ' 筆記錄';
+        }
+
+        function resetFilters() {
+            document.getElementById('f-search').value = '';
+            document.getElementById('f-work').value = 'all';
+            document.getElementById('f-paytype').value = 'all';
+            document.getElementById('f-start').value = '';
+            document.getElementById('f-end').value = '';
+            render();
+        }
+
+        function buildAccountSelect(selectEl, selectedCode) {
+            selectEl.innerHTML = '<option value="">— 請選擇科目 —</option>';
+            ACCOUNTS.forEach(function(grp) {
+                var og = document.createElement('optgroup');
+                og.label = grp.group;
+                grp.items.forEach(function(item) {
+                    var opt = document.createElement('option');
+                    opt.value = item[0];
+                    opt.textContent = item[0] + '　' + item[1];
+                    if (item[0] === selectedCode) opt.selected = true;
+                    og.appendChild(opt);
+                });
+                selectEl.appendChild(og);
+            });
+        }
+
+        function updatePayCalc() {
+            var srcAmt = parseFloat(document.getElementById('d-src-amt').value);
+            var srcCcy = document.getElementById('d-src-ccy').value;
+            var outCcy = document.getElementById('d-out-ccy').value;
+            var el = document.getElementById('d-converted');
+            if (!srcAmt || isNaN(srcAmt)) {
+                el.textContent = '—';
+                return;
+            }
+            var result = convertAmt(srcAmt, srcCcy, outCcy);
+            el.textContent = fmtAmt(outCcy, result);
+        }
+
+        function openDetail(i) {
+            currentIndex = i;
+            var d = docs[i];
+            document.getElementById('d-title').innerText = '費用報銷單 — ' + d.docNo;
+            document.getElementById('d-docno').value = d.docNo;
+            document.getElementById('d-date').innerText = d.date;
+            document.getElementById('d-title-field').value = d.title;
+            document.getElementById('d-applicant').value = d.applicant;
+            document.getElementById('d-dept').value = d.dept;
+            document.getElementById('d-status').innerHTML = signBadge(d.signStatus).replace(' mx-auto', '');
+            document.getElementById('d-item').value = d.title;
+            document.getElementById('d-amount').value = d.amount.replace(/^TWD\s*/, '');
+
+            // 資金支付區初始化
+            buildAccountSelect(document.getElementById('d-account'), d.accountCode || '');
+            document.getElementById('d-src-ccy').value = d.srcCcy || 'TWD';
+            document.getElementById('d-src-amt').value = d.srcAmt || '';
+            document.getElementById('d-paytype').value = d.payType || '';
+            document.getElementById('d-out-ccy').value = d.outCcy || 'TWD';
+            updatePayCalc();
+
+            var approvalRows = d.approvals.map(function(a, idx) {
+                return '<tr>' +
+                    '<td class="px-4 py-3 text-center font-bold text-gray-800">' + (idx + 1) + '</td>' +
+                    '<td class="px-4 py-3 text-center">' + stepBadge(a.status) + '</td>' +
+                    '<td class="px-4 py-3 text-center text-gray-500">location</td>' +
+                    '<td class="px-4 py-3 text-gray-800">' + a.role + '</td>' +
+                    '<td class="px-4 py-3 text-gray-400">-</td>' +
+                    '<td class="px-4 py-3 text-gray-400 font-mono">-</td>' +
+                    '<td class="px-4 py-3 text-gray-400">-</td>' +
+                    '</tr>';
+            }).join('');
+
+            var workflowRows = d.workflow.map(function(w) {
+                return '<tr class="bg-gray-50/50">' +
+                    '<td class="px-4 py-3 text-center text-gray-400 font-bold">後續</td>' +
+                    '<td class="px-4 py-3 text-center">' + stepBadge(w.status) + '</td>' +
+                    '<td class="px-4 py-3 text-center text-gray-400">後續工作</td>' +
+                    '<td class="px-4 py-3 text-gray-500">' + w.task + '</td>' +
+                    '<td class="px-4 py-3 text-gray-500">' + w.owner + '</td>' +
+                    '<td class="px-4 py-3 text-gray-400 font-mono">-</td>' +
+                    '<td class="px-4 py-3 text-gray-400">-</td>' +
+                    '</tr>';
+            }).join('');
+
+            document.getElementById('d-approval-rows').innerHTML = approvalRows + workflowRows;
+            document.getElementById('detail-modal').classList.remove('hidden');
+        }
+
+        function confirmPayment() {
+            if (currentIndex < 0) return;
+            var d = docs[currentIndex];
+            var accountCode = document.getElementById('d-account').value;
+            var srcAmt = parseFloat(document.getElementById('d-src-amt').value);
+            var srcCcy = document.getElementById('d-src-ccy').value;
+            var payType = document.getElementById('d-paytype').value;
+            var outCcy = document.getElementById('d-out-ccy').value;
+
+            if (!accountCode || !payType || !srcAmt) {
+                showToast('info', '請完整填寫會計科目、計算型態及原幣金額');
+                return;
+            }
+
+            // 找科目名稱
+            var accountName = '';
+            ACCOUNTS.forEach(function(grp) {
+                grp.items.forEach(function(item) {
+                    if (item[0] === accountCode) accountName = item[1];
+                });
+            });
+
+            d.accountCode = accountCode;
+            d.accountName = accountName;
+            d.payType = payType;
+            d.srcCcy = srcCcy;
+            d.srcAmt = srcAmt;
+            d.outCcy = outCcy;
+
+            render();
+            showToast('success', '已確認支付資訊：' + d.docNo + '　' + fmtAmt(outCcy, convertAmt(srcAmt, srcCcy, outCcy)));
+        }
+
+        function approveDoc() {
+            if (currentIndex < 0) return;
+            var d = docs[currentIndex];
+            d.signStatus = '簽核完成';
+            d.approvals.forEach(function(a) { a.status = '已核准'; });
+            closeDetail(); render();
+            showToast('success', '已審批通過 ' + d.docNo);
+        }
+        function supplementDoc() {
+            if (currentIndex < 0) return;
+            docs[currentIndex].signStatus = '待補件';
+            closeDetail(); render();
+            showToast('info', '已要求補件 ' + docs[currentIndex].docNo);
+        }
+        function withdrawDoc() {
+            if (currentIndex < 0) return;
+            docs[currentIndex].signStatus = '撤回';
+            closeDetail(); render();
+            showToast('info', '已撤回 ' + docs[currentIndex].docNo);
+        }
+        function closeDetail() { document.getElementById('detail-modal').classList.add('hidden'); }
+
+        function mockExport() { showToast('success', '報銷審核報表已開始匯出'); }
+
+        function showToast(type, text) {
+            var toast = document.getElementById('toast');
+            document.getElementById('toast-text').innerText = text;
+            var icon = document.getElementById('toast-icon');
+            if (type === 'success') {
+                toast.className = "fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform transition-all duration-300 border border-emerald-500/20";
+                icon.className = "fa-solid fa-circle-check text-emerald-400 text-base";
+            } else {
+                toast.className = "fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform transition-all duration-300 border border-blue-500/20";
+                icon.className = "fa-solid fa-circle-info text-blue-400 text-base";
+            }
+            toast.style.transform = 'translateY(0)'; toast.style.opacity = '1';
+            clearTimeout(window.__t); window.__t = setTimeout(function() { toast.style.transform = 'translateY(5rem)'; toast.style.opacity = '0'; }, 2400);
+        }
+
+        document.getElementById('detail-modal').addEventListener('click', function(e) { if (e.target === e.currentTarget) closeDetail(); });
+        window.onload = render;
+    </script>
+</body>
+</html>

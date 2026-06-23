@@ -100,7 +100,7 @@
 
 <body class="ui-page text-text-main antialiased relative">
 
-    <div class="mx-auto w-full max-w-[1400px] space-y-6">
+    <div class="mx-auto w-full space-y-6">
         
         <!-- 頁面標題區塊 -->
         <header class="ui-page-header">
@@ -170,7 +170,7 @@
                             <td><span class="acct-status-badge ui-badge ui-badge-success">啟用</span></td>
                             <td>
                                 <div class="flex items-center justify-center gap-2">
-                                    <button onclick="openApprovalModal()" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-pen"></i> 編輯角色</button>
+                                    <button onclick="openApprovalModal()" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-pen"></i> 綁定角色</button>
                                     <button onclick="toggleAccountStatus(this)" class="acct-toggle ui-btn ui-btn-sm text-amber-600 border border-amber-200 hover:bg-amber-50"><i class="fa-solid fa-ban"></i> 停用</button>
                                 </div>
                             </td>
@@ -184,7 +184,7 @@
                             <td><span class="acct-status-badge ui-badge ui-badge-success">啟用</span></td>
                             <td>
                                 <div class="flex items-center justify-center gap-2">
-                                    <button onclick="openApprovalModal()" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-pen"></i> 編輯角色</button>
+                                    <button onclick="openApprovalModal()" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-pen"></i> 綁定角色</button>
                                     <button onclick="toggleAccountStatus(this)" class="acct-toggle ui-btn ui-btn-sm text-amber-600 border border-amber-200 hover:bg-amber-50"><i class="fa-solid fa-ban"></i> 停用</button>
                                 </div>
                             </td>
@@ -198,7 +198,7 @@
                             <td><span class="acct-status-badge ui-badge bg-gray-100 text-gray-500">停用</span></td>
                             <td>
                                 <div class="flex items-center justify-center gap-2">
-                                    <button onclick="openApprovalModal()" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-pen"></i> 編輯角色</button>
+                                    <button onclick="openApprovalModal()" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-pen"></i> 綁定角色</button>
                                     <button onclick="toggleAccountStatus(this)" class="acct-toggle ui-btn ui-btn-sm text-emerald-600 border border-emerald-200 hover:bg-emerald-50"><i class="fa-solid fa-circle-check"></i> 啟用</button>
                                 </div>
                             </td>
@@ -271,6 +271,12 @@
                 <div>
                     <label class="block text-xs font-semibold text-text-muted mb-1.5">角色名稱 <span class="text-rose-500">*</span></label>
                     <input type="text" id="approvalRoleName" placeholder="請輸入角色名稱" class="ui-input">
+                </div>
+                <div>
+                    <label class="inline-flex items-center gap-2 cursor-pointer select-none">
+                        <input type="checkbox" id="approvalRoleNoGroup" class="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer">
+                        <span class="text-sm text-gray-700">此角色無分組</span>
+                    </label>
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-text-muted mb-1.5">說明</label>
@@ -1198,7 +1204,7 @@
                     <!-- 底部按鈕區 -->
                     <div class="px-6 py-4 flex justify-between items-center shrink-0 border-t border-gray-100 bg-white rounded-b-xl">
                         <button type="button" onclick="openAddRoleModal('editApprovalRolesList')" class="ui-btn ui-btn-primary">
-                            <i class="fa-solid fa-plus font-normal"></i> 新增審批角色
+                            <i class="fa-solid fa-plus font-normal"></i> 綁定審批角色
                         </button>
                         <button type="button" onclick="closeApprovalModal()" class="ui-btn ui-btn-secondary">
                             關閉
@@ -1225,7 +1231,7 @@
                     
                     <!-- 標題與關閉按鈕 -->
                     <div class="px-6 pt-4 pb-3 flex justify-between items-center border-b border-gray-50">
-                        <h3 class="text-lg font-bold text-gray-800">新增審批角色</h3>
+                        <h3 class="text-lg font-bold text-gray-800">配置審批角色</h3>
                         <button onclick="closeAddRoleModal()" class="text-gray-400 hover:text-gray-600 transition-colors outline-none">
                             <i class="fa-solid fa-xmark"></i>
                         </button>

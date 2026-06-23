@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>費用會計管理</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: { extend: {
+                colors: { primary: '#4A90E2', 'primary-light': '#EAF2FC', background: '#F8F9FB', card: '#FFFFFF',
+                    text: { main: '#1F2937', muted: '#6B7280', light: '#9CA3AF' } },
+                fontFamily: { sans: ['"Inter"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'] },
+                boxShadow: { 'card': '0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03)', 'modal': '0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)' }
+            } }
+        }
+    </script>
+    <style>
+        body { background-color: theme('colors.background'); font-family: theme('fontFamily.sans'); }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+    </style>
+    <link rel="stylesheet" href="shared-ui.css">
+</head>
+<body class="ui-page text-text-main antialiased relative">
+
+    <div class="mx-auto w-full space-y-6">
+
+        <header class="ui-page-header">
+            <h1 class="ui-page-title">費用會計管理</h1>
+            <button onclick="mockExport()" class="ui-btn ui-btn-secondary"><i class="fa-solid fa-download"></i> 匯出報表</button>
+        </header>
+
+        <!-- 篩選台 -->
+        <div class="ui-card p-5 space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">搜尋（單號/申請人/項目）</label>
+                    <div class="ui-search">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="f-search" oninput="render()" placeholder="輸入關鍵字..." class="ui-input ui-search-input">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">工作狀態</label>
+                    <select id="f-work" onchange="render()" class="ui-select">
+                        <option value="all">全部</option>
+                        <option value="待執行">待執行</option>
+                        <option value="執行中">執行中</option>
+                        <option value="執行完成">執行完成</option>
+                        <option value="駁回">駁回</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">會計科目分類</label>
+                    <select id="f-acct-group" onchange="render()" class="ui-select">
+                        <option value="all">全部</option>
+                        <option value="運營費用">運營費用</option>
+                        <option value="招待費">招待費</option>
+                        <option value="差旅費">差旅費</option>
+                        <option value="人力成本">人力成本</option>
+                        <option value="辦公費">辦公費</option>
+                        <option value="員工福利費">員工福利費</option>
+                        <option value="返點">返點</option>
+                        <option value="未歸帳">未歸帳</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">申請日期區間</label>
+                    <div class="flex items-center gap-1.5">
+                        <input type="date" id="f-start" onchange="render()" class="ui-input flex-1 min-w-0">
+                        <span class="text-gray-400 text-xs shrink-0">至</span>
+                        <input type="date" id="f-end" onchange="render()" class="ui-input flex-1 min-w-0">
+                    </div>
+                </div>
+            </div>
+            <div class="flex justify-end items-center gap-2 pt-1"><button onclick="render()" class="ui-btn ui-btn-primary ui-btn-sm"><i class="fa-solid fa-magnifying-glass"></i> 查詢</button><button onclick="resetFilters()" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-arrows-rotate"></i> 重置</button></div>
+        </div>
+
+        <!-- 列表 -->
+        <section class="ui-card p-4 sm:p-6">
+            <div class="flex items-center gap-2 mb-4">
+                <h2 class="text-lg font-bold text-gray-900 whitespace-nowrap">採購申請列表</h2>
+                <span id="count-badge" class="bg-blue-50 text-primary text-xs px-2.5 py-1 rounded-md font-bold">0 筆資料</span>
+            </div>
+
+            <div class="overflow-x-auto rounded-lg border border-gray-100 custom-scrollbar">
+                <table class="ui-table text-center">
+                    <thead>
+                        <tr>
+                            <th scope="col" class="text-left whitespace-nowrap">單號</th>
+                            <th scope="col" class="whitespace-nowrap">申請人</th>
+                            <th scope="col" class="whitespace-nowrap">部門</th>
+                            <th scope="col" class="text-left whitespace-nowrap">採購項目</th>
+                            <th scope="col" class="text-right whitespace-nowrap">金額</th>
+                            <th scope="col" class="whitespace-nowrap">申請日期</th>
+                            <th scope="col" class="whitespace-nowrap">會計科目</th>
+                            <th scope="col" class="whitespace-nowrap">歸帳狀態</th>
+                            <th scope="col" class="whitespace-nowrap">工作狀態</th>
+                            <th scope="col" class="text-center whitespace-nowrap">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody"></tbody>
+                </table>
+            </div>
+
+            <div id="no-data" class="hidden py-16 text-center space-y-3">
+                <div class="inline-flex p-4 bg-gray-50 text-gray-400 rounded-full"><i class="fa-solid fa-cart-flatbed text-3xl"></i></div>
+                <p class="text-sm text-text-muted font-medium">查無符合條件的採購簽核單</p>
+                <button onclick="resetFilters()" class="text-xs text-primary font-semibold hover:underline">清除篩選條件</button>
+            </div>
+
+            <div class="flex items-center justify-between mt-6 pt-4 border-t border-gray-100">
+                <span id="pagination-info" class="text-sm text-gray-500">顯示第 0 到 0 筆，共 0 筆記錄</span>
+                <div class="flex gap-1">
+                    <button class="ui-page-btn"><i class="fa-solid fa-chevron-left text-xs"></i></button>
+                    <button class="ui-page-btn is-active">1</button>
+                    <button class="ui-page-btn"><i class="fa-solid fa-chevron-right text-xs"></i></button>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- 詳情彈窗 -->
+    <div id="detail-modal" class="fixed inset-0 bg-black/40 z-50 flex justify-center items-center hidden p-4">
+        <div class="bg-[#F0F2F5] rounded-xl shadow-2xl w-full max-w-[1450px] h-[90vh] flex flex-col overflow-hidden text-left">
+
+            <!-- 彈窗標題與關閉按鈕 -->
+            <div class="bg-[#EEF2F6] px-6 py-3.5 flex items-center justify-between border-b border-gray-200 flex-shrink-0">
+                <span class="font-bold text-gray-800 text-base"><span id="d-title">採購申請單</span></span>
+                <button onclick="closeDetail()" class="bg-[#3F51B5] hover:bg-blue-800 text-white p-1 rounded transition-colors">
+                    <i class="fa-solid fa-xmark text-lg leading-none px-0.5"></i>
+                </button>
+            </div>
+
+            <!-- 內容滾動區 -->
+            <div class="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-6">
+
+                <!-- 基本資訊卡片 -->
+                <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-5">
+                    <div class="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2">基本資訊</div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div>
+                            <label class="block text-gray-700 text-xs mb-1.5 font-medium">文件編號</label>
+                            <input type="text" disabled id="d-docno" class="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 cursor-not-allowed font-mono">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-xs mb-1.5 font-medium">申請日期</label>
+                            <input type="text" disabled id="d-date" class="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 cursor-not-allowed">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-xs mb-1.5 font-medium">標題</label>
+                            <input type="text" disabled id="d-title-field" class="w-full bg-white border border-gray-200 rounded px-3 py-2 text-sm text-gray-800 font-medium">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-xs mb-1.5 font-medium">申請人</label>
+                            <input type="text" disabled id="d-applicant" class="w-full bg-white border border-gray-200 rounded px-3 py-2 text-sm text-gray-800">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-xs mb-1.5 font-medium">部門</label>
+                            <input type="text" disabled id="d-dept" class="w-full bg-white border border-gray-200 rounded px-3 py-2 text-sm text-gray-800">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-xs mb-1.5 font-medium">項目</label>
+                            <input type="text" disabled value="GT" class="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 cursor-not-allowed">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-xs mb-1.5 font-medium">區域</label>
+                            <input type="text" disabled id="d-area" class="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 cursor-not-allowed">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-xs mb-1.5 font-medium">簽核狀態</label>
+                            <div id="d-status" class="flex items-center h-[38px]"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 採購明細卡片 -->
+                <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-5">
+                    <div class="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2">採購明細</div>
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                        <div class="lg:col-span-8">
+                            <label class="block text-gray-700 text-xs mb-1.5 font-semibold">採購項目</label>
+                            <input type="text" disabled id="d-item" class="w-full bg-white border border-gray-200 rounded px-3 py-2 text-sm text-gray-800 font-medium">
+                        </div>
+                        <div class="lg:col-span-4">
+                            <label class="block text-gray-700 text-xs mb-1.5 font-semibold">金額</label>
+                            <div class="flex items-center border border-gray-200 rounded overflow-hidden">
+                                <span class="bg-gray-50 border-r border-gray-200 px-3 py-2 text-sm text-gray-500 font-medium select-none">TWD</span>
+                                <input type="text" disabled id="d-amount" class="w-full bg-white px-3 py-2 text-sm text-gray-800 font-medium focus:outline-none">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 費用會計—科目歸類卡片 -->
+                <div class="bg-white p-6 rounded-lg border border-blue-200 shadow-sm space-y-4">
+                    <div class="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-book-open text-blue-500"></i> 費用會計 — 科目歸類
+                    </div>
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-end">
+                        <div class="lg:col-span-5">
+                            <label class="block text-gray-700 text-xs mb-1.5 font-semibold">目前歸帳科目</label>
+                            <div id="d-current-acct" class="flex items-center h-[38px]"></div>
+                        </div>
+                        <div class="lg:col-span-5">
+                            <label class="block text-gray-700 text-xs mb-1.5 font-semibold">選擇會計科目</label>
+                            <select id="d-acct-select" class="ui-select w-full">
+                                <option value="">— 請選擇科目 —</option>
+                            </select>
+                        </div>
+                        <div class="lg:col-span-2">
+                            <button onclick="confirmAcct()" class="ui-btn ui-btn-primary w-full"><i class="fa-solid fa-circle-check"></i> 確認歸帳</button>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-400">選擇對應科目後點擊「確認歸帳」，系統將記錄此科目供後續記帳拋轉使用。</p>
+                </div>
+
+                <!-- 備註卡片 -->
+                <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-3">
+                    <div class="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2">備註</div>
+                    <textarea disabled rows="4" class="w-full border border-gray-200 rounded-lg p-3 text-sm text-gray-700 bg-white h-32 focus:outline-none"></textarea>
+                </div>
+
+                <!-- 審批線詳情卡片 -->
+                <div class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+                    <div class="bg-[#EEF2F6] px-6 py-3.5 flex items-center justify-between border-b border-gray-200">
+                        <span class="font-bold text-[#1A237E] text-[15px]">審批線詳情</span>
+                    </div>
+                    <div class="p-4 space-y-4">
+                        <div class="overflow-x-auto border border-gray-100 rounded-lg">
+                            <table class="w-full text-left text-xs border-collapse">
+                                <thead>
+                                    <tr class="border-b border-gray-200 bg-gray-50 text-gray-700 font-bold">
+                                        <th class="px-4 py-3 text-center w-16">序號</th>
+                                        <th class="px-4 py-3 text-center w-28">審批狀態</th>
+                                        <th class="px-4 py-3 text-center w-24">級別</th>
+                                        <th class="px-4 py-3">職稱</th>
+                                        <th class="px-4 py-3">簽名</th>
+                                        <th class="px-4 py-3 w-28">ID</th>
+                                        <th class="px-4 py-3 w-40">審批時間</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="d-approval-rows" class="divide-y divide-gray-100 font-medium"></tbody>
+                            </table>
+                        </div>
+
+                        <div class="text-xs font-semibold text-gray-500 pt-2">後續工作</div>
+                        <div class="overflow-x-auto border border-gray-100 rounded-lg">
+                            <table class="w-full text-left text-xs border-collapse">
+                                <thead>
+                                    <tr class="border-b border-gray-200 bg-gray-50 text-gray-700 font-bold">
+                                        <th class="px-4 py-3 text-center w-16">序號</th>
+                                        <th class="px-4 py-3 text-center w-28">狀態</th>
+                                        <th class="px-4 py-3">工作項目</th>
+                                        <th class="px-4 py-3">負責人</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="d-workflow-rows" class="divide-y divide-gray-100 font-medium"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- 固定底部按鈕區 -->
+            <div class="bg-[#F8F9FA] border-t border-gray-200 px-6 py-4 flex flex-wrap justify-end gap-2.5 flex-shrink-0">
+                <button onclick="closeDetail()" class="ui-btn ui-btn-secondary">關閉</button>
+                <button onclick="withdrawDoc()" class="ui-btn bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"><i class="fa-solid fa-rotate-left"></i> 撤回</button>
+                <button onclick="supplementDoc()" class="ui-btn bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100"><i class="fa-solid fa-circle-exclamation"></i> 要求補件</button>
+                <button onclick="approveDoc()" class="ui-btn ui-btn-primary"><i class="fa-solid fa-circle-check"></i> 審批通過</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+        <i id="toast-icon" class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
+        <span id="toast-text" class="text-sm font-medium">操作成功！</span>
+    </div>
+
+    <script>
+        // 會計科目主表
+        var ACCOUNTS = [
+            {group:'運營費用', items:[['5-1000-01','BU3客服費'],['5-1000-07','廣告&行銷費'],['5-1000-08','服務器費用']]},
+            {group:'招待費', items:[['6-2100-01','招待_住宿'],['6-2100-02','招待_機票'],['6-2100-04','招待_餐費'],['6-2100-06','招待_交通']]},
+            {group:'差旅費', items:[['6-6300-01','差旅_交通費'],['6-6300-02','差旅_住宿費'],['6-6300-03','差旅_機票費'],['6-6300-05','差旅_餐補']]},
+            {group:'人力成本', items:[['6-1100-06','薪資'],['6-1100-03','KPI績效'],['6-1100-04','員工保險費']]},
+            {group:'辦公費', items:[['6-6200-03','團建費'],['6-6200-07','電話費'],['6-6200-08','軟件'],['6-6200-10','採購_辦公室用品']]},
+            {group:'員工福利費', items:[['6-1200-06','員工餐費'],['6-1200-07','年會費用'],['6-1200-04','員工禮金、禮品']]},
+            {group:'返點', items:[['6-3100-01','返點_商務'],['6-3200-01','返點_代理']]}
+        ];
+
+        // 建立科目 code -> {code, name, group} 查詢表
+        var ACCT_MAP = {};
+        ACCOUNTS.forEach(function(g) {
+            g.items.forEach(function(item) {
+                ACCT_MAP[item[0]] = { code: item[0], name: item[1], group: g.group };
+            });
+        });
+
+        // 採購申請（含工作流）簽核單。實務上由「簽核」建立後同步至此；此為原型示意資料。
+        var docs = [
+            { docNo: 'B-20260605-001', applicant: 'Yen', dept: 'RD', title: '資產及列管品採購（筆電 ×5）', amount: 'TWD 100,000', date: '2026-06-05', signStatus: '簽核中', acctCode: '6-6200-10',
+              approvals: [{ role: '申請人直屬主管', status: '已核准' }, { role: '部門主管', status: '審批中' }, { role: '財務主管', status: '待審批' }],
+              workflow: [{ task: '採購單建檔', owner: '採購人員', status: '已完成' }, { task: '供應商詢價與下單', owner: '採購人員', status: '處理中' }, { task: '到貨驗收入庫', owner: '資產管理員', status: '待處理' }] },
+            { docNo: 'C-20260603-014', applicant: 'Katherine', dept: 'MKT', title: '行銷活動物料採購', amount: 'TWD 48,000', date: '2026-06-03', signStatus: '簽核完成', acctCode: '5-1000-07',
+              approvals: [{ role: '申請人直屬主管', status: '已核准' }, { role: '部門主管', status: '已核准' }, { role: '財務主管', status: '已核准' }],
+              workflow: [{ task: '採購單建檔', owner: '採購人員', status: '已完成' }, { task: '供應商下單', owner: '採購人員', status: '已完成' }, { task: '驗收結案', owner: '資產管理員', status: '已完成' }] },
+            { docNo: 'B-20260531-008', applicant: 'Derrick', dept: 'IA1', title: '辦公耗材定期採購', amount: 'TWD 12,500', date: '2026-05-31', signStatus: '待簽核', acctCode: '',
+              approvals: [{ role: '申請人直屬主管', status: '待審批' }, { role: '部門主管', status: '待審批' }],
+              workflow: [{ task: '採購單建檔', owner: '採購人員', status: '待處理' }, { task: '供應商下單', owner: '採購人員', status: '待處理' }] },
+            { docNo: 'C-20260528-003', applicant: 'Liz G', dept: 'RD', title: '伺服器擴充硬碟採購', amount: 'TWD 256,000', date: '2026-05-28', signStatus: '簽核中', acctCode: '5-1000-08',
+              approvals: [{ role: '申請人直屬主管', status: '已核准' }, { role: '部門主管', status: '審批中' }, { role: '執行長', status: '待審批' }],
+              workflow: [{ task: '採購單建檔', owner: '採購人員', status: '處理中' }, { task: '供應商下單', owner: '採購人員', status: '待處理' }, { task: '到貨驗收入庫', owner: '資產管理員', status: '待處理' }] },
+            { docNo: 'B-20260520-021', applicant: 'Kidd', dept: 'RD', title: '臨時設備租賃（已駁回）', amount: 'TWD 80,000', date: '2026-05-20', signStatus: '駁回', acctCode: '',
+              approvals: [{ role: '申請人直屬主管', status: '已核准' }, { role: '部門主管', status: '駁回' }],
+              workflow: [{ task: '採購單建檔', owner: '採購人員', status: '待處理' }] }
+        ];
+
+        var currentIndex = -1;
+
+        /* ===== 科目輔助 ===== */
+        function acctLabel(code) {
+            if (!code) return null;
+            var a = ACCT_MAP[code];
+            return a ? a.code + '　' + a.name : null;
+        }
+        function acctGroup(code) {
+            if (!code) return null;
+            var a = ACCT_MAP[code];
+            return a ? a.group : null;
+        }
+        function acctBadgeHtml(code) {
+            var label = acctLabel(code);
+            if (!label) return '<span class="ui-badge ui-badge-warning whitespace-nowrap">未歸帳</span>';
+            return '<span class="ui-badge ui-badge-info whitespace-nowrap" title="' + label + '">' + label + '</span>';
+        }
+        function acctStatusBadgeHtml(code) {
+            if (!code) return '<span class="ui-badge ui-badge-warning whitespace-nowrap">未歸帳</span>';
+            return '<span class="ui-badge ui-badge-success whitespace-nowrap">已歸帳</span>';
+        }
+
+        /* ===== 狀態徽章 ===== */
+        function signBadge(s) {
+            var map = { '待簽核': 'ui-badge-info', '簽核中': 'ui-badge-warning', '簽核完成': 'ui-badge-success', '駁回': 'ui-badge-danger', '撤回': 'ui-badge-gray', '待補件': 'ui-badge-warning' };
+            return '<span class="ui-badge ' + (map[s] || 'ui-badge-gray') + ' mx-auto">' + s + '</span>';
+        }
+        function stepBadge(s) {
+            var map = { '待處理': 'ui-badge-gray', '待審批': 'ui-badge-gray', '處理中': 'ui-badge-warning', '審批中': 'ui-badge-warning', '已完成': 'ui-badge-success', '已核准': 'ui-badge-success', '駁回': 'ui-badge-danger' };
+            return '<span class="ui-badge ' + (map[s] || 'ui-badge-gray') + '">' + s + '</span>';
+        }
+        // 工作狀態：全完成→執行完成；有進行/完成→執行中；否則待執行
+        function workStatus(d) {
+            if (d.signStatus === '駁回') return '駁回';
+            var st = d.workflow.map(function(w) { return w.status; });
+            if (st.length && st.every(function(s) { return s === '已完成'; })) return '執行完成';
+            if (st.some(function(s) { return s === '處理中' || s === '已完成'; })) return '執行中';
+            return '待執行';
+        }
+        function workBadge(s) {
+            var map = { '待執行': 'ui-badge-gray', '執行中': 'ui-badge-warning', '執行完成': 'ui-badge-success', '駁回': 'ui-badge-danger' };
+            return '<span class="ui-badge ' + (map[s] || 'ui-badge-gray') + ' mx-auto">' + s + '</span>';
+        }
+
+        /* ===== 列表渲染與篩選 ===== */
+        function render() {
+            var kw = document.getElementById('f-search').value.trim().toLowerCase();
+            var work = document.getElementById('f-work').value;
+            var acctGrp = document.getElementById('f-acct-group').value;
+            var start = document.getElementById('f-start').value;
+            var end = document.getElementById('f-end').value;
+
+            var rows = [];
+            for (var i = 0; i < docs.length; i++) {
+                var d = docs[i];
+                var kwOk = !kw || d.docNo.toLowerCase().indexOf(kw) >= 0 || d.applicant.toLowerCase().indexOf(kw) >= 0 || d.title.toLowerCase().indexOf(kw) >= 0;
+                var workOk = work === 'all' || workStatus(d) === work;
+                var startOk = !start || d.date >= start;
+                var endOk = !end || d.date <= end;
+                var grpOk = acctGrp === 'all' ||
+                    (acctGrp === '未歸帳' && !d.acctCode) ||
+                    (acctGrp !== '未歸帳' && acctGroup(d.acctCode) === acctGrp);
+                if (kwOk && workOk && startOk && endOk && grpOk) {
+                    rows.push({ d: d, i: i });
+                }
+            }
+
+            var tbody = document.getElementById('tbody');
+            var noData = document.getElementById('no-data');
+            tbody.innerHTML = '';
+
+            if (rows.length === 0) {
+                tbody.parentElement.classList.add('hidden');
+                noData.classList.remove('hidden');
+                document.getElementById('count-badge').innerText = '0 筆資料';
+                document.getElementById('pagination-info').innerText = '顯示第 0 到 0 筆，共 0 筆記錄';
+                return;
+            }
+            tbody.parentElement.classList.remove('hidden');
+            noData.classList.add('hidden');
+
+            rows.forEach(function(row) {
+                var d = row.d;
+                var i = row.i;
+                var tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-50/70 transition-colors';
+                tr.innerHTML =
+                    '<td class="text-left font-mono font-semibold text-gray-600 whitespace-nowrap">' + d.docNo + '</td>' +
+                    '<td class="text-gray-700 whitespace-nowrap">' + d.applicant + '</td>' +
+                    '<td class="whitespace-nowrap"><span class="px-2 py-0.5 bg-gray-100 rounded text-xs font-semibold text-gray-700">' + d.dept + '</span></td>' +
+                    '<td class="text-left text-gray-800">' + d.title + '</td>' +
+                    '<td class="text-right font-mono text-gray-700 whitespace-nowrap">' + d.amount + '</td>' +
+                    '<td class="text-gray-600 whitespace-nowrap">' + d.date + '</td>' +
+                    '<td class="whitespace-nowrap">' + acctBadgeHtml(d.acctCode) + '</td>' +
+                    '<td class="whitespace-nowrap">' + acctStatusBadgeHtml(d.acctCode) + '</td>' +
+                    '<td class="whitespace-nowrap">' + workBadge(workStatus(d)) + '</td>' +
+                    '<td><button onclick="openDetail(' + i + ')" class="ui-btn ui-btn-secondary ui-btn-sm mx-auto whitespace-nowrap"><i class="fa-solid fa-circle-info"></i> 詳情</button></td>';
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('count-badge').innerText = rows.length + ' 筆資料';
+            document.getElementById('pagination-info').innerText = '顯示第 1 到 ' + rows.length + ' 筆，共 ' + rows.length + ' 筆記錄';
+        }
+
+        function resetFilters() {
+            document.getElementById('f-search').value = '';
+            document.getElementById('f-work').value = 'all';
+            document.getElementById('f-acct-group').value = 'all';
+            document.getElementById('f-start').value = '';
+            document.getElementById('f-end').value = '';
+            render();
+        }
+
+        /* ===== 科目選單渲染（optgroup） ===== */
+        function buildAcctSelect(selectEl, selectedCode) {
+            selectEl.innerHTML = '<option value="">— 請選擇科目 —</option>';
+            ACCOUNTS.forEach(function(g) {
+                var og = document.createElement('optgroup');
+                og.label = g.group;
+                g.items.forEach(function(item) {
+                    var opt = document.createElement('option');
+                    opt.value = item[0];
+                    opt.textContent = item[0] + '　' + item[1];
+                    if (item[0] === selectedCode) opt.selected = true;
+                    og.appendChild(opt);
+                });
+                selectEl.appendChild(og);
+            });
+        }
+
+        /* ===== 詳情 ===== */
+        function openDetail(i) {
+            currentIndex = i;
+            var d = docs[i];
+            document.getElementById('d-title').innerText = '採購申請單 — ' + d.docNo;
+            document.getElementById('d-docno').value = d.docNo;
+            document.getElementById('d-date').value = d.date;
+            document.getElementById('d-title-field').value = d.title;
+            document.getElementById('d-applicant').value = d.applicant;
+            document.getElementById('d-dept').value = d.dept;
+            document.getElementById('d-area').value = d.dept || 'T1';
+            document.getElementById('d-status').innerHTML = signBadge(d.signStatus).replace(' mx-auto', '');
+            document.getElementById('d-item').value = d.title;
+            document.getElementById('d-amount').value = d.amount;
+
+            // 科目歸類區塊
+            document.getElementById('d-current-acct').innerHTML = acctBadgeHtml(d.acctCode) + '&ensp;' + acctStatusBadgeHtml(d.acctCode);
+            buildAcctSelect(document.getElementById('d-acct-select'), d.acctCode);
+
+            document.getElementById('d-approval-rows').innerHTML = d.approvals.map(function(a, idx) {
+                return '<tr>' +
+                    '<td class="px-4 py-3 text-center font-bold text-gray-800">' + (idx + 1) + '</td>' +
+                    '<td class="px-4 py-3 text-center">' + stepBadge(a.status) + '</td>' +
+                    '<td class="px-4 py-3 text-center text-gray-500">location</td>' +
+                    '<td class="px-4 py-3 text-gray-800">' + a.role + '</td>' +
+                    '<td class="px-4 py-3 text-gray-400">-</td>' +
+                    '<td class="px-4 py-3 text-gray-400 font-mono">-</td>' +
+                    '<td class="px-4 py-3 text-gray-400">-</td>' +
+                    '</tr>';
+            }).join('');
+
+            document.getElementById('d-workflow-rows').innerHTML = d.workflow.map(function(w, idx) {
+                return '<tr>' +
+                    '<td class="px-4 py-3 text-center font-bold text-gray-800">' + (idx + 1) + '</td>' +
+                    '<td class="px-4 py-3 text-center">' + stepBadge(w.status) + '</td>' +
+                    '<td class="px-4 py-3 text-gray-800">' + w.task + '</td>' +
+                    '<td class="px-4 py-3 text-gray-600">' + w.owner + '</td>' +
+                    '</tr>';
+            }).join('');
+
+            document.getElementById('detail-modal').classList.remove('hidden');
+        }
+
+        function confirmAcct() {
+            if (currentIndex < 0) return;
+            var sel = document.getElementById('d-acct-select');
+            var code = sel.value;
+            if (!code) { showToast('info', '請先選擇會計科目'); return; }
+            docs[currentIndex].acctCode = code;
+            var acct = ACCT_MAP[code];
+            // 更新目前歸帳科目顯示
+            document.getElementById('d-current-acct').innerHTML = acctBadgeHtml(code) + '&ensp;' + acctStatusBadgeHtml(code);
+            render();
+            showToast('success', '已歸帳：' + acct.code + '　' + acct.name);
+        }
+
+        function approveDoc() {
+            if (currentIndex < 0) return;
+            var d = docs[currentIndex];
+            d.signStatus = '簽核完成';
+            d.approvals.forEach(function(a) { a.status = '已核准'; });
+            closeDetail(); render();
+            showToast('success', '已審批通過 ' + d.docNo);
+        }
+        function supplementDoc() {
+            if (currentIndex < 0) return;
+            docs[currentIndex].signStatus = '待補件';
+            closeDetail(); render();
+            showToast('info', '已要求補件 ' + docs[currentIndex].docNo);
+        }
+        function withdrawDoc() {
+            if (currentIndex < 0) return;
+            docs[currentIndex].signStatus = '撤回';
+            closeDetail(); render();
+            showToast('info', '已撤回 ' + docs[currentIndex].docNo);
+        }
+        function closeDetail() { document.getElementById('detail-modal').classList.add('hidden'); }
+
+        function mockExport() { showToast('success', '採購申請報表已開始匯出'); }
+
+        function showToast(type, text) {
+            var toast = document.getElementById('toast');
+            document.getElementById('toast-text').innerText = text;
+            var icon = document.getElementById('toast-icon');
+            if (type === 'success') {
+                toast.className = 'fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform transition-all duration-300 border border-emerald-500/20';
+                icon.className = 'fa-solid fa-circle-check text-emerald-400 text-base';
+            } else {
+                toast.className = 'fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform transition-all duration-300 border border-blue-500/20';
+                icon.className = 'fa-solid fa-circle-info text-blue-400 text-base';
+            }
+            toast.style.transform = 'translateY(0)'; toast.style.opacity = '1';
+            clearTimeout(window.__t); window.__t = setTimeout(function() { toast.style.transform = 'translateY(5rem)'; toast.style.opacity = '0'; }, 2400);
+        }
+
+        document.getElementById('detail-modal').addEventListener('click', function(e) { if (e.target === e.currentTarget) closeDetail(); });
+        window.onload = render;
+    </script>
+</body>
+</html>

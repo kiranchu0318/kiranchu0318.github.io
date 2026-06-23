@@ -65,91 +65,246 @@
             </div>
         </div>
 
-        <!-- 篩選台 -->
-        <div class="ui-card p-5 space-y-4">
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div>
-                    <label class="block text-xs font-semibold text-text-muted mb-1.5">搜尋（分攤單號/費用項目）</label>
-                    <div class="ui-search">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                        <input type="text" id="f-search" oninput="render()" placeholder="輸入關鍵字..." class="ui-input ui-search-input">
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-text-muted mb-1.5">分攤狀態</label>
-                    <select id="f-status" onchange="render()" class="ui-select">
-                        <option value="all">全部</option>
-                        <option value="待分攤">待分攤</option>
-                        <option value="已分攤">已分攤</option>
-                        <option value="已過帳">已過帳</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-text-muted mb-1.5">分攤方式</label>
-                    <select id="f-method" onchange="render()" class="ui-select">
-                        <option value="all">全部</option>
-                        <option value="依比例">依比例</option>
-                        <option value="依人數">依人數</option>
-                        <option value="依固定金額">依固定金額</option>
-                        <option value="依面積">依面積</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-text-muted mb-1.5">期間</label>
-                    <select id="f-period" onchange="render()" class="ui-select">
-                        <option value="all">全部</option>
-                        <option value="2026-06">2026-06</option>
-                        <option value="2026-05">2026-05</option>
-                        <option value="2026-04">2026-04</option>
-                    </select>
-                </div>
-            </div>
-            <div class="flex justify-end items-center gap-2 pt-1"><button onclick="render()" class="ui-btn ui-btn-primary ui-btn-sm"><i class="fa-solid fa-magnifying-glass"></i> 查詢</button><button onclick="resetFilters()" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-arrows-rotate"></i> 重置</button></div>
+        <!-- 頁籤列 -->
+        <div class="flex items-center gap-1 border-b border-gray-200 overflow-x-auto">
+            <button id="tab-btn-alloc"   onclick="switchTab('alloc')"   class="px-4 py-2.5 text-sm font-semibold text-primary border-b-2 border-primary -mb-px transition-colors whitespace-nowrap">費用分攤</button>
+            <button id="tab-btn-amort"   onclick="switchTab('amort')"   class="px-4 py-2.5 text-sm font-medium text-gray-500 border-b-2 border-transparent -mb-px hover:text-gray-700 transition-colors whitespace-nowrap">自動攤銷排程</button>
+            <button id="tab-btn-adj"     onclick="switchTab('adj')"     class="px-4 py-2.5 text-sm font-medium text-gray-500 border-b-2 border-transparent -mb-px hover:text-gray-700 transition-colors whitespace-nowrap">會計調整（手動傳票）</button>
         </div>
 
-        <!-- 列表 -->
-        <section class="ui-card p-4 sm:p-6">
-            <div class="flex items-center gap-2 mb-4">
-                <h2 class="text-lg font-bold text-gray-900 whitespace-nowrap">費用分攤列表</h2>
-                <span id="count-badge" class="bg-blue-50 text-primary text-xs px-2.5 py-1 rounded-md font-bold">0 筆資料</span>
-            </div>
+        <!-- ========== 頁籤 1：費用分攤 ========== -->
+        <div id="panel-alloc" class="space-y-6">
 
-            <div class="overflow-x-auto rounded-lg border border-gray-100 custom-scrollbar">
-                <table class="ui-table text-center">
-                    <thead>
-                        <tr>
-                            <th scope="col" class="text-left">分攤單號</th>
-                            <th scope="col" class="text-left">費用項目</th>
-                            <th scope="col" class="text-right">總金額</th>
-                            <th scope="col">分攤方式</th>
-                            <th scope="col">涉及部門/項目數</th>
-                            <th scope="col">期間</th>
-                            <th scope="col">狀態</th>
-                            <th scope="col" class="text-center">操作</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tbody"></tbody>
-                </table>
-            </div>
-
-            <div id="no-data" class="hidden py-16 text-center space-y-3">
-                <div class="inline-flex p-4 bg-gray-50 text-gray-400 rounded-full"><i class="fa-solid fa-scale-balanced text-3xl"></i></div>
-                <p class="text-sm text-text-muted font-medium">查無符合條件的費用分攤單</p>
-                <button onclick="resetFilters()" class="text-xs text-primary font-semibold hover:underline">清除篩選條件</button>
-            </div>
-
-            <div class="flex items-center justify-between mt-6 pt-4 border-t border-gray-100">
-                <span id="pagination-info" class="text-sm text-gray-500">顯示第 0 到 0 筆，共 0 筆記錄</span>
-                <div class="flex gap-1">
-                    <button class="ui-page-btn"><i class="fa-solid fa-chevron-left text-xs"></i></button>
-                    <button class="ui-page-btn is-active">1</button>
-                    <button class="ui-page-btn"><i class="fa-solid fa-chevron-right text-xs"></i></button>
+            <!-- 篩選台 -->
+            <div class="ui-card p-5 space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-text-muted mb-1.5">搜尋（分攤單號/費用項目）</label>
+                        <div class="ui-search">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="text" id="f-search" oninput="render()" placeholder="輸入關鍵字..." class="ui-input ui-search-input">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-text-muted mb-1.5">分攤狀態</label>
+                        <select id="f-status" onchange="render()" class="ui-select">
+                            <option value="all">全部</option>
+                            <option value="待分攤">待分攤</option>
+                            <option value="已分攤">已分攤</option>
+                            <option value="已過帳">已過帳</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-text-muted mb-1.5">分攤方式</label>
+                        <select id="f-method" onchange="render()" class="ui-select">
+                            <option value="all">全部</option>
+                            <option value="依比例">依比例</option>
+                            <option value="依人數">依人數</option>
+                            <option value="依固定金額">依固定金額</option>
+                            <option value="依面積">依面積</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-text-muted mb-1.5">期間</label>
+                        <select id="f-period" onchange="render()" class="ui-select">
+                            <option value="all">全部</option>
+                            <option value="2026-06">2026-06</option>
+                            <option value="2026-05">2026-05</option>
+                            <option value="2026-04">2026-04</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="flex justify-end items-center gap-2 pt-1">
+                    <button onclick="render()" class="ui-btn ui-btn-primary ui-btn-sm"><i class="fa-solid fa-magnifying-glass"></i> 查詢</button>
+                    <button onclick="resetFilters()" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-arrows-rotate"></i> 重置</button>
                 </div>
             </div>
-        </section>
+
+            <!-- 列表 -->
+            <section class="ui-card p-4 sm:p-6">
+                <div class="flex items-center gap-2 mb-4">
+                    <h2 class="text-lg font-bold text-gray-900 whitespace-nowrap">費用分攤列表</h2>
+                    <span id="count-badge" class="bg-blue-50 text-primary text-xs px-2.5 py-1 rounded-md font-bold">0 筆資料</span>
+                </div>
+
+                <div class="overflow-x-auto rounded-lg border border-gray-100 custom-scrollbar">
+                    <table class="ui-table text-center">
+                        <thead>
+                            <tr>
+                                <th scope="col" class="text-left whitespace-nowrap">分攤單號</th>
+                                <th scope="col" class="text-left whitespace-nowrap">費用項目</th>
+                                <th scope="col" class="text-right whitespace-nowrap">總金額</th>
+                                <th scope="col" class="whitespace-nowrap">分攤方式</th>
+                                <th scope="col" class="whitespace-nowrap">涉及部門/項目數</th>
+                                <th scope="col" class="whitespace-nowrap">期間</th>
+                                <th scope="col" class="whitespace-nowrap">狀態</th>
+                                <th scope="col" class="text-center whitespace-nowrap">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody"></tbody>
+                    </table>
+                </div>
+
+                <div id="no-data" class="hidden py-16 text-center space-y-3">
+                    <div class="inline-flex p-4 bg-gray-50 text-gray-400 rounded-full"><i class="fa-solid fa-scale-balanced text-3xl"></i></div>
+                    <p class="text-sm text-text-muted font-medium">查無符合條件的費用分攤單</p>
+                    <button onclick="resetFilters()" class="text-xs text-primary font-semibold hover:underline">清除篩選條件</button>
+                </div>
+
+                <div class="flex items-center justify-between mt-6 pt-4 border-t border-gray-100">
+                    <span id="pagination-info" class="text-sm text-gray-500">顯示第 0 到 0 筆，共 0 筆記錄</span>
+                    <div class="flex gap-1">
+                        <button class="ui-page-btn"><i class="fa-solid fa-chevron-left text-xs"></i></button>
+                        <button class="ui-page-btn is-active">1</button>
+                        <button class="ui-page-btn"><i class="fa-solid fa-chevron-right text-xs"></i></button>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- ========== 頁籤 2：自動攤銷排程 ========== -->
+        <div id="panel-amort" class="hidden space-y-6">
+            <section class="ui-card p-4 sm:p-6">
+                <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
+                    <div class="flex items-center gap-2">
+                        <h2 class="text-lg font-bold text-gray-900 whitespace-nowrap">攤銷排程表</h2>
+                        <span class="bg-blue-50 text-primary text-xs px-2.5 py-1 rounded-md font-bold">6 筆排程</span>
+                    </div>
+                    <button onclick="genAllCurrentVouchers()" class="ui-btn ui-btn-primary ui-btn-sm"><i class="fa-solid fa-bolt"></i> 產生當期全部傳票</button>
+                </div>
+                <div class="overflow-x-auto rounded-lg border border-gray-100 custom-scrollbar">
+                    <table class="ui-table text-center">
+                        <thead>
+                            <tr>
+                                <th scope="col" class="text-left whitespace-nowrap">排程單號</th>
+                                <th scope="col" class="text-left whitespace-nowrap">科目</th>
+                                <th scope="col" class="text-right whitespace-nowrap">總金額</th>
+                                <th scope="col" class="whitespace-nowrap">起始期</th>
+                                <th scope="col" class="whitespace-nowrap">期數(月)</th>
+                                <th scope="col" class="text-right whitespace-nowrap">每期金額</th>
+                                <th scope="col" class="whitespace-nowrap">已攤期數</th>
+                                <th scope="col" class="whitespace-nowrap">狀態</th>
+                                <th scope="col" class="text-center whitespace-nowrap">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="amort-tbody"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- 攤銷明細（展開列） -->
+            <section id="amort-detail-panel" class="ui-card p-4 sm:p-6 hidden">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <h2 class="text-lg font-bold text-gray-900" id="amort-detail-title">攤銷明細</h2>
+                        <p class="text-xs text-text-muted mt-0.5" id="amort-detail-subtitle"></p>
+                    </div>
+                    <button onclick="closeAmortDetail()" class="text-gray-400 hover:text-gray-600 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <div class="overflow-x-auto rounded-lg border border-gray-100 custom-scrollbar">
+                    <table class="ui-table text-center">
+                        <thead>
+                            <tr>
+                                <th scope="col" class="whitespace-nowrap">年月</th>
+                                <th scope="col" class="text-right whitespace-nowrap">當期金額</th>
+                                <th scope="col" class="whitespace-nowrap">傳票狀態</th>
+                                <th scope="col" class="text-center whitespace-nowrap">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="amort-detail-tbody"></tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+
+        <!-- ========== 頁籤 3：會計調整（手動傳票） ========== -->
+        <div id="panel-adj" class="hidden space-y-6">
+
+            <!-- 分錄建立 -->
+            <section class="ui-card p-4 sm:p-6">
+                <h2 class="text-lg font-bold text-gray-900 mb-4">建立手動傳票分錄</h2>
+
+                <!-- 傳票基本資訊 -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-5">
+                    <div>
+                        <label class="block text-xs font-semibold text-text-muted mb-1.5">傳票日期</label>
+                        <input type="date" id="adj-date" class="ui-input w-full" value="2026-06-30">
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="block text-xs font-semibold text-text-muted mb-1.5">摘要說明</label>
+                        <input type="text" id="adj-memo" class="ui-input w-full" placeholder="例：2026年6月月末調整分錄">
+                    </div>
+                </div>
+
+                <!-- 分錄表 -->
+                <div class="overflow-x-auto rounded-lg border border-gray-100 custom-scrollbar mb-4">
+                    <table class="ui-table text-center" id="adj-entry-table">
+                        <thead>
+                            <tr>
+                                <th scope="col" class="text-left whitespace-nowrap" style="min-width:220px">科目</th>
+                                <th scope="col" class="text-right whitespace-nowrap" style="min-width:140px">借方（Dr）</th>
+                                <th scope="col" class="text-right whitespace-nowrap" style="min-width:140px">貸方（Cr）</th>
+                                <th scope="col" class="text-center whitespace-nowrap" style="min-width:60px">刪除</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adj-lines-tbody"></tbody>
+                        <tfoot>
+                            <tr class="bg-gray-50">
+                                <td class="text-left font-bold text-gray-900 text-sm py-3 px-4">合計</td>
+                                <td class="text-right font-mono font-bold text-gray-900 py-3 px-4" id="adj-total-dr">NT$ 0</td>
+                                <td class="text-right font-mono font-bold text-gray-900 py-3 px-4" id="adj-total-cr">NT$ 0</td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+
+                <!-- 驗證狀態列 -->
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    <div class="flex items-center gap-4">
+                        <button onclick="addAdjLine()" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-plus"></i> 新增分錄列</button>
+                        <span id="adj-balance-msg" class="text-sm font-semibold text-red-500 flex items-center gap-1.5">
+                            <i class="fa-solid fa-triangle-exclamation"></i> 借貸尚未平衡
+                        </span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span id="adj-diff-tag" class="text-xs font-mono bg-red-50 text-red-600 px-3 py-1.5 rounded-lg border border-red-100">差額：NT$ 0</span>
+                        <button id="adj-submit-btn" onclick="submitAdjVoucher()" class="ui-btn ui-btn-primary" disabled>
+                            <i class="fa-solid fa-stamp"></i> 寫入傳票
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 已建立傳票列表 -->
+            <section class="ui-card p-4 sm:p-6">
+                <div class="flex items-center gap-2 mb-4">
+                    <h2 class="text-lg font-bold text-gray-900 whitespace-nowrap">已建立傳票</h2>
+                    <span id="adj-voucher-count" class="bg-blue-50 text-primary text-xs px-2.5 py-1 rounded-md font-bold">0 筆</span>
+                </div>
+                <div class="overflow-x-auto rounded-lg border border-gray-100 custom-scrollbar">
+                    <table class="ui-table text-center">
+                        <thead>
+                            <tr>
+                                <th scope="col" class="text-left whitespace-nowrap">傳票號</th>
+                                <th scope="col" class="whitespace-nowrap">日期</th>
+                                <th scope="col" class="text-left whitespace-nowrap">摘要</th>
+                                <th scope="col" class="text-right whitespace-nowrap">借方合計</th>
+                                <th scope="col" class="whitespace-nowrap">狀態</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adj-vouchers-tbody"></tbody>
+                    </table>
+                </div>
+                <div id="adj-no-voucher" class="hidden py-10 text-center">
+                    <p class="text-sm text-text-muted">尚無已建立的手動傳票</p>
+                </div>
+            </section>
+        </div>
+
     </div>
 
-    <!-- 詳情彈窗 -->
+    <!-- 詳情彈窗（費用分攤） -->
     <div id="detail-modal" class="fixed inset-0 bg-black/40 z-50 flex justify-center items-center hidden p-4">
         <div class="bg-white rounded-2xl shadow-modal w-full max-w-2xl flex flex-col max-h-[88vh] overflow-hidden">
             <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 shrink-0">
@@ -169,9 +324,9 @@
                         <table class="ui-table text-center">
                             <thead>
                                 <tr>
-                                    <th scope="col" class="text-left">部門 / 項目</th>
-                                    <th scope="col" class="text-right">分攤比例（%）</th>
-                                    <th scope="col" class="text-right">分攤金額</th>
+                                    <th scope="col" class="text-left whitespace-nowrap">部門 / 項目</th>
+                                    <th scope="col" class="text-right whitespace-nowrap">分攤比例（%）</th>
+                                    <th scope="col" class="text-right whitespace-nowrap">分攤金額</th>
                                 </tr>
                             </thead>
                             <tbody id="d-alloc"></tbody>
@@ -193,8 +348,9 @@
     </div>
 
     <script>
-        // 共同費用分攤單。將辦公室租金、水電費等共同費用，依分攤方式攤提至各部門/項目；此為原型示意資料。
-        // 每筆分攤明細的金額合計皆等於總金額（比例加總 100%）。
+        /* ===================================================================
+           資料：費用分攤
+        =================================================================== */
         const docs = [
             { docNo: 'CA-20260601-001', item: '辦公室租金', amount: 600000, method: '依面積', period: '2026-06', status: '待分攤',
               alloc: [{ name: '研發部', ratio: 40, amount: 240000 }, { name: '行銷部', ratio: 25, amount: 150000 }, { name: '財務部', ratio: 15, amount: 90000 }, { name: '人資部', ratio: 12, amount: 72000 }, { name: '內稽部', ratio: 8, amount: 48000 }] },
@@ -214,47 +370,222 @@
               alloc: [{ name: '研發部', ratio: 45, amount: 108000 }, { name: '行銷部', ratio: 20, amount: 48000 }, { name: '財務部', ratio: 15, amount: 36000 }, { name: '人資部', ratio: 12, amount: 28800 }, { name: '內稽部', ratio: 8, amount: 19200 }] }
         ];
 
-        /* ===== 金額格式 ===== */
-        function fmt(n) { return 'NT$ ' + n.toLocaleString('en-US'); }
+        /* ===================================================================
+           資料：攤銷排程
+        =================================================================== */
+        // voucherGenerated: 陣列，索引對應逐月明細，true = 已生傳票
+        const amortSchedules = [
+            {
+                schNo: 'AS-2026-001', acct: '預付租金_辦公室（1-1300-02）', total: 7200000,
+                startPeriod: '2026-01', months: 12, perMonth: 600000, amortized: 5,
+                status: '進行中',
+                lines: [
+                    { ym: '2026-01', amt: 600000, voucher: true },
+                    { ym: '2026-02', amt: 600000, voucher: true },
+                    { ym: '2026-03', amt: 600000, voucher: true },
+                    { ym: '2026-04', amt: 600000, voucher: true },
+                    { ym: '2026-05', amt: 600000, voucher: true },
+                    { ym: '2026-06', amt: 600000, voucher: false },
+                    { ym: '2026-07', amt: 600000, voucher: false },
+                    { ym: '2026-08', amt: 600000, voucher: false },
+                    { ym: '2026-09', amt: 600000, voucher: false },
+                    { ym: '2026-10', amt: 600000, voucher: false },
+                    { ym: '2026-11', amt: 600000, voucher: false },
+                    { ym: '2026-12', amt: 600000, voucher: false }
+                ]
+            },
+            {
+                schNo: 'AS-2026-002', acct: '預付租金_宿舍（1-1300-01）', total: 1800000,
+                startPeriod: '2026-01', months: 12, perMonth: 150000, amortized: 5,
+                status: '進行中',
+                lines: [
+                    { ym: '2026-01', amt: 150000, voucher: true },
+                    { ym: '2026-02', amt: 150000, voucher: true },
+                    { ym: '2026-03', amt: 150000, voucher: true },
+                    { ym: '2026-04', amt: 150000, voucher: true },
+                    { ym: '2026-05', amt: 150000, voucher: true },
+                    { ym: '2026-06', amt: 150000, voucher: false },
+                    { ym: '2026-07', amt: 150000, voucher: false },
+                    { ym: '2026-08', amt: 150000, voucher: false },
+                    { ym: '2026-09', amt: 150000, voucher: false },
+                    { ym: '2026-10', amt: 150000, voucher: false },
+                    { ym: '2026-11', amt: 150000, voucher: false },
+                    { ym: '2026-12', amt: 150000, voucher: false }
+                ]
+            },
+            {
+                schNo: 'AS-2026-003', acct: '辦公費-軟件（6-6200-08）', total: 480000,
+                startPeriod: '2026-01', months: 12, perMonth: 40000, amortized: 5,
+                status: '進行中',
+                lines: [
+                    { ym: '2026-01', amt: 40000, voucher: true },
+                    { ym: '2026-02', amt: 40000, voucher: true },
+                    { ym: '2026-03', amt: 40000, voucher: true },
+                    { ym: '2026-04', amt: 40000, voucher: true },
+                    { ym: '2026-05', amt: 40000, voucher: true },
+                    { ym: '2026-06', amt: 40000, voucher: false },
+                    { ym: '2026-07', amt: 40000, voucher: false },
+                    { ym: '2026-08', amt: 40000, voucher: false },
+                    { ym: '2026-09', amt: 40000, voucher: false },
+                    { ym: '2026-10', amt: 40000, voucher: false },
+                    { ym: '2026-11', amt: 40000, voucher: false },
+                    { ym: '2026-12', amt: 40000, voucher: false }
+                ]
+            },
+            {
+                schNo: 'AS-2025-009', acct: '暫付款（1-1200）', total: 300000,
+                startPeriod: '2025-10', months: 6, perMonth: 50000, amortized: 6,
+                status: '已完成',
+                lines: [
+                    { ym: '2025-10', amt: 50000, voucher: true },
+                    { ym: '2025-11', amt: 50000, voucher: true },
+                    { ym: '2025-12', amt: 50000, voucher: true },
+                    { ym: '2026-01', amt: 50000, voucher: true },
+                    { ym: '2026-02', amt: 50000, voucher: true },
+                    { ym: '2026-03', amt: 50000, voucher: true }
+                ]
+            },
+            {
+                schNo: 'AS-2026-004', acct: '運營費用（5-1000）', total: 900000,
+                startPeriod: '2026-04', months: 6, perMonth: 150000, amortized: 2,
+                status: '進行中',
+                lines: [
+                    { ym: '2026-04', amt: 150000, voucher: true },
+                    { ym: '2026-05', amt: 150000, voucher: true },
+                    { ym: '2026-06', amt: 150000, voucher: false },
+                    { ym: '2026-07', amt: 150000, voucher: false },
+                    { ym: '2026-08', amt: 150000, voucher: false },
+                    { ym: '2026-09', amt: 150000, voucher: false }
+                ]
+            },
+            {
+                schNo: 'AS-2026-005', acct: '其他應付款（2-1000）', total: 240000,
+                startPeriod: '2026-03', months: 4, perMonth: 60000, amortized: 3,
+                status: '進行中',
+                lines: [
+                    { ym: '2026-03', amt: 60000, voucher: true },
+                    { ym: '2026-04', amt: 60000, voucher: true },
+                    { ym: '2026-05', amt: 60000, voucher: true },
+                    { ym: '2026-06', amt: 60000, voucher: false }
+                ]
+            }
+        ];
 
-        /* ===== 徽章 ===== */
+        /* ===================================================================
+           資料：已建立手動傳票（初始 mock）
+        =================================================================== */
+        const adjVouchers = [
+            { vNo: 'MJ-20260531-001', date: '2026-05-31', memo: '5月月末應計費用調整', totalDr: 280000, status: '已過帳' },
+            { vNo: 'MJ-20260430-001', date: '2026-04-30', memo: '4月折舊費用認列', totalDr: 153600, status: '已過帳' },
+            { vNo: 'MJ-20260331-001', date: '2026-03-31', memo: '3月預付費用攤銷', totalDr: 110000, status: '已過帳' }
+        ];
+
+        /* ===================================================================
+           科目清單
+        =================================================================== */
+        const ACCOUNTS = [
+            '預付租金_辦公室（1-1300-02）',
+            '預付租金_宿舍（1-1300-01）',
+            '辦公費-軟件（6-6200-08）',
+            '暫付款（1-1200）',
+            '其他應付款（2-1000）',
+            '運營費用（5-1000）',
+            '應計費用（2-1100）',
+            '折舊費用（6-1300）',
+            '租金費用（6-1200）',
+            '現金及約當現金（1-1000）'
+        ];
+
+        /* ===================================================================
+           通用工具
+        =================================================================== */
+        function fmt(n) { return 'NT$ ' + Number(n).toLocaleString('en-US'); }
+
         function statusBadge(s) {
             const map = { '待分攤': 'ui-badge-warning', '已分攤': 'ui-badge-success', '已過帳': 'ui-badge-gray' };
             const icon = s === '已過帳' ? '<i class="fa-solid fa-check"></i> ' : '';
-            return `<span class="ui-badge ${map[s] || 'ui-badge-gray'} mx-auto">${icon}${s}</span>`;
+            return '<span class="ui-badge ' + (map[s] || 'ui-badge-gray') + ' mx-auto">' + icon + s + '</span>';
         }
         function methodBadge(m) {
             const map = { '依比例': 'ui-badge-info', '依人數': 'ui-badge-purple', '依固定金額': 'ui-badge-gray', '依面積': 'ui-badge-info' };
-            return `<span class="ui-badge ${map[m] || 'ui-badge-gray'} mx-auto">${m}</span>`;
+            return '<span class="ui-badge ' + (map[m] || 'ui-badge-gray') + ' mx-auto">' + m + '</span>';
+        }
+        function amortStatusBadge(s) {
+            var cls = s === '進行中' ? 'ui-badge-info' : 'ui-badge-gray';
+            var icon = s === '已完成' ? '<i class="fa-solid fa-check"></i> ' : '<i class="fa-solid fa-rotate"></i> ';
+            return '<span class="ui-badge ' + cls + ' mx-auto">' + icon + s + '</span>';
+        }
+        function voucherBadge(s) {
+            var cls = s === '已過帳' ? 'ui-badge-gray' : (s === '已建立' ? 'ui-badge-success' : 'ui-badge-warning');
+            return '<span class="ui-badge ' + cls + ' mx-auto">' + s + '</span>';
         }
 
-        /* ===== KPI ===== */
+        function showToast(type, text) {
+            var toast = document.getElementById('toast');
+            document.getElementById('toast-text').innerText = text;
+            var icon = document.getElementById('toast-icon');
+            if (type === 'success') {
+                toast.className = 'fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform transition-all duration-300 border border-emerald-500/20';
+                icon.className = 'fa-solid fa-circle-check text-emerald-400 text-base';
+            } else {
+                toast.className = 'fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform transition-all duration-300 border border-blue-500/20';
+                icon.className = 'fa-solid fa-circle-info text-blue-400 text-base';
+            }
+            toast.style.transform = 'translateY(0)';
+            toast.style.opacity = '1';
+            clearTimeout(window.__t);
+            window.__t = setTimeout(function() {
+                toast.style.transform = 'translateY(5rem)';
+                toast.style.opacity = '0';
+            }, 2800);
+        }
+
+        /* ===================================================================
+           頁籤切換
+        =================================================================== */
+        function switchTab(tab) {
+            var tabs = ['alloc', 'amort', 'adj'];
+            var onCls = 'px-4 py-2.5 text-sm font-semibold text-primary border-b-2 border-primary -mb-px transition-colors whitespace-nowrap';
+            var offCls = 'px-4 py-2.5 text-sm font-medium text-gray-500 border-b-2 border-transparent -mb-px hover:text-gray-700 transition-colors whitespace-nowrap';
+            tabs.forEach(function(t) {
+                document.getElementById('panel-' + t).classList.toggle('hidden', t !== tab);
+                document.getElementById('tab-btn-' + t).className = (t === tab) ? onCls : offCls;
+            });
+        }
+
+        /* ===================================================================
+           KPI
+        =================================================================== */
         function renderKpi() {
-            const pending = docs.filter(d => d.status === '待分攤').reduce((s, d) => s + d.amount, 0);
-            const done = docs.filter(d => d.status === '已分攤' || d.status === '已過帳').reduce((s, d) => s + d.amount, 0);
-            const depts = new Set();
-            docs.forEach(d => d.alloc.forEach(a => depts.add(a.name)));
+            var pending = docs.filter(function(d) { return d.status === '待分攤'; }).reduce(function(s, d) { return s + d.amount; }, 0);
+            var done = docs.filter(function(d) { return d.status === '已分攤' || d.status === '已過帳'; }).reduce(function(s, d) { return s + d.amount; }, 0);
+            var depts = new Set();
+            docs.forEach(function(d) { d.alloc.forEach(function(a) { depts.add(a.name); }); });
             document.getElementById('kpi-pending').innerText = fmt(pending);
             document.getElementById('kpi-done').innerText = fmt(done);
             document.getElementById('kpi-plans').innerText = docs.length;
             document.getElementById('kpi-depts').innerText = depts.size;
         }
 
-        /* ===== 列表渲染與篩選 ===== */
+        /* ===================================================================
+           頁籤 1：費用分攤列表
+        =================================================================== */
         function render() {
-            const kw = document.getElementById('f-search').value.trim().toLowerCase();
-            const status = document.getElementById('f-status').value;
-            const method = document.getElementById('f-method').value;
-            const period = document.getElementById('f-period').value;
+            var kw = document.getElementById('f-search').value.trim().toLowerCase();
+            var status = document.getElementById('f-status').value;
+            var method = document.getElementById('f-method').value;
+            var period = document.getElementById('f-period').value;
 
-            const rows = docs.map((d, i) => ({ d, i })).filter(({ d }) =>
-                (!kw || d.docNo.toLowerCase().includes(kw) || d.item.toLowerCase().includes(kw)) &&
-                (status === 'all' || d.status === status) &&
-                (method === 'all' || d.method === method) &&
-                (period === 'all' || d.period === period));
+            var rows = docs.map(function(d, i) { return { d: d, i: i }; }).filter(function(r) {
+                var d = r.d;
+                return (!kw || d.docNo.toLowerCase().includes(kw) || d.item.toLowerCase().includes(kw)) &&
+                       (status === 'all' || d.status === status) &&
+                       (method === 'all' || d.method === method) &&
+                       (period === 'all' || d.period === period);
+            });
 
-            const tbody = document.getElementById('tbody');
-            const noData = document.getElementById('no-data');
+            var tbody = document.getElementById('tbody');
+            var noData = document.getElementById('no-data');
             tbody.innerHTML = '';
 
             if (rows.length === 0) {
@@ -267,26 +598,25 @@
             tbody.parentElement.classList.remove('hidden');
             noData.classList.add('hidden');
 
-            rows.forEach(({ d, i }) => {
-                const tr = document.createElement('tr');
+            rows.forEach(function(r) {
+                var d = r.d;
+                var i = r.i;
+                var tr = document.createElement('tr');
                 tr.className = 'hover:bg-gray-50/70 transition-colors';
-                tr.innerHTML = `
-                    <td class="text-left font-mono font-semibold text-gray-600">${d.docNo}</td>
-                    <td class="text-left text-gray-800">${d.item}</td>
-                    <td class="text-right font-mono text-gray-700">${fmt(d.amount)}</td>
-                    <td>${methodBadge(d.method)}</td>
-                    <td class="text-gray-700">${d.alloc.length}</td>
-                    <td class="text-gray-600">${d.period}</td>
-                    <td>${statusBadge(d.status)}</td>
-                    <td>
-                        <button onclick="openDetail(${i})" class="ui-btn ui-btn-secondary ui-btn-sm mx-auto"><i class="fa-solid fa-circle-info"></i> 檢視</button>
-                    </td>
-                `;
+                tr.innerHTML =
+                    '<td class="text-left font-mono font-semibold text-gray-600 whitespace-nowrap">' + d.docNo + '</td>' +
+                    '<td class="text-left text-gray-800 whitespace-nowrap">' + d.item + '</td>' +
+                    '<td class="text-right font-mono text-gray-700 whitespace-nowrap">' + fmt(d.amount) + '</td>' +
+                    '<td class="whitespace-nowrap">' + methodBadge(d.method) + '</td>' +
+                    '<td class="text-gray-700 whitespace-nowrap">' + d.alloc.length + '</td>' +
+                    '<td class="text-gray-600 whitespace-nowrap">' + d.period + '</td>' +
+                    '<td class="whitespace-nowrap">' + statusBadge(d.status) + '</td>' +
+                    '<td class="whitespace-nowrap"><button onclick="openDetail(' + i + ')" class="ui-btn ui-btn-secondary ui-btn-sm mx-auto"><i class="fa-solid fa-circle-info"></i> 檢視</button></td>';
                 tbody.appendChild(tr);
             });
 
-            document.getElementById('count-badge').innerText = `${rows.length} 筆資料`;
-            document.getElementById('pagination-info').innerText = `顯示第 1 到 ${rows.length} 筆，共 ${rows.length} 筆記錄`;
+            document.getElementById('count-badge').innerText = rows.length + ' 筆資料';
+            document.getElementById('pagination-info').innerText = '顯示第 1 到 ' + rows.length + ' 筆，共 ' + rows.length + ' 筆記錄';
         }
 
         function resetFilters() {
@@ -297,53 +627,315 @@
             render();
         }
 
-        /* ===== 詳情 ===== */
+        /* ===================================================================
+           詳情 Modal（費用分攤）
+        =================================================================== */
         function openDetail(i) {
-            const d = docs[i];
-            document.getElementById('d-title').innerText = `費用分攤單 — ${d.docNo}`;
-            document.getElementById('d-info').innerHTML = `
-                <div><span class="text-text-muted">分攤單號：</span><span class="font-medium text-gray-800 font-mono">${d.docNo}</span></div>
-                <div><span class="text-text-muted">費用項目：</span><span class="font-medium text-gray-800">${d.item}</span></div>
-                <div><span class="text-text-muted">總金額：</span><span class="font-medium text-gray-800 font-mono">${fmt(d.amount)}</span></div>
-                <div><span class="text-text-muted">分攤方式：</span>${methodBadge(d.method).replace(' mx-auto', '')}</div>
-                <div><span class="text-text-muted">期間：</span><span class="font-medium text-gray-800">${d.period}</span></div>
-                <div><span class="text-text-muted">狀態：</span>${statusBadge(d.status).replace(' mx-auto', '')}</div>`;
+            var d = docs[i];
+            document.getElementById('d-title').innerText = '費用分攤單 — ' + d.docNo;
+            document.getElementById('d-info').innerHTML =
+                '<div><span class="text-text-muted">分攤單號：</span><span class="font-medium text-gray-800 font-mono">' + d.docNo + '</span></div>' +
+                '<div><span class="text-text-muted">費用項目：</span><span class="font-medium text-gray-800">' + d.item + '</span></div>' +
+                '<div><span class="text-text-muted">總金額：</span><span class="font-medium text-gray-800 font-mono">' + fmt(d.amount) + '</span></div>' +
+                '<div><span class="text-text-muted">分攤方式：</span>' + methodBadge(d.method).replace(' mx-auto', '') + '</div>' +
+                '<div><span class="text-text-muted">期間：</span><span class="font-medium text-gray-800">' + d.period + '</span></div>' +
+                '<div><span class="text-text-muted">狀態：</span>' + statusBadge(d.status).replace(' mx-auto', '') + '</div>';
 
-            document.getElementById('d-alloc').innerHTML = d.alloc.map(a => `
-                <tr class="hover:bg-gray-50/70 transition-colors">
-                    <td class="text-left text-gray-800">${a.name}</td>
-                    <td class="text-right font-mono text-gray-700">${a.ratio}%</td>
-                    <td class="text-right font-mono text-gray-700">${fmt(a.amount)}</td>
-                </tr>`).join('');
+            document.getElementById('d-alloc').innerHTML = d.alloc.map(function(a) {
+                return '<tr class="hover:bg-gray-50/70 transition-colors">' +
+                    '<td class="text-left text-gray-800 whitespace-nowrap">' + a.name + '</td>' +
+                    '<td class="text-right font-mono text-gray-700 whitespace-nowrap">' + a.ratio + '%</td>' +
+                    '<td class="text-right font-mono text-gray-700 whitespace-nowrap">' + fmt(a.amount) + '</td>' +
+                    '</tr>';
+            }).join('');
 
-            const sumRatio = d.alloc.reduce((s, a) => s + a.ratio, 0);
-            const sumAmount = d.alloc.reduce((s, a) => s + a.amount, 0);
-            const balanced = sumAmount === d.amount;
-            document.getElementById('d-alloc-foot').innerHTML = `
-                <tr class="bg-gray-50 font-bold">
-                    <td class="text-left text-gray-900">合計</td>
-                    <td class="text-right font-mono text-gray-900">${sumRatio}%</td>
-                    <td class="text-right font-mono ${balanced ? 'text-gray-900' : 'text-red-600'}">${fmt(sumAmount)}${balanced ? '' : ' ⚠'}</td>
-                </tr>`;
+            var sumRatio = d.alloc.reduce(function(s, a) { return s + a.ratio; }, 0);
+            var sumAmount = d.alloc.reduce(function(s, a) { return s + a.amount; }, 0);
+            var balanced = sumAmount === d.amount;
+            document.getElementById('d-alloc-foot').innerHTML =
+                '<tr class="bg-gray-50 font-bold">' +
+                '<td class="text-left text-gray-900">合計</td>' +
+                '<td class="text-right font-mono text-gray-900">' + sumRatio + '%</td>' +
+                '<td class="text-right font-mono ' + (balanced ? 'text-gray-900' : 'text-red-600') + '">' + fmt(sumAmount) + (balanced ? '' : ' ⚠') + '</td>' +
+                '</tr>';
 
             document.getElementById('detail-modal').classList.remove('hidden');
         }
         function closeDetail() { document.getElementById('detail-modal').classList.add('hidden'); }
 
-        function mockExport() { showToast('success', '費用分攤報表已開始匯出'); }
+        /* ===================================================================
+           頁籤 2：攤銷排程
+        =================================================================== */
+        var currentAmortIdx = null;
 
-        function showToast(type, text) {
-            const toast = document.getElementById('toast');
-            document.getElementById('toast-text').innerText = text;
-            const icon = document.getElementById('toast-icon');
-            if (type === 'success') { toast.className = "fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform transition-all duration-300 border border-emerald-500/20"; icon.className = "fa-solid fa-circle-check text-emerald-400 text-base"; }
-            else { toast.className = "fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform transition-all duration-300 border border-blue-500/20"; icon.className = "fa-solid fa-circle-info text-blue-400 text-base"; }
-            toast.style.transform = 'translateY(0)'; toast.style.opacity = '1';
-            clearTimeout(window.__t); window.__t = setTimeout(() => { toast.style.transform = 'translateY(5rem)'; toast.style.opacity = '0'; }, 2400);
+        function renderAmort() {
+            var tbody = document.getElementById('amort-tbody');
+            tbody.innerHTML = '';
+            amortSchedules.forEach(function(s, idx) {
+                var tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-50/70 transition-colors';
+                var pendingLine = s.lines.find(function(l) { return !l.voucher; });
+                var canGen = !!pendingLine && s.status === '進行中';
+                tr.innerHTML =
+                    '<td class="text-left font-mono font-semibold text-gray-600 whitespace-nowrap">' + s.schNo + '</td>' +
+                    '<td class="text-left text-gray-800 whitespace-nowrap">' + s.acct + '</td>' +
+                    '<td class="text-right font-mono text-gray-700 whitespace-nowrap">' + fmt(s.total) + '</td>' +
+                    '<td class="text-gray-600 whitespace-nowrap">' + s.startPeriod + '</td>' +
+                    '<td class="text-gray-700 whitespace-nowrap">' + s.months + '</td>' +
+                    '<td class="text-right font-mono text-gray-700 whitespace-nowrap">' + fmt(s.perMonth) + '</td>' +
+                    '<td class="whitespace-nowrap"><span class="font-semibold text-gray-800">' + s.amortized + '</span> / ' + s.months + '</td>' +
+                    '<td class="whitespace-nowrap">' + amortStatusBadge(s.status) + '</td>' +
+                    '<td class="whitespace-nowrap">' +
+                        '<div class="flex items-center justify-center gap-1.5">' +
+                        '<button onclick="openAmortDetail(' + idx + ')" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-list-ul"></i> 明細</button>' +
+                        (canGen ? '<button onclick="genCurrentVoucher(' + idx + ')" class="ui-btn ui-btn-primary ui-btn-sm"><i class="fa-solid fa-bolt"></i> 產生傳票</button>' : '') +
+                        '</div>' +
+                    '</td>';
+                tbody.appendChild(tr);
+            });
         }
 
-        document.getElementById('detail-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeDetail(); });
-        window.onload = function () { renderKpi(); render(); };
+        function openAmortDetail(idx) {
+            currentAmortIdx = idx;
+            var s = amortSchedules[idx];
+            document.getElementById('amort-detail-title').innerText = '攤銷明細 — ' + s.schNo;
+            document.getElementById('amort-detail-subtitle').innerText = s.acct + '　每期 ' + fmt(s.perMonth) + '　共 ' + s.months + ' 期';
+            renderAmortDetailLines(idx);
+            document.getElementById('amort-detail-panel').classList.remove('hidden');
+            document.getElementById('amort-detail-panel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        function renderAmortDetailLines(idx) {
+            var s = amortSchedules[idx];
+            var tbody = document.getElementById('amort-detail-tbody');
+            tbody.innerHTML = '';
+            s.lines.forEach(function(l, li) {
+                var tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-50/70 transition-colors';
+                var vBadge = l.voucher
+                    ? '<span class="ui-badge ui-badge-success mx-auto"><i class="fa-solid fa-check"></i> 已生傳票</span>'
+                    : '<span class="ui-badge ui-badge-warning mx-auto">待生傳票</span>';
+                var genBtn = (!l.voucher && s.status === '進行中')
+                    ? '<button onclick="genSingleLineVoucher(' + idx + ',' + li + ')" class="ui-btn ui-btn-primary ui-btn-sm mx-auto"><i class="fa-solid fa-bolt"></i> 產生傳票</button>'
+                    : '<span class="text-xs text-text-muted">—</span>';
+                tr.innerHTML =
+                    '<td class="font-mono text-gray-700 whitespace-nowrap">' + l.ym + '</td>' +
+                    '<td class="text-right font-mono text-gray-700 whitespace-nowrap">' + fmt(l.amt) + '</td>' +
+                    '<td class="whitespace-nowrap">' + vBadge + '</td>' +
+                    '<td class="whitespace-nowrap">' + genBtn + '</td>';
+                tbody.appendChild(tr);
+            });
+        }
+
+        function closeAmortDetail() {
+            document.getElementById('amort-detail-panel').classList.add('hidden');
+            currentAmortIdx = null;
+        }
+
+        function genCurrentVoucher(idx) {
+            var s = amortSchedules[idx];
+            var line = s.lines.find(function(l) { return !l.voucher; });
+            if (!line) { showToast('info', '此排程所有期數已生傳票'); return; }
+            line.voucher = true;
+            s.amortized += 1;
+            if (s.amortized >= s.months) { s.status = '已完成'; }
+            renderAmort();
+            if (currentAmortIdx === idx) { renderAmortDetailLines(idx); }
+            showToast('success', '【模擬 Cron】已自動生成 ' + s.acct + ' ' + line.ym + ' 當期費用傳票');
+        }
+
+        function genSingleLineVoucher(idx, li) {
+            var s = amortSchedules[idx];
+            var line = s.lines[li];
+            if (line.voucher) { showToast('info', '此期傳票已建立'); return; }
+            line.voucher = true;
+            s.amortized += 1;
+            if (s.amortized >= s.months) { s.status = '已完成'; }
+            renderAmort();
+            renderAmortDetailLines(idx);
+            showToast('success', '【模擬 Cron】已生成 ' + s.acct + ' ' + line.ym + ' 費用傳票');
+        }
+
+        function genAllCurrentVouchers() {
+            var count = 0;
+            amortSchedules.forEach(function(s, idx) {
+                if (s.status !== '進行中') { return; }
+                var line = s.lines.find(function(l) { return !l.voucher; });
+                if (!line) { return; }
+                line.voucher = true;
+                s.amortized += 1;
+                if (s.amortized >= s.months) { s.status = '已完成'; }
+                count++;
+            });
+            renderAmort();
+            if (currentAmortIdx !== null) { renderAmortDetailLines(currentAmortIdx); }
+            if (count > 0) {
+                showToast('success', '【模擬 Cron】已批次生成 ' + count + ' 筆當期費用傳票');
+            } else {
+                showToast('info', '所有進行中排程的當期傳票均已建立');
+            }
+        }
+
+        /* ===================================================================
+           頁籤 3：會計調整（手動傳票）
+        =================================================================== */
+        var adjLines = [];
+        var adjLineCounter = 0;
+
+        function acctOptions(selectedVal) {
+            return ACCOUNTS.map(function(a) {
+                return '<option value="' + a + '"' + (a === selectedVal ? ' selected' : '') + '>' + a + '</option>';
+            }).join('');
+        }
+
+        function addAdjLine(acct, dr, cr) {
+            var id = ++adjLineCounter;
+            adjLines.push({ id: id, acct: acct || '', dr: dr || '', cr: cr || '' });
+            renderAdjLines();
+        }
+
+        function removeAdjLine(id) {
+            adjLines = adjLines.filter(function(l) { return l.id !== id; });
+            renderAdjLines();
+        }
+
+        function renderAdjLines() {
+            var tbody = document.getElementById('adj-lines-tbody');
+            tbody.innerHTML = '';
+            adjLines.forEach(function(line) {
+                var tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-50/70 transition-colors';
+                tr.innerHTML =
+                    '<td class="py-2 px-3">' +
+                        '<select class="ui-select text-sm" onchange="onAdjLineChange(' + line.id + ',\'acct\',this.value)">' +
+                        '<option value="">— 請選擇科目 —</option>' +
+                        acctOptions(line.acct) +
+                        '</select>' +
+                    '</td>' +
+                    '<td class="py-2 px-3">' +
+                        '<input type="number" min="0" step="1" placeholder="0" value="' + (line.dr || '') + '" ' +
+                        'class="ui-input text-right font-mono w-full text-sm" ' +
+                        'oninput="onAdjLineChange(' + line.id + ',\'dr\',this.value)">' +
+                    '</td>' +
+                    '<td class="py-2 px-3">' +
+                        '<input type="number" min="0" step="1" placeholder="0" value="' + (line.cr || '') + '" ' +
+                        'class="ui-input text-right font-mono w-full text-sm" ' +
+                        'oninput="onAdjLineChange(' + line.id + ',\'cr\',this.value)">' +
+                    '</td>' +
+                    '<td class="py-2 px-3 text-center">' +
+                        '<button onclick="removeAdjLine(' + line.id + ')" class="text-red-400 hover:text-red-600 w-7 h-7 inline-flex items-center justify-center rounded hover:bg-red-50"><i class="fa-solid fa-trash-can text-xs"></i></button>' +
+                    '</td>';
+                tbody.appendChild(tr);
+            });
+            updateAdjBalance();
+        }
+
+        function onAdjLineChange(id, field, value) {
+            var line = adjLines.find(function(l) { return l.id === id; });
+            if (!line) { return; }
+            line[field] = value;
+            updateAdjBalance();
+        }
+
+        function updateAdjBalance() {
+            var totalDr = adjLines.reduce(function(s, l) { return s + (parseFloat(l.dr) || 0); }, 0);
+            var totalCr = adjLines.reduce(function(s, l) { return s + (parseFloat(l.cr) || 0); }, 0);
+            var diff = Math.round((totalDr - totalCr) * 100) / 100;
+            var balanced = (diff === 0) && (totalDr > 0);
+
+            document.getElementById('adj-total-dr').innerText = fmt(totalDr);
+            document.getElementById('adj-total-cr').innerText = fmt(totalCr);
+
+            var diffTag = document.getElementById('adj-diff-tag');
+            var balMsg = document.getElementById('adj-balance-msg');
+            var submitBtn = document.getElementById('adj-submit-btn');
+
+            if (balanced) {
+                diffTag.className = 'text-xs font-mono bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-lg border border-emerald-100';
+                diffTag.innerText = '借貸平衡 ✓';
+                balMsg.className = 'text-sm font-semibold text-emerald-600 flex items-center gap-1.5';
+                balMsg.innerHTML = '<i class="fa-solid fa-circle-check"></i> 借貸已平衡，可寫入傳票';
+                submitBtn.removeAttribute('disabled');
+            } else {
+                diffTag.className = 'text-xs font-mono bg-red-50 text-red-600 px-3 py-1.5 rounded-lg border border-red-100';
+                diffTag.innerText = '差額：' + fmt(Math.abs(diff));
+                balMsg.className = 'text-sm font-semibold text-red-500 flex items-center gap-1.5';
+                if (totalDr === 0 && totalCr === 0) {
+                    balMsg.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> 請輸入借貸金額';
+                } else if (totalDr === 0 || totalCr === 0) {
+                    balMsg.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> 借方或貸方金額為零';
+                } else {
+                    balMsg.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> 借貸尚未平衡（差額 ' + fmt(Math.abs(diff)) + '）';
+                }
+                submitBtn.setAttribute('disabled', 'disabled');
+            }
+        }
+
+        function submitAdjVoucher() {
+            var totalDr = adjLines.reduce(function(s, l) { return s + (parseFloat(l.dr) || 0); }, 0);
+            var totalCr = adjLines.reduce(function(s, l) { return s + (parseFloat(l.cr) || 0); }, 0);
+            var diff = Math.round((totalDr - totalCr) * 100) / 100;
+            if (diff !== 0 || totalDr === 0) {
+                showToast('info', '借貸不平衡，無法寫入傳票');
+                return;
+            }
+            var dateVal = document.getElementById('adj-date').value || '2026-06-30';
+            var memoVal = document.getElementById('adj-memo').value.trim() || '手動調整分錄';
+            var seq = adjVouchers.length + 1;
+            var seqStr = seq < 10 ? '00' + seq : (seq < 100 ? '0' + seq : '' + seq);
+            var vNo = 'MJ-' + dateVal.replace(/-/g, '').substring(0, 8) + '-' + seqStr;
+            adjVouchers.unshift({ vNo: vNo, date: dateVal, memo: memoVal, totalDr: totalDr, status: '已建立' });
+            renderAdjVouchers();
+            // 清空分錄
+            adjLines = [];
+            adjLineCounter = 0;
+            document.getElementById('adj-memo').value = '';
+            renderAdjLines();
+            showToast('success', '傳票 ' + vNo + ' 已成功寫入（模擬）');
+        }
+
+        function renderAdjVouchers() {
+            var tbody = document.getElementById('adj-vouchers-tbody');
+            var noEl = document.getElementById('adj-no-voucher');
+            document.getElementById('adj-voucher-count').innerText = adjVouchers.length + ' 筆';
+            if (adjVouchers.length === 0) {
+                tbody.innerHTML = '';
+                noEl.classList.remove('hidden');
+                return;
+            }
+            noEl.classList.add('hidden');
+            tbody.innerHTML = adjVouchers.map(function(v) {
+                return '<tr class="hover:bg-gray-50/70 transition-colors">' +
+                    '<td class="text-left font-mono font-semibold text-gray-600 whitespace-nowrap">' + v.vNo + '</td>' +
+                    '<td class="text-gray-600 whitespace-nowrap">' + v.date + '</td>' +
+                    '<td class="text-left text-gray-800 whitespace-nowrap">' + v.memo + '</td>' +
+                    '<td class="text-right font-mono text-gray-700 whitespace-nowrap">' + fmt(v.totalDr) + '</td>' +
+                    '<td class="whitespace-nowrap">' + voucherBadge(v.status) + '</td>' +
+                    '</tr>';
+            }).join('');
+        }
+
+        /* ===================================================================
+           匯出
+        =================================================================== */
+        function mockExport() { showToast('success', '費用分攤報表已開始匯出'); }
+
+        /* ===================================================================
+           初始化
+        =================================================================== */
+        document.getElementById('detail-modal').addEventListener('click', function(e) {
+            if (e.target === e.currentTarget) { closeDetail(); }
+        });
+
+        window.onload = function() {
+            renderKpi();
+            render();
+            renderAmort();
+            // 預設 2 條空白分錄列
+            addAdjLine('預付租金_辦公室（1-1300-02）', '', '');
+            addAdjLine('租金費用（6-1200）', '', '');
+            renderAdjVouchers();
+        };
     </script>
 </body>
 </html>
