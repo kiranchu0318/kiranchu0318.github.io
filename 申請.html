@@ -57,9 +57,17 @@
             <i data-lucide="pen" class="w-4 h-4 mr-3 text-gray-400 group-hover:text-blue-500 transition-colors"></i>
             <span class="text-[14px] group-hover:text-blue-600 transition-colors">差旅申請單 (PTA)</span>
         </div>
-        <div data-category="admin" class="app-item bg-white border border-gray-200 hover:border-blue-400 hover:shadow-md cursor-pointer rounded-md px-5 py-4 flex items-center text-gray-700 transition-all duration-200 group" data-form="PU">
+        <div data-category="admin" class="app-item bg-white border border-gray-200 hover:border-blue-400 hover:shadow-md cursor-pointer rounded-md px-5 py-4 flex items-center text-gray-700 transition-all duration-200 group" data-form="PU" data-pu-type="請購單_需申請費用 (PU)">
             <i data-lucide="pen" class="w-4 h-4 mr-3 text-gray-400 group-hover:text-blue-500 transition-colors"></i>
-            <span class="text-[14px] group-hover:text-blue-600 transition-colors">請購申請 (PU)</span>
+            <span class="text-[14px] group-hover:text-blue-600 transition-colors">請購單_需申請費用 (PU)</span>
+        </div>
+        <div data-category="admin" class="app-item bg-white border border-gray-200 hover:border-blue-400 hover:shadow-md cursor-pointer rounded-md px-5 py-4 flex items-center text-gray-700 transition-all duration-200 group" data-form="PU" data-pu-type="請購單_涉及合同採購 (PU)">
+            <i data-lucide="pen" class="w-4 h-4 mr-3 text-gray-400 group-hover:text-blue-500 transition-colors"></i>
+            <span class="text-[14px] group-hover:text-blue-600 transition-colors">請購單_涉及合同採購 (PU)</span>
+        </div>
+        <div data-category="admin" class="app-item bg-white border border-gray-200 hover:border-blue-400 hover:shadow-md cursor-pointer rounded-md px-5 py-4 flex items-center text-gray-700 transition-all duration-200 group" data-form="PU" data-pu-type="請購單_自行墊付 (PU)">
+            <i data-lucide="pen" class="w-4 h-4 mr-3 text-gray-400 group-hover:text-blue-500 transition-colors"></i>
+            <span class="text-[14px] group-hover:text-blue-600 transition-colors">請購單_自行墊付 (PU)</span>
         </div>
         <div data-category="admin" class="app-item bg-white border border-gray-200 hover:border-blue-400 hover:shadow-md cursor-pointer rounded-md px-5 py-4 flex items-center text-gray-700 transition-all duration-200 group" data-form="SA">
             <i data-lucide="pen" class="w-4 h-4 mr-3 text-gray-400 group-hover:text-blue-500 transition-colors"></i>
@@ -451,37 +459,22 @@
                         <!-- 1. 基本資訊 -->
                         <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5 mt-4">
                             <div class="px-4 py-2.5 border-b border-gray-200"><h3 class="text-[#2b3b84] font-bold text-[15px]">基本資訊</h3></div>
-                            <div class="p-4 grid gap-y-5">
-                                <div class="grid grid-cols-2 gap-x-10">
-                                    <div><label class="block mb-1.5 text-[13px]">標題 *</label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none" placeholder="選定「區域」和「項目」後自動生成標題"></div>
-                                    <div><label class="block mb-1.5 text-[13px]">日期</label><div class="w-1/2 bg-[#e9ecef] border border-gray-300 rounded px-3 py-1.5 flex items-center text-[13px]"><i data-lucide="calendar" class="w-4 h-4 mr-2"></i>2026-06-03</div></div>
-                                </div>
-                                <div class="grid grid-cols-2 gap-x-10">
-                                    <div><label class="block mb-1.5 text-[13px]">文件編號</label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 bg-[#e9ecef] text-[13px]" value="選定 [項目] 和 [區域] 後自動生成" disabled></div>
-                                    <div></div>
-                                </div>
-                                <div class="grid grid-cols-2 gap-x-10">
-                                    <div><label class="block mb-1.5 text-[13px]">部門 *</label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option>請選擇</option></select></div>
-                                    <div><label class="block mb-1.5 text-[13px]">職稱</label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"></div>
-                                </div>
-                                <div class="grid grid-cols-2 gap-x-10">
-                                    <div><label class="block mb-1.5 text-[13px]">姓名 *</label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"></div>
-                                    <div><label class="block mb-1.5 text-[13px]">職級</label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option>請選擇</option></select></div>
-                                </div>
-                                <div class="grid grid-cols-2 gap-x-10">
-                                    <div><label class="block mb-1.5 text-[13px]">出差類型 *</label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option>請選擇</option></select></div>
-                                    <div><label class="block mb-1.5 text-[13px]">出發地 *</label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"></div>
-                                </div>
-                                <div class="grid grid-cols-3 gap-x-6">
-                                    <div><label class="block mb-1.5 text-[13px]">目的地 *</label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option>出差D</option></select></div>
-                                    <div><label class="block mb-1.5 text-[13px]">項目 *</label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option>請選擇</option></select></div>
-                                    <div><label class="block mb-1.5 text-[13px]">區域 *</label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option>請選擇</option></select></div>
-                                </div>
-                                <div class="grid grid-cols-3 gap-x-6">
-                                    <div><label class="block mb-1.5 text-[13px]">出發時間 *</label><div class="border border-gray-300 rounded px-3 py-1.5 flex items-center bg-white"><i data-lucide="calendar" class="w-4 h-4 mr-2 text-gray-400"></i><input type="text" class="w-full text-[13px] outline-none"></div></div>
-                                    <div><label class="block mb-1.5 text-[13px]">返回時間 *</label><div class="border border-gray-300 rounded px-3 py-1.5 flex items-center bg-white"><i data-lucide="calendar" class="w-4 h-4 mr-2 text-gray-400"></i><input type="text" class="w-full text-[13px] outline-none"></div></div>
-                                    <div class="flex flex-col"><label class="block mb-2.5 text-[13px]">緊急</label><input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-blue-600 cursor-pointer"></div>
-                                </div>
+                            <div class="p-4 grid grid-cols-3 gap-x-6 gap-y-3.5">
+                                <div><label class="block mb-1 text-[13px]">標題 *</label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none" placeholder="選定「區域」和「項目」後自動生成標題"></div>
+                                <div><label class="block mb-1 text-[13px]">日期</label><div class="w-full bg-[#e9ecef] border border-gray-300 rounded px-3 py-1.5 flex items-center text-[13px]"><i data-lucide="calendar" class="w-4 h-4 mr-2"></i>2026-06-03</div></div>
+                                <div><label class="block mb-1 text-[13px]">文件編號</label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 bg-[#e9ecef] text-[13px]" value="選定 [項目] 和 [區域] 後自動生成" disabled></div>
+                                <div><label class="block mb-1 text-[13px]">部門 *</label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option>請選擇</option></select></div>
+                                <div><label class="block mb-1 text-[13px]">職稱</label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"></div>
+                                <div><label class="block mb-1 text-[13px]">姓名 *</label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"></div>
+                                <div><label class="block mb-1 text-[13px]">職級</label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option>請選擇</option></select></div>
+                                <div><label class="block mb-1 text-[13px]">出差類型 *</label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option>請選擇</option></select></div>
+                                <div><label class="block mb-1 text-[13px]">出發地 *</label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"></div>
+                                <div><label class="block mb-1 text-[13px]">目的地 *</label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option>出差D</option></select></div>
+                                <div><label class="block mb-1 text-[13px]">項目 *</label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option>請選擇</option></select></div>
+                                <div><label class="block mb-1 text-[13px]">區域 *</label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option>請選擇</option></select></div>
+                                <div><label class="block mb-1 text-[13px]">出發時間 *</label><div class="border border-gray-300 rounded px-3 py-1.5 flex items-center bg-white"><i data-lucide="calendar" class="w-4 h-4 mr-2 text-gray-400"></i><input type="text" class="w-full text-[13px] outline-none"></div></div>
+                                <div><label class="block mb-1 text-[13px]">返回時間 *</label><div class="border border-gray-300 rounded px-3 py-1.5 flex items-center bg-white"><i data-lucide="calendar" class="w-4 h-4 mr-2 text-gray-400"></i><input type="text" class="w-full text-[13px] outline-none"></div></div>
+                                <div class="flex flex-col"><label class="block mb-1 text-[13px]">緊急</label><input type="checkbox" class="w-4 h-4 mt-1.5 rounded border-gray-300 text-blue-600 cursor-pointer"></div>
                             </div>
                         </div>
                         
@@ -521,13 +514,13 @@
                                     </thead>
                                     <tbody class="text-[13px] text-gray-700 text-left">
                                         <tr class="border-b border-gray-200">
-                                            <td class="text-center font-medium">1</td><td class="text-center">住宿費</td><td><select class="w-full border border-gray-300 rounded px-2 py-1.5 outline-none focus:border-blue-500"><option>CNY</option></select></td><td><input type="number" class="w-full border border-gray-300 rounded px-2 py-1.5 outline-none focus:border-blue-500 text-right" value="0"></td><td><input type="text" class="w-full border border-gray-300 rounded px-2 py-1.5 outline-none focus:border-blue-500"></td><td class="text-center"><button class="text-red-400 hover:text-red-600 transition-colors mx-auto block"><i data-lucide="trash-2" class="w-4 h-4"></i></button></td>
+                                            <td class="text-center font-medium">1</td><td class="text-center">住宿費</td><td><select class="w-full border border-gray-300 rounded px-2 py-1 outline-none focus:border-blue-500"><option>CNY</option></select></td><td><input type="number" class="w-full border border-gray-300 rounded px-2 py-1 outline-none focus:border-blue-500 text-right" value="0"></td><td><input type="text" class="w-full border border-gray-300 rounded px-2 py-1 outline-none focus:border-blue-500"></td><td class="text-center"><button class="text-red-400 hover:text-red-600 transition-colors mx-auto block"><i data-lucide="trash-2" class="w-4 h-4"></i></button></td>
                                         </tr>
                                         <tr class="border-b border-gray-200">
-                                            <td class="text-center font-medium">2</td><td class="text-center">餐費</td><td><select class="w-full border border-gray-300 rounded px-2 py-1.5 outline-none focus:border-blue-500"><option>CNY</option></select></td><td><input type="number" class="w-full border border-gray-300 rounded px-2 py-1.5 outline-none focus:border-blue-500 text-right" value="0"></td><td><input type="text" class="w-full border border-gray-300 rounded px-2 py-1.5 outline-none focus:border-blue-500"></td><td class="text-center"><button class="text-red-400 hover:text-red-600 transition-colors mx-auto block"><i data-lucide="trash-2" class="w-4 h-4"></i></button></td>
+                                            <td class="text-center font-medium">2</td><td class="text-center">餐費</td><td><select class="w-full border border-gray-300 rounded px-2 py-1 outline-none focus:border-blue-500"><option>CNY</option></select></td><td><input type="number" class="w-full border border-gray-300 rounded px-2 py-1 outline-none focus:border-blue-500 text-right" value="0"></td><td><input type="text" class="w-full border border-gray-300 rounded px-2 py-1 outline-none focus:border-blue-500"></td><td class="text-center"><button class="text-red-400 hover:text-red-600 transition-colors mx-auto block"><i data-lucide="trash-2" class="w-4 h-4"></i></button></td>
                                         </tr>
                                         <tr class="border-b border-gray-200">
-                                            <td class="text-center font-medium">3</td><td class="text-center">交通費</td><td><select class="w-full border border-gray-300 rounded px-2 py-1.5 outline-none focus:border-blue-500"><option>CNY</option></select></td><td><input type="number" class="w-full border border-gray-300 rounded px-2 py-1.5 outline-none focus:border-blue-500 text-right" value="0"></td><td><input type="text" class="w-full border border-gray-300 rounded px-2 py-1.5 outline-none focus:border-blue-500"></td><td class="text-center"><button class="text-red-400 hover:text-red-600 transition-colors mx-auto block"><i data-lucide="trash-2" class="w-4 h-4"></i></button></td>
+                                            <td class="text-center font-medium">3</td><td class="text-center">交通費</td><td><select class="w-full border border-gray-300 rounded px-2 py-1 outline-none focus:border-blue-500"><option>CNY</option></select></td><td><input type="number" class="w-full border border-gray-300 rounded px-2 py-1 outline-none focus:border-blue-500 text-right" value="0"></td><td><input type="text" class="w-full border border-gray-300 rounded px-2 py-1 outline-none focus:border-blue-500"></td><td class="text-center"><button class="text-red-400 hover:text-red-600 transition-colors mx-auto block"><i data-lucide="trash-2" class="w-4 h-4"></i></button></td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -1088,7 +1081,7 @@
 <div id="pu-modal" class="form-modal fixed inset-0 bg-black/40 z-50 flex justify-center items-center hidden">
     <div class="bg-white w-[98vw] max-w-[1400px] h-[95vh] rounded-md shadow-2xl flex flex-col relative overflow-hidden">
         <div class="bg-[#EAF2FC] flex justify-between items-center px-4 py-3 border-b border-blue-100">
-            <h2 class="text-[#2b3b84] font-bold text-[16px]">請購申請 (PU)</h2>
+            <h2 id="pu-modal-title" class="text-[#2b3b84] font-bold text-[16px]">請購申請 (PU)</h2>
             <button class="form-modal-close bg-blue-500 hover:bg-blue-600 text-white rounded p-1 transition-colors"><i data-lucide="x" class="w-4 h-4"></i></button>
         </div>
         <div class="flex flex-1 overflow-hidden bg-[#f4f5f8]">
@@ -1098,10 +1091,14 @@
                     <!-- 區塊：基本資訊 -->
                     <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5">
                         <div class="px-4 py-2.5 border-b border-gray-200"><h3 class="text-[#2b3b84] font-bold text-[15px]">基本資訊</h3></div>
-                        <div class="p-4 grid grid-cols-2 gap-x-10 gap-y-5">
+                        <div class="p-4 grid grid-cols-5 gap-x-5 gap-y-5">
+                            <div class="col-span-5">
+                                <label class="block mb-1.5 text-[13px] text-gray-700">請購類型</label>
+                                <input id="pu-type-field" type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-600 cursor-not-allowed font-medium" value="請購單_需申請費用 (PU)" disabled>
+                            </div>
                             <div>
                                 <label class="block mb-1.5 text-[13px] text-gray-700">採購分類 <span class="text-red-500">*</span></label>
-                                <select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option></select>
+                                <select id="pu-category-select" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option></select>
                             </div>
                             <div>
                                 <label class="block mb-1.5 text-[13px] text-gray-700">項目 <span class="text-red-500">*</span></label>
@@ -1137,7 +1134,7 @@
                     <!-- 區塊：項目與採購附加資訊 -->
                     <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5">
                         <div class="px-4 py-2.5 border-b border-gray-200"><h3 class="text-[#2b3b84] font-bold text-[15px]">項目與採購附加資訊</h3></div>
-                        <div class="p-4 grid grid-cols-2 gap-x-10 gap-y-5">
+                        <div class="p-4 grid grid-cols-5 gap-x-5 gap-y-5">
                             <div>
                                 <label class="block mb-1.5 text-[13px] text-gray-700">物品使用人 <span class="text-red-500">*</span></label>
                                 <input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500">
@@ -3462,7 +3459,29 @@
                 const code = card.getAttribute('data-form');
                 if (!code) return;
                 const modal = document.getElementById(formModalMap[code]);
-                if (modal) { modal.classList.remove('hidden'); lucide.createIcons(); }
+                if (modal) {
+                    // 請購單三種分類：依點選的卡片帶入彈窗標題與「請購類型」
+                    if (code === 'PU') {
+                        const puType = card.getAttribute('data-pu-type') || '請購申請 (PU)';
+                        const titleEl = document.getElementById('pu-modal-title');
+                        const typeField = document.getElementById('pu-type-field');
+                        if (titleEl) titleEl.textContent = puType;
+                        if (typeField) typeField.value = puType;
+
+                        // 採購分類下拉：涉及合同採購 → 帶入「其他採購」分類選項（預設選中第一項）
+                        const catSelect = document.getElementById('pu-category-select');
+                        if (catSelect) {
+                            if (puType.indexOf('涉及合同採購') !== -1) {
+                                const otherOptions = ['其他採購','員工福利採購','域名申請及續約單','宿舍相關採購','活動相關','資產及列管品採購','軟體資產採購','辦公室營運消耗品採購','通訊採購'];
+                                catSelect.innerHTML = otherOptions.map((o, i) => `<option${i === 0 ? ' selected' : ''}>${o}</option>`).join('');
+                            } else {
+                                catSelect.innerHTML = '<option>請選擇</option>';
+                            }
+                        }
+                    }
+                    modal.classList.remove('hidden');
+                    lucide.createIcons();
+                }
             });
         }
         // 所有表單彈窗：點 X 或背景關閉

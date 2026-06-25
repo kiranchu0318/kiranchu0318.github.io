@@ -339,18 +339,18 @@
 
         // 資產清單資料庫
         const listDb = [
-            { no: 'ZC-24-0001', type: '笔电-蘋果笔电',   name: 'MacBook Pro 14"',          serial: 'C02FK1ABCD01', project: 'GT', dept: 'RD',  user: '陳小明', owner: '林雅婷', residual: 15000 },
-            { no: 'ZC-24-0002', type: '手机-蘋果手机',   name: 'iPhone 15 Pro',            serial: 'F2LXY2ZZ3456', project: 'GT', dept: 'RD',  user: '林雅婷', owner: '林雅婷', residual: 3200 },
-            { no: 'ZC-24-0003', type: '顯示器',           name: 'Dell U2723QE 27"',         serial: 'CN0ABCD789',   project: 'GT', dept: 'HR',  user: '張家豪', owner: '李美玲', residual: 300 },
-            { no: 'ZC-24-0004', type: '主机-非蘋果主機', name: 'Lenovo ThinkCentre M90',   serial: 'LN90X1Q88K',   project: 'GT', dept: 'FIN', user: '周冠宇', owner: '李美玲', residual: 2800 },
-            { no: 'ZC-24-0005', type: '車輛',             name: 'Toyota Corolla Altis',     serial: 'RMVH-2026-07', project: 'GT', dept: 'HR',  user: '李美玲', owner: '張家豪', residual: 110000 },
-            { no: 'ZC-24-0006', type: '主机-蘋果主機',   name: 'Mac mini M2',              serial: 'H2WMAC0099',   project: 'GT', dept: 'RD',  user: '王大同', owner: '林雅婷', residual: 6000 },
-            { no: 'ZC-24-0007', type: '網路設備',         name: 'Cisco Catalyst 9200',      serial: 'FOC2530NET',   project: 'GT', dept: 'IA1', user: '劉建國', owner: '吳志強', residual: 900 },
-            { no: 'ZC-24-0008', type: '電話卡',           name: '中華電信企業門號',          serial: 'SIM-0928-336', project: 'GT', dept: 'MKT', user: '鄭雅文', owner: '張家豪', residual: 0 },
-            { no: 'ZC-24-0009', type: '辦公家具',         name: '人體工學椅 Herman Miller', serial: 'HM-CHAIR-220', project: 'GT', dept: 'HR',  user: '黃淑芬', owner: '李美玲', residual: 200 },
-            { no: 'ZC-24-0010', type: '記憶體設備',       name: 'Kingston 32GB DDR5',       serial: 'KST32G5-7781', project: 'GT', dept: 'RD',  user: '陳小明', owner: '王大同', residual: 120 },
-            { no: 'ZC-24-0011', type: '雲端空間(伺服器)', name: 'AWS EC2 m6i.large',        serial: 'EC2-I-0AB12',  project: 'GT', dept: 'IA1', user: '吳志強', owner: '許宇軒', residual: 20000 },
-            { no: 'ZC-24-0012', type: '收納設備',         name: '鋼製文件櫃',                serial: 'CAB-STEEL-45', project: 'GT', dept: 'FIN', user: '周冠宇', owner: '張家豪', residual: 100 }
+            { no: 'ZC-24-0001', type: '笔电-蘋果笔电',   name: 'MacBook Pro 14"',          serial: 'C02FK1ABCD01', project: 'GT', dept: 'RD',  user: 'Matthew', owner: 'James', residual: 15000 },
+            { no: 'ZC-24-0002', type: '手机-蘋果手机',   name: 'iPhone 15 Pro',            serial: 'F2LXY2ZZ3456', project: 'GT', dept: 'RD',  user: 'James', owner: 'James', residual: 3200 },
+            { no: 'ZC-24-0003', type: '顯示器',           name: 'Dell U2723QE 27"',         serial: 'CN0ABCD789',   project: 'GT', dept: 'HR',  user: 'Henry', owner: 'William', residual: 300 },
+            { no: 'ZC-24-0004', type: '主机-非蘋果主機', name: 'Lenovo ThinkCentre M90',   serial: 'LN90X1Q88K',   project: 'GT', dept: 'FIN', user: 'Audrey', owner: 'William', residual: 2800 },
+            { no: 'ZC-24-0005', type: '車輛',             name: 'Toyota Corolla Altis',     serial: 'RMVH-2026-07', project: 'GT', dept: 'HR',  user: 'William', owner: 'Henry', residual: 110000 },
+            { no: 'ZC-24-0006', type: '主机-蘋果主機',   name: 'Mac mini M2',              serial: 'H2WMAC0099',   project: 'GT', dept: 'RD',  user: 'Alexander', owner: 'James', residual: 6000 },
+            { no: 'ZC-24-0007', type: '網路設備',         name: 'Cisco Catalyst 9200',      serial: 'FOC2530NET',   project: 'GT', dept: 'IA1', user: 'Samuel', owner: 'Emma', residual: 900 },
+            { no: 'ZC-24-0008', type: '電話卡',           name: '中華電信企業門號',          serial: 'SIM-0928-336', project: 'GT', dept: 'MKT', user: 'Isabella', owner: 'Henry', residual: 0 },
+            { no: 'ZC-24-0009', type: '辦公家具',         name: '人體工學椅 Herman Miller', serial: 'HM-CHAIR-220', project: 'GT', dept: 'HR',  user: 'Daniel', owner: 'William', residual: 200 },
+            { no: 'ZC-24-0010', type: '記憶體設備',       name: 'Kingston 32GB DDR5',       serial: 'KST32G5-7781', project: 'GT', dept: 'RD',  user: 'Matthew', owner: 'Alexander', residual: 120 },
+            { no: 'ZC-24-0011', type: '雲端空間(伺服器)', name: 'AWS EC2 m6i.large',        serial: 'EC2-I-0AB12',  project: 'GT', dept: 'IA1', user: 'Emma', owner: 'Arthur', residual: 20000 },
+            { no: 'ZC-24-0012', type: '收納設備',         name: '鋼製文件櫃',                serial: 'CAB-STEEL-45', project: 'GT', dept: 'FIN', user: 'Audrey', owner: 'Henry', residual: 100 }
         ];
 
         let activeTab = 'stats';

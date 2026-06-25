@@ -918,49 +918,49 @@
     <script>
         // 出勤資料庫 (工號、姓名、部門、職位、日期、上班時間、下班時間、打卡地點、打卡方式、整體狀態、上/下班節點狀態、備註)
         let attendanceDb = [
-            { id: "100344", name: "林雅婷", dept: "RD",  jobTitle: "Operations Director",   date: "2026-06-11", ci: "08:52", co: "--:--", loc: "日本辦公室XXXXXXXXXXXXXXXX", method: "WIFI", status: "正常", ciState: "正常", coState: "進行中", note: "" },
-            { id: "100423", name: "張家豪", dept: "HR",  jobTitle: "HR Manager",            date: "2026-06-11", ci: "09:18", co: "--:--", loc: "台北總部辦公室", method: "WIFI", status: "異常", ciState: "遲到", coState: "進行中", note: "上班遲到 18 分鐘，已通知部門主管。" },
-            { id: "101456", name: "鄭婉柔", dept: "MKT", jobTitle: "門市專員",              date: "2026-06-11", ci: "09:00", co: "21:30", loc: "信義門市", method: "GPS", status: "正常", ciState: "正常", coState: "正常", note: "當日排兩班：早班與晚班，各自上下班打卡。", shifts: [
+            { id: "100344", name: "James", dept: "RD",  jobTitle: "Operations Director",   date: "2026-06-11", ci: "08:52", co: "--:--", loc: "日本辦公室XXXXXXXXXXXXXXXX", method: "WIFI", status: "正常", ciState: "正常", coState: "進行中", note: "" },
+            { id: "100423", name: "Henry", dept: "HR",  jobTitle: "HR Manager",            date: "2026-06-11", ci: "09:18", co: "--:--", loc: "台北總部辦公室", method: "WIFI", status: "異常", ciState: "遲到", coState: "進行中", note: "上班遲到 18 分鐘，已通知部門主管。" },
+            { id: "101456", name: "Noah", dept: "MKT", jobTitle: "門市專員",              date: "2026-06-11", ci: "09:00", co: "21:30", loc: "信義門市", method: "GPS", status: "正常", ciState: "正常", coState: "正常", note: "當日排兩班：早班與晚班，各自上下班打卡。", shifts: [
                 { ci: "09:00", co: "13:00", loc: "信義門市", method: "GPS", ciState: "正常", coState: "正常" },
                 { ci: "17:00", co: "21:30", loc: "日本辦公室XXXXXXXXXXXXXXXX", method: "GPS", ciState: "正常", coState: "正常" }
             ] },
-            { id: "101383", name: "陳小明", dept: "RD",  jobTitle: "企劃專員",              date: "2026-06-10", ci: "08:58", co: "18:05", loc: "日本辦公室XXXXXXXXXXXXXXXX", method: "WIFI", status: "正常", ciState: "正常", coState: "正常", note: "" },
-            { id: "101334", name: "王大同", dept: "RD",  jobTitle: "資深工程師",            date: "2026-06-10", ci: "08:45", co: "17:30", loc: "台北總部辦公室", method: "GPS",  status: "異常", ciState: "正常", coState: "早退", note: "提前 30 分鐘下班，事由：身體不適。" },
-            { id: "101122", name: "黃淑芬", dept: "HR",  jobTitle: "企劃專員",              date: "2026-06-09", ci: "09:05", co: "18:10", loc: "台北總部辦公室", method: "GPS",  status: "異常", ciState: "遲到", coState: "正常", coMakeup: true, note: "上班遲到 5 分鐘；下班漏打卡，經補卡通過。" },
-            { id: "100645", name: "李美玲", dept: "HR",  jobTitle: "HR Officer",            date: "2026-06-09", ci: "08:50", co: "--:--", loc: "台北總部辦公室", method: "WIFI", status: "異常", ciState: "正常", coState: "未打卡", note: "下班未打卡，待確認是否補卡。" },
-            { id: "101312", name: "劉建國", dept: "IA1", jobTitle: "Internal Auditor",       date: "2026-06-08", ci: "08:40", co: "18:00", loc: "台北總部辦公室", method: "WIFI", status: "正常", ciState: "正常", coState: "正常", note: "" },
-            { id: "101002", name: "吳志強", dept: "IA1", jobTitle: "Group Deputy Director",   date: "2026-06-08", ci: "08:30", co: "18:20", loc: "台北總部辦公室", method: "WIFI", status: "正常", ciState: "正常", coState: "正常", note: "" },
-            { id: "101363", name: "蔡佳蓉", dept: "HR",  jobTitle: "HR Officer",            date: "2026-06-05", ci: "09:30", co: "18:00", loc: "台北總部辦公室", method: "GPS",  status: "異常", ciState: "遲到", ciMakeup: true, coState: "正常", note: "上班漏打卡經補卡，實際到勤遲到 30 分鐘。" },
-            { id: "101023", name: "許宇軒", dept: "IA1", jobTitle: "Internal Audit Manager", date: "2026-06-04", ci: "08:55", co: "18:15", loc: "台北總部辦公室", method: "WIFI", status: "正常", ciState: "正常", coState: "正常", note: "" },
-            { id: "101501", name: "周思辰", dept: "RD",  jobTitle: "前端工程師",            date: "2026-06-11", ci: "09:25", co: "--:--", loc: "台北總部辦公室", method: "WIFI", status: "異常", ciState: "遲到", coState: "未打卡", note: "上班遲到 25 分鐘，下班漏打卡（遲到＋缺卡）。" },
-            { id: "101502", name: "孫立群", dept: "MKT", jobTitle: "行銷專員",              date: "2026-06-10", ci: "09:40", co: "--:--", loc: "信義門市",      method: "GPS",  status: "異常", ciState: "遲到", coState: "未打卡", note: "遲到 40 分鐘，且未打下班卡（遲到＋缺卡）。" },
-            { id: "101503", name: "馮子齊", dept: "HR",  jobTitle: "HR Officer",            date: "2026-06-09", ci: "09:12", co: "--:--", loc: "台北總部辦公室", method: "GPS",  status: "異常", ciState: "遲到", coState: "未打卡", note: "上班遲到，下班未感應打卡（遲到＋缺卡）。" }
+            { id: "101383", name: "Matthew", dept: "RD",  jobTitle: "企劃專員",              date: "2026-06-10", ci: "08:58", co: "18:05", loc: "日本辦公室XXXXXXXXXXXXXXXX", method: "WIFI", status: "正常", ciState: "正常", coState: "正常", note: "" },
+            { id: "101334", name: "Alexander", dept: "RD",  jobTitle: "資深工程師",            date: "2026-06-10", ci: "08:45", co: "17:30", loc: "台北總部辦公室", method: "GPS",  status: "異常", ciState: "正常", coState: "早退", note: "提前 30 分鐘下班，事由：身體不適。" },
+            { id: "101122", name: "Daniel", dept: "HR",  jobTitle: "企劃專員",              date: "2026-06-09", ci: "09:05", co: "18:10", loc: "台北總部辦公室", method: "GPS",  status: "異常", ciState: "遲到", coState: "正常", coMakeup: true, note: "上班遲到 5 分鐘；下班漏打卡，經補卡通過。" },
+            { id: "100645", name: "William", dept: "HR",  jobTitle: "HR Officer",            date: "2026-06-09", ci: "08:50", co: "--:--", loc: "台北總部辦公室", method: "WIFI", status: "異常", ciState: "正常", coState: "未打卡", note: "下班未打卡，待確認是否補卡。" },
+            { id: "101312", name: "Samuel", dept: "IA1", jobTitle: "Internal Auditor",       date: "2026-06-08", ci: "08:40", co: "18:00", loc: "台北總部辦公室", method: "WIFI", status: "正常", ciState: "正常", coState: "正常", note: "" },
+            { id: "101002", name: "Emma", dept: "IA1", jobTitle: "Group Deputy Director",   date: "2026-06-08", ci: "08:30", co: "18:20", loc: "台北總部辦公室", method: "WIFI", status: "正常", ciState: "正常", coState: "正常", note: "" },
+            { id: "101363", name: "Thomas", dept: "HR",  jobTitle: "HR Officer",            date: "2026-06-05", ci: "09:30", co: "18:00", loc: "台北總部辦公室", method: "GPS",  status: "異常", ciState: "遲到", ciMakeup: true, coState: "正常", note: "上班漏打卡經補卡，實際到勤遲到 30 分鐘。" },
+            { id: "101023", name: "Arthur", dept: "IA1", jobTitle: "Internal Audit Manager", date: "2026-06-04", ci: "08:55", co: "18:15", loc: "台北總部辦公室", method: "WIFI", status: "正常", ciState: "正常", coState: "正常", note: "" },
+            { id: "101501", name: "Elijah", dept: "RD",  jobTitle: "前端工程師",            date: "2026-06-11", ci: "09:25", co: "--:--", loc: "台北總部辦公室", method: "WIFI", status: "異常", ciState: "遲到", coState: "未打卡", note: "上班遲到 25 分鐘，下班漏打卡（遲到＋缺卡）。" },
+            { id: "101502", name: "Olivia", dept: "MKT", jobTitle: "行銷專員",              date: "2026-06-10", ci: "09:40", co: "--:--", loc: "信義門市",      method: "GPS",  status: "異常", ciState: "遲到", coState: "未打卡", note: "遲到 40 分鐘，且未打下班卡（遲到＋缺卡）。" },
+            { id: "101503", name: "Liam", dept: "HR",  jobTitle: "HR Officer",            date: "2026-06-09", ci: "09:12", co: "--:--", loc: "台北總部辦公室", method: "GPS",  status: "異常", ciState: "遲到", coState: "未打卡", note: "上班遲到，下班未感應打卡（遲到＋缺卡）。" }
         ];
 
         // 補卡申請資料庫 (人資視角：工號、姓名、部門、申請日期、補卡日期、時段、補卡時間、補卡原因、種類說明、狀態、審批備註)
         let makeupDb = [
-            { id: "100423", name: "張家豪", dept: "HR",  appDate: "2026-06-11", makeupDate: "2026-06-11", period: "上班打卡",   time: "09:18",        reason: "系統異常", desc: "打卡 APP 當機無法連線，改由補卡登記。", status: "審批中", note: "" },
-            { id: "100645", name: "李美玲", dept: "HR",  appDate: "2026-06-09", makeupDate: "2026-06-09", period: "下班打卡",   time: "18:25",        reason: "系統異常", desc: "下班時門禁系統異常未感應，申請補卡。", status: "審批中", note: "" },
-            { id: "101122", name: "黃淑芬", dept: "HR",  appDate: "2026-06-09", makeupDate: "2026-06-09", period: "下班打卡",   time: "18:10",        reason: "忘記打卡", desc: "下班趕著開會忘記刷卡。", status: "完成", note: "經部門主管確認屬實，准予補卡。" },
-            { id: "101363", name: "蔡佳蓉", dept: "HR",  appDate: "2026-06-05", makeupDate: "2026-06-05", period: "上班打卡",   time: "09:30",        reason: "忘記打卡", desc: "早上進辦公室忘記打卡。", status: "完成", note: "已核可，惟到勤時間仍計遲到。" },
-            { id: "101334", name: "王大同", dept: "RD",  appDate: "2026-06-02", makeupDate: "2026-06-01", period: "其他",       time: "09:00 - 18:00", reason: "公出",     desc: "整日於客戶端開會，無法回辦公室打卡。", status: "完成", note: "附會議簽到證明，准予補卡。" },
-            { id: "101383", name: "陳小明", dept: "RD",  appDate: "2026-05-28", makeupDate: "2026-05-27", period: "上班打卡",   time: "08:50",        reason: "忘記打卡", desc: "忘記攜帶識別證，未能打卡。", status: "已提交", note: "" },
-            { id: "101312", name: "劉建國", dept: "IA1", appDate: "2026-05-20", makeupDate: "2026-05-19", period: "上班打卡",   time: "10:30",        reason: "其他",     desc: "私人原因遲到後申請補卡。", status: "駁回", note: "未檢附證明，且與門禁紀錄不符，故予駁回。" },
-            { id: "101122", name: "黃淑芬", dept: "HR",  appDate: "2026-06-08", makeupDate: "2026-06-08", period: "午休打卡",   time: "13:00",        reason: "忘記打卡", desc: "午休外出用餐返回時忘記刷卡。", status: "審批中", note: "" }
+            { id: "100423", name: "Henry", dept: "HR",  appDate: "2026-06-11", makeupDate: "2026-06-11", period: "上班打卡",   time: "09:18",        reason: "系統異常", desc: "打卡 APP 當機無法連線，改由補卡登記。", status: "審批中", note: "" },
+            { id: "100645", name: "William", dept: "HR",  appDate: "2026-06-09", makeupDate: "2026-06-09", period: "下班打卡",   time: "18:25",        reason: "系統異常", desc: "下班時門禁系統異常未感應，申請補卡。", status: "審批中", note: "" },
+            { id: "101122", name: "Daniel", dept: "HR",  appDate: "2026-06-09", makeupDate: "2026-06-09", period: "下班打卡",   time: "18:10",        reason: "忘記打卡", desc: "下班趕著開會忘記刷卡。", status: "完成", note: "經部門主管確認屬實，准予補卡。" },
+            { id: "101363", name: "Thomas", dept: "HR",  appDate: "2026-06-05", makeupDate: "2026-06-05", period: "上班打卡",   time: "09:30",        reason: "忘記打卡", desc: "早上進辦公室忘記打卡。", status: "完成", note: "已核可，惟到勤時間仍計遲到。" },
+            { id: "101334", name: "Alexander", dept: "RD",  appDate: "2026-06-02", makeupDate: "2026-06-01", period: "其他",       time: "09:00 - 18:00", reason: "公出",     desc: "整日於客戶端開會，無法回辦公室打卡。", status: "完成", note: "附會議簽到證明，准予補卡。" },
+            { id: "101383", name: "Matthew", dept: "RD",  appDate: "2026-05-28", makeupDate: "2026-05-27", period: "上班打卡",   time: "08:50",        reason: "忘記打卡", desc: "忘記攜帶識別證，未能打卡。", status: "已提交", note: "" },
+            { id: "101312", name: "Samuel", dept: "IA1", appDate: "2026-05-20", makeupDate: "2026-05-19", period: "上班打卡",   time: "10:30",        reason: "其他",     desc: "私人原因遲到後申請補卡。", status: "駁回", note: "未檢附證明，且與門禁紀錄不符，故予駁回。" },
+            { id: "101122", name: "Daniel", dept: "HR",  appDate: "2026-06-08", makeupDate: "2026-06-08", period: "午休打卡",   time: "13:00",        reason: "忘記打卡", desc: "午休外出用餐返回時忘記刷卡。", status: "審批中", note: "" }
         ];
 
         // 外出紀錄資料庫 (工號、姓名、部門、職位、外出日期、外出時間、返回時間、外出事由、狀態)
         // 狀態：外出中（尚未返回打卡）/ 已返回
         let outingDb = [
-            { id: "100344", name: "林雅婷", dept: "RD",  jobTitle: "Operations Director",   date: "2026-06-11", outTime: "10:15", backTime: "11:40", reason: "拜訪客戶討論專案需求與時程規劃。", status: "已返回" },
-            { id: "100344", name: "林雅婷", dept: "RD",  jobTitle: "Operations Director",   date: "2026-06-11", outTime: "14:30", backTime: "16:00", reason: "下午外出至供應商現場驗收設備。", status: "已返回" },
-            { id: "100423", name: "張家豪", dept: "HR",  jobTitle: "HR Manager",            date: "2026-06-11", outTime: "14:00", backTime: "",      reason: "至銀行辦理公司帳戶相關事宜。", status: "外出中" },
-            { id: "101383", name: "陳小明", dept: "RD",  jobTitle: "企劃專員",              date: "2026-06-10", outTime: "09:30", backTime: "12:00", reason: "外出洽談供應商合約細節。", status: "已返回" },
-            { id: "101334", name: "王大同", dept: "RD",  jobTitle: "資深工程師",            date: "2026-06-10", outTime: "13:20", backTime: "15:05", reason: "至客戶端進行系統部署與維護。", status: "已返回" },
-            { id: "101122", name: "黃淑芬", dept: "HR",  jobTitle: "企劃專員",              date: "2026-06-09", outTime: "11:00", backTime: "11:50", reason: "公出至政府機關送件。", status: "已返回" },
-            { id: "100645", name: "李美玲", dept: "HR",  jobTitle: "HR Officer",            date: "2026-06-09", outTime: "16:10", backTime: "",      reason: "陪同主管外出參加跨部門會議。", status: "外出中" },
-            { id: "101312", name: "劉建國", dept: "IA1", jobTitle: "Internal Auditor",       date: "2026-06-08", outTime: "10:00", backTime: "17:30", reason: "至分公司進行內部稽核作業。", status: "已返回" },
-            { id: "101363", name: "蔡佳蓉", dept: "HR",  jobTitle: "HR Officer",            date: "2026-06-05", outTime: "09:45", backTime: "10:30", reason: "外出至郵局寄送公文與合約。", status: "已返回" }
+            { id: "100344", name: "James", dept: "RD",  jobTitle: "Operations Director",   date: "2026-06-11", outTime: "10:15", backTime: "11:40", reason: "拜訪客戶討論專案需求與時程規劃。", status: "已返回" },
+            { id: "100344", name: "James", dept: "RD",  jobTitle: "Operations Director",   date: "2026-06-11", outTime: "14:30", backTime: "16:00", reason: "下午外出至供應商現場驗收設備。", status: "已返回" },
+            { id: "100423", name: "Henry", dept: "HR",  jobTitle: "HR Manager",            date: "2026-06-11", outTime: "14:00", backTime: "",      reason: "至銀行辦理公司帳戶相關事宜。", status: "外出中" },
+            { id: "101383", name: "Matthew", dept: "RD",  jobTitle: "企劃專員",              date: "2026-06-10", outTime: "09:30", backTime: "12:00", reason: "外出洽談供應商合約細節。", status: "已返回" },
+            { id: "101334", name: "Alexander", dept: "RD",  jobTitle: "資深工程師",            date: "2026-06-10", outTime: "13:20", backTime: "15:05", reason: "至客戶端進行系統部署與維護。", status: "已返回" },
+            { id: "101122", name: "Daniel", dept: "HR",  jobTitle: "企劃專員",              date: "2026-06-09", outTime: "11:00", backTime: "11:50", reason: "公出至政府機關送件。", status: "已返回" },
+            { id: "100645", name: "William", dept: "HR",  jobTitle: "HR Officer",            date: "2026-06-09", outTime: "16:10", backTime: "",      reason: "陪同主管外出參加跨部門會議。", status: "外出中" },
+            { id: "101312", name: "Samuel", dept: "IA1", jobTitle: "Internal Auditor",       date: "2026-06-08", outTime: "10:00", backTime: "17:30", reason: "至分公司進行內部稽核作業。", status: "已返回" },
+            { id: "101363", name: "Thomas", dept: "HR",  jobTitle: "HR Officer",            date: "2026-06-05", outTime: "09:45", backTime: "10:30", reason: "外出至郵局寄送公文與合約。", status: "已返回" }
         ];
 
         // 地區 / 事業部 / 項目 歸屬（依工號與部門推導，與系統一致）

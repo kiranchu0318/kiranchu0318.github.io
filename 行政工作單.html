@@ -255,23 +255,23 @@
     <script>
         // 行政工作單（含工作流）。實務上由「簽核」建立後同步至此；此為原型示意資料。
         const docs = [
-            { docNo: 'AW-20260613-002-1', applicant: '楊吉伯', dept: 'RD', owner: 'IT 郵件管理員', title: '人員帳號異動 — E-mail 修改', type: '人員帳號異動', date: '2026-06-13', signStatus: '簽核中',
+            { docNo: 'AW-20260613-002-1', applicant: 'Benjamin', dept: 'RD', owner: 'IT 郵件管理員', title: '人員帳號異動 — E-mail 修改', type: '人員帳號異動', date: '2026-06-13', signStatus: '簽核中',
               approvals: [{ role: '申請人直屬主管', status: '已核准' }, { role: '資訊安全', status: '審批中' }],
               workflow: [{ task: '設定郵件帳號更名／轉址', owner: 'IT 郵件管理員', status: '處理中' }, { task: '通知申請人確認', owner: 'IT 郵件管理員', status: '待處理' }],
               accountChanges: [{ field: 'E-mail', action: '修改', detail: 'gibson.yang@roycetech.com', note: '配合網域整併調整', attach: '異動申請表.pdf' }] },
-            { docNo: 'AW-20260613-002-2', applicant: '楊吉伯', dept: 'RD', owner: 'IT 系統管理員', title: '人員帳號異動 — Jira 新增', type: '人員帳號異動', date: '2026-06-13', signStatus: '待簽核',
+            { docNo: 'AW-20260613-002-2', applicant: 'Benjamin', dept: 'RD', owner: 'IT 系統管理員', title: '人員帳號異動 — Jira 新增', type: '人員帳號異動', date: '2026-06-13', signStatus: '待簽核',
               approvals: [{ role: '申請人直屬主管', status: '待審批' }, { role: '資訊安全', status: '待審批' }],
               workflow: [{ task: '建立 Jira 帳號與專案權限', owner: 'IT 系統管理員', status: '待處理' }],
               accountChanges: [{ field: 'Jira', action: '新增', detail: 'gibsonyang', note: '專案協作需求', attach: '' }] },
-            { docNo: 'AW-20260613-002-3', applicant: '楊吉伯', dept: 'RD', owner: '行政總務', title: '人員帳號異動 — 門禁卡片 刪除', type: '人員帳號異動', date: '2026-06-13', signStatus: '簽核完成',
+            { docNo: 'AW-20260613-002-3', applicant: 'Benjamin', dept: 'RD', owner: '行政總務', title: '人員帳號異動 — 門禁卡片 刪除', type: '人員帳號異動', date: '2026-06-13', signStatus: '簽核完成',
               approvals: [{ role: '申請人直屬主管', status: '已核准' }, { role: '行政主管', status: '已核准' }],
               workflow: [{ task: '停用門禁卡片', owner: '行政總務', status: '已完成' }, { task: '卡片回收／註記遺失', owner: '行政總務', status: '處理中' }],
               accountChanges: [{ field: '門禁卡片', action: '刪除', detail: '立即刪除', note: '原卡片遺失，立即停用', attach: '遺失聲明.jpg' }] },
-            { docNo: 'AW-20260613-002-4', applicant: '楊吉伯', dept: 'RD', owner: '資訊安全', title: '人員帳號異動 — 指紋 刪除', type: '人員帳號異動', date: '2026-06-13', signStatus: '簽核中',
+            { docNo: 'AW-20260613-002-4', applicant: 'Benjamin', dept: 'RD', owner: '資訊安全', title: '人員帳號異動 — 指紋 刪除', type: '人員帳號異動', date: '2026-06-13', signStatus: '簽核中',
               approvals: [{ role: '申請人直屬主管', status: '已核准' }, { role: '資訊安全', status: '審批中' }],
               workflow: [{ task: '指紋資料轉移至新門禁系統', owner: '資訊安全', status: '處理中' }, { task: '原系統指紋資料刪除', owner: '資訊安全', status: '待處理' }],
               accountChanges: [{ field: '指紋', action: '刪除', detail: '資料轉移', note: '轉移至新門禁系統', attach: '' }] },
-            { docNo: 'AW-20260613-002-5', applicant: '楊吉伯', dept: 'RD', owner: 'OA 系統管理員', title: '人員帳號異動 — OA 刪除', type: '人員帳號異動', date: '2026-06-13', signStatus: '待簽核',
+            { docNo: 'AW-20260613-002-5', applicant: 'Benjamin', dept: 'RD', owner: 'OA 系統管理員', title: '人員帳號異動 — OA 刪除', type: '人員帳號異動', date: '2026-06-13', signStatus: '待簽核',
               approvals: [{ role: '申請人直屬主管', status: '待審批' }, { role: '行政主管', status: '待審批' }],
               workflow: [{ task: 'OA 帳號設為暫時保留／停用', owner: 'OA 系統管理員', status: '待處理' }],
               accountChanges: [{ field: 'OA', action: '刪除', detail: '暫時保留', note: '留職停薪期間先行保留', attach: '' }] }

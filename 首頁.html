@@ -90,13 +90,13 @@
           <div class="grid grid-cols-2 divide-x divide-y divide-slate-50 text-[12px] font-semibold text-center">
             <button onclick="openNotificationModal()" class="relative flex flex-col items-center justify-center py-6 text-slate-500 hover:bg-slate-50/80 hover:text-blue-600 transition-colors focus:outline-none focus:bg-slate-50 group">
               <!-- 未讀通知紅點徽章 -->
-              <span id="nav-notif-badge" class="absolute top-4 right-1/4 translate-x-1/2 -translate-y-1/2 flex items-center justify-center w-4 h-4 bg-rose-500 text-white text-[10px] font-bold rounded-full border-2 border-white z-10 animate-pulse hidden">0</span>
+              <span id="nav-notif-badge" class="absolute top-4 right-1/4 translate-x-1/2 -translate-y-1/2 flex items-center justify-center w-6 h-6 bg-rose-500 text-white text-[12px] font-bold rounded-full border-2 border-white z-10 hidden">0</span>
               <svg class="w-6 h-6 mb-2.5 opacity-80 group-hover:animate-bounce" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
               通知
             </button>
             <button onclick="openAllApprovalsModal()" class="relative flex flex-col items-center justify-center py-6 text-slate-500 hover:bg-slate-50/80 hover:text-blue-600 transition-colors focus:outline-none focus:bg-slate-50 group">
               <!-- 待簽核紅點徽章 -->
-              <span id="nav-approval-badge" class="absolute top-4 right-1/4 translate-x-1/2 -translate-y-1/2 flex items-center justify-center w-4 h-4 bg-rose-500 text-white text-[10px] font-bold rounded-full border-2 border-white z-10 animate-pulse hidden">0</span>
+              <span id="nav-approval-badge" class="absolute top-4 right-1/4 translate-x-1/2 -translate-y-1/2 flex items-center justify-center w-6 h-6 bg-rose-500 text-white text-[12px] font-bold rounded-full border-2 border-white z-10 hidden">0</span>
               <svg class="w-6 h-6 mb-2.5 opacity-80 group-hover:animate-bounce" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
               簽核
             </button>
@@ -371,7 +371,7 @@
               </div>
               <div>
                 <label class="block text-xs font-bold text-slate-600 mb-1.5">部門主管</label>
-                <input type="text" readonly value="Kidd" class="w-full text-sm font-medium border border-slate-200 rounded-md px-3 py-2.5 bg-slate-100 text-slate-700 focus:outline-none cursor-not-allowed"/>
+                <input type="text" readonly value="Nick" class="w-full text-sm font-medium border border-slate-200 rounded-md px-3 py-2.5 bg-slate-100 text-slate-700 focus:outline-none cursor-not-allowed"/>
               </div>
               <!-- row 3 -->
               <div>
@@ -544,7 +544,7 @@
         { id: 'ct', name: '補休', total: 12, used: 4, color: 'bg-rose-500' }
       ],
       announcements: [
-        { id: 1, title: '【重要】2026年端午節連假出勤與值班排班調整通知', date: '2026-06-01', author: '張雅婷', content: '各位同仁好，2026年端午節假期將至，本公司調整放假及補班規則如下：6月15日至6月17日為放假日。' },
+        { id: 1, title: '【重要】2026年端午節連假出勤與值班排班調整通知', date: '2026-06-01', author: 'Arlo', content: '各位同仁好，2026年端午節假期將至，本公司調整放假及補班規則如下：6月15日至6月17日為放假日。' },
         { id: 2, title: '【公告】ERP 系統預計於本週六 (06/06) 凌晨進行例行性維護', date: '2026-05-28', author: '系統組', content: '本週六凌晨 01:00 至 05:00 將進行系統底層資料庫升級與安全維護。' },
         { id: 3, title: '【活動】第三季度員工大會暨慶生會報名開跑', date: '2026-05-25', author: '福委會', content: '大會將於 7 月 10 日下午召開。本次將於 W 飯店舉辦精緻下午茶餐會。' }
       ],
@@ -560,18 +560,18 @@
         { branch: 'T1-研发中心 RD-2', name: '101128' }
       ],
       approvalList: [
-        { id: 'oa1', oa: '財務', loc: 'T1', type: 'BC', title: '我要買陶朱隱園', applicant: 'KKKKK', signer: 'KKKKK', amount: 'TWD 1,000,000,000', date: '2026-05-26 14:14', approver: '部門主管', ref: '-', status: '待簽核' },
-        { id: 'oa2', oa: '財務', loc: 'T1', type: 'C', title: 'T1─一般費用-20260525', applicant: '101372', signer: '101372', amount: 'TWD 2,000', date: '2026-05-25 15:36', approver: '部門主管', ref: '-', status: '待簽核' },
-        { id: 'oa3', oa: '合同', loc: 'THQ', type: 'IC', title: 'THQ-內部合同单-20260428', applicant: 'Yen', signer: 'Yen H', amount: '0', date: '2026-04-28 15:05', approver: '部門主管', ref: '-', status: '待簽核' },
+        { id: 'oa1', oa: '財務', loc: 'T1', type: 'BC', title: '我要買陶朱隱園', applicant: 'William', signer: 'William', amount: 'TWD 1,000,000,000', date: '2026-05-26 14:14', approver: '部門主管', ref: '-', status: '待簽核' },
+        { id: 'oa2', oa: '財務', loc: 'T1', type: 'C', title: 'T1─一般費用-20260525', applicant: 'Thomas', signer: 'Thomas', amount: 'TWD 2,000', date: '2026-05-25 15:36', approver: '部門主管', ref: '-', status: '待簽核' },
+        { id: 'oa3', oa: '合同', loc: 'THQ', type: 'IC', title: 'THQ-內部合同单-20260428', applicant: 'Samuel', signer: 'Samuel', amount: '0', date: '2026-04-28 15:05', approver: '部門主管', ref: '-', status: '待簽核' },
         
         // 對應系統通知中心的全新模擬簽核資料
-        { id: 'oa_leave_101730', oa: '行政', loc: 'T1', type: 'AL', title: "有員工提交'休假申請' (申請休假_101730_2026-06-03)", applicant: '101730', signer: '張小明', amount: 'TWD 0', date: '2026-06-03 09:36:32', approver: '部門主管', ref: '-', status: '待簽核' },
-        { id: 'oa_audit_100344', oa: '行政', loc: 'THQ', type: 'IC', title: "駁回通知_{離任審計申請_100344_2026-05-27}", applicant: '100344', signer: '林大華', amount: 'TWD 0', date: '2026-05-27 05:45:01', approver: '部門主管', ref: '-', status: '已退回' },
-        { id: 'oa_punch_101383_1', oa: '行政', loc: 'T1', type: 'PU', title: "“員工補打卡申請” (申請補打卡_101383_2026-06-03)", applicant: '101383', signer: '王小二', amount: 'TWD 0', date: '2026-06-03 03:26:00', approver: '部門主管', ref: '-', status: '待簽核' },
-        { id: 'oa_punch_101383_2', oa: '行政', loc: 'T1', type: 'PU', title: "“員工補打卡申請” (申請補打卡_101383_2026-06-03)", applicant: '101383', signer: '王小二', amount: 'TWD 0', date: '2026-06-03 03:14:10', approver: '部門主管', ref: '-', status: '待簽核' },
-        { id: 'oa_punch_101278_1', oa: '行政', loc: 'T1', type: 'PU', title: "“補打卡申請” (申請補打卡_101278_2026-06-03)", applicant: '101278', signer: '劉伊庭', amount: 'TWD 0', date: '2026-06-03 03:12:59', approver: '部門主管', ref: '-', status: '待簽核' },
-        { id: 'oa_punch_101383_3', oa: '行政', loc: 'T1', type: 'PU', title: "“員工補打卡申請” (申請補打卡_101383_2026-06-03)", applicant: '101383', signer: '王小二', amount: 'TWD 0', date: '2026-06-03 03:12:24', approver: '部門主管', ref: '-', status: '待簽核' },
-        { id: 'oa_punch_101278_2', oa: '行政', loc: 'T1', type: 'PU', title: "“補打卡申請” (申請補打卡_101278_2026-06-03)", applicant: '101278', signer: '劉伊庭', amount: 'TWD 0', date: '2026-06-03 03:06:30', approver: '部門主管', ref: '-', status: '待簽核' }
+        { id: 'oa_leave_101730', oa: '行政', loc: 'T1', type: 'AL', title: "有員工提交'休假申請' (申請休假_101730_2026-06-03)", applicant: 'Arthur', signer: 'Kai', amount: 'TWD 0', date: '2026-06-03 09:36:32', approver: '部門主管', ref: '-', status: '待簽核' },
+        { id: 'oa_audit_100344', oa: '行政', loc: 'THQ', type: 'IC', title: "駁回通知_{離任審計申請_100344_2026-05-27}", applicant: 'Daniel', signer: 'Finn', amount: 'TWD 0', date: '2026-05-27 05:45:01', approver: '部門主管', ref: '-', status: '已退回' },
+        { id: 'oa_punch_101383_1', oa: '行政', loc: 'T1', type: 'PU', title: "“員工補打卡申請” (申請補打卡_101383_2026-06-03)", applicant: 'Henry', signer: 'Aiden', amount: 'TWD 0', date: '2026-06-03 03:26:00', approver: '部門主管', ref: '-', status: '待簽核' },
+        { id: 'oa_punch_101383_2', oa: '行政', loc: 'T1', type: 'PU', title: "“員工補打卡申請” (申請補打卡_101383_2026-06-03)", applicant: 'Henry', signer: 'Aiden', amount: 'TWD 0', date: '2026-06-03 03:14:10', approver: '部門主管', ref: '-', status: '待簽核' },
+        { id: 'oa_punch_101278_1', oa: '行政', loc: 'T1', type: 'PU', title: "“補打卡申請” (申請補打卡_101278_2026-06-03)", applicant: 'Lucas', signer: 'Mila', amount: 'TWD 0', date: '2026-06-03 03:12:59', approver: '部門主管', ref: '-', status: '待簽核' },
+        { id: 'oa_punch_101383_3', oa: '行政', loc: 'T1', type: 'PU', title: "“員工補打卡申請” (申請補打卡_101383_2026-06-03)", applicant: 'Henry', signer: 'Aiden', amount: 'TWD 0', date: '2026-06-03 03:12:24', approver: '部門主管', ref: '-', status: '待簽核' },
+        { id: 'oa_punch_101278_2', oa: '行政', loc: 'T1', type: 'PU', title: "“補打卡申請” (申請補打卡_101278_2026-06-03)", applicant: 'Lucas', signer: 'Mila', amount: 'TWD 0', date: '2026-06-03 03:06:30', approver: '部門主管', ref: '-', status: '待簽核' }
       ],
       notifications: [
         { id: 'n1', title: "有員工提交'休假申請' (申請休假_101730_2026-06-03)", time: "2026-06-03 09:36:32", isRead: false, approvalId: 'oa_leave_101730' },

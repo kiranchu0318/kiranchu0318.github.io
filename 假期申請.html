@@ -190,7 +190,7 @@
                         </tr>
 
                         <!-- 第 3 列 -->
-                        <tr>
+                        <tr data-apply-date="2026/05/20" data-leave-type="病假" data-reason="感冒發燒看醫生" data-period="2026/05/21 09:00 - 2026/05/21 18:00" data-amount="1 天">
                             <td class="font-medium text-gray-900">2026/05/20</td>
                             <td>
                                 <span class="ui-badge ui-badge-success">病假</span>
@@ -204,6 +204,7 @@
                             <td class="text-center">
                                 <div class="flex items-center justify-center gap-2">
                                     <button class="ui-btn ui-btn-secondary ui-btn-sm">檢視</button>
+                                    <button class="ui-btn ui-btn-secondary ui-btn-sm js-cancel-btn" onclick="openCancelModal(this)">銷假</button>
                                 </div>
                             </td>
                         </tr>
@@ -354,6 +355,42 @@
                     <button type="submit" id="submitBtn" class="ui-btn ui-btn-primary bg-primary min-w-[100px]">
                         提交申請
                     </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 銷假單 (Modal) -->
+    <div id="cancelLeaveModal" class="fixed inset-0 z-50 hidden bg-gray-900/40 backdrop-blur-sm overflow-y-auto h-full w-full flex items-center justify-center fade-in">
+        <div class="relative w-full max-w-xl bg-card rounded-xl shadow-2xl border border-gray-100 m-4">
+            <!-- 彈窗頭部 -->
+            <div class="px-6 py-5 flex justify-between items-center border-b border-gray-100 rounded-t-xl bg-card">
+                <h2 class="text-gray-800 text-lg font-bold">銷假單</h2>
+                <button type="button" onclick="closeCancelModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <!-- 表單內容 -->
+            <form onsubmit="event.preventDefault(); submitCancelForm();" class="p-6 space-y-5">
+                <!-- 原請假單內容（自動帶入） -->
+                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                    <div class="text-xs font-semibold text-gray-500 mb-3">原請假單內容</div>
+                    <div class="grid grid-cols-2 gap-x-6 gap-y-2.5 text-sm">
+                        <div><span class="text-gray-500">假別：</span><span id="cancelLeaveType" class="font-medium text-gray-800"></span></div>
+                        <div><span class="text-gray-500">時數/天數：</span><span id="cancelOrigAmount" class="font-medium text-gray-800"></span></div>
+                        <div class="col-span-2"><span class="text-gray-500">請假期間：</span><span id="cancelOrigPeriod" class="font-medium text-gray-800"></span></div>
+                        <div class="col-span-2"><span class="text-gray-500">原事由：</span><span id="cancelOrigReason" class="font-medium text-gray-800"></span></div>
+                    </div>
+                </div>
+                <!-- 銷假事由 -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1.5">銷假事由 <span class="text-status-text-rejected">*</span></label>
+                    <textarea id="cancelReason" rows="3" required placeholder="請說明銷假原因..." class="ui-input resize-none custom-scrollbar"></textarea>
+                </div>
+                <!-- 按鈕區 -->
+                <div class="mt-2 flex justify-end gap-3 border-t border-gray-100 pt-5">
+                    <button type="button" onclick="closeCancelModal()" class="ui-btn ui-btn-secondary">返回</button>
+                    <button type="submit" class="ui-btn ui-btn-primary bg-primary min-w-[100px]">提交銷假</button>
                 </div>
             </form>
         </div>
@@ -537,6 +574,98 @@
                     btn.disabled = false;
                 }, 1000);
             }, 1000);
+        }
+
+        // ===== 銷假單邏輯 =====
+        let cancelTargetRow = null;
+        const cancelModal = document.getElementById('cancelLeaveModal');
+
+        function openCancelModal(btn) {
+            cancelTargetRow = btn.closest('tr');
+            const d = cancelTargetRow.dataset;
+            document.getElementById('cancelLeaveType').textContent = d.leaveType || '-';
+            document.getElementById('cancelOrigAmount').textContent = d.amount || '-';
+            document.getElementById('cancelOrigPeriod').textContent = d.period || '-';
+            document.getElementById('cancelOrigReason').textContent = d.reason || '-';
+            document.getElementById('cancelReason').value = '';
+            cancelModal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            lucide.createIcons();
+        }
+
+        function closeCancelModal() {
+            cancelModal.classList.add('hidden');
+            document.body.style.overflow = 'auto';
+            cancelTargetRow = null;
+        }
+
+        // 點擊背景關閉
+        cancelModal.addEventListener('click', function(e) {
+            if (e.target === cancelModal) closeCancelModal();
+        });
+
+        function submitCancelForm() {
+            if (!cancelTargetRow) return;
+            const reason = document.getElementById('cancelReason').value.trim() || '—';
+            const period = cancelTargetRow.dataset.period || '-';
+            const amount = cancelTargetRow.dataset.amount || '-';
+            const d = new Date();
+            const today = `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`;
+
+            // 一筆假單僅能有一張銷假單；建立銷假子表並隱藏該列「銷假」按鈕
+            const tr = document.createElement('tr');
+            tr.className = 'cancel-subrow';
+            tr.innerHTML = `
+                <td colspan="7" class="!p-0 bg-amber-50/40">
+                    <div class="px-6 py-3 border-l-4 border-amber-300">
+                        <div class="flex items-center gap-2 text-sm font-semibold text-amber-700 mb-2">
+                            <i data-lucide="corner-down-right" class="w-4 h-4"></i> 銷假紀錄
+                        </div>
+                        <div class="overflow-x-auto rounded-lg border border-amber-100">
+                            <table class="w-full text-sm whitespace-nowrap">
+                                <thead class="bg-amber-100/60 text-amber-800 text-xs">
+                                    <tr>
+                                        <th class="px-3 py-2 text-left font-semibold">銷假申請日期</th>
+                                        <th class="px-3 py-2 text-left font-semibold">銷假期間</th>
+                                        <th class="px-3 py-2 text-left font-semibold">銷假事由</th>
+                                        <th class="px-3 py-2 text-center font-semibold">時數/天數</th>
+                                        <th class="px-3 py-2 text-center font-semibold">狀態</th>
+                                        <th class="px-3 py-2 text-center font-semibold">操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="cancel-subtable-body divide-y divide-amber-50">
+                                    <tr class="bg-white">
+                                        <td class="px-3 py-2 text-gray-700">${today}</td>
+                                        <td class="px-3 py-2 text-gray-700">${period}</td>
+                                        <td class="px-3 py-2 text-gray-700">${reason}</td>
+                                        <td class="px-3 py-2 text-center text-gray-700">${amount}</td>
+                                        <td class="px-3 py-2 text-center"><span class="ui-badge ui-badge-warning">審批中</span></td>
+                                        <td class="px-3 py-2 text-center"><button class="ui-btn ui-btn-secondary ui-btn-sm" onclick="withdrawCancel(this)">撤回</button></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </td>`;
+            cancelTargetRow.after(tr);
+
+            const cancelBtn = cancelTargetRow.querySelector('.js-cancel-btn');
+            if (cancelBtn) cancelBtn.classList.add('hidden');
+
+            lucide.createIcons();
+            closeCancelModal();
+        }
+
+        // 撤回銷假單：移除銷假子表並還原原單的「銷假」按鈕
+        function withdrawCancel(btn) {
+            const subrow = btn.closest('tr.cancel-subrow');
+            if (!subrow) return;
+            const originRow = subrow.previousElementSibling;
+            if (originRow) {
+                const cancelBtn = originRow.querySelector('.js-cancel-btn');
+                if (cancelBtn) cancelBtn.classList.remove('hidden');
+            }
+            subrow.remove();
         }
     </script>
 </body>

@@ -15,6 +15,14 @@
   <!-- 載入 Babel 供瀏覽器即時編譯 JSX -->
   <script src="https://unpkg.com/@babel/standalone@7.29.7/babel.min.js"></script>
     <link rel="stylesheet" href="shared-ui.css">
+    <style>
+      /* 審批意見內嵌編輯器 placeholder */
+      .approve-editor:empty:before {
+        content: attr(data-placeholder);
+        color: #9CA3AF;
+        pointer-events: none;
+      }
+    </style>
 </head>
 <body class="">
   <div id="root"></div>
@@ -133,7 +141,7 @@
     // --- 主程式元件 ---
     const App = () => {
       // 頁籤狀態
-      const tabs = ['電子表單簽核', '請假簽核', '補卡簽核'];
+      const tabs = ['電子表單簽核', '請假簽核', '補卡簽核', '銷假簽核'];
       const [activeTab, setActiveTab] = useState('電子表單簽核');
 
       // 費用詳情彈窗控制狀態
@@ -143,6 +151,40 @@
       // 電子表單簽核：點擊編號開啟詳情彈窗時，記住該列資料以帶入彈窗內容
       const [modalRow, setModalRow] = useState(null);
       const [showOpinions, setShowOpinions] = useState(false);
+      // 審批動作彈窗（審批 / 駁回 / 補件 + 意見 + 附件）
+      const [approveActionOpen, setApproveActionOpen] = useState(false);
+      const [approveDecision, setApproveDecision] = useState('審批');
+      const [approveFiles, setApproveFiles] = useState([]); // [{ name, size }]
+      const approveEditorRef = React.useRef(null);
+      const approveFileInputRef = React.useRef(null);
+      const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
+      const formatFileSize = (bytes) => {
+        if (bytes >= 1024 * 1024) return (bytes / 1024 / 1024).toFixed(1) + ' MB';
+        if (bytes >= 1024) return (bytes / 1024).toFixed(0) + ' KB';
+        return bytes + ' B';
+      };
+      const handleApproveFiles = (fileList) => {
+        const incoming = Array.from(fileList || []);
+        const accepted = [];
+        const rejected = [];
+        incoming.forEach(f => {
+          if (f.size > MAX_FILE_SIZE) rejected.push(f.name);
+          else accepted.push({ name: f.name, size: f.size });
+        });
+        if (rejected.length) {
+          window.alert('以下附件超過 20MB 上限，已略過：\n' + rejected.join('\n'));
+        }
+        if (accepted.length) setApproveFiles(prev => [...prev, ...accepted]);
+      };
+      const openApproveAction = () => {
+        setApproveDecision('審批');
+        setApproveFiles([]);
+        setApproveActionOpen(true);
+      };
+      const submitApproveAction = () => {
+        setApproveActionOpen(false);
+        setIsModalOpen(false);
+      };
       const [activeExportModal, setActiveExportModal] = useState(null);
       const [selectedBookkeeping, setSelectedBookkeeping] = useState([]);
       const [pendingApprovalOnly, setPendingApprovalOnly] = useState(false);
@@ -151,25 +193,33 @@
       // 批量審批相關狀態與假資料
       const [selectedLeave, setSelectedLeave] = useState([]);
       const [selectedTimesheet, setSelectedTimesheet] = useState([]);
-      const [batchApproveModal, setBatchApproveModal] = useState(null); // 'leave' | 'timesheet' | null
+      const [selectedCancel, setSelectedCancel] = useState([]);
+      const [batchApproveModal, setBatchApproveModal] = useState(null); // 'leave' | 'timesheet' | 'cancel' | null
 
       const mockLeaveData = [
-        { id: 'L1', project: 'GT', dept: 'RD', empNo: '101372', applyTime: '2026-05-28 10:00:00', name: 'Kidd', startDate: '2026-06-01', endDate: '2026-06-02', leaveType: '年假', hours: '16', status: '需要審批' },
-        { id: 'L2', project: 'GT', dept: 'RD', empNo: '100962', applyTime: '2026-05-29 09:30:00', name: 'Derrick', startDate: '2026-06-05', endDate: '2026-06-05', leaveType: '事假', hours: '8', status: '待他人審批' },
-        { id: 'L3', project: 'GT', dept: 'RD', empNo: '101436', applyTime: '2026-05-30 11:00:00', name: 'Liz G', startDate: '2026-06-10', endDate: '2026-06-10', leaveType: '病假', hours: '4', status: '已完成審批' },
-        { id: 'L4', project: 'GT', dept: 'RD', empNo: '100123', applyTime: '2026-05-31 14:20:00', name: 'Bertha W', startDate: '2026-06-15', endDate: '2026-06-16', leaveType: '年假', hours: '16', status: '被抄送審批' },
-        { id: 'L5', project: 'GT', dept: 'RD', empNo: '101372', applyTime: '2026-06-03 16:45:00', name: 'Kidd', startDate: '2026-06-01', endDate: '2026-06-01', leaveType: '年假(銷假)', hours: '8', status: '需要審批' },
+        { id: 'L1', project: 'GT', dept: 'RD', empNo: '101372', applyTime: '2026-05-28 10:00:00', name: 'Nick', startDate: '2026-06-01', endDate: '2026-06-02', leaveType: '年假', hours: '16', status: '待我簽核' },
+        { id: 'L2', project: 'GT', dept: 'RD', empNo: '100962', applyTime: '2026-05-29 09:30:00', name: 'Miles', startDate: '2026-06-05', endDate: '2026-06-05', leaveType: '事假', hours: '8', status: '未簽核' },
+        { id: 'L3', project: 'GT', dept: 'RD', empNo: '101436', applyTime: '2026-05-30 11:00:00', name: 'Stella', startDate: '2026-06-10', endDate: '2026-06-10', leaveType: '病假', hours: '4', status: '簽核完成' },
+        { id: 'L4', project: 'GT', dept: 'RD', empNo: '100123', applyTime: '2026-05-31 14:20:00', name: 'Hazel', startDate: '2026-06-15', endDate: '2026-06-16', leaveType: '年假', hours: '16', status: 'CC' },
+        { id: 'L5', project: 'GT', dept: 'RD', empNo: '101372', applyTime: '2026-06-03 16:45:00', name: 'Nick', startDate: '2026-06-01', endDate: '2026-06-01', leaveType: '年假(銷假)', hours: '8', status: '待我簽核' },
       ];
 
       const mockTimesheetData = [
-        { id: 'T1', project: 'GT', dept: 'RD', empNo: '100344', submitDate: '2026-05-28', clockTime: '2026-05-27 08:55:00', period: '上班', type: '忘記打卡', status: '需要審批' },
-        { id: 'T2', project: 'GT', dept: 'RD', empNo: '101436', submitDate: '2026-05-29', clockTime: '2026-05-28 18:05:00', period: '下班', type: '忘記打卡', status: '待他人審批' },
-        { id: 'T3', project: 'GT', dept: 'RD', empNo: '100960', submitDate: '2026-05-30', clockTime: '2026-05-29 09:00:00', period: '上班', type: '公出', status: '已完成審批' },
-        { id: 'T4', project: 'GT', dept: 'RD', empNo: '100570', submitDate: '2026-05-31', clockTime: '2026-05-30 18:30:00', period: '下班', type: '公出', status: '被抄送審批' },
+        { id: 'T1', project: 'GT', dept: 'RD', empNo: '100344', submitDate: '2026-05-28', clockTime: '2026-05-27 08:55:00', period: '上班', type: '忘記打卡', status: '待我簽核' },
+        { id: 'T2', project: 'GT', dept: 'RD', empNo: '101436', submitDate: '2026-05-29', clockTime: '2026-05-28 18:05:00', period: '下班', type: '忘記打卡', status: '未簽核' },
+        { id: 'T3', project: 'GT', dept: 'RD', empNo: '100960', submitDate: '2026-05-30', clockTime: '2026-05-29 09:00:00', period: '上班', type: '公出', status: '簽核完成' },
+        { id: 'T4', project: 'GT', dept: 'RD', empNo: '100570', submitDate: '2026-05-31', clockTime: '2026-05-30 18:30:00', period: '下班', type: '公出', status: 'CC' },
+      ];
+
+      // 銷假簽核：假單已完成後申請銷假，需主管簽核
+      const mockCancelData = [
+        { id: 'CL1', project: 'GT', dept: 'RD', empNo: '101372', applyTime: '2026-06-05 09:10:00', name: 'Nick', leaveType: '年假', startDate: '2026-06-01', endDate: '2026-06-02', hours: '16', reason: '行程取消，原假期不需請', status: '待我簽核' },
+        { id: 'CL2', project: 'GT', dept: 'RD', empNo: '101436', applyTime: '2026-06-06 14:00:00', name: 'Stella', leaveType: '病假', startDate: '2026-06-10', endDate: '2026-06-10', hours: '4', reason: '已康復，提前返崗', status: '未簽核' },
+        { id: 'CL3', project: 'GT', dept: 'RD', empNo: '100962', applyTime: '2026-06-02 11:30:00', name: 'Miles', leaveType: '事假', startDate: '2026-05-28', endDate: '2026-05-28', hours: '8', reason: '私事已處理完畢', status: '簽核完成' },
       ];
 
       // 過濾出「需要審批」的資料，供全選功能使用（請假以篩選後的清單為準，定義於 selectedFilters 之後）
-      const approvableTimesheets = mockTimesheetData.filter(d => d.status === '需要審批');
+      const approvableTimesheets = mockTimesheetData.filter(d => d.status === '待我簽核');
 
       // --- 輔助：取得格式化日期 (yyyy-MM-dd) ---
       const getFormattedDate = (daysOffset = 0) => {
@@ -194,7 +244,7 @@
 
       // 電子表單簽核：篩選器設定
       const filterConfigs = [
-        { id: 'status', label: '狀態', type: 'multi', options: ['待簽核', '簽核中(7)', '簽核完成', '撤回', '駁回', 'CC', '待補件'] },
+        { id: 'status', label: '狀態', type: 'multi', options: ['未簽核', '待我簽核', '簽核中(7)', '簽核完成', '撤回', '駁回', 'CC', '待補件'] },
         { id: 'oa', label: 'OA 類型', type: 'multi', options: ['商務', '合同', '財務', '行政', 'PMO'] },
         { id: 'project', label: '項目', type: 'multi', options: ['GT'] },
         { id: 'location', label: '地點', type: 'multi', options: ['T1', 'T2', 'THQ', 'T3', 'T4'] },
@@ -204,16 +254,16 @@
 
       // 請假/補卡簽核：專屬篩選器設定
       const ltFilterConfigs = [
-        { id: 'ltStatus', label: '狀態', type: 'multi', options: ['待他人審批', '需要審批', '已完成審批', '被抄送審批'] },
+        { id: 'ltStatus', label: '狀態', type: 'multi', options: ['未簽核', '待我簽核', '簽核中(7)', '簽核完成', '撤回', '駁回', 'CC', '待補件'] },
         { id: 'ltProject', label: '項目', type: 'multi', options: ['GT'] },
         { id: 'ltDept', label: '部門', type: 'multi', options: ['API', 'RD'] },
       ];
 
       // 統一狀態管理
       const [selectedFilters, setSelectedFilters] = useState({
-        status: ['待簽核', '簽核中(7)'], // 預設選中
+        status: ['未簽核', '待我簽核', '簽核中(7)'], // 預設選中
         oa: [], project: [], location: [], title: [], docType: [],
-        ltStatus: [], ltProject: [], ltDept: []
+        ltStatus: ['未簽核', '待我簽核', '簽核中(7)'], ltProject: [], ltDept: []
       });
 
       // 請假簽核：依篩選器（狀態 / 項目 / 部門，多選；未選代表全部）過濾列表
@@ -223,7 +273,15 @@
         (selectedFilters.ltDept.length === 0 || selectedFilters.ltDept.includes(d.dept))
       );
       // 全選 / 批量審批以「篩選後可審批」的資料為準
-      const approvableLeaves = filteredLeaveData.filter(d => d.status === '需要審批');
+      const approvableLeaves = filteredLeaveData.filter(d => d.status === '待我簽核');
+
+      // 銷假簽核：依篩選器（狀態 / 項目 / 部門）過濾列表
+      const filteredCancelData = mockCancelData.filter(d =>
+        (selectedFilters.ltStatus.length === 0 || selectedFilters.ltStatus.includes(d.status)) &&
+        (selectedFilters.ltProject.length === 0 || selectedFilters.ltProject.includes(d.project)) &&
+        (selectedFilters.ltDept.length === 0 || selectedFilters.ltDept.includes(d.dept))
+      );
+      const approvableCancels = filteredCancelData.filter(d => d.status === '待我簽核');
 
       const toggleFilterOption = (filterId, option) => {
         setSelectedFilters(prev => {
@@ -410,29 +468,48 @@
       );
 
       const mockData = [
-        { oa: '財務', location: 'THQ', type: 'B',  docNo: 'B-THQ-000003',  applicant: 'aaa123', signature: 'aaa123', amounts: ['TWD 8,000', 'CNY 2137.09'],        date: '2026-05-30 15:36:45', approver: '部門主管', refNo: '-', status: '待簽核', isGreen: false },
-        { oa: '合同', location: 'THQ', type: 'IC', docNo: 'IC-THQ-000002', applicant: 'aaa123', signature: 'aaa123', amounts: ['TWD 2,000,000', 'CNY 427407.40'], date: '2026-05-20 15:36:45', approver: '部門主管', refNo: '-', status: '簽核完成', isGreen: true },
-        { oa: '行政', location: 'THQ', type: 'PU', docNo: 'PU-THQ-000003', applicant: 'aaa123', signature: 'aaa123', amounts: ['TWD 8,000', 'CNY 2137.09'],        date: '2026-05-12 15:36:45', approver: '部門主管', refNo: '-', status: '待簽核', isGreen: false },
-        { oa: '行政', location: 'THQ', type: 'PU', docNo: 'PU-THQ-000002', applicant: 'aaa123', signature: 'aaa123', amounts: ['TWD 2,000,000', 'CNY 427407.40'], date: '2026-04-30 12:36:10', approver: '部門主管', refNo: '-', status: '簽核完成', isGreen: true },
-        { oa: '財務', location: 'THQ', type: 'C',  docNo: 'C-THQ-000001',  applicant: 'aaa123', signature: 'aaa123', amounts: ['TWD 2,000', 'CNY 451.47'],          date: '2026-04-26 19:00:45', approver: '部門主管', refNo: '-', status: '待簽核', isGreen: false },
-        { oa: '行政', location: 'THQ', type: 'PU', docNo: 'PU-THQ-000001', applicant: 'aaa123', signature: 'aaa123', amounts: ['TWD 2,000', 'CNY 451.47'],          date: '2026-04-25 19:00:45', approver: '部門主管', refNo: '-', status: '簽核完成', isGreen: true },
+        { oa: '財務', location: 'THQ', type: 'B',  docNo: 'B-THQ-000003',  applicant: 'Oliver', signature: 'Oliver', amounts: ['TWD 8,000', 'CNY 2137.09'],        date: '2026-05-30 15:36:45', approver: 'James', refNo: '-', status: '待我簽核', isGreen: false },
+        { oa: '合同', location: 'THQ', type: 'IC', docNo: 'IC-THQ-000002', applicant: 'Oliver', signature: 'Oliver', amounts: ['TWD 2,000,000', 'CNY 427407.40'], date: '2026-05-20 15:36:45', approver: 'James', refNo: '-', status: '簽核完成', isGreen: true },
+        { oa: '行政', location: 'THQ', type: 'PU', docNo: 'PU-THQ-000003', applicant: 'Oliver', signature: 'Oliver', amounts: ['TWD 8,000', 'CNY 2137.09'],        date: '2026-05-12 15:36:45', approver: 'James', refNo: '-', status: '未簽核', isGreen: false },
+        { oa: '行政', location: 'THQ', type: 'PU', docNo: 'PU-THQ-000002', applicant: 'Oliver', signature: 'Oliver', amounts: ['TWD 2,000,000', 'CNY 427407.40'], date: '2026-04-30 12:36:10', approver: 'James', refNo: '-', status: '簽核完成', isGreen: true },
+        { oa: '財務', location: 'THQ', type: 'C',  docNo: 'C-THQ-000001',  applicant: 'Oliver', signature: 'Oliver', amounts: ['TWD 2,000', 'CNY 451.47'],          date: '2026-04-26 19:00:45', approver: 'James', refNo: '-', status: '未簽核', isGreen: false },
+        { oa: '行政', location: 'THQ', type: 'PU', docNo: 'PU-THQ-000001', applicant: 'Oliver', signature: 'Oliver', amounts: ['TWD 2,000', 'CNY 451.47'],          date: '2026-04-25 19:00:45', approver: 'James', refNo: '-', status: '簽核完成', isGreen: true },
       ];
 
+      // 關聯單號對應（PU 與 IC / B / C 互相關聯，依單號末碼配對）
+      const relatedDocMap = {
+        'PU-THQ-000001': 'C-THQ-000001',  'C-THQ-000001': 'PU-THQ-000001',
+        'PU-THQ-000002': 'IC-THQ-000002', 'IC-THQ-000002': 'PU-THQ-000002',
+        'PU-THQ-000003': 'B-THQ-000003',  'B-THQ-000003': 'PU-THQ-000003',
+      };
+
       // 計算各頁籤未處理數量
-      const formPendingCount = mockData.filter(d => d.status === '待簽核').length;
-      const leavePendingCount = mockLeaveData.filter(d => d.status === '需要審批').length;
-      const timesheetPendingCount = mockTimesheetData.filter(d => d.status === '需要審批').length;
+      const formPendingCount = mockData.filter(d => d.status === '未簽核' || d.status === '待我簽核').length;
+
+      // 電子表單簽核：依篩選器（狀態 / OA 類型 / 地點，多選；未選代表全部）過濾列表
+      const filteredFormData = mockData.filter(d =>
+        (selectedFilters.status.length === 0 || selectedFilters.status.includes(d.status)) &&
+        (selectedFilters.oa.length === 0 || selectedFilters.oa.includes(d.oa)) &&
+        (selectedFilters.location.length === 0 || selectedFilters.location.includes(d.location))
+      );
+      const leavePendingCount = mockLeaveData.filter(d => d.status === '待我簽核').length;
+      const timesheetPendingCount = mockTimesheetData.filter(d => d.status === '待我簽核').length;
+      const cancelPendingCount = mockCancelData.filter(d => d.status === '待我簽核').length;
 
       const getTabPendingCount = (tabName) => {
         if (tabName === '電子表單簽核') return formPendingCount;
         if (tabName === '請假簽核') return leavePendingCount;
         if (tabName === '補卡簽核') return timesheetPendingCount;
+        if (tabName === '銷假簽核') return cancelPendingCount;
         return 0;
       };
 
       const getStatusBadge = (status) => {
-        if (status === '待簽核') {
-          return <span className="ui-badge ui-badge-warning">待簽核</span>;
+        if (status === '未簽核') {
+          return <span className="ui-badge ui-badge-warning">未簽核</span>;
+        }
+        if (status === '待我簽核') {
+          return <span className="ui-badge ui-badge-info">待我簽核</span>;
         }
         if (status === '簽核中') {
           return <span className="ui-badge ui-badge-info">簽核中</span>;
@@ -440,7 +517,13 @@
         if (status === '簽核完成') {
           return <span className="ui-badge ui-badge-success">簽核完成</span>;
         }
-        return <span>{status}</span>;
+        if (status === '駁回') {
+          return <span className="ui-badge ui-badge-danger">駁回</span>;
+        }
+        if (status === 'CC') {
+          return <span className="ui-badge ui-badge-gray">CC</span>;
+        }
+        return <span className="ui-badge ui-badge-gray">{status}</span>;
       };
 
       return (
@@ -505,12 +588,15 @@
                           <th>總金額</th>
                           <th>申請日期</th>
                           <th>當前審批人</th>
-                          <th>關聯號</th>
+                          <th>關聯單號</th>
                           <th>狀態</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {mockData.map((row, idx) => (
+                        {filteredFormData.length === 0 && (
+                          <tr><td colSpan="11" className="py-8 text-center text-gray-400">目前沒有符合條件的資料</td></tr>
+                        )}
+                        {filteredFormData.map((row, idx) => (
                           <tr
                             key={idx}
                             className={row.isGreen ? 'bg-[#F2FBF5]' : ''}
@@ -523,7 +609,7 @@
                                 onClick={() => { setModalRow(row); setIsModalOpen(true); }}
                                 className="text-[#4A90E2] hover:underline font-medium text-left"
                               >
-                                {row.docNo}
+                                {`${row.docNo}_${({ B: '一般費用', C: '費用報銷', IC: '內部合同', PU: '請購', HR: '人員帳號異動', SA: '用印申請' })[row.type] || '申請'}`}
                               </button>
                             </td>
                             <td>{row.applicant}</td>
@@ -542,7 +628,16 @@
                               </div>
                             </td>
                             <td>{row.approver}</td>
-                            <td className="text-gray-400">{row.refNo}</td>
+                            <td className="text-gray-400">
+                              {relatedDocMap[row.docNo] ? (
+                                <button
+                                  onClick={() => { const t = mockData.find(r => r.docNo === relatedDocMap[row.docNo]); if (t) { setModalRow(t); setIsModalOpen(true); } }}
+                                  className="text-[#4A90E2] hover:underline font-medium"
+                                >
+                                  {relatedDocMap[row.docNo]}
+                                </button>
+                              ) : '-'}
+                            </td>
                             <td>
                               <div className="flex items-center justify-center gap-3">
                                 {getStatusBadge(row.status)}
@@ -614,7 +709,7 @@
                         disabled={selectedLeave.length === 0}
                         className="ui-btn ui-btn-success"
                       >
-                        批量審批
+                        一鍵審批
                       </button>
                     </div>
                     <div className="border border-gray-200 rounded overflow-x-auto">
@@ -647,7 +742,7 @@
                           {filteredLeaveData.length > 0 ? filteredLeaveData.map((row) => (
                             <tr key={row.id}>
                               <td className="text-center">
-                                {row.status === '需要審批' && (
+                                {row.status === '待我簽核' && (
                                   <input 
                                     type="checkbox"
                                     checked={selectedLeave.includes(row.id)}
@@ -669,14 +764,7 @@
                               <td className="text-left">{row.leaveType}</td>
                               <td className="text-left">{row.hours}</td>
                               <td className="text-left">
-                                <span className={`ui-badge ${
-                                  row.status === '需要審批' ? 'ui-badge-warning' :
-                                  row.status === '待他人審批' ? 'ui-badge-gray' :
-                                  row.status === '已完成審批' ? 'ui-badge-success' :
-                                  'ui-badge-info'
-                                }`}>
-                                  {row.status}
-                                </span>
+                                {getStatusBadge(row.status)}
                               </td>
                               <td className="text-left">
                                 <div className="flex items-center justify-start gap-2">
@@ -686,7 +774,7 @@
                                   >
                                     檢視
                                   </button>
-                                  {row.status === '需要審批' && (
+                                  {row.status === '待我簽核' && (
                                     <button
                                       onClick={() => {/* 處理單筆審批邏輯 */}}
                                       className="ui-btn ui-btn-secondary ui-btn-sm"
@@ -725,7 +813,7 @@
                         disabled={selectedTimesheet.length === 0}
                         className="ui-btn ui-btn-success"
                       >
-                        批量審批
+                        一鍵審批
                       </button>
                     </div>
                     <div className="border border-gray-200 rounded overflow-x-auto">
@@ -756,7 +844,7 @@
                           {mockTimesheetData.length > 0 ? mockTimesheetData.map((row) => (
                             <tr key={row.id}>
                               <td className="text-center">
-                                {row.status === '需要審批' && (
+                                {row.status === '待我簽核' && (
                                   <input 
                                     type="checkbox"
                                     checked={selectedTimesheet.includes(row.id)}
@@ -776,14 +864,7 @@
                               <td className="text-left">{row.period}</td>
                               <td className="text-left">{row.type}</td>
                               <td className="text-left">
-                                <span className={`ui-badge ${
-                                  row.status === '需要審批' ? 'ui-badge-warning' :
-                                  row.status === '待他人審批' ? 'ui-badge-gray' :
-                                  row.status === '已完成審批' ? 'ui-badge-success' :
-                                  'ui-badge-info'
-                                }`}>
-                                  {row.status}
-                                </span>
+                                {getStatusBadge(row.status)}
                               </td>
                               <td className="text-left">
                                 <div className="flex items-center justify-start gap-2">
@@ -793,7 +874,7 @@
                                   >
                                     檢視
                                   </button>
-                                  {row.status === '需要審批' && (
+                                  {row.status === '待我簽核' && (
                                     <button
                                       onClick={() => {/* 處理單筆審批邏輯 */}}
                                       className="ui-btn ui-btn-secondary ui-btn-sm"
@@ -807,6 +888,109 @@
                           )) : (
                             <tr>
                               <td colSpan="10" className="py-8 text-center text-gray-400 bg-white">
+                                目前沒有待簽核項目
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </>
+              ) : activeTab === '銷假簽核' ? (
+                /* 銷假簽核 的專屬排版與批量審批 */
+                <>
+                  {renderFilterBar(ltFilterConfigs)}
+                  {renderSearchBar(true, ltStartDate, setLtStartDate, ltEndDate, setLtEndDate, () => {
+                    setLtStartDate(getFormattedDate(-31));
+                    setLtEndDate(getFormattedDate(0));
+                  })}
+                  <div className="space-y-4">
+                    <div className="flex justify-start">
+                      <button
+                        onClick={() => setBatchApproveModal('cancel')}
+                        disabled={selectedCancel.length === 0}
+                        className="ui-btn ui-btn-success"
+                      >
+                        一鍵審批
+                      </button>
+                    </div>
+                    <div className="border border-gray-200 rounded overflow-x-auto">
+                      <table className="ui-table text-center whitespace-nowrap">
+                        <thead>
+                          <tr>
+                            <th className="w-12 text-center">
+                              <input
+                                type="checkbox"
+                                disabled={approvableCancels.length === 0}
+                                checked={selectedCancel.length === approvableCancels.length && approvableCancels.length > 0}
+                                onChange={(e) => setSelectedCancel(e.target.checked ? approvableCancels.map(d => d.id) : [])}
+                                className="w-4 h-4 rounded border-gray-300 text-[#4A90E2] focus:ring-[#4A90E2] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                              />
+                            </th>
+                            <th className="text-left">項目</th>
+                            <th className="text-left">部門</th>
+                            <th className="text-left">工號</th>
+                            <th className="text-left">申請時間</th>
+                            <th className="text-left">名稱</th>
+                            <th className="text-left">原假別</th>
+                            <th className="text-left">原請假期間</th>
+                            <th className="text-left">銷假事由</th>
+                            <th className="text-left">小時</th>
+                            <th className="text-left">狀態</th>
+                            <th className="text-left">操作</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {filteredCancelData.length > 0 ? filteredCancelData.map((row) => (
+                            <tr key={row.id}>
+                              <td className="text-center">
+                                {row.status === '待我簽核' && (
+                                  <input
+                                    type="checkbox"
+                                    checked={selectedCancel.includes(row.id)}
+                                    onChange={(e) => {
+                                      if (e.target.checked) setSelectedCancel([...selectedCancel, row.id]);
+                                      else setSelectedCancel(selectedCancel.filter(id => id !== row.id));
+                                    }}
+                                    className="w-4 h-4 rounded border-gray-300 text-[#4A90E2] focus:ring-[#4A90E2] cursor-pointer"
+                                  />
+                                )}
+                              </td>
+                              <td className="text-left">{row.project}</td>
+                              <td className="text-left">{row.dept}</td>
+                              <td className="text-left">{row.empNo}</td>
+                              <td className="text-left">{row.applyTime}</td>
+                              <td className="text-left">{row.name}</td>
+                              <td className="text-left">{row.leaveType}</td>
+                              <td className="text-left">{row.startDate} ~ {row.endDate}</td>
+                              <td className="text-left">{row.reason}</td>
+                              <td className="text-left">{row.hours}</td>
+                              <td className="text-left">
+                                {getStatusBadge(row.status)}
+                              </td>
+                              <td className="text-left">
+                                <div className="flex items-center justify-start gap-2">
+                                  <button
+                                    onClick={() => setViewItem({ kind: 'leave', data: row })}
+                                    className="ui-btn ui-btn-secondary ui-btn-sm"
+                                  >
+                                    檢視
+                                  </button>
+                                  {row.status === '待我簽核' && (
+                                    <button
+                                      onClick={() => {/* 處理單筆審批邏輯 */}}
+                                      className="ui-btn ui-btn-secondary ui-btn-sm"
+                                    >
+                                      審批
+                                    </button>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          )) : (
+                            <tr>
+                              <td colSpan="12" className="py-8 text-center text-gray-400 bg-white">
                                 目前沒有待簽核項目
                               </td>
                             </tr>
@@ -843,18 +1027,18 @@
 
           </main>
 
-          {/* ================= 費用申請單 (B) 雙欄結構彈窗 ================= */}
+          {/* ================= 申請單詳情彈窗 ================= */}
           {isModalOpen && (
             <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-center justify-center p-4 overflow-y-auto" onClick={() => setIsModalOpen(false)}>
-              <div 
-                className="bg-[#F0F2F5] rounded-xl shadow-2xl w-full max-w-[1600px] max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200 text-left"
+              <div
+                className="bg-[#F0F2F5] rounded-xl shadow-2xl w-full max-w-[1450px] h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200 text-left"
                 onClick={e => e.stopPropagation()}
               >
-                
+
                 {/* 彈窗標題與關閉按鈕 */}
                 <div className="bg-[#EEF2F6] px-6 py-3.5 flex items-center justify-between border-b border-gray-200 flex-shrink-0">
-                  <span className="font-bold text-gray-800 text-base">{`${({ B: '費用申請單', C: '費用報銷單', IC: '內部合同審批單', PU: '採購申請單' })[modalRow?.type] || '費用申請單'} (${modalRow?.type || 'B'})`}</span>
-                  <button 
+                  <span className="font-bold text-gray-800 text-base">{`${({ B: '費用申請單', C: '費用報銷單', IC: '內部合同審批單', PU: '請購申請單' })[modalRow?.type] || '費用申請單'}(${modalRow?.type || 'B'})`}</span>
+                  <button
                     onClick={() => setIsModalOpen(false)}
                     className="bg-[#3F51B5] hover:bg-blue-800 text-white p-1 rounded transition-colors"
                   >
@@ -862,466 +1046,168 @@
                   </button>
                 </div>
 
-                {/* 內部雙欄面板結構：左側滾動、右側為審批線預覽 */}
                 <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
-                  
-                  {/* 左側：表單卡片內容 + 固定底部 */}
+
+                  {/* 左側：表單卡片內容 */}
                   <div className="flex-1 flex flex-col overflow-hidden">
-                    
-                    {/* 表單卡片（可垂直滾動） */}
-                    <div className="flex-1 overflow-y-auto p-5 space-y-4">
+                    <div className="flex-1 overflow-y-auto p-6 space-y-6">
 
                       {/* 基本資訊卡片 */}
-                      <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm space-y-4">
+                      <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-5">
                         <div className="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2">基本資訊</div>
-                        
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-x-6 gap-y-3">
-                          {/* 文件編號 */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                           <div>
-                            <div className="text-gray-500 text-xs mb-1 font-medium whitespace-nowrap">文件編號</div>
-                            <div className="text-gray-800 text-sm font-medium whitespace-nowrap">{modalRow?.docNo || '—'}</div>
+                            <label className="block text-gray-700 text-xs mb-1.5 font-medium">文件編號</label>
+                            <input type="text" disabled value={modalRow?.docNo || ''} className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 cursor-not-allowed font-mono" />
                           </div>
-
-                          {/* 申請日期 */}
                           <div>
-                            <div className="text-gray-500 text-xs mb-1 font-medium whitespace-nowrap">申請日期</div>
-                            <div className="text-gray-800 text-sm font-medium whitespace-nowrap">{(modalRow?.date || '').slice(0, 10) || '—'}</div>
+                            <label className="block text-gray-700 text-xs mb-1.5 font-medium">申請日期</label>
+                            <div className="flex items-center bg-[#EAECEF] border border-gray-300 rounded px-3 py-2 text-sm text-gray-700">
+                              <Calendar size={14} className="mr-2 text-gray-500" />
+                              <span>{(modalRow?.date || '').slice(0, 10) || '—'}</span>
+                            </div>
                           </div>
-
-                          {/* 標題 */}
                           <div>
-                            <div className="text-gray-500 text-xs mb-1 font-medium whitespace-nowrap">標題</div>
-                            <div className="text-gray-800 text-sm font-medium whitespace-nowrap">{modalRow ? `${modalRow.oa}申請單` : '—'}</div>
+                            <label className="block text-gray-700 text-xs mb-1.5 font-medium">標題</label>
+                            <input type="text" disabled value={modalRow ? `${modalRow.oa || ''}申請單` : ''} className="w-full bg-white border border-gray-200 rounded px-3 py-2 text-sm text-gray-800 font-medium" />
                           </div>
-
-                          {/* 申請人 */}
                           <div>
-                            <div className="text-gray-500 text-xs mb-1 font-medium whitespace-nowrap">申請人</div>
-                            <div className="text-gray-800 text-sm font-medium whitespace-nowrap">{modalRow?.applicant || '—'}</div>
+                            <label className="block text-gray-700 text-xs mb-1.5 font-medium">申請人</label>
+                            <input type="text" disabled value={modalRow?.applicant || ''} className="w-full bg-white border border-gray-200 rounded px-3 py-2 text-sm text-gray-800" />
                           </div>
-
-                          {/* 總部審批 */}
                           <div>
-                            <div className="text-gray-500 text-xs mb-1 font-medium whitespace-nowrap">總部審批</div>
-                            <div className="text-gray-800 text-sm font-medium whitespace-nowrap">否</div>
+                            <label className="block text-gray-700 text-xs mb-1.5 font-medium">服務類型</label>
+                            <input type="text" disabled value="一般費用" className="w-full bg-white border border-gray-200 rounded px-3 py-2 text-sm text-gray-800" />
                           </div>
-
-                          {/* 服務類型 */}
                           <div>
-                            <div className="text-gray-500 text-xs mb-1 font-medium whitespace-nowrap">服務類型</div>
-                            <div className="text-gray-800 text-sm font-medium whitespace-nowrap">一般費用</div>
-                          </div>
-
-                          {/* 項目 */}
-                          <div>
-                            <div className="text-gray-500 text-xs mb-1 font-medium whitespace-nowrap">項目</div>
-                            <div className="text-gray-800 text-sm font-medium whitespace-nowrap">GT</div>
-                          </div>
-
-                          {/* 區域 */}
-                          <div>
-                            <div className="text-gray-500 text-xs mb-1 font-medium whitespace-nowrap">區域</div>
-                            <div className="text-gray-800 text-sm font-medium whitespace-nowrap">{modalRow?.location || '—'}</div>
+                            <label className="block text-gray-700 text-xs mb-1.5 font-medium">區域</label>
+                            <input type="text" disabled value={modalRow?.location || ''} className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 cursor-not-allowed" />
                           </div>
                         </div>
-                      </div>
-
-                      {/* 費用申請卡片 */}
-                      <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm space-y-4">
-                        <div className="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2">費用申請</div>
-                        
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-x-6 gap-y-3">
-                          {/* 是否關聯其他單號 */}
-                          <div>
-                            <div className="text-gray-500 text-xs mb-1 font-medium whitespace-nowrap">是否關聯其他單號</div>
-                            <div className="text-gray-800 text-sm font-medium whitespace-nowrap">否</div>
-                          </div>
-
-                            {/* 公司別 */}
-                            <div>
-                              <div className="text-gray-500 text-xs mb-1 font-medium whitespace-nowrap">公司別</div>
-                              <div className="text-gray-800 text-sm font-medium whitespace-nowrap">TC</div>
-                            </div>
-
-                            {/* 部門 */}
-                            <div>
-                              <div className="text-gray-500 text-xs mb-1 font-medium whitespace-nowrap">部門</div>
-                              <div className="text-gray-800 text-sm font-medium whitespace-nowrap">RD</div>
-                            </div>
-
-                            {/* 部門主管 */}
-                            <div>
-                              <div className="text-gray-500 text-xs mb-1 font-medium whitespace-nowrap">部門主管</div>
-                              <div className="text-gray-800 text-sm font-medium whitespace-nowrap">bbb123</div>
-                            </div>
-
-                            {/* 開戶行姓名 */}
-                            <div>
-                              <div className="text-gray-500 text-xs mb-1 font-medium whitespace-nowrap">開戶行姓名</div>
-                              <div className="text-gray-800 text-sm font-medium whitespace-nowrap">—</div>
-                            </div>
-
-                            {/* 開戶銀行 */}
-                            <div>
-                              <div className="text-gray-500 text-xs mb-1 font-medium whitespace-nowrap">開戶銀行</div>
-                              <div className="text-gray-800 text-sm font-medium whitespace-nowrap">—</div>
-                            </div>
-
-                            {/* 銀行帳號 */}
-                            <div>
-                              <div className="text-gray-500 text-xs mb-1 font-medium whitespace-nowrap">銀行帳號</div>
-                              <div className="text-gray-800 text-sm font-medium whitespace-nowrap">—</div>
-                            </div>
-
-                            {/* 貨幣 */}
-                            <div>
-                              <div className="text-gray-500 text-xs mb-1 font-medium whitespace-nowrap">貨幣</div>
-                              <div className="text-gray-800 text-sm font-medium whitespace-nowrap">TWD</div>
-                            </div>
-
-                            {/* 此單有特批 */}
-                            <div>
-                              <div className="text-gray-500 text-xs mb-1 font-medium whitespace-nowrap">此單有特批</div>
-                              <div className="text-gray-800 text-sm font-medium whitespace-nowrap">否</div>
-                            </div>
-                          </div>
                       </div>
 
                       {/* 費用申請明細卡片 */}
-                      <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm space-y-4">
+                      <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-5">
                         <div className="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2">費用申請明細</div>
-                        
-                        <div className="overflow-x-auto border border-gray-100 rounded-lg">
-                          <table className="w-full text-sm whitespace-nowrap">
-                            <thead className="bg-gray-50 text-gray-500 text-xs">
-                              <tr>
-                                <th className="px-4 py-2.5 text-left font-medium">科目</th>
-                                <th className="px-4 py-2.5 text-left font-medium">內容</th>
-                                <th className="px-4 py-2.5 text-right font-medium">金額</th>
-                              </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-100 text-gray-800">
-                              <tr>
-                                <td className="px-4 py-2.5">
-                                  <select defaultValue="差旅_交通费" className="border border-gray-300 rounded-md px-2.5 py-1.5 text-sm bg-white text-gray-800 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#4A90E2]/40 focus:border-[#4A90E2]">
-                                    <option>差旅_交通费</option><option>差旅_住宿费</option><option>差旅_机票费</option><option>差旅_其他费</option><option>差旅_餐补</option><option>旅游签证费</option>
-                                  </select>
-                                </td>
-                                <td className="px-4 py-2.5 font-medium">客戶業務餐敘</td>
-                                <td className="px-4 py-2.5 text-right font-medium">TWD 8,000</td>
-                              </tr>
-                              <tr>
-                                <td className="px-4 py-2.5">
-                                  <select defaultValue="差旅_住宿费" className="border border-gray-300 rounded-md px-2.5 py-1.5 text-sm bg-white text-gray-800 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#4A90E2]/40 focus:border-[#4A90E2]">
-                                    <option>差旅_交通费</option><option>差旅_住宿费</option><option>差旅_机票费</option><option>差旅_其他费</option><option>差旅_餐补</option><option>旅游签证费</option>
-                                  </select>
-                                </td>
-                                <td className="px-4 py-2.5 font-medium">出差住宿（3 晚）</td>
-                                <td className="px-4 py-2.5 text-right font-medium">TWD 12,600</td>
-                              </tr>
-                              <tr>
-                                <td className="px-4 py-2.5">
-                                  <select defaultValue="差旅_机票费" className="border border-gray-300 rounded-md px-2.5 py-1.5 text-sm bg-white text-gray-800 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#4A90E2]/40 focus:border-[#4A90E2]">
-                                    <option>差旅_交通费</option><option>差旅_住宿费</option><option>差旅_机票费</option><option>差旅_其他费</option><option>差旅_餐补</option><option>旅游签证费</option>
-                                  </select>
-                                </td>
-                                <td className="px-4 py-2.5 font-medium">文具與耗材採購</td>
-                                <td className="px-4 py-2.5 text-right font-medium">TWD 3,400</td>
-                              </tr>
-                              <tr>
-                                <td className="px-4 py-2.5">
-                                  <select defaultValue="差旅_其他费" className="border border-gray-300 rounded-md px-2.5 py-1.5 text-sm bg-white text-gray-800 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#4A90E2]/40 focus:border-[#4A90E2]">
-                                    <option>差旅_交通费</option><option>差旅_住宿费</option><option>差旅_机票费</option><option>差旅_其他费</option><option>差旅_餐补</option><option>旅游签证费</option>
-                                  </select>
-                                </td>
-                                <td className="px-4 py-2.5 font-medium">線上廣告投放</td>
-                                <td className="px-4 py-2.5 text-right font-medium">TWD 50,000</td>
-                              </tr>
-                              <tr className="bg-gray-50/60 font-bold">
-                                <td className="px-4 py-2.5 text-right text-gray-600" colSpan="2">合計</td>
-                                <td className="px-4 py-2.5 text-right text-gray-800">TWD 74,000</td>
-                              </tr>
-                            </tbody>
-                          </table>
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                          <div className="lg:col-span-8">
+                            <label className="block text-gray-700 text-xs mb-1.5 font-semibold">內容</label>
+                            <input type="text" disabled value="客戶業務餐敘 / 出差住宿 / 文具耗材採購" className="w-full bg-white border border-gray-200 rounded px-3 py-2 text-sm text-gray-800 font-medium" />
+                          </div>
+                          <div className="lg:col-span-4">
+                            <label className="block text-gray-700 text-xs mb-1.5 font-semibold">金額</label>
+                            <div className="flex items-center border border-gray-200 rounded overflow-hidden">
+                              <span className="bg-gray-50 border-r border-gray-200 px-3 py-2 text-sm text-gray-500 font-medium select-none">TWD</span>
+                              <input type="text" disabled value={(modalRow?.amounts && modalRow.amounts[0]) ? modalRow.amounts[0].replace(/^[A-Z]+ /, '') : ''} className="w-full bg-white px-3 py-2 text-sm text-gray-800 font-medium focus:outline-none" />
+                            </div>
+                          </div>
                         </div>
                       </div>
 
-                      {/* 備註卡片 */}
-                      <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm space-y-3">
-                        <div className="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2">備註</div>
-                        <textarea 
-                          disabled
-                          rows={4} 
-                          className="w-full border border-gray-200 rounded-lg p-3 text-sm text-gray-700 bg-white h-32 focus:outline-none"
-                        />
-                      </div>
-
-                      {/* 附件 */}
-                      <div className="text-gray-500 text-xs px-2 font-medium">附件</div>
-
-                      {/* 審批線詳情表格區塊 */}
+                      {/* 進度追蹤卡片 */}
                       <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
                         <div className="bg-[#EEF2F6] px-6 py-3.5 flex items-center justify-between border-b border-gray-200">
-                          <span className="font-bold text-[#1A237E] text-[15px]">審批線詳情</span>
-                          
-                          {/* 右側：顯示審批意見與附件開關 */}
+                          <span className="font-bold text-[#1A237E] text-[15px]">進度追蹤</span>
                           <div className="flex items-center gap-3">
                             <span className="text-xs font-semibold text-[#1A237E]">顯示審批意見與附件</span>
-                            <button 
+                            <button
                               onClick={() => setShowOpinions(!showOpinions)}
-                              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
-                                showOpinions ? 'bg-[#3F51B5]' : 'bg-gray-300'
-                              }`}
+                              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${showOpinions ? 'bg-[#3F51B5]' : 'bg-gray-300'}`}
                             >
-                              <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                                showOpinions ? 'translate-x-6' : 'translate-x-1'
-                              }`} />
+                              <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${showOpinions ? 'translate-x-6' : 'translate-x-1'}`} />
                             </button>
                           </div>
                         </div>
 
-                        <div className="p-4 space-y-4">
-                          <div className="text-xs font-semibold text-gray-500">
-                            當前審批線: 一般費用 (CNY)
+                        <div className="p-6 space-y-6">
+                          {/* 橫向審批進度條 */}
+                          <div className="flex items-start">
+                            <div className="flex flex-col items-center text-center w-28">
+                              <div className="w-9 h-9 rounded-full bg-emerald-500 text-white flex items-center justify-center text-sm font-bold">✓</div>
+                              <div className="mt-2 text-xs font-bold text-gray-800 whitespace-nowrap">提交申請</div>
+                              <div className="text-[11px] text-gray-400 whitespace-nowrap">{modalRow?.applicant || 'Oliver'}</div>
+                            </div>
+                            <div className="flex-1 h-0.5 bg-emerald-500 mt-[18px] mx-1"></div>
+                            <div className="flex flex-col items-center text-center w-28">
+                              <div className="w-9 h-9 rounded-full bg-[#4A90E2] text-white flex items-center justify-center text-sm font-bold ring-4 ring-blue-100">2</div>
+                              <div className="mt-2 text-xs font-bold text-[#4A90E2] whitespace-nowrap">部門主管</div>
+                              <div className="text-[11px] text-gray-400 whitespace-nowrap">James · 審批中</div>
+                            </div>
+                            <div className="flex-1 h-0.5 bg-gray-200 mt-[18px] mx-1"></div>
+                            <div className="flex flex-col items-center text-center w-28">
+                              <div className="w-9 h-9 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center text-sm font-bold">3</div>
+                              <div className="mt-2 text-xs font-medium text-gray-500 whitespace-nowrap">項目負責人</div>
+                              <div className="text-[11px] text-gray-400 whitespace-nowrap">Felix · 待審批</div>
+                            </div>
                           </div>
 
-                          <div className="overflow-x-auto border border-gray-100 rounded-lg">
-                            <table className="w-full text-left text-xs border-collapse">
-                              <thead>
-                                <tr className="border-b border-gray-200 bg-gray-50 text-gray-700 font-bold">
-                                  <th className="px-4 py-3 text-center w-16">序號</th>
-                                  <th className="px-4 py-3 text-center w-24">審批狀態</th>
-                                  <th className="px-4 py-3 text-center w-20">條件</th>
-                                  <th className="px-4 py-3 text-center w-24">級別</th>
-                                  <th className="px-4 py-3">職稱</th>
-                                  <th className="px-4 py-3">簽名</th>
-                                  <th className="px-4 py-3 w-28">ID</th>
-                                  <th className="px-4 py-3 w-40">審批時間</th>
-                                </tr>
-                              </thead>
-                              <tbody className="divide-y divide-gray-100 font-medium">
-                                {/* 1 */}
-                                <tr>
-                                  <td className="px-4 py-3 text-center font-bold text-gray-800">1</td>
-                                  <td className="px-4 py-3 text-center">
-                                    <span className="ui-badge ui-badge-info">審批中</span>
-                                  </td>
-                                  <td className="px-4 py-3 text-center text-gray-500">並聯</td>
-                                  <td className="px-4 py-3 text-center text-gray-500">location</td>
-                                  <td className="px-4 py-3 text-gray-800">部門主管</td>
-                                  <td className="px-4 py-3 text-gray-800">Robin L</td>
-                                  <td className="px-4 py-3 text-gray-600 font-mono">100344</td>
-                                  <td className="px-4 py-3 text-gray-400">-</td>
-                                </tr>
-                                {/* 2 */}
-                                <tr>
-                                  <td className="px-4 py-3 text-center font-bold text-gray-800">2</td>
-                                  <td className="px-4 py-3 text-center">
-                                    <span className="ui-badge ui-badge-warning">待審批</span>
-                                  </td>
-                                  <td className="px-4 py-3 text-center text-gray-500">串聯</td>
-                                  <td className="px-4 py-3 text-center text-gray-500">location</td>
-                                  <td className="px-4 py-3 text-gray-800">項目負責人</td>
-                                  <td className="px-4 py-3 text-gray-800">ccc123</td>
-                                  <td className="px-4 py-3 text-gray-600 font-mono">100962</td>
-                                  <td className="px-4 py-3 text-gray-400">-</td>
-                                </tr>
-                                {/* 3 */}
-                                <tr>
-                                  <td className="px-4 py-3 text-center font-bold text-gray-800">3</td>
-                                  <td className="px-4 py-3 text-center">
-                                    <span className="ui-badge ui-badge-warning">待審批</span>
-                                  </td>
-                                  <td className="px-4 py-3 text-center text-gray-500">串聯</td>
-                                  <td className="px-4 py-3 text-center text-gray-500">location</td>
-                                  <td className="px-4 py-3 text-gray-800">費用會計</td>
-                                  <td className="px-4 py-3 text-gray-800">Liz G</td>
-                                  <td className="px-4 py-3 text-gray-600 font-mono">101436</td>
-                                  <td className="px-4 py-3 text-gray-400">-</td>
-                                </tr>
-                                {/* 4 */}
-                                <tr>
-                                  <td className="px-4 py-3 text-center font-bold text-gray-800">4</td>
-                                  <td className="px-4 py-3 text-center">
-                                    <span className="ui-badge ui-badge-warning">待審批</span>
-                                  </td>
-                                  <td className="px-4 py-3 text-center text-gray-500">串聯</td>
-                                  <td className="px-4 py-3 text-center text-gray-500">location</td>
-                                  <td className="px-4 py-3 text-gray-800">財務負責人</td>
-                                  <td className="px-4 py-3 text-gray-800">Bertha W</td>
-                                  <td className="px-4 py-3 text-gray-600 font-mono">100123</td>
-                                  <td className="px-4 py-3 text-gray-400">-</td>
-                                </tr>
-                                {/* 5 */}
-                                <tr>
-                                  <td className="px-4 py-3 text-center font-bold text-gray-800">5</td>
-                                  <td className="px-4 py-3 text-center">
-                                    <span className="ui-badge ui-badge-warning">待審批</span>
-                                  </td>
-                                  <td className="px-4 py-3 text-center text-gray-500">串聯</td>
-                                  <td className="px-4 py-3 text-center text-gray-500">location</td>
-                                  <td className="px-4 py-3 text-gray-800">內審</td>
-                                  <td className="px-4 py-3 text-gray-800">Ran Li</td>
-                                  <td className="px-4 py-3 text-gray-600 font-mono">101366</td>
-                                  <td className="px-4 py-3 text-gray-400">-</td>
-                                </tr>
-                                {/* 6 */}
-                                <tr>
-                                  <td className="px-4 py-3 text-center font-bold text-gray-800">6</td>
-                                  <td className="px-4 py-3 text-center">
-                                    <span className="ui-badge ui-badge-warning">待審批</span>
-                                  </td>
-                                  <td className="px-4 py-3 text-center text-gray-500">串聯</td>
-                                  <td className="px-4 py-3 text-center text-gray-500">special</td>
-                                  <td className="px-4 py-3 text-gray-800">總經理</td>
-                                  <td className="px-4 py-3 text-gray-800">小北 XB</td>
-                                  <td className="px-4 py-3 text-gray-600 font-mono">100960</td>
-                                  <td className="px-4 py-3 text-gray-400">-</td>
-                                </tr>
-                                {/* 7 */}
-                                <tr>
-                                  <td className="px-4 py-3 text-center font-bold text-gray-800">7</td>
-                                  <td className="px-4 py-3 text-center">
-                                    <span className="ui-badge ui-badge-warning">待審批</span>
-                                  </td>
-                                  <td className="px-4 py-3 text-center text-gray-500">串聯</td>
-                                  <td className="px-4 py-3 text-center text-gray-500">special</td>
-                                  <td className="px-4 py-3 text-gray-800">董事長</td>
-                                  <td className="px-4 py-3 text-gray-800">1</td>
-                                  <td className="px-4 py-3 text-gray-600 font-mono">1</td>
-                                  <td className="px-4 py-3 text-gray-400">-</td>
-                                </tr>
-                                {/* 8 */}
-                                <tr>
-                                  <td className="px-4 py-3 text-center font-bold text-gray-800">8</td>
-                                  <td className="px-4 py-3 text-center">
-                                    <span className="ui-badge ui-badge-warning">待審批</span>
-                                  </td>
-                                  <td className="px-4 py-3 text-center text-gray-500">串聯</td>
-                                  <td className="px-4 py-3 text-center text-gray-500">location</td>
-                                  <td className="px-4 py-3 text-gray-800">資金專員</td>
-                                  <td className="px-4 py-3 text-gray-800">Jessica C</td>
-                                  <td className="px-4 py-3 text-gray-600 font-mono">100570</td>
-                                  <td className="px-4 py-3 text-gray-400">-</td>
-                                </tr>
+                          {/* 審批意見與附件（toggle 控制） */}
+                          {showOpinions && (
+                            <div className="space-y-2.5 border-t border-gray-100 pt-4">
+                              <div className="text-xs font-semibold text-gray-500">審批意見與附件</div>
+                              <div className="flex items-start gap-3">
+                                <div className="w-20 shrink-0 text-xs font-bold text-gray-700">提交申請<div className="font-normal text-gray-400 mt-0.5">{modalRow?.applicant || 'Oliver'}</div></div>
+                                <div className="flex-1 text-sm text-gray-700 bg-gray-50 border border-gray-100 rounded-lg p-3">
+                                  依費用申請需求提出申請。
+                                  <div className="mt-2"><span className="inline-flex items-center gap-1 px-2 py-1 text-xs text-gray-600 bg-white border border-gray-200 rounded">📎 費用申請單.pdf</span></div>
+                                </div>
+                              </div>
+                              <div className="flex items-start gap-3">
+                                <div className="w-20 shrink-0 text-xs font-bold text-gray-700">部門主管<div className="font-normal text-gray-400 mt-0.5">James</div></div>
+                                <div className="flex-1 text-sm text-gray-700 bg-gray-50 border border-gray-100 rounded-lg p-3">已確認費用明細，待後續審批。</div>
+                              </div>
+                              <div className="flex items-start gap-3">
+                                <div className="w-20 shrink-0 text-xs font-bold text-gray-700">項目負責人<div className="font-normal text-gray-400 mt-0.5">Felix</div></div>
+                                <div className="flex-1 text-sm text-gray-400 italic bg-gray-50 border border-gray-100 rounded-lg p-3">尚未審批</div>
+                              </div>
+                            </div>
+                          )}
 
-                                {/* CC 1 */}
-                                <tr className="bg-gray-50/50">
-                                  <td className="px-4 py-3 text-center text-gray-400 font-bold">抄送</td>
-                                  <td className="px-4 py-3 text-center">
-                                    <span className="text-[#0d9488] bg-[#f0fdfa] border border-[#ccfbf1] px-2.5 py-0.5 rounded text-[11px] font-bold">抄送</span>
-                                  </td>
-                                  <td className="px-4 py-3 text-center text-gray-400">抄送</td>
-                                  <td className="px-4 py-3 text-center text-gray-400">special</td>
-                                  <td className="px-4 py-3 text-gray-500">資金主管</td>
-                                  <td className="px-4 py-3 text-gray-500">PonPon H</td>
-                                  <td className="px-4 py-3 text-gray-400 font-mono">100120</td>
-                                  <td className="px-4 py-3 text-gray-400">-</td>
-                                </tr>
-                                {/* CC 2 */}
-                                <tr className="bg-gray-50/50">
-                                  <td className="px-4 py-3 text-center text-gray-400 font-bold">抄送</td>
-                                  <td className="px-4 py-3 text-center">
-                                    <span className="text-[#0d9488] bg-[#f0fdfa] border border-[#ccfbf1] px-2.5 py-0.5 rounded text-[11px] font-bold">抄送</span>
-                                  </td>
-                                  <td className="px-4 py-3 text-center text-gray-400">抄送</td>
-                                  <td className="px-4 py-3 text-center text-gray-400">special</td>
-                                  <td className="px-4 py-3 text-gray-500">記帳</td>
-                                  <td className="px-4 py-3 text-gray-500">PY Y</td>
-                                  <td className="px-4 py-3 text-gray-400 font-mono">101081</td>
-                                  <td className="px-4 py-3 text-gray-400">-</td>
-                                </tr>
-                                {/* CC 3 */}
-                                <tr className="bg-gray-50/50">
-                                  <td className="px-4 py-3 text-center text-gray-400 font-bold">抄送</td>
-                                  <td className="px-4 py-3 text-center">
-                                    <span className="text-[#0d9488] bg-[#f0fdfa] border border-[#ccfbf1] px-2.5 py-0.5 rounded text-[11px] font-bold">抄送</span>
-                                  </td>
-                                  <td className="px-4 py-3 text-center text-gray-400">抄送</td>
-                                  <td className="px-4 py-3 text-center text-gray-400">special</td>
-                                  <td className="px-4 py-3 text-gray-500">稽核</td>
-                                  <td className="px-4 py-3 text-gray-500">KaYee Y</td>
-                                  <td className="px-4 py-3 text-gray-400 font-mono">100016</td>
-                                  <td className="px-4 py-3 text-gray-400">-</td>
-                                </tr>
-                                {/* CC 4 */}
-                                <tr className="bg-gray-50/50">
-                                  <td className="px-4 py-3 text-center text-gray-400 font-bold">抄送</td>
-                                  <td className="px-4 py-3 text-center">
-                                    <span className="text-[#0d9488] bg-[#f0fdfa] border border-[#ccfbf1] px-2.5 py-0.5 rounded text-[11px] font-bold">抄送</span>
-                                  </td>
-                                  <td className="px-4 py-3 text-center text-gray-400">抄送</td>
-                                  <td className="px-4 py-3 text-center text-gray-400">location</td>
-                                  <td className="px-4 py-3 text-gray-500">抄送內審</td>
-                                  <td className="px-4 py-3 text-gray-500">YIP Y</td>
-                                  <td className="px-4 py-3 text-gray-400 font-mono">100324</td>
-                                  <td className="px-4 py-3 text-gray-400">-</td>
-                                </tr>
-                                {/* CC 5 */}
-                                <tr className="bg-gray-50/50">
-                                  <td className="px-4 py-3 text-center text-gray-400 font-bold">抄送</td>
-                                  <td className="px-4 py-3 text-center">
-                                    <span className="text-[#0d9488] bg-[#f0fdfa] border border-[#ccfbf1] px-2.5 py-0.5 rounded text-[11px] font-bold">抄送</span>
-                                  </td>
-                                  <td className="px-4 py-3 text-center text-gray-400">抄送</td>
-                                  <td className="px-4 py-3 text-center text-gray-400">location</td>
-                                  <td className="px-4 py-3 text-gray-500">抄送內審</td>
-                                  <td className="px-4 py-3 text-gray-400 font-mono">101023</td>
-                                  <td className="px-4 py-3 text-gray-400">-</td>
-                                </tr>
-                                {/* CC 6 */}
-                                <tr className="bg-gray-50/50">
-                                  <td className="px-4 py-3 text-center text-gray-400 font-bold">抄送</td>
-                                  <td className="px-4 py-3 text-center">
-                                    <span className="text-[#0d9488] bg-[#f0fdfa] border border-[#ccfbf1] px-2.5 py-0.5 rounded text-[11px] font-bold">抄送</span>
-                                  </td>
-                                  <td className="px-4 py-3 text-center text-gray-400">抄送</td>
-                                  <td className="px-4 py-3 text-center text-gray-400">special</td>
-                                  <td className="px-4 py-3 text-gray-500">財務總監</td>
-                                  <td className="px-4 py-3 text-gray-500">B B</td>
-                                  <td className="px-4 py-3 text-gray-400 font-mono">100052</td>
-                                  <td className="px-4 py-3 text-gray-400">-</td>
-                                </tr>
-                                {/* CC 7 */}
-                                <tr className="bg-gray-50/50">
-                                  <td className="px-4 py-3 text-center text-gray-400 font-bold">抄送</td>
-                                  <td className="px-4 py-3 text-center">
-                                    <span className="text-[#0d9488] bg-[#f0fdfa] border border-[#ccfbf1] px-2.5 py-0.5 rounded text-[11px] font-bold">抄送</span>
-                                  </td>
-                                  <td className="px-4 py-3 text-center text-gray-400">抄送</td>
-                                  <td className="px-4 py-3 text-center text-gray-400">special</td>
-                                  <td className="px-4 py-3 text-gray-500">財務負責人</td>
-                                  <td className="px-4 py-3 text-gray-500">ZOE L</td>
-                                  <td className="px-4 py-3 text-gray-400 font-mono">100064</td>
-                                  <td className="px-4 py-3 text-gray-400">-</td>
-                                </tr>
-                              </tbody>
-                            </table>
+                          {/* 抄送表格 */}
+                          <div>
+                            <div className="text-xs font-semibold text-gray-500 mb-2">抄送</div>
+                            <div className="overflow-x-auto border border-gray-100 rounded-lg">
+                              <table className="w-full text-left text-xs border-collapse">
+                                <thead>
+                                  <tr className="border-b border-gray-200 bg-gray-50 text-gray-700 font-bold">
+                                    <th className="px-4 py-1.5">職稱</th>
+                                    <th className="px-4 py-1.5">簽名</th>
+                                    <th className="px-4 py-1.5 w-40">時間</th>
+                                  </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-100 font-medium">
+                                  <tr>
+                                    <td className="px-4 py-1.5 text-gray-800">財務</td>
+                                    <td className="px-4 py-1.5 text-gray-800">Stella</td>
+                                    <td className="px-4 py-1.5 text-gray-400">-</td>
+                                  </tr>
+                                  <tr>
+                                    <td className="px-4 py-1.5 text-gray-800">內審</td>
+                                    <td className="px-4 py-1.5 text-gray-800">Cora</td>
+                                    <td className="px-4 py-1.5 text-gray-400">-</td>
+                                  </tr>
+                                </tbody>
+                              </table>
+                            </div>
                           </div>
                         </div>
                       </div>
 
                     </div>
 
-                    {/* 固定於底部的金額與審批按鈕區塊 */}
+                    {/* 底部總額與審批按鈕 */}
                     <div className="bg-[#F8F9FA] border-t border-gray-200 px-6 py-4 flex flex-col items-end gap-3 flex-shrink-0 shadow-[0_-2px_8px_rgba(0,0,0,0.04)]">
-                      {/* 總金額資訊 */}
-                      <div className="flex flex-col items-end text-sm text-gray-800 font-medium space-y-1 w-full">
-                        <div className="flex justify-end gap-12 w-full">
-                          <span className="text-gray-500 font-semibold text-xs tracking-wide">TOTAL AMOUNT</span>
-                          <span className="w-48 text-right font-bold text-gray-800">{(modalRow?.amounts && modalRow.amounts[0]) || '-'}</span>
-                        </div>
-                        <div className="flex justify-end gap-12 w-full">
-                          <span className="text-gray-500 font-semibold text-xs tracking-wide">TOTAL AMOUNT CNY</span>
-                          <span className="w-48 text-right font-bold text-gray-800">{(modalRow?.amounts && modalRow.amounts[1]) || '-'}</span>
-                        </div>
+                      <div className="flex items-center justify-end gap-3 w-full text-sm">
+                        <span className="text-gray-500 font-semibold text-xs tracking-wide">合計</span>
+                        <span className="text-right font-bold text-gray-800">
+                          {(modalRow?.amounts && modalRow.amounts[0]) || '-'}
+                          {modalRow?.amounts && modalRow.amounts[1] ? ` / ${modalRow.amounts[1]}` : ''}
+                        </span>
                       </div>
-
-                      {/* 綠色「審批」按鈕 */}
                       <div className="w-full flex justify-center mt-2">
                         <button
-                          onClick={() => setIsModalOpen(false)}
-                          className="ui-btn ui-btn-success ui-btn-lg"
+                          onClick={openApproveAction}
+                          className="ui-btn ui-btn-primary ui-btn-lg"
                         >
                           審批
                         </button>
@@ -1330,92 +1216,45 @@
 
                   </div>
 
-                  {/* 右側：審批線預覽固定欄位 */}
+                  {/* 右側：審批流程預覽 */}
                   <div className="w-full lg:w-[350px] bg-white border-t lg:border-t-0 lg:border-l border-gray-200 overflow-y-auto flex flex-col flex-shrink-0">
                     <div className="bg-[#0097A7] text-white px-4 py-3.5 font-bold text-sm tracking-wide">
-                      審批線預覽
+                      審批流程預覽
                     </div>
-                    
                     <div className="p-1 flex-1 overflow-y-auto">
                       <table className="w-full text-xs text-center border-collapse">
                         <thead>
                           <tr className="border-b border-gray-200 bg-gray-50 text-gray-500 font-bold">
                             <th className="px-3 py-2 w-12 border-r border-gray-200">序號</th>
-                            <th className="px-3 py-2 w-16 border-r border-gray-200">條件</th>
                             <th className="px-3 py-2 border-r border-gray-200">職稱</th>
                             <th className="px-3 py-2 w-16">簽名</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100 font-semibold text-gray-700">
-                          {/* 1 */}
                           <tr className="border-b border-gray-200">
-                            <td className="px-3 py-3 border-r border-gray-200 font-bold text-center text-gray-800">1</td>
-                            <td className="px-3 py-3 border-r border-gray-200 text-gray-500">部門主管</td>
-                            <td className="px-3 py-3 border-r border-gray-200 text-gray-500">-</td>
-                            <td className="px-3 py-3 text-center text-gray-400">-</td>
+                            <td className="px-3 py-1.5 border-r border-gray-200 font-bold text-center text-gray-800">1</td>
+                            <td className="px-3 py-1.5 border-r border-gray-200 text-gray-500">部門主管</td>
+                            <td className="px-3 py-1.5 text-center text-gray-400">-</td>
                           </tr>
-                          {/* 2 */}
                           <tr className="border-b border-gray-200">
-                            <td className="px-3 py-3 border-r border-gray-200 font-bold text-center text-gray-800">2</td>
-                            <td className="px-3 py-3 border-r border-gray-200 text-gray-500">費用會計</td>
-                            <td className="px-3 py-3 border-r border-gray-200 text-gray-500">-</td>
-                            <td className="px-3 py-3 text-center text-gray-400">-</td>
+                            <td className="px-3 py-1.5 border-r border-gray-200 font-bold text-center text-gray-800">2</td>
+                            <td className="px-3 py-1.5 border-r border-gray-200 text-gray-500">項目負責人</td>
+                            <td className="px-3 py-1.5 text-center text-gray-400">-</td>
                           </tr>
-                          {/* 3 */}
                           <tr className="border-b border-gray-200">
-                            <td className="px-3 py-3 border-r border-gray-200 font-bold text-center text-gray-800">3</td>
-                            <td className="px-3 py-3 border-r border-gray-200 text-gray-500">財務負責人</td>
-                            <td className="px-3 py-3 border-r border-gray-200 text-gray-500">-</td>
-                            <td className="px-3 py-3 text-center text-gray-400">-</td>
+                            <td className="px-3 py-1.5 border-r border-gray-200 font-bold text-center text-gray-800">3</td>
+                            <td className="px-3 py-1.5 border-r border-gray-200 text-gray-500">費用會計</td>
+                            <td className="px-3 py-1.5 text-center text-gray-400">-</td>
                           </tr>
-                          {/* 4 */}
                           <tr className="border-b border-gray-200">
-                            <td className="px-3 py-3 border-r border-gray-200 font-bold text-center text-gray-800">4</td>
-                            <td className="px-3 py-3 border-r border-gray-200 text-gray-500">資金專員</td>
-                            <td className="px-3 py-3 border-r border-gray-200 text-gray-500">-</td>
-                            <td className="px-3 py-3 text-center text-gray-400">-</td>
+                            <td className="px-3 py-1.5 border-r border-gray-200 font-bold text-center text-gray-800">4</td>
+                            <td className="px-3 py-1.5 border-r border-gray-200 text-gray-500">財務負責人</td>
+                            <td className="px-3 py-1.5 text-center text-gray-400">-</td>
                           </tr>
-                          {/* 抄送 1 */}
-                          <tr className="border-b border-gray-200 bg-gray-50/50">
-                            <td className="px-3 py-2.5 border-r border-gray-200 text-gray-400 text-center">抄送</td>
-                            <td className="px-3 py-2.5 border-r border-gray-200 text-gray-400">抄送</td>
-                            <td className="px-3 py-2.5 border-r border-gray-200 text-gray-500">資金主管</td>
-                            <td className="px-3 py-2.5 text-center text-gray-400">-</td>
-                          </tr>
-                          {/* 抄送 2 */}
-                          <tr className="border-b border-gray-200 bg-gray-50/50">
-                            <td className="px-3 py-2.5 border-r border-gray-200 text-gray-400 text-center">抄送</td>
-                            <td className="px-3 py-2.5 border-r border-gray-200 text-gray-400">抄送</td>
-                            <td className="px-3 py-2.5 border-r border-gray-200 text-gray-500">記帳</td>
-                            <td className="px-3 py-2.5 text-center text-gray-400">-</td>
-                          </tr>
-                          {/* 抄送 3 */}
-                          <tr className="border-b border-gray-200 bg-gray-50/50">
-                            <td className="px-3 py-2.5 border-r border-gray-200 text-gray-400 text-center">抄送</td>
-                            <td className="px-3 py-2.5 border-r border-gray-200 text-gray-400">抄送</td>
-                            <td className="px-3 py-2.5 border-r border-gray-200 text-gray-500">稽核</td>
-                            <td className="px-3 py-2.5 text-center text-gray-400">-</td>
-                          </tr>
-                          {/* 抄送 4 */}
-                          <tr className="border-b border-gray-200 bg-gray-50/50">
-                            <td className="px-3 py-2.5 border-r border-gray-200 text-gray-400 text-center">抄送</td>
-                            <td className="px-3 py-2.5 border-r border-gray-200 text-gray-400">抄送</td>
-                            <td className="px-3 py-2.5 border-r border-gray-200 text-gray-500">抄送內審</td>
-                            <td className="px-3 py-2.5 text-center text-gray-400">-</td>
-                          </tr>
-                          {/* 抄送 5 */}
-                          <tr className="border-b border-gray-200 bg-gray-50/50">
-                            <td className="px-3 py-2.5 border-r border-gray-200 text-gray-400 text-center">抄送</td>
-                            <td className="px-3 py-2.5 border-r border-gray-200 text-gray-400">抄送</td>
-                            <td className="px-3 py-2.5 border-r border-gray-200 text-gray-500">財務總監</td>
-                            <td className="px-3 py-2.5 text-center text-gray-400">-</td>
-                          </tr>
-                          {/* 抄送 6 */}
-                          <tr className="border-b border-gray-200 bg-gray-50/50">
-                            <td className="px-3 py-2.5 border-r border-gray-200 text-gray-400 text-center">抄送</td>
-                            <td className="px-3 py-2.5 border-r border-gray-200 text-gray-400">抄送</td>
-                            <td className="px-3 py-2.5 border-r border-gray-200 text-gray-500">財務負責人</td>
-                            <td className="px-3 py-2.5 text-center text-gray-400">-</td>
+                          <tr className="border-b border-gray-200">
+                            <td className="px-3 py-1.5 border-r border-gray-200 font-bold text-center text-gray-800">5</td>
+                            <td className="px-3 py-1.5 border-r border-gray-200 text-gray-500">資金專員</td>
+                            <td className="px-3 py-1.5 text-center text-gray-400">-</td>
                           </tr>
                         </tbody>
                       </table>
@@ -1424,6 +1263,142 @@
 
                 </div>
 
+              </div>
+            </div>
+          )}
+
+          {/* ========== 審批動作彈窗（審批 / 駁回 / 補件 + 意見 + 附件） ========== */}
+          {approveActionOpen && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 z-[70] flex items-center justify-center p-4" onClick={() => setApproveActionOpen(false)}>
+              <div
+                className="bg-white rounded-lg shadow-xl w-full max-w-[560px] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+                onClick={e => e.stopPropagation()}
+              >
+                {/* 標題列 */}
+                <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+                  <span className="font-bold text-gray-800 text-base">審批處理</span>
+                  <button onClick={() => setApproveActionOpen(false)} className="text-gray-400 hover:text-gray-600 text-xl leading-none">
+                    <i className="fas fa-times"></i>
+                  </button>
+                </div>
+
+                <div className="px-6 py-5 space-y-5 max-h-[70vh] overflow-y-auto">
+                  {/* 審批結果 */}
+                  <div>
+                    <div className="text-sm font-semibold text-gray-700 mb-2">審批結果 <span className="text-red-500">*</span></div>
+                    <div className="flex gap-3">
+                      {[
+                        { key: '審批', icon: 'fa-check', active: 'bg-green-500 border-green-500 text-white', hover: 'hover:border-green-400 hover:text-green-500' },
+                        { key: '駁回', icon: 'fa-times', active: 'bg-red-500 border-red-500 text-white', hover: 'hover:border-red-400 hover:text-red-500' },
+                        { key: '補件', icon: 'fa-folder-open', active: 'bg-amber-500 border-amber-500 text-white', hover: 'hover:border-amber-400 hover:text-amber-500' },
+                      ].map(opt => (
+                        <button
+                          key={opt.key}
+                          onClick={() => setApproveDecision(opt.key)}
+                          className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border text-sm font-semibold transition-colors ${approveDecision === opt.key ? opt.active : `bg-white border-gray-300 text-gray-600 ${opt.hover}`}`}
+                        >
+                          <i className={`fas ${opt.icon}`}></i>{opt.key}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* 審批意見（內嵌編輯器） */}
+                  <div>
+                    <div className="text-sm font-semibold text-gray-700 mb-2">審批意見</div>
+                    <div className="border border-gray-300 rounded-lg overflow-hidden focus-within:border-[#4A90E2]">
+                      {/* 工具列（示意用，部分按鈕僅供呈現） */}
+                      <div className="flex items-center gap-0.5 flex-wrap bg-gray-50 border-b border-gray-200 px-2 py-1.5">
+                        {/* 字體大小（示意） */}
+                        <select className="h-8 text-xs text-gray-600 bg-white border border-gray-200 rounded px-1 mr-1 focus:outline-none">
+                          <option>正文</option>
+                          <option>標題 1</option>
+                          <option>標題 2</option>
+                        </select>
+                        {[
+                          { type: 'cmd', cmd: 'bold', icon: 'fa-bold', title: '粗體' },
+                          { type: 'cmd', cmd: 'italic', icon: 'fa-italic', title: '斜體' },
+                          { type: 'cmd', cmd: 'underline', icon: 'fa-underline', title: '底線' },
+                          { type: 'cmd', cmd: 'strikeThrough', icon: 'fa-strikethrough', title: '刪除線' },
+                          { type: 'divider' },
+                          { type: 'cmd', cmd: 'insertUnorderedList', icon: 'fa-list-ul', title: '項目符號' },
+                          { type: 'cmd', cmd: 'insertOrderedList', icon: 'fa-list-ol', title: '編號清單' },
+                          { type: 'divider' },
+                          { type: 'mock', icon: 'fa-image', title: '插入圖片（示意）' },
+                          { type: 'mock', icon: 'fa-link', title: '插入連結（示意）' },
+                          { type: 'mock', icon: 'fa-table', title: '插入表格（示意）' },
+                          { type: 'mock', icon: 'fa-code', title: '程式碼（示意）' },
+                        ].map((t, i) => (
+                          t.type === 'divider'
+                            ? <span key={`d${i}`} className="w-px h-5 bg-gray-300 mx-1"></span>
+                            : (
+                              <button
+                                key={t.icon}
+                                type="button"
+                                title={t.title}
+                                onMouseDown={(e) => { e.preventDefault(); if (t.type === 'cmd') document.execCommand(t.cmd, false, null); }}
+                                className="w-8 h-8 flex items-center justify-center rounded text-gray-500 hover:bg-gray-200 hover:text-gray-700 text-sm"
+                              >
+                                <i className={`fas ${t.icon}`}></i>
+                              </button>
+                            )
+                        ))}
+                      </div>
+                      <div
+                        ref={approveEditorRef}
+                        contentEditable
+                        suppressContentEditableWarning
+                        data-placeholder="請輸入審批意見…"
+                        className="approve-editor min-h-[120px] px-3 py-2 text-sm text-gray-800 focus:outline-none"
+                      ></div>
+                    </div>
+                  </div>
+
+                  {/* 上傳附件 */}
+                  <div>
+                    <div className="text-sm font-semibold text-gray-700 mb-2">附件 <span className="text-xs font-normal text-gray-400">（單檔上限 20MB）</span></div>
+                    <input
+                      ref={approveFileInputRef}
+                      type="file"
+                      multiple
+                      className="hidden"
+                      onChange={(e) => { handleApproveFiles(e.target.files); e.target.value = ''; }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => approveFileInputRef.current && approveFileInputRef.current.click()}
+                      className="w-full border-2 border-dashed border-gray-300 rounded-lg py-4 flex flex-col items-center justify-center gap-1 text-gray-400 hover:border-[#4A90E2] hover:text-[#4A90E2] transition-colors"
+                    >
+                      <i className="fas fa-cloud-upload-alt text-xl"></i>
+                      <span className="text-xs font-medium">點擊上傳附件</span>
+                    </button>
+                    {approveFiles.length > 0 && (
+                      <ul className="mt-2 space-y-1">
+                        {approveFiles.map((f, i) => (
+                          <li key={i} className="flex items-center justify-between bg-gray-50 border border-gray-100 rounded px-3 py-1.5 text-xs text-gray-700">
+                            <span className="flex items-center gap-2 min-w-0">
+                              <i className="fas fa-paperclip text-gray-400"></i>
+                              <span className="truncate">{f.name}</span>
+                              <span className="text-gray-400 flex-shrink-0">{formatFileSize(f.size)}</span>
+                            </span>
+                            <button
+                              onClick={() => setApproveFiles(prev => prev.filter((_, idx) => idx !== i))}
+                              className="text-gray-400 hover:text-red-500 flex-shrink-0 ml-2"
+                            >
+                              <i className="fas fa-times"></i>
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                </div>
+
+                {/* 底部按鈕 */}
+                <div className="flex justify-end gap-3 px-6 py-4 border-t border-gray-200 bg-gray-50">
+                  <button onClick={() => setApproveActionOpen(false)} className="ui-btn ui-btn-secondary">取消</button>
+                  <button onClick={submitApproveAction} className="ui-btn ui-btn-primary">確認送出</button>
+                </div>
               </div>
             </div>
           )}
@@ -1745,7 +1720,7 @@
               >
                 <div className="p-8">
                   <div className="text-gray-800 text-base font-medium mb-8">
-                    確定要批量審批已選取的 {batchApproveModal === 'leave' ? selectedLeave.length : selectedTimesheet.length} 筆項目嗎？
+                    確定要批量審批已選取的 {batchApproveModal === 'leave' ? selectedLeave.length : batchApproveModal === 'cancel' ? selectedCancel.length : selectedTimesheet.length} 筆項目嗎？
                   </div>
                   <div className="flex justify-center gap-4">
                     <button
@@ -1759,6 +1734,7 @@
                         // 模擬審批邏輯：清空已選項
                         if (batchApproveModal === 'leave') setSelectedLeave([]);
                         if (batchApproveModal === 'timesheet') setSelectedTimesheet([]);
+                        if (batchApproveModal === 'cancel') setSelectedCancel([]);
                         setBatchApproveModal(null);
                       }}
                       className="ui-btn ui-btn-success"

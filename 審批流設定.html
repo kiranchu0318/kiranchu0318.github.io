@@ -53,15 +53,15 @@
 
     // --- 假資料 ---
     const initialTemplateData = [
-      { name: '採購申請審批流', type: '採購申請', priority: 100, steps: 3, status: '啟用', grade: 'P1 ~ M9', amount: 'NT$ 1 ~ 500,000', days: '—' },
-      { name: '採購申請審批流（大額）', type: '採購申請', priority: 90, steps: 4, status: '啟用', grade: 'M1 ~ BOSS', amount: 'NT$ 500,001 ~ 不限', days: '—' },
-      { name: '費用報銷審批流', type: '費用報銷', priority: 100, steps: 3, status: '啟用', grade: 'P1 ~ M9', amount: 'NT$ 1 ~ 100,000', days: '—' },
-      { name: '費用報銷審批流（高額）', type: '費用報銷', priority: 90, steps: 4, status: '啟用', grade: 'M3 ~ BOSS', amount: 'NT$ 100,001 ~ 不限', days: '—' },
-      { name: '出差申請審批流', type: '出差申請', priority: 100, steps: 3, status: '啟用', grade: '全職等', amount: 'NT$ 1 ~ 200,000', days: '1 ~ 14 天' },
-      { name: 'OA 資產申請審批流', type: 'OA 資產申請', priority: 100, steps: 3, status: '啟用', grade: 'P1 ~ M9', amount: 'NT$ 1 ~ 300,000', days: '—' },
-      { name: '資訊需求申請審批流', type: '資訊需求申請', priority: 100, steps: 3, status: '啟用', grade: '全職等', amount: '不限', days: '—' },
-      { name: '人力需求申請審批流', type: '人力需求申請', priority: 100, steps: 3, status: '啟用', grade: 'M1 ~ M9', amount: '—', days: '—' },
-      { name: '薪資申請審批流', type: '薪資申請', priority: 100, steps: 3, status: '啟用', grade: 'M3 ~ BOSS', amount: '不限', days: '—' },
+      { name: '採購申請審批流', type: '採購申請', priority: 100, steps: 3, status: '啟用', grade: 'P1 ~ M9', amount: 'NT$ 1 ~ 500,000', days: '—' , currency: '法幣' },
+      { name: '採購申請審批流（大額）', type: '採購申請', priority: 90, steps: 4, status: '啟用', grade: 'M1 ~ BOSS', amount: 'NT$ 500,001 ~ 不限', days: '—' , currency: '法幣' },
+      { name: '費用報銷審批流', type: '費用報銷', priority: 100, steps: 3, status: '啟用', grade: 'P1 ~ M9', amount: 'NT$ 1 ~ 100,000', days: '—' , currency: 'U幣' },
+      { name: '費用報銷審批流（高額）', type: '費用報銷', priority: 90, steps: 4, status: '啟用', grade: 'M3 ~ BOSS', amount: 'NT$ 100,001 ~ 不限', days: '—' , currency: 'U幣' },
+      { name: '出差申請審批流', type: '出差申請', priority: 100, steps: 3, status: '啟用', grade: '全職等', amount: 'NT$ 1 ~ 200,000', days: '1 ~ 14 天' , currency: '法幣' },
+      { name: 'OA 資產申請審批流', type: 'OA 資產申請', priority: 100, steps: 3, status: '啟用', grade: 'P1 ~ M9', amount: 'NT$ 1 ~ 300,000', days: '—' , currency: '法幣' },
+      { name: '資訊需求申請審批流', type: '資訊需求申請', priority: 100, steps: 3, status: '啟用', grade: '全職等', amount: '不限', days: '—' , currency: '法幣' },
+      { name: '人力需求申請審批流', type: '人力需求申請', priority: 100, steps: 3, status: '啟用', grade: 'M1 ~ M9', amount: '—', days: '—' , currency: '法幣' },
+      { name: '薪資申請審批流', type: '薪資申請', priority: 100, steps: 3, status: '啟用', grade: 'M3 ~ BOSS', amount: '不限', days: '—' , currency: 'U幣' },
     ];
 
     // 職等清單（供新增 / 編輯模板的職等下限・上限下拉）
@@ -374,11 +374,12 @@
                           <table className="ui-table text-left whitespace-nowrap">
                             <thead>
                               <tr>
-                                <th className="w-[28%]">模板名稱</th>
-                                <th className="text-center w-[14%]">職等</th>
-                                <th className="text-center w-[20%]">金額上下限</th>
-                                <th className="text-center w-[12%]">請假天數</th>
-                                <th className="text-center w-[10%]">狀態</th>
+                                <th className="w-[24%]">模板名稱</th>
+                                <th className="text-center w-[12%]">職等</th>
+                                <th className="text-center w-[18%]">金額上下限</th>
+                                <th className="text-center w-[11%]">請假天數</th>
+                                <th className="text-center w-[10%]">貨幣類型</th>
+                                <th className="text-center w-[9%]">狀態</th>
                                 <th className="text-center w-[16%]">操作</th>
                               </tr>
                             </thead>
@@ -389,6 +390,7 @@
                                   <td className="text-center text-gray-700">{row.grade || '—'}</td>
                                   <td className="text-center font-mono text-gray-700">{row.amount}</td>
                                   <td className="text-center text-gray-700">{row.days}</td>
+                                  <td className="text-center text-gray-700">{row.currency || '—'}</td>
                                   <td className="text-center"><span className="ui-badge ui-badge-success">{row.status}</span></td>
                                   <td className="text-center">
                                     <div className="flex items-center justify-center gap-2">
@@ -400,7 +402,7 @@
                                 </tr>
                               ))}
                               {(!activeGroup || activeGroup.items.length === 0) && (
-                                <tr><td colSpan={6} className="text-center text-gray-400 py-6">此表單類型尚無模板</td></tr>
+                                <tr><td colSpan={7} className="text-center text-gray-400 py-6">此表單類型尚無模板</td></tr>
                               )}
                             </tbody>
                           </table>
@@ -544,6 +546,17 @@
                       </div>
                     </div>
 
+                    {/* 貨幣類型 */}
+                    <div className="flex items-center gap-4">
+                      <div className="w-[100px] text-right text-[14px] text-gray-700 shrink-0 whitespace-nowrap">貨幣類型</div>
+                      <div className="flex-1">
+                        <select className="w-full border border-gray-300 rounded px-3 py-2 text-[14px] outline-none focus:border-[#4A90E2]">
+                          <option>法幣</option>
+                          <option>U幣</option>
+                        </select>
+                      </div>
+                    </div>
+
                     {/* 狀態 */}
                     <div className="flex items-center gap-4 pt-2">
                       <div className="w-[100px] text-right text-[14px] text-gray-700 shrink-0 whitespace-nowrap">狀態</div>
@@ -647,6 +660,17 @@
                           <input type="text" placeholder="上限" className="flex-1 w-0 text-center text-[14px] outline-none text-gray-700" />
                           <button className="px-3 py-2 border-l border-gray-300 text-gray-500 hover:bg-gray-50 transition-colors"><Plus size={16} /></button>
                         </div>
+                      </div>
+                    </div>
+
+                    {/* 貨幣類型 — 可編輯 */}
+                    <div className="flex items-center gap-4">
+                      <div className="w-[100px] text-right text-[14px] text-gray-700 shrink-0 whitespace-nowrap">貨幣類型</div>
+                      <div className="flex-1">
+                        <select defaultValue={editingTemplate.currency || '法幣'} className="w-full border border-gray-300 rounded px-3 py-2 text-[14px] outline-none focus:border-blue-500">
+                          <option>法幣</option>
+                          <option>U幣</option>
+                        </select>
                       </div>
                     </div>
 

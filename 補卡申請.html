@@ -282,7 +282,7 @@
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">補卡日期 <span class="text-red-500">*</span></label>
-                                <input type="date" class="ui-input">
+                                <input type="date" id="makeupDate" class="ui-input">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">實際打卡時間 <span class="text-red-500">*</span></label>
@@ -359,13 +359,17 @@
         const modal = document.getElementById('leaveModal');
         const modalPanel = document.getElementById('modalPanel');
 
-        function openModal() {
+        function openModal(prefillDate) {
             modal.classList.remove('hidden');
             // 觸發顯示動畫
             setTimeout(() => {
                 modalPanel.classList.add('modal-enter-active');
             }, 10);
-            
+
+            // 自動帶入要補卡的日期（由出勤紀錄頁傳入）
+            const dateInput = document.getElementById('makeupDate');
+            if (dateInput) dateInput.value = (typeof prefillDate === 'string' && prefillDate) ? prefillDate : '';
+
             // 防止背景滾動
             document.body.style.overflow = 'hidden';
         }
@@ -386,6 +390,14 @@
                 closeModal();
             }
         });
+
+        // 由出勤紀錄頁帶 ?openModal=1&date=YYYY-MM-DD 進入時，自動開啟「新增補卡申請」彈窗並帶入日期
+        (function () {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('openModal') === '1') {
+                openModal(params.get('date') || '');
+            }
+        })();
     </script>
 </body>
 </html>
