@@ -212,7 +212,7 @@
                         </div>
                     </div>
                     <div id="lf-cond-wrap">
-                        <label class="block text-xs font-semibold text-text-muted mb-1.5">自動生成調整</label>
+                        <label class="block text-xs font-semibold text-text-muted mb-1.5">自動生成條件</label>
                         <select id="lf-cond" class="ui-select">
                             <option>指定日期</option><option>入職日期 / 到職日</option><option>轉正日期（正式員工轉換日）</option><option>結算日 / 會計日</option><option>所在地當地時間</option><option>每月更新</option>
                         </select>
@@ -554,7 +554,7 @@
             renderLeafTiers();
         }
 
-        // 連動顯示：「是否有初始時數」選「否」則隱藏 自動生成調整 / 生成頻率 / 總生成時數 / 生效時間
+        // 連動顯示：「是否有初始時數」選「否」則隱藏 自動生成條件 / 生成頻率 / 總生成時數 / 生效時間
         function updateLeafConditional() {
             const gen = getRadio('lf-gen') === 'true';
             document.getElementById('lf-gen-wrap').classList.remove('hidden');
