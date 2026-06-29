@@ -517,10 +517,23 @@
         </div>
       );
 
+      // 由「申請.html」送出、暫存於 localStorage 的單據（預設簽核完成）
+      const storedApps = (() => {
+        try {
+          return (JSON.parse(localStorage.getItem('hroa_apps') || '[]')).map(r => ({
+            oa: r.oa, location: r.location, type: r.type, docNo: r.docNo,
+            applicant: r.applicant, signature: r.signature || r.applicant, amounts: r.amounts || ['—'],
+            date: r.date, approver: r.approver || '-', refNo: r.refNo || '-',
+            status: r.status || '簽核完成', isGreen: r.isGreen !== false, workStatus: r.workStatus || '未派工', urgent: !!r.urgent
+          }));
+        } catch (e) { return []; }
+      })();
+
       const mockData = [
+        ...storedApps,
         { oa: '財務', location: 'THQ', type: 'B',  docNo: 'B-THQ-000003',  applicant: 'Oliver', signature: 'Oliver', amounts: ['TWD 8,000', 'CNY 2137.09'],        date: '2026-05-30 15:36:45', approver: 'James', refNo: '-', status: '待我簽核', isGreen: false, workStatus: '未派工' },
         { oa: '合同', location: 'THQ', type: 'IC', docNo: 'IC-THQ-000002', applicant: 'Oliver', signature: 'Oliver', amounts: ['TWD 2,000,000', 'CNY 427407.40'], date: '2026-05-20 15:36:45', approver: 'James', refNo: '-', status: '簽核完成', isGreen: true, workStatus: '已完成' },
-        { oa: '行政', location: 'THQ', type: 'PU', docNo: 'PU-THQ-000003', applicant: 'Oliver', signature: 'Oliver', amounts: ['TWD 8,000', 'CNY 2137.09'],        date: '2026-05-12 15:36:45', approver: 'James', refNo: '-', status: '未簽核', isGreen: false, workStatus: '未派工' },
+        { oa: '行政', location: 'THQ', type: 'PU', docNo: 'PU-THQ-000003', applicant: 'Oliver', signature: 'Oliver', amounts: ['TWD 8,000', 'CNY 2137.09'],        date: '2026-05-12 15:36:45', approver: 'James', refNo: '-', status: '未簽核', isGreen: false, workStatus: '未派工', urgent: true },
         { oa: '行政', location: 'THQ', type: 'PU', docNo: 'PU-THQ-000002', applicant: 'Oliver', signature: 'Oliver', amounts: ['TWD 2,000,000', 'CNY 427407.40'], date: '2026-04-30 12:36:10', approver: 'James', refNo: '-', status: '簽核完成', isGreen: true, workStatus: '處理中' },
         { oa: '財務', location: 'THQ', type: 'C',  docNo: 'C-THQ-000001',  applicant: 'Oliver', signature: 'Oliver', amounts: ['TWD 2,000', 'CNY 451.47'],          date: '2026-04-26 19:00:45', approver: 'James', refNo: '-', status: '待我簽核', isGreen: false, workStatus: '未派工' },
         { oa: '財務', location: 'THQ', type: 'C',  docNo: 'C-THQ-000002',  applicant: 'Dev', signature: 'Dev', amounts: ['TWD 3,500', 'CNY 789.25'],          date: '2026-05-18 10:22:30', approver: 'James', refNo: '-', status: '待我簽核', isGreen: false, workStatus: '處理中' },
@@ -681,7 +694,7 @@
                         {filteredFormData.map((row, idx) => (
                           <tr
                             key={idx}
-                            className={row.isGreen ? 'bg-[#F2FBF5]' : ''}
+                            className={row.urgent ? 'bg-red-50' : (row.isGreen ? 'bg-[#F2FBF5]' : '')}
                           >
                             <td>{row.oa}</td>
                             <td>{row.location}</td>
@@ -691,6 +704,7 @@
                                 onClick={() => openDocModal(row)}
                                 className="text-[#4A90E2] hover:underline font-medium text-left"
                               >
+                                {row.urgent && <span className="text-red-600 font-bold">【緊急】</span>}
                                 {row.docNo === 'C-THQ-000001' ? `${row.docNo}_辦公室用品費用報銷(費用會計範例)` : row.docNo === 'C-THQ-000002' ? `${row.docNo}_辦公室用品費用報銷(資金支付範例)` : `${row.docNo}_${({ B: '一般費用', C: '費用報銷', IC: '內部合同', PU: '請購', HR: '人員帳號異動', SA: '用印申請' })[row.type] || '申請'}`}
                               </button>
                             </td>

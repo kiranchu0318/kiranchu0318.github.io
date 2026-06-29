@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文件庫</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: { extend: { colors: { primary: '#4A90E2', 'primary-light': '#EAF2FC' } } }
+        }
+    </script>
+    <link rel="stylesheet" href="shared-ui.css">
+</head>
+<body class="ui-page text-text-main antialiased relative">
+
+    <div class="relative mx-auto w-full space-y-6">
+
+        <!-- 頁面標題區塊 -->
+        <header class="ui-page-header">
+            <h1 class="ui-page-title">文件庫</h1>
+        </header>
+
+        <!-- 分頁 Tab（公司文件在前） -->
+        <div class="border-b border-gray-200 flex gap-1">
+            <button id="tab-btn-company" onclick="switchTab('company')" class="tab-btn px-4 py-2.5 text-sm font-bold text-primary border-b-2 border-primary -mb-px transition-colors">公司文件</button>
+            <button id="tab-btn-personal" onclick="switchTab('personal')" class="tab-btn px-4 py-2.5 text-sm font-medium text-gray-500 hover:text-gray-700 border-b-2 border-transparent -mb-px transition-colors">個人文件</button>
+        </div>
+
+        <!-- Tab 1：公司文件 -->
+        <div id="tab-company" class="tab-panel">
+            <section class="ui-card flex flex-col p-4 sm:p-6 space-y-4">
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                    <div class="ui-search w-full sm:w-80">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" placeholder="搜尋公司文件..." class="ui-input ui-search-input">
+                    </div>
+                </div>
+                <div class="overflow-x-auto rounded-lg border border-gray-100">
+                    <table class="ui-table whitespace-nowrap">
+                        <thead>
+                            <tr>
+                                <th class="text-left">文件名稱</th>
+                                <th class="text-center w-28">分類</th>
+                                <th class="text-center w-24">大小</th>
+                                <th class="text-center w-32">發布單位</th>
+                                <th class="text-center w-32">更新日期</th>
+                                <th class="text-center w-32">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="company-tbody"></tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+
+        <!-- Tab 2：個人文件 -->
+        <div id="tab-personal" class="tab-panel hidden">
+            <section class="ui-card flex flex-col p-4 sm:p-6 space-y-4">
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                    <div class="ui-search w-full sm:w-80">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" placeholder="搜尋個人文件..." class="ui-input ui-search-input">
+                    </div>
+                </div>
+                <div class="overflow-x-auto rounded-lg border border-gray-100">
+                    <table class="ui-table whitespace-nowrap">
+                        <thead>
+                            <tr>
+                                <th class="text-left">文件名稱</th>
+                                <th class="text-center w-28">分類</th>
+                                <th class="text-center w-24">大小</th>
+                                <th class="text-center w-32">更新日期</th>
+                                <th class="text-center w-32">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="personal-tbody"></tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+
+    </div>
+
+    <script>
+        const companyDocs = [
+            { name: '員工手冊 2026.pdf', cat: '制度', size: '2.4 MB', unit: '人事中心', date: '2026-01-15' },
+            { name: '差旅報銷規範.pdf', cat: '規範', size: '880 KB', unit: '財務中心', date: '2026-03-02' },
+            { name: '資訊安全政策.pdf', cat: '政策', size: '1.1 MB', unit: '運維中心', date: '2026-02-10' },
+            { name: '請購作業流程說明.docx', cat: '流程', size: '320 KB', unit: '行政中心', date: '2026-04-05' },
+            { name: '組織架構圖.pdf', cat: '公告', size: '450 KB', unit: '總經理辦公室', date: '2026-05-12' },
+        ];
+        const personalDocs = [
+            { name: '勞動契約.pdf', cat: '合約', size: '540 KB', date: '2025-09-01' },
+            { name: '2026年5月薪資單.pdf', cat: '薪資', size: '120 KB', date: '2026-06-05' },
+            { name: '在職證明.pdf', cat: '證明', size: '90 KB', date: '2026-06-10' },
+            { name: '教育訓練證書.pdf', cat: '證書', size: '210 KB', date: '2026-05-20' },
+        ];
+
+        function actionsHtml(name) {
+            const safe = name.replace(/'/g, "\\'");
+            return '<div class="flex items-center justify-center gap-2">' +
+                '<button onclick="viewDoc(\'' + safe + '\')" class="ui-btn ui-btn-secondary ui-btn-sm" title="檢視"><i class="fa-regular fa-eye"></i> 檢視</button>' +
+                '<button onclick="downloadDoc(\'' + safe + '\')" class="ui-btn ui-btn-primary ui-btn-sm" title="下載"><i class="fa-solid fa-download"></i> 下載</button>' +
+                '</div>';
+        }
+
+        function renderCompany() {
+            document.getElementById('company-tbody').innerHTML = companyDocs.map(d =>
+                '<tr>' +
+                '<td class="text-left font-medium text-gray-800"><i class="fa-regular fa-file-lines text-primary mr-2"></i>' + d.name + '</td>' +
+                '<td class="text-center"><span class="ui-badge ui-badge-info">' + d.cat + '</span></td>' +
+                '<td class="text-center text-gray-500">' + d.size + '</td>' +
+                '<td class="text-center text-gray-600">' + d.unit + '</td>' +
+                '<td class="text-center text-gray-500">' + d.date + '</td>' +
+                '<td class="text-center">' + actionsHtml(d.name) + '</td>' +
+                '</tr>'
+            ).join('');
+        }
+        function renderPersonal() {
+            document.getElementById('personal-tbody').innerHTML = personalDocs.map(d =>
+                '<tr>' +
+                '<td class="text-left font-medium text-gray-800"><i class="fa-regular fa-file-lines text-primary mr-2"></i>' + d.name + '</td>' +
+                '<td class="text-center"><span class="ui-badge ui-badge-gray">' + d.cat + '</span></td>' +
+                '<td class="text-center text-gray-500">' + d.size + '</td>' +
+                '<td class="text-center text-gray-500">' + d.date + '</td>' +
+                '<td class="text-center">' + actionsHtml(d.name) + '</td>' +
+                '</tr>'
+            ).join('');
+        }
+
+        function switchTab(name) {
+            ['company', 'personal'].forEach(t => {
+                const panel = document.getElementById('tab-' + t);
+                const btn = document.getElementById('tab-btn-' + t);
+                const on = t === name;
+                if (panel) panel.classList.toggle('hidden', !on);
+                if (btn) {
+                    btn.classList.toggle('text-primary', on);
+                    btn.classList.toggle('font-bold', on);
+                    btn.classList.toggle('border-primary', on);
+                    btn.classList.toggle('text-gray-500', !on);
+                    btn.classList.toggle('font-medium', !on);
+                    btn.classList.toggle('border-transparent', !on);
+                }
+            });
+        }
+
+        // 下載（範例：產生示意檔案供下載）
+        function downloadDoc(name) {
+            const blob = new Blob(['這是文件「' + name + '」的示意內容（範例下載）。'], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = name;
+            document.body.appendChild(a); a.click(); a.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+        }
+        function viewDoc(name) {
+            alert('檢視：' + name);
+        }
+
+        renderCompany();
+        renderPersonal();
+    </script>
+
+</body>
+</html>

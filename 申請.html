@@ -135,10 +135,12 @@
                         
                         <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5">
                             <div class="px-4 py-2.5 border-b border-gray-200"><h3 class="text-[#2b3b84] font-bold text-[15px]">基本信息</h3></div>
-                            <div class="p-4 grid grid-cols-5 gap-x-5 gap-y-5">
-                                <div class="col-span-2"><label class="block mb-1.5 text-[13px] text-gray-700">文件編號</label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] bg-[#e9ecef] text-gray-500 cursor-not-allowed outline-none" value="選定「調出區域」和「調出項目」後自動生成文件編號" disabled></div>
-                                <div><label class="block mb-1.5 text-[13px] text-gray-700">標題 <span class="text-red-500">*</span></label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] bg-[#f8f9fa] text-gray-500 cursor-not-allowed outline-none" value="選定「調出區域」和「調出項目」後自動生成標題" disabled></div>
-                                <div><label class="block mb-1.5 text-[13px] text-gray-700">日期</label><div class="w-1/2 bg-[#e9ecef] border border-gray-300 rounded px-3 py-1.5 text-[13px] text-gray-700 flex items-center"><i data-lucide="calendar" class="w-4 h-4 mr-2 text-gray-500"></i>2026-05-27</div></div>
+                            <div class="px-4 pt-4 grid grid-cols-3 gap-x-5 gap-y-5 mb-4">
+                                <div class="col-span-2"><label class="block mb-1.5 text-[13px] text-gray-700">文件編號</label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed" value="自動生成" disabled></div>
+                                <div><label class="block mb-1.5 text-[13px] text-gray-700">申請日期</label><div class="border border-gray-300 rounded px-3 py-1.5 bg-white flex items-center"><i data-lucide="calendar" class="w-4 h-4 text-gray-400"></i><input type="text" class="w-full ml-2 text-[13px] outline-none" disabled></div></div>
+                            </div>
+                            <div class="px-4 pb-4 grid grid-cols-5 gap-x-5 gap-y-5">
+                                <div><label class="block mb-1.5 text-[13px] text-gray-700">目的 <span class="text-red-500">*</span></label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] bg-[#f8f9fa] text-gray-500 cursor-not-allowed outline-none" value="選定「調出區域」和「調出項目」後自動生成目的" disabled></div>
                                 <div><label class="block mb-1.5 text-[13px] text-gray-700">服務類型</label><select class="w-1/2 border border-gray-300 rounded px-3 py-1.5 text-[13px] bg-white text-gray-700 outline-none focus:border-blue-500"><option>資產本地調撥</option></select></div>
                                 <div><label class="block mb-1.5 text-[13px] text-gray-700">异动日期 <span class="text-red-500">*</span></label><div class="w-1/2 border border-gray-300 rounded px-3 py-1.5 bg-white flex items-center"><i data-lucide="calendar" class="w-4 h-4 text-gray-400"></i><input type="text" class="w-full ml-2 text-[13px] outline-none"></div></div>
                             </div>
@@ -229,7 +231,7 @@
                     </div>
 
                     </div>
-                    <div class="bg-[#f4f5f8] border-t border-gray-200 py-4 flex justify-center shadow-sm"><button type="button" onclick="showSaveToast('已儲存至臨時保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">臨時保存</button><button type="button" onclick="showSaveToast('已儲存至模板保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">模板保存</button><button class="ui-btn ui-btn-primary px-12">提交</button></div>
+                    <div class="bg-[#f4f5f8] border-t border-gray-200 py-4 flex justify-center shadow-sm"><button type="button" onclick="showSaveToast('已儲存至臨時保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">臨時保存</button><button type="button" onclick="showSaveToast('已儲存至模板保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">模板保存</button><button type="button" onclick="submitApplication(this)" class="ui-btn ui-btn-primary px-12">提交</button></div>
                 </div>
                 <div class="w-[300px] border-l border-gray-300 bg-white hidden md:block overflow-y-auto">
                     <div class="bg-[#17a2b8] text-white px-4 py-2 text-[14px] font-bold sticky top-0">審批流程</div>
@@ -256,9 +258,11 @@
                         <!-- 1. 基本資訊 -->
                         <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5 mt-4">
                             <div class="px-4 py-2.5 border-b border-gray-200"><h3 class="text-[#2b3b84] font-bold text-[15px]">基本資訊</h3></div>
-                            <div class="p-4 grid grid-cols-5 gap-x-5 gap-y-5">
-                                <div class="col-span-2"><label class="block mb-1 text-[13px] text-gray-700">文件編號</label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 bg-[#e9ecef] text-[13px] text-gray-500" value="自動生成" disabled></div>
-                                <div><label class="block mb-1 text-[13px] text-gray-700">申請日期</label><div class="w-full bg-[#e9ecef] border border-gray-300 rounded px-3 py-1.5 flex items-center text-[13px] text-gray-700"><i data-lucide="calendar" class="w-4 h-4 mr-2 text-gray-400"></i>2026-05-28</div></div>
+                            <div class="px-4 pt-4 grid grid-cols-3 gap-x-5 gap-y-5 mb-4">
+                                <div class="col-span-2"><label class="block mb-1.5 text-[13px] text-gray-700">文件編號</label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed" value="自動生成" disabled></div>
+                                <div><label class="block mb-1.5 text-[13px] text-gray-700">申請日期</label><div class="border border-gray-300 rounded px-3 py-1.5 bg-white flex items-center"><i data-lucide="calendar" class="w-4 h-4 text-gray-400"></i><input type="text" class="w-full ml-2 text-[13px] outline-none" disabled></div></div>
+                            </div>
+                            <div class="px-4 pb-4 grid grid-cols-5 gap-x-5 gap-y-5">
                                 <div><label class="block mb-1 text-[13px] text-gray-700">申請人 <span class="text-red-500">*</span></label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"></div>
                                 <div><label class="block mb-1 text-[13px] text-gray-700">目地</label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none" placeholder="填寫後串接於文件編號後作為標題"></div>
                                 <div><label class="block mb-1 text-[13px] text-gray-700">項目 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option>請選擇</option></select></div>
@@ -329,7 +333,7 @@
                             <div class="flex gap-20 text-[13px]"><span class="font-bold">TOTAL AMOUNT</span><span class="font-bold">CNY 0.00</span></div>
                             <div class="flex gap-20 text-[13px]"><span class="font-bold">TOTAL AMOUNT CNY</span><span class="font-bold">CNY 0.00</span></div>
                         </div>
-                        <button type="button" onclick="showSaveToast('已儲存至臨時保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">臨時保存</button><button type="button" onclick="showSaveToast('已儲存至模板保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">模板保存</button><button class="ui-btn ui-btn-primary px-12">提交</button>
+                        <button type="button" onclick="showSaveToast('已儲存至臨時保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">臨時保存</button><button type="button" onclick="showSaveToast('已儲存至模板保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">模板保存</button><button type="button" onclick="submitApplication(this)" class="ui-btn ui-btn-primary px-12">提交</button>
                     </div>
                 </div>
                 <!-- 右側預覽 -->
@@ -358,11 +362,13 @@
                         <!-- 1. 基本資訊 -->
                         <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5 mt-4">
                             <div class="px-4 py-2.5 border-b border-gray-200"><h3 class="text-[#2b3b84] font-bold text-[15px]">基本資訊</h3></div>
-                            <div class="p-4 grid grid-cols-5 gap-x-5 gap-y-5">
-                                <div class="col-span-2"><label class="block mb-1 text-[13px]">文件編號</label><input type="text" class="w-full border rounded px-3 py-1.5 bg-[#e9ecef] text-[13px]" value="選定 [項目] 和 [區域] 後自動生成" disabled></div>
-                                <div><label class="block mb-1 text-[13px]">申請日期</label><div class="w-1/2 bg-[#e9ecef] border rounded px-3 py-1.5 flex items-center text-[13px]"><i data-lucide="calendar" class="w-4 h-4 mr-2"></i>2026-06-03</div></div>
+                            <div class="px-4 pt-4 grid grid-cols-3 gap-x-5 gap-y-5 mb-4">
+                                <div class="col-span-2"><label class="block mb-1.5 text-[13px] text-gray-700">文件編號</label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed" value="自動生成" disabled></div>
+                                <div><label class="block mb-1.5 text-[13px] text-gray-700">申請日期</label><div class="border border-gray-300 rounded px-3 py-1.5 bg-white flex items-center"><i data-lucide="calendar" class="w-4 h-4 text-gray-400"></i><input type="text" class="w-full ml-2 text-[13px] outline-none" disabled></div></div>
+                            </div>
+                            <div class="px-4 pb-4 grid grid-cols-5 gap-x-5 gap-y-5">
                                 <div><label class="block mb-1 text-[13px]">申請人 *</label><input type="text" class="w-full border border-red-300 rounded px-3 py-1.5 text-[13px] focus:border-red-500 outline-none"><span class="text-red-500 text-[11px] mt-1 block">請輸入申請人</span></div>
-                                <div><label class="block mb-1 text-[13px]">標題 *</label><input type="text" class="w-full border rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none" placeholder="選定「區域」和「項目」後自動生成標題"></div>
+                                <div><label class="block mb-1 text-[13px]">目的 *</label><input type="text" class="w-full border rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none" placeholder="選定「區域」和「項目」後自動生成目的"></div>
                                 <div class="flex flex-col justify-start"><label class="block mb-1 text-[13px]">總部審批</label><input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-blue-600 cursor-pointer"><span class="text-red-500 text-[11px] mt-1 block">BU4 獨立項目”或“非本地實體公司”請選擇</span></div>
                                 <div><label class="block mb-1 text-[13px]">服務類型</label><select class="w-full border rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option>一般費用</option></select></div>
                                 <div><label class="block mb-1 text-[13px]">項目 *</label><select class="w-full border border-red-300 rounded px-3 py-1.5 text-[13px] focus:border-red-500 outline-none"><option>請選擇</option></select><span class="text-red-500 text-[11px] mt-1 block">請輸入項目名稱</span></div>
@@ -469,7 +475,7 @@
                             <div class="flex gap-20 text-[13px]"><span class="font-bold">TOTAL AMOUNT</span><span class="font-bold">CNY 0.00</span></div>
                             <div class="flex gap-20 text-[13px]"><span class="font-bold">TOTAL AMOUNT CNY</span><span class="font-bold">CNY 0.00</span></div>
                         </div>
-                        <button type="button" onclick="showSaveToast('已儲存至臨時保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">臨時保存</button><button type="button" onclick="showSaveToast('已儲存至模板保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">模板保存</button><button class="ui-btn ui-btn-primary px-12">提交</button>
+                        <button type="button" onclick="showSaveToast('已儲存至臨時保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">臨時保存</button><button type="button" onclick="showSaveToast('已儲存至模板保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">模板保存</button><button type="button" onclick="submitApplication(this)" class="ui-btn ui-btn-primary px-12">提交</button>
                     </div>
                 </div>
                 <!-- 右側預覽 -->
@@ -795,7 +801,7 @@
 
                     </div>
                     <div class="bg-[#f4f5f8] border-t border-gray-200 py-4 flex justify-center shadow-sm">
-                        <button type="button" onclick="showSaveToast('已儲存至臨時保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">臨時保存</button><button type="button" onclick="showSaveToast('已儲存至模板保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">模板保存</button><button class="ui-btn ui-btn-primary px-12">提交</button>
+                        <button type="button" onclick="showSaveToast('已儲存至臨時保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">臨時保存</button><button type="button" onclick="showSaveToast('已儲存至模板保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">模板保存</button><button type="button" onclick="submitApplication(this)" class="ui-btn ui-btn-primary px-12">提交</button>
                     </div>
                     <!-- 懸浮總計金額 -->
                     <div class="absolute right-6 bottom-[92px] z-30 bg-white border border-gray-200 rounded-xl shadow-xl px-5 py-3 min-w-[210px]">
@@ -833,11 +839,13 @@
                         <!-- 1. 基本資訊 -->
                         <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5 mt-4">
                             <div class="px-4 py-2.5 border-b border-gray-200"><h3 class="text-[#2b3b84] font-bold text-[15px]">基本資訊</h3></div>
-                            <div class="p-4 grid grid-cols-5 gap-x-5 gap-y-5">
-                                <div class="col-span-2"><label class="block mb-1 text-[13px]">文件編號</label><input type="text" class="w-full border rounded px-3 py-1.5 bg-[#e9ecef] text-[13px]" value="選定 [項目] 和 [區域] 後自動生成" disabled></div>
-                                <div><label class="block mb-1 text-[13px]">申請日期</label><div class="w-1/2 bg-[#e9ecef] border rounded px-3 py-1.5 flex items-center text-[13px]"><i data-lucide="calendar" class="w-4 h-4 mr-2"></i>2026-06-03</div></div>
+                            <div class="px-4 pt-4 grid grid-cols-3 gap-x-5 gap-y-5 mb-4">
+                                <div class="col-span-2"><label class="block mb-1.5 text-[13px] text-gray-700">文件編號</label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed" value="自動生成" disabled></div>
+                                <div><label class="block mb-1.5 text-[13px] text-gray-700">申請日期</label><div class="border border-gray-300 rounded px-3 py-1.5 bg-white flex items-center"><i data-lucide="calendar" class="w-4 h-4 text-gray-400"></i><input type="text" class="w-full ml-2 text-[13px] outline-none" disabled></div></div>
+                            </div>
+                            <div class="px-4 pb-4 grid grid-cols-5 gap-x-5 gap-y-5">
                                 <div><label class="block mb-1 text-[13px]">申請人 *</label><input type="text" class="w-full border border-red-300 rounded px-3 py-1.5 text-[13px] focus:border-red-500 outline-none"><span class="text-red-500 text-[11px] mt-1 block">請輸入申請人</span></div>
-                                <div><label class="block mb-1 text-[13px]">標題 *</label><input type="text" class="w-full border rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none" placeholder="選定「區域」和「項目」後自動生成標題"></div>
+                                <div><label class="block mb-1 text-[13px]">目的 *</label><input type="text" class="w-full border rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none" placeholder="選定「區域」和「項目」後自動生成目的"></div>
                                 <div class="flex flex-col justify-start"><label class="block mb-1 text-[13px]">總部審批</label><input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-blue-600 cursor-pointer"><span class="text-red-500 text-[11px] mt-1 block">BU4 獨立項目”或“非本地實體公司”請選擇</span></div>
                                 <div><label class="block mb-1 text-[13px]">服務類型</label><select class="w-full border rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option>差旅報銷線</option></select></div>
                                 <div><label class="block mb-1 text-[13px]">項目 *</label><select class="w-full border border-red-300 rounded px-3 py-1.5 text-[13px] focus:border-red-500 outline-none"><option>請選擇</option></select><span class="text-red-500 text-[11px] mt-1 block">請輸入項目名稱</span></div>
@@ -946,7 +954,7 @@
                             <div class="flex gap-20 text-[13px]"><span class="font-bold">TOTAL AMOUNT</span><span class="font-bold">CNY 0.00</span></div>
                             <div class="flex gap-20 text-[13px]"><span class="font-bold">TOTAL AMOUNT CNY</span><span class="font-bold">CNY 0.00</span></div>
                         </div>
-                        <button type="button" onclick="showSaveToast('已儲存至臨時保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">臨時保存</button><button type="button" onclick="showSaveToast('已儲存至模板保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">模板保存</button><button class="ui-btn ui-btn-primary px-12">提交</button>
+                        <button type="button" onclick="showSaveToast('已儲存至臨時保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">臨時保存</button><button type="button" onclick="showSaveToast('已儲存至模板保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">模板保存</button><button type="button" onclick="submitApplication(this)" class="ui-btn ui-btn-primary px-12">提交</button>
                     </div>
                 </div>
                 <!-- 右側預覽 -->
@@ -976,13 +984,15 @@
                     <!-- 基本信息 -->
                     <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5">
                         <div class="px-4 py-2.5 border-b border-gray-200"><h3 class="text-[#2b3b84] font-bold text-[15px]">基本信息</h3></div>
-                        <div class="p-4 grid grid-cols-5 gap-x-5 gap-y-5">
-                            <div class="col-span-2"><label class="block mb-1.5 text-[13px] text-gray-700">文件編號</label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed" placeholder="自動生成" disabled></div>
+                        <div class="px-4 pt-4 grid grid-cols-3 gap-x-5 gap-y-5 mb-4">
+                            <div class="col-span-2"><label class="block mb-1.5 text-[13px] text-gray-700">文件編號</label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed" value="自動生成" disabled></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">申請日期</label><div class="border border-gray-300 rounded px-3 py-1.5 bg-white flex items-center"><i data-lucide="calendar" class="w-4 h-4 text-gray-400"></i><input type="text" class="w-full ml-2 text-[13px] outline-none" disabled></div></div>
+                        </div>
+                        <div class="px-4 pb-4 grid grid-cols-5 gap-x-5 gap-y-5">
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">服務類型</label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option></select></div>
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">項目 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇項目</option></select></div>
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">區域 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option></select></div>
-                            <div><label class="block mb-1.5 text-[13px] text-gray-700">標題 <span class="text-red-500">*</span></label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"></div>
-                            <div><label class="block mb-1.5 text-[13px] text-gray-700">日期</label><div class="border border-gray-300 rounded px-3 py-1.5 bg-[#e9ecef] flex items-center"><i data-lucide="calendar" class="w-4 h-4 text-gray-400"></i><input type="text" class="w-full ml-2 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed" disabled></div></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">目的 <span class="text-red-500">*</span></label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"></div>
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">申請部門 <span class="text-red-500">*</span></label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"></div>
                         </div>
                     </div>
@@ -1058,7 +1068,7 @@
                     </div>
 
                 </div>
-                <div class="bg-[#f4f5f8] border-t border-gray-200 py-4 flex justify-center shadow-sm"><button type="button" onclick="showSaveToast('已儲存至臨時保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">臨時保存</button><button type="button" onclick="showSaveToast('已儲存至模板保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">模板保存</button><button class="ui-btn ui-btn-primary px-12">提交</button></div>
+                <div class="bg-[#f4f5f8] border-t border-gray-200 py-4 flex justify-center shadow-sm"><button type="button" onclick="showSaveToast('已儲存至臨時保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">臨時保存</button><button type="button" onclick="showSaveToast('已儲存至模板保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">模板保存</button><button type="button" onclick="submitApplication(this)" class="ui-btn ui-btn-primary px-12">提交</button></div>
             </div>
             <div class="w-[300px] border-l border-gray-300 bg-white hidden md:block overflow-y-auto">
                 <div class="bg-[#17a2b8] text-white px-4 py-2 text-[14px] font-bold sticky top-0">審批流程</div>
@@ -1083,14 +1093,16 @@
                     <!-- 基本信息 -->
                     <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5">
                         <div class="px-4 py-2.5 border-b border-gray-200"><h3 class="text-[#2b3b84] font-bold text-[15px]">基本信息</h3></div>
-                        <div class="p-4 grid grid-cols-5 gap-x-5 gap-y-5">
-                            <div class="col-span-2"><label class="block mb-1.5 text-[13px] text-gray-700">文件編號</label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed" placeholder="自動生成" disabled></div>
+                        <div class="px-4 pt-4 grid grid-cols-3 gap-x-5 gap-y-5 mb-4">
+                            <div class="col-span-2"><label class="block mb-1.5 text-[13px] text-gray-700">文件編號</label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed" value="自動生成" disabled></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">申請日期</label><div class="border border-gray-300 rounded px-3 py-1.5 bg-white flex items-center"><i data-lucide="calendar" class="w-4 h-4 text-gray-400"></i><input type="text" class="w-full ml-2 text-[13px] outline-none" disabled></div></div>
+                        </div>
+                        <div class="px-4 pb-4 grid grid-cols-5 gap-x-5 gap-y-5">
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">申請人 <span class="text-red-500">*</span></label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"></div>
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">審批線清單</label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option></select></div>
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">項目 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇項目</option></select></div>
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">區域 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option></select></div>
-                            <div><label class="block mb-1.5 text-[13px] text-gray-700">標題 <span class="text-red-500">*</span></label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"></div>
-                            <div><label class="block mb-1.5 text-[13px] text-gray-700">日期</label><div class="border border-gray-300 rounded px-3 py-1.5 bg-[#e9ecef] flex items-center"><i data-lucide="calendar" class="w-4 h-4 text-gray-400"></i><input type="text" class="w-full ml-2 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed" disabled></div></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">目的 <span class="text-red-500">*</span></label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"></div>
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">報廢選項 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option><option>正常報廢</option><option>其他報廢</option><option>內部出售</option><option>外部出售</option><option>人員賠償</option></select></div>
                         </div>
                     </div>
@@ -1164,7 +1176,7 @@
                     </div>
 
                 </div>
-                <div class="bg-[#f4f5f8] border-t border-gray-200 py-4 flex justify-center shadow-sm"><button type="button" onclick="showSaveToast('已儲存至臨時保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">臨時保存</button><button type="button" onclick="showSaveToast('已儲存至模板保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">模板保存</button><button class="ui-btn ui-btn-primary px-12">提交</button></div>
+                <div class="bg-[#f4f5f8] border-t border-gray-200 py-4 flex justify-center shadow-sm"><button type="button" onclick="showSaveToast('已儲存至臨時保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">臨時保存</button><button type="button" onclick="showSaveToast('已儲存至模板保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">模板保存</button><button type="button" onclick="submitApplication(this)" class="ui-btn ui-btn-primary px-12">提交</button></div>
             </div>
             <div class="w-[300px] border-l border-gray-300 bg-white hidden md:block overflow-y-auto">
                 <div class="bg-[#17a2b8] text-white px-4 py-2 text-[14px] font-bold sticky top-0">審批流程</div>
@@ -1189,7 +1201,7 @@
                     <!-- 區塊：基本資訊 -->
                     <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5">
                         <div class="px-4 py-2.5 border-b border-gray-200"><h3 class="text-[#2b3b84] font-bold text-[15px]">基本資訊</h3></div>
-                        <div class="p-4 grid grid-cols-5 gap-x-5 gap-y-5">
+                        <div class="px-4 pt-4 grid grid-cols-3 gap-x-5 gap-y-5 mb-4">
                             <div class="col-span-2">
                                 <label class="block mb-1.5 text-[13px] text-gray-700">文件編號</label>
                                 <input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed" value="自動生成" disabled>
@@ -1198,6 +1210,8 @@
                                 <label class="block mb-1.5 text-[13px] text-gray-700">申請日期</label>
                                 <div class="border border-gray-300 rounded px-3 py-1.5 bg-white flex items-center"><i data-lucide="calendar" class="w-4 h-4 text-gray-400"></i><input type="text" class="w-full ml-2 text-[13px] outline-none" disabled></div>
                             </div>
+                        </div>
+                        <div class="px-4 pb-4 grid grid-cols-5 gap-x-5 gap-y-5">
                             <div>
                                 <label class="block mb-1.5 text-[13px] text-gray-700">審批線清單</label>
                                 <select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option></select>
@@ -1211,7 +1225,7 @@
                                 <select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option></select>
                             </div>
                             <div>
-                                <label class="block mb-1.5 text-[13px] text-gray-700">標題 <span class="text-red-500">*</span></label>
+                                <label class="block mb-1.5 text-[13px] text-gray-700">目的 <span class="text-red-500">*</span></label>
                                 <input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500">
                             </div>
                         </div>
@@ -1369,7 +1383,7 @@
                     </div>
 
                 </div>
-                <div class="bg-[#f4f5f8] border-t border-gray-200 py-4 flex justify-center shadow-sm"><button type="button" onclick="showSaveToast('已儲存至臨時保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">臨時保存</button><button type="button" onclick="showSaveToast('已儲存至模板保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">模板保存</button><button class="ui-btn ui-btn-primary px-12">提交</button></div>
+                <div class="bg-[#f4f5f8] border-t border-gray-200 py-4 flex justify-center shadow-sm"><button type="button" onclick="showSaveToast('已儲存至臨時保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">臨時保存</button><button type="button" onclick="showSaveToast('已儲存至模板保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">模板保存</button><button type="button" onclick="submitApplication(this)" class="ui-btn ui-btn-primary px-12">提交</button></div>
             </div>
             <div class="w-[300px] border-l border-gray-300 bg-white hidden md:block overflow-y-auto">
                 <div class="bg-[#17a2b8] text-white px-4 py-2 text-[14px] font-bold sticky top-0">審批流程</div>
@@ -1554,7 +1568,7 @@
 
 
                 </div>
-                <div class="bg-[#f4f5f8] border-t border-gray-200 py-4 flex justify-center shadow-sm"><button type="button" onclick="showSaveToast('已儲存至臨時保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">臨時保存</button><button type="button" onclick="showSaveToast('已儲存至模板保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">模板保存</button><button class="ui-btn ui-btn-primary px-12">提交</button></div>
+                <div class="bg-[#f4f5f8] border-t border-gray-200 py-4 flex justify-center shadow-sm"><button type="button" onclick="showSaveToast('已儲存至臨時保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">臨時保存</button><button type="button" onclick="showSaveToast('已儲存至模板保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">模板保存</button><button type="button" onclick="submitApplication(this)" class="ui-btn ui-btn-primary px-12">提交</button></div>
                     <!-- 懸浮總計金額 -->
                     <div class="absolute right-6 bottom-[92px] z-30 bg-white border border-gray-200 rounded-xl shadow-xl px-5 py-3 min-w-[210px]">
                         <div class="text-[11px] text-gray-400 font-medium">總計金額</div>
@@ -1588,9 +1602,11 @@
                     <!-- 基本信息 -->
                     <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5">
                         <div class="px-4 py-2.5 border-b border-gray-200"><h3 class="text-[#2b3b84] font-bold text-[15px]">基本信息</h3></div>
-                        <div class="p-4 grid grid-cols-5 gap-x-5 gap-y-5">
-                            <div class="col-span-2"><label class="block mb-1.5 text-[13px] text-gray-700">文件编号</label><input type="text" disabled class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed" placeholder="自动生成"></div>
-                            <div><label class="block mb-1.5 text-[13px] text-gray-700">申请日期</label><div class="border border-gray-300 rounded px-3 py-1.5 bg-white flex items-center"><i data-lucide="calendar" class="w-4 h-4 text-gray-400"></i><input type="text" class="w-full ml-2 text-[13px] outline-none"></div></div>
+                        <div class="px-4 pt-4 grid grid-cols-3 gap-x-5 gap-y-5 mb-4">
+                            <div class="col-span-2"><label class="block mb-1.5 text-[13px] text-gray-700">文件編號</label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed" value="自動生成" disabled></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">申請日期</label><div class="border border-gray-300 rounded px-3 py-1.5 bg-white flex items-center"><i data-lucide="calendar" class="w-4 h-4 text-gray-400"></i><input type="text" class="w-full ml-2 text-[13px] outline-none" disabled></div></div>
+                        </div>
+                        <div class="px-4 pb-4 grid grid-cols-5 gap-x-5 gap-y-5">
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">申请人 <span class="text-red-500">*</span></label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"></div>
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">服务类型</label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option></select></div>
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">项目 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option></select></div>
@@ -1640,7 +1656,7 @@
                     </div>
 
                 </div>
-                <div class="bg-[#f4f5f8] border-t border-gray-200 py-4 flex justify-center shadow-sm"><button type="button" onclick="showSaveToast('已儲存至臨時保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">臨時保存</button><button type="button" onclick="showSaveToast('已儲存至模板保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">模板保存</button><button class="ui-btn ui-btn-primary px-12">提交</button></div>
+                <div class="bg-[#f4f5f8] border-t border-gray-200 py-4 flex justify-center shadow-sm"><button type="button" onclick="showSaveToast('已儲存至臨時保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">臨時保存</button><button type="button" onclick="showSaveToast('已儲存至模板保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">模板保存</button><button type="button" onclick="submitApplication(this)" class="ui-btn ui-btn-primary px-12">提交</button></div>
             </div>
             <div class="w-[300px] border-l border-gray-300 bg-white hidden md:block overflow-y-auto">
                 <div class="bg-[#17a2b8] text-white px-4 py-2 text-[14px] font-bold sticky top-0">審批流程</div>
@@ -1665,14 +1681,16 @@
                     <!-- 區塊：基本信息 -->
                     <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5">
                         <div class="px-4 py-2.5 border-b border-gray-200"><h3 class="text-[#2b3b84] font-bold text-[15px]">基本信息</h3></div>
-                        <div class="p-4 grid grid-cols-5 gap-x-5 gap-y-5">
-                            <div class="col-span-2"><label class="block mb-1.5 text-[13px] text-gray-700">文件編號</label><input type="text" disabled class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed" placeholder="自動生成"></div>
+                        <div class="px-4 pt-4 grid grid-cols-3 gap-x-5 gap-y-5 mb-4">
+                            <div class="col-span-2"><label class="block mb-1.5 text-[13px] text-gray-700">文件編號</label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed" value="自動生成" disabled></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">申請日期</label><div class="border border-gray-300 rounded px-3 py-1.5 bg-white flex items-center"><i data-lucide="calendar" class="w-4 h-4 text-gray-400"></i><input type="text" class="w-full ml-2 text-[13px] outline-none" disabled></div></div>
+                        </div>
+                        <div class="px-4 pb-4 grid grid-cols-5 gap-x-5 gap-y-5">
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">申請人 <span class="text-red-500">*</span></label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"></div>
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">審批線清單</label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option></select></div>
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">項目 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option></select></div>
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">區域 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option></select></div>
-                            <div><label class="block mb-1.5 text-[13px] text-gray-700">標題 <span class="text-red-500">*</span></label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"></div>
-                            <div><label class="block mb-1.5 text-[13px] text-gray-700">日期</label><div class="border border-gray-300 rounded px-3 py-1.5 bg-white flex items-center"><i data-lucide="calendar" class="w-4 h-4 text-gray-400"></i><input type="text" class="w-full ml-2 text-[13px] outline-none"></div></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">目的 <span class="text-red-500">*</span></label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"></div>
                         </div>
                     </div>
 
@@ -1781,7 +1799,7 @@
                     </div>
 
                 </div>
-                <div class="bg-[#f4f5f8] border-t border-gray-200 py-4 flex justify-center shadow-sm"><button type="button" onclick="showSaveToast('已儲存至臨時保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">臨時保存</button><button type="button" onclick="showSaveToast('已儲存至模板保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">模板保存</button><button class="ui-btn ui-btn-primary px-12">提交</button></div>
+                <div class="bg-[#f4f5f8] border-t border-gray-200 py-4 flex justify-center shadow-sm"><button type="button" onclick="showSaveToast('已儲存至臨時保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">臨時保存</button><button type="button" onclick="showSaveToast('已儲存至模板保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">模板保存</button><button type="button" onclick="submitApplication(this)" class="ui-btn ui-btn-primary px-12">提交</button></div>
             </div>
             <div class="w-[300px] border-l border-gray-300 bg-white hidden md:block overflow-y-auto">
                 <div class="bg-[#17a2b8] text-white px-4 py-2 text-[14px] font-bold sticky top-0">審批流程</div>
@@ -1806,9 +1824,11 @@
                     <!-- 基本信息 -->
                     <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5">
                         <div class="px-4 py-2.5 border-b border-gray-200"><h3 class="text-[#2b3b84] font-bold text-[15px]">基本信息</h3></div>
-                        <div class="p-4 grid grid-cols-5 gap-x-5 gap-y-5">
-                            <div class="col-span-2"><label class="block mb-1.5 text-[13px] text-gray-700">文件编号</label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed" placeholder="自动生成" disabled></div>
-                            <div><label class="block mb-1.5 text-[13px] text-gray-700">申请日期</label><div class="border border-gray-300 rounded px-3 py-1.5 bg-[#e9ecef] flex items-center"><i data-lucide="calendar" class="w-4 h-4 text-gray-400"></i><input type="text" class="w-full ml-2 text-[13px] outline-none bg-transparent text-gray-500 cursor-not-allowed" disabled></div></div>
+                        <div class="px-4 pt-4 grid grid-cols-3 gap-x-5 gap-y-5 mb-4">
+                            <div class="col-span-2"><label class="block mb-1.5 text-[13px] text-gray-700">文件編號</label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed" value="自動生成" disabled></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">申請日期</label><div class="border border-gray-300 rounded px-3 py-1.5 bg-white flex items-center"><i data-lucide="calendar" class="w-4 h-4 text-gray-400"></i><input type="text" class="w-full ml-2 text-[13px] outline-none" disabled></div></div>
+                        </div>
+                        <div class="px-4 pb-4 grid grid-cols-5 gap-x-5 gap-y-5">
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">申请人 <span class="text-red-500">*</span></label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"></div>
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">审批线清单</label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>请选择</option></select></div>
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">项目 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>请选择项目</option></select></div>
@@ -1913,7 +1933,7 @@
                     </div>
 
                 </div>
-                <div class="bg-[#f4f5f8] border-t border-gray-200 py-4 flex justify-center shadow-sm"><button type="button" onclick="showSaveToast('已儲存至臨時保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">臨時保存</button><button type="button" onclick="showSaveToast('已儲存至模板保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">模板保存</button><button class="ui-btn ui-btn-primary px-12">提交</button></div>
+                <div class="bg-[#f4f5f8] border-t border-gray-200 py-4 flex justify-center shadow-sm"><button type="button" onclick="showSaveToast('已儲存至臨時保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">臨時保存</button><button type="button" onclick="showSaveToast('已儲存至模板保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">模板保存</button><button type="button" onclick="submitApplication(this)" class="ui-btn ui-btn-primary px-12">提交</button></div>
             </div>
             <div class="w-[300px] border-l border-gray-300 bg-white hidden md:block overflow-y-auto">
                 <div class="bg-[#17a2b8] text-white px-4 py-2 text-[14px] font-bold sticky top-0">審批流程</div>
@@ -1938,9 +1958,11 @@
                     <!-- 基本信息 -->
                     <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5">
                         <div class="px-4 py-2.5 border-b border-gray-200"><h3 class="text-[#2b3b84] font-bold text-[15px]">基本信息</h3></div>
-                        <div class="p-4 grid grid-cols-5 gap-x-5 gap-y-5">
-                            <div class="col-span-2"><label class="block mb-1.5 text-[13px] text-gray-700">文件编号</label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed" placeholder="自动生成" disabled></div>
-                            <div><label class="block mb-1.5 text-[13px] text-gray-700">申请日期</label><div class="border border-gray-300 rounded px-3 py-1.5 bg-[#e9ecef] flex items-center"><i data-lucide="calendar" class="w-4 h-4 text-gray-400"></i><input type="text" class="w-full ml-2 text-[13px] outline-none bg-transparent text-gray-500 cursor-not-allowed" disabled></div></div>
+                        <div class="px-4 pt-4 grid grid-cols-3 gap-x-5 gap-y-5 mb-4">
+                            <div class="col-span-2"><label class="block mb-1.5 text-[13px] text-gray-700">文件編號</label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed" value="自動生成" disabled></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">申請日期</label><div class="border border-gray-300 rounded px-3 py-1.5 bg-white flex items-center"><i data-lucide="calendar" class="w-4 h-4 text-gray-400"></i><input type="text" class="w-full ml-2 text-[13px] outline-none" disabled></div></div>
+                        </div>
+                        <div class="px-4 pb-4 grid grid-cols-5 gap-x-5 gap-y-5">
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">申请人 <span class="text-red-500">*</span></label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"></div>
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">审批线清单</label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>请选择</option></select></div>
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">项目 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>请选择项目</option></select></div>
@@ -2044,7 +2066,7 @@
                     </div>
 
                 </div>
-                <div class="bg-[#f4f5f8] border-t border-gray-200 py-4 flex justify-center shadow-sm"><button type="button" onclick="showSaveToast('已儲存至臨時保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">臨時保存</button><button type="button" onclick="showSaveToast('已儲存至模板保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">模板保存</button><button class="ui-btn ui-btn-primary px-12">提交</button></div>
+                <div class="bg-[#f4f5f8] border-t border-gray-200 py-4 flex justify-center shadow-sm"><button type="button" onclick="showSaveToast('已儲存至臨時保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">臨時保存</button><button type="button" onclick="showSaveToast('已儲存至模板保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">模板保存</button><button type="button" onclick="submitApplication(this)" class="ui-btn ui-btn-primary px-12">提交</button></div>
             </div>
             <div class="w-[300px] border-l border-gray-300 bg-white hidden md:block overflow-y-auto">
                 <div class="bg-[#17a2b8] text-white px-4 py-2 text-[14px] font-bold sticky top-0">審批流程</div>
@@ -2070,14 +2092,17 @@
                     <!-- 區塊：基本資訊 -->
                     <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5">
                         <div class="px-4 py-2.5 border-b border-gray-200"><h3 class="text-[#2b3b84] font-bold text-[15px]">基本資訊</h3></div>
-                        <div class="p-4 grid grid-cols-5 gap-x-5 gap-y-5">
+                        <div class="px-4 pt-4 grid grid-cols-3 gap-x-5 gap-y-5 mb-4">
                             <div class="col-span-2">
-                                <label class="block mb-1.5 text-[13px] text-gray-700">文件編號 <span class="text-red-500">*</span></label>
-                                <div class="flex gap-2">
-                                    <input type="text" disabled class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed">
-                                    <button class="ui-btn ui-btn-primary px-4 whitespace-nowrap text-[13px]">取號</button>
-                                </div>
+                                <label class="block mb-1.5 text-[13px] text-gray-700">文件編號</label>
+                                <input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed" value="自動生成" disabled>
                             </div>
+                            <div>
+                                <label class="block mb-1.5 text-[13px] text-gray-700">申請日期</label>
+                                <div class="border border-gray-300 rounded px-3 py-1.5 bg-white flex items-center"><i data-lucide="calendar" class="w-4 h-4 text-gray-400"></i><input type="text" class="w-full ml-2 text-[13px] outline-none" disabled></div>
+                            </div>
+                        </div>
+                        <div class="px-4 pb-4 grid grid-cols-5 gap-x-5 gap-y-5">
                             <div>
                                 <label class="block mb-1.5 text-[13px] text-gray-700">搜尋員工 <span class="text-red-500">*</span></label>
                                 <select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500">
@@ -2316,7 +2341,7 @@
                     </div>
 
                 </div>
-                <div class="bg-[#f4f5f8] border-t border-gray-200 py-4 flex justify-center shadow-sm"><button type="button" onclick="showSaveToast('已儲存至臨時保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">臨時保存</button><button type="button" onclick="showSaveToast('已儲存至模板保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">模板保存</button><button class="ui-btn ui-btn-primary px-12">提交</button></div>
+                <div class="bg-[#f4f5f8] border-t border-gray-200 py-4 flex justify-center shadow-sm"><button type="button" onclick="showSaveToast('已儲存至臨時保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">臨時保存</button><button type="button" onclick="showSaveToast('已儲存至模板保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">模板保存</button><button type="button" onclick="submitApplication(this)" class="ui-btn ui-btn-primary px-12">提交</button></div>
             </div>
             <div class="w-[300px] border-l border-gray-300 bg-white hidden md:block overflow-y-auto">
                 <div class="bg-[#17a2b8] text-white px-4 py-2 text-[14px] font-bold sticky top-0">審批流程</div>
@@ -2615,7 +2640,7 @@
                     </div>
 
                 </div>
-                <div class="bg-[#f4f5f8] border-t border-gray-200 py-4 flex justify-center shadow-sm"><button type="button" onclick="showSaveToast('已儲存至臨時保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">臨時保存</button><button type="button" onclick="showSaveToast('已儲存至模板保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">模板保存</button><button class="ui-btn ui-btn-primary px-12">提交</button></div>
+                <div class="bg-[#f4f5f8] border-t border-gray-200 py-4 flex justify-center shadow-sm"><button type="button" onclick="showSaveToast('已儲存至臨時保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">臨時保存</button><button type="button" onclick="showSaveToast('已儲存至模板保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">模板保存</button><button type="button" onclick="submitApplication(this)" class="ui-btn ui-btn-primary px-12">提交</button></div>
             </div>
             <div class="w-[300px] border-l border-gray-300 bg-white hidden md:block overflow-y-auto">
                 <div class="bg-[#17a2b8] text-white px-4 py-2 text-[14px] font-bold sticky top-0">審批流程</div>
@@ -2639,11 +2664,17 @@
                     <!-- 區塊：基本資訊 -->
                     <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5">
                         <div class="px-4 py-2.5 border-b border-gray-200"><h3 class="text-[#2b3b84] font-bold text-[15px]">基本資訊</h3></div>
-                        <div class="p-4 grid grid-cols-5 gap-x-5 gap-y-5">
+                        <div class="px-4 pt-4 grid grid-cols-3 gap-x-5 gap-y-5 mb-4">
                             <div class="col-span-2">
-                                <label class="block mb-1.5 text-[13px] text-gray-700">文件編號 <span class="text-red-500">*</span></label>
-                                <input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500 bg-[#e9ecef] text-gray-500 cursor-not-allowed" disabled>
+                                <label class="block mb-1.5 text-[13px] text-gray-700">文件編號</label>
+                                <input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed" value="自動生成" disabled>
                             </div>
+                            <div>
+                                <label class="block mb-1.5 text-[13px] text-gray-700">申請日期</label>
+                                <div class="border border-gray-300 rounded px-3 py-1.5 bg-white flex items-center"><i data-lucide="calendar" class="w-4 h-4 text-gray-400"></i><input type="text" class="w-full ml-2 text-[13px] outline-none" disabled></div>
+                            </div>
+                        </div>
+                        <div class="px-4 pb-4 grid grid-cols-5 gap-x-5 gap-y-5">
                             <div>
                                 <label class="block mb-1.5 text-[13px] text-gray-700">所在地類型 / 審批線 <span class="text-red-500">*</span></label>
                                 <select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500">
@@ -2846,7 +2877,7 @@
                     </div>
 
                 </div>
-                <div class="bg-[#f4f5f8] border-t border-gray-200 py-4 flex justify-center shadow-sm"><button type="button" onclick="showSaveToast('已儲存至臨時保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">臨時保存</button><button type="button" onclick="showSaveToast('已儲存至模板保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">模板保存</button><button class="ui-btn ui-btn-primary px-12">提交</button></div>
+                <div class="bg-[#f4f5f8] border-t border-gray-200 py-4 flex justify-center shadow-sm"><button type="button" onclick="showSaveToast('已儲存至臨時保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">臨時保存</button><button type="button" onclick="showSaveToast('已儲存至模板保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">模板保存</button><button type="button" onclick="submitApplication(this)" class="ui-btn ui-btn-primary px-12">提交</button></div>
             </div>
             <div class="w-[300px] border-l border-gray-300 bg-white hidden md:block overflow-y-auto">
                 <div class="bg-[#17a2b8] text-white px-4 py-2 text-[14px] font-bold sticky top-0">審批流程</div>
@@ -2872,13 +2903,14 @@
                         <div class="px-4 py-2.5 border-b border-gray-200">
                             <h3 class="text-[#2b3b84] font-bold text-[15px]">基本資料</h3>
                         </div>
-                        <div class="p-4 grid grid-cols-5 gap-x-5 gap-y-5">
+                        <div class="px-4 pt-4 pb-4 grid grid-cols-3 gap-x-5 gap-y-5">
                             <div class="col-span-2">
-                                <label class="block mb-1.5 text-[13px] text-gray-700">文件編號 <span class="text-red-500">*</span></label>
-                                <div class="flex gap-2">
-                                    <input type="text" disabled class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed">
-                                    <button class="ui-btn ui-btn-primary px-4 whitespace-nowrap">取號</button>
-                                </div>
+                                <label class="block mb-1.5 text-[13px] text-gray-700">文件編號</label>
+                                <input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed" value="自動生成" disabled>
+                            </div>
+                            <div>
+                                <label class="block mb-1.5 text-[13px] text-gray-700">申請日期</label>
+                                <div class="border border-gray-300 rounded px-3 py-1.5 bg-white flex items-center"><i data-lucide="calendar" class="w-4 h-4 text-gray-400"></i><input type="text" class="w-full ml-2 text-[13px] outline-none" disabled></div>
                             </div>
                         </div>
                     </div>
@@ -3143,7 +3175,7 @@
                     </div>
 
                 </div>
-                <div class="bg-[#f4f5f8] border-t border-gray-200 py-4 flex justify-center shadow-sm"><button type="button" onclick="showSaveToast('已儲存至臨時保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">臨時保存</button><button type="button" onclick="showSaveToast('已儲存至模板保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">模板保存</button><button class="ui-btn ui-btn-primary px-12">提交</button></div>
+                <div class="bg-[#f4f5f8] border-t border-gray-200 py-4 flex justify-center shadow-sm"><button type="button" onclick="showSaveToast('已儲存至臨時保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">臨時保存</button><button type="button" onclick="showSaveToast('已儲存至模板保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">模板保存</button><button type="button" onclick="submitApplication(this)" class="ui-btn ui-btn-primary px-12">提交</button></div>
             </div>
             <div class="w-[300px] border-l border-gray-300 bg-white hidden md:block overflow-y-auto">
                 <div class="bg-[#17a2b8] text-white px-4 py-2 text-[14px] font-bold sticky top-0">審批流程</div>
@@ -3171,20 +3203,19 @@
                         <div class="px-4 py-2.5 border-b border-gray-200">
                             <h3 class="text-[#2b3b84] font-bold text-[15px]">離職申請 - 基本資訊</h3>
                         </div>
-                        <div class="p-4 grid grid-cols-5 gap-x-5 gap-y-5">
+                        <div class="px-4 pt-4 grid grid-cols-3 gap-x-5 gap-y-5 mb-4">
                             <div class="col-span-2">
-                                <label class="block mb-1.5 text-[13px] text-gray-700">文件編號 <span class="text-red-500">*</span></label>
-                                <input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500">
+                                <label class="block mb-1.5 text-[13px] text-gray-700">文件編號</label>
+                                <input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed" value="自動生成" disabled>
                             </div>
                             <div>
                                 <label class="block mb-1.5 text-[13px] text-gray-700">申請日期</label>
-                                <div class="border border-gray-300 rounded px-3 py-1.5 flex items-center bg-white">
-                                    <i data-lucide="calendar" class="w-4 h-4 text-gray-400"></i>
-                                    <input type="text" class="w-full ml-2 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed" value="2026-06-15" disabled>
-                                </div>
+                                <div class="border border-gray-300 rounded px-3 py-1.5 bg-white flex items-center"><i data-lucide="calendar" class="w-4 h-4 text-gray-400"></i><input type="text" class="w-full ml-2 text-[13px] outline-none" disabled></div>
                             </div>
+                        </div>
+                        <div class="px-4 pb-4 grid grid-cols-5 gap-x-5 gap-y-5">
                             <div>
-                                <label class="block mb-1.5 text-[13px] text-gray-700">標題</label>
+                                <label class="block mb-1.5 text-[13px] text-gray-700">目的</label>
                                 <input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed" disabled>
                             </div>
                             <div>
@@ -3323,7 +3354,7 @@
                                 <input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed" disabled>
                             </div>
                             <div>
-                                <label class="block mb-1.5 text-[13px] text-gray-700">標題</label>
+                                <label class="block mb-1.5 text-[13px] text-gray-700">目的</label>
                                 <input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed" disabled>
                             </div>
                             <div>
@@ -3756,7 +3787,7 @@
                     </div>
 
                 </div>
-                <div class="bg-[#f4f5f8] border-t border-gray-200 py-4 flex justify-center shadow-sm"><button type="button" onclick="showSaveToast('已儲存至臨時保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">臨時保存</button><button type="button" onclick="showSaveToast('已儲存至模板保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">模板保存</button><button class="ui-btn ui-btn-primary px-12">提交</button></div>
+                <div class="bg-[#f4f5f8] border-t border-gray-200 py-4 flex justify-center shadow-sm"><button type="button" onclick="showSaveToast('已儲存至臨時保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">臨時保存</button><button type="button" onclick="showSaveToast('已儲存至模板保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">模板保存</button><button type="button" onclick="submitApplication(this)" class="ui-btn ui-btn-primary px-12">提交</button></div>
             </div>
             <div class="w-[300px] border-l border-gray-300 bg-white hidden md:block overflow-y-auto">
                 <div class="bg-[#17a2b8] text-white px-4 py-2 text-[14px] font-bold sticky top-0">審批流程</div>
@@ -3802,6 +3833,53 @@
             BU:'bu-modal', IC:'ic-modal', PMO:'pmo-modal', PMOA:'pmoa-modal', PMOS:'pmos-modal',
             HRPC:'hr-pc-modal', HREA:'hr-ea-modal', HRRA:'hr-ra-modal', HRSP:'hr-sp-modal', HRTH:'hr-th-modal'
         };
+        // ===== 送出申請 → 寫入共享儲存（localStorage），供「我的申請 / 簽核」讀取 =====
+        const OA_MAP = { PU:'行政', AA:'行政', AM:'行政', AR:'行政', ASSETS:'行政', SA:'行政', PTA:'行政', TR:'行政', PMO:'PMO', PMOA:'PMO', PMOS:'PMO', BU:'事業部', B:'財務', C:'財務', IC:'合同', HRPC:'人事', HREA:'人事', HRRA:'人事', HRSP:'人事', HRTH:'人事' };
+        function submitApplication(btn) {
+            const modal = btn.closest('.form-modal');
+            if (!modal) return;
+            const code = Object.keys(formModalMap).find(k => formModalMap[k] === modal.id) || 'SA';
+            // 流水號（依類型遞增）
+            let seqMap = {};
+            try { seqMap = JSON.parse(localStorage.getItem('hroa_seq') || '{}'); } catch (e) {}
+            const n = (seqMap[code] || 0) + 1; seqMap[code] = n;
+            try { localStorage.setItem('hroa_seq', JSON.stringify(seqMap)); } catch (e) {}
+            const docNo = code + '-THQ-' + String(n + 10).padStart(6, '0');
+            // 申請人（取搜尋型 combobox，否則預設 Dev）
+            let applicant = 'Dev';
+            const ai = modal.querySelector('.applicant-input');
+            if (ai && ai.value.trim()) applicant = ai.value.replace(/[（(].*$/, '').trim() || 'Dev';
+            // 金額（取懸浮總計）
+            let amounts = ['—'];
+            const tEl = modal.querySelector('#pu-total, #pta-total');
+            const curEl = modal.querySelector('#pu-total-cur, #pta-total-cur');
+            const cnyEl = modal.querySelector('#pu-total-cny, #pta-total-cny');
+            if (tEl) {
+                const cur = curEl ? curEl.textContent.trim() : '';
+                amounts = [(cur ? cur + ' ' : '') + tEl.textContent.trim()];
+                if (cnyEl) amounts.push('CNY ' + cnyEl.textContent.trim());
+            }
+            // 是否緊急（勾選「是否緊急」checkbox）
+            let urgent = false;
+            modal.querySelectorAll('label').forEach(lab => {
+                if (/緊急/.test(lab.textContent)) {
+                    const cb = lab.querySelector('input[type="checkbox"]');
+                    if (cb && cb.checked) urgent = true;
+                }
+            });
+            // 日期
+            const d = new Date();
+            const p = x => String(x).padStart(2, '0');
+            const date = d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds());
+            const rec = { oa: OA_MAP[code] || '行政', location: 'THQ', type: code, docNo, title: docNo, applicant, signature: applicant, amounts, date, approver: '-', refNo: '-', status: '簽核完成', isGreen: true, workStatus: '未派工', urgent: urgent };
+            let list = [];
+            try { list = JSON.parse(localStorage.getItem('hroa_apps') || '[]'); } catch (e) {}
+            list.unshift(rec);
+            try { localStorage.setItem('hroa_apps', JSON.stringify(list)); } catch (e) {}
+            showSaveToast('已提交申請（' + docNo + '），狀態：簽核完成');
+            setTimeout(() => modal.classList.add('hidden'), 700);
+        }
+
         const appGrid = document.getElementById('app-grid');
         if (appGrid) {
             appGrid.addEventListener('click', (e) => {
