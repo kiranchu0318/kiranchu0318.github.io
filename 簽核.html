@@ -146,6 +146,20 @@
 
       // 費用詳情彈窗控制狀態
       const [isModalOpen, setIsModalOpen] = useState(false);
+      // 關聯單號導覽堆疊：在彈窗內開啟關聯單時記住來源，關閉時可返回原本的單
+      const [modalStack, setModalStack] = useState([]);
+      // 從列表開啟（全新）詳情彈窗：清空導覽堆疊
+      const openDocModal = (row) => { setModalStack([]); setModalRow(row); setIsModalOpen(true); };
+      // 在彈窗內開啟關聯單：把目前的單推入堆疊
+      const openRelatedDoc = (target) => { setModalStack(prev => [...prev, modalRow]); setModalRow(target); };
+      // 關閉 / 返回：堆疊有來源則返回上一張，否則整個關閉
+      const closeOrBackModal = () => {
+        setModalStack(prev => {
+          if (prev.length > 0) { setModalRow(prev[prev.length - 1]); return prev.slice(0, -1); }
+          setIsModalOpen(false);
+          return [];
+        });
+      };
       // 請假 / 補卡「檢視」詳情彈窗（依電子表單簽核彈窗樣式製作）
       const [viewItem, setViewItem] = useState(null); // { kind: 'leave' | 'timesheet', data: row }
       // 電子表單簽核：點擊編號開啟詳情彈窗時，記住該列資料以帶入彈窗內容
@@ -154,8 +168,19 @@
       // 審批動作彈窗（審批 / 駁回 / 補件 + 意見 + 附件）
       const [approveActionOpen, setApproveActionOpen] = useState(false);
       const [approveDecision, setApproveDecision] = useState('審批');
+      // 指派工作單彈窗（C-THQ-000002 審批通過後）
+      const [assignModalOpen, setAssignModalOpen] = useState(false);
+      const [assignee, setAssignee] = useState('');
+      // 單據覆寫（指派後更新簽核/工作狀態）：{ [docNo]: { status, workStatus } }
+      const [docOverrides, setDocOverrides] = useState({});
       const [approveFiles, setApproveFiles] = useState([]); // [{ name, size }]
       const approveEditorRef = React.useRef(null);
+      // 費用報銷明細下方「說明」附件（預設帶入兩張發票示意）
+      const [noteFiles, setNoteFiles] = useState([
+        { name: 'A4紙發票.pdf', size: 245 * 1024 },
+        { name: '洗碗精發票.pdf', size: 180 * 1024 },
+      ]);
+      const noteFileInputRef = React.useRef(null);
       const approveFileInputRef = React.useRef(null);
       const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
       const formatFileSize = (bytes) => {
@@ -176,6 +201,17 @@
         }
         if (accepted.length) setApproveFiles(prev => [...prev, ...accepted]);
       };
+      const handleNoteFiles = (fileList) => {
+        const incoming = Array.from(fileList || []);
+        const accepted = [];
+        const rejected = [];
+        incoming.forEach(f => {
+          if (f.size > MAX_FILE_SIZE) rejected.push(f.name);
+          else accepted.push({ name: f.name, size: f.size });
+        });
+        if (rejected.length) window.alert('以下附件超過 20MB 上限，已略過：\n' + rejected.join('\n'));
+        if (accepted.length) setNoteFiles(prev => [...prev, ...accepted]);
+      };
       const openApproveAction = () => {
         setApproveDecision('審批');
         setApproveFiles([]);
@@ -183,7 +219,21 @@
       };
       const submitApproveAction = () => {
         setApproveActionOpen(false);
+        // C-THQ-000002 審批通過 → 開啟「指派工作單」彈窗
+        if (modalRow?.docNo === 'C-THQ-000002' && approveDecision === '審批') {
+          setAssignee('');
+          setAssignModalOpen(true);
+          return;
+        }
         setIsModalOpen(false);
+        setModalStack([]);
+      };
+      const submitAssign = () => {
+        const dn = modalRow?.docNo;
+        if (dn) setDocOverrides(prev => ({ ...prev, [dn]: { status: '簽核完成', workStatus: '已派工' } }));
+        setAssignModalOpen(false);
+        setIsModalOpen(false);
+        setModalStack([]);
       };
       const [activeExportModal, setActiveExportModal] = useState(null);
       const [selectedBookkeeping, setSelectedBookkeeping] = useState([]);
@@ -468,12 +518,13 @@
       );
 
       const mockData = [
-        { oa: '財務', location: 'THQ', type: 'B',  docNo: 'B-THQ-000003',  applicant: 'Oliver', signature: 'Oliver', amounts: ['TWD 8,000', 'CNY 2137.09'],        date: '2026-05-30 15:36:45', approver: 'James', refNo: '-', status: '待我簽核', isGreen: false },
-        { oa: '合同', location: 'THQ', type: 'IC', docNo: 'IC-THQ-000002', applicant: 'Oliver', signature: 'Oliver', amounts: ['TWD 2,000,000', 'CNY 427407.40'], date: '2026-05-20 15:36:45', approver: 'James', refNo: '-', status: '簽核完成', isGreen: true },
-        { oa: '行政', location: 'THQ', type: 'PU', docNo: 'PU-THQ-000003', applicant: 'Oliver', signature: 'Oliver', amounts: ['TWD 8,000', 'CNY 2137.09'],        date: '2026-05-12 15:36:45', approver: 'James', refNo: '-', status: '未簽核', isGreen: false },
-        { oa: '行政', location: 'THQ', type: 'PU', docNo: 'PU-THQ-000002', applicant: 'Oliver', signature: 'Oliver', amounts: ['TWD 2,000,000', 'CNY 427407.40'], date: '2026-04-30 12:36:10', approver: 'James', refNo: '-', status: '簽核完成', isGreen: true },
-        { oa: '財務', location: 'THQ', type: 'C',  docNo: 'C-THQ-000001',  applicant: 'Oliver', signature: 'Oliver', amounts: ['TWD 2,000', 'CNY 451.47'],          date: '2026-04-26 19:00:45', approver: 'James', refNo: '-', status: '未簽核', isGreen: false },
-        { oa: '行政', location: 'THQ', type: 'PU', docNo: 'PU-THQ-000001', applicant: 'Oliver', signature: 'Oliver', amounts: ['TWD 2,000', 'CNY 451.47'],          date: '2026-04-25 19:00:45', approver: 'James', refNo: '-', status: '簽核完成', isGreen: true },
+        { oa: '財務', location: 'THQ', type: 'B',  docNo: 'B-THQ-000003',  applicant: 'Oliver', signature: 'Oliver', amounts: ['TWD 8,000', 'CNY 2137.09'],        date: '2026-05-30 15:36:45', approver: 'James', refNo: '-', status: '待我簽核', isGreen: false, workStatus: '未派工' },
+        { oa: '合同', location: 'THQ', type: 'IC', docNo: 'IC-THQ-000002', applicant: 'Oliver', signature: 'Oliver', amounts: ['TWD 2,000,000', 'CNY 427407.40'], date: '2026-05-20 15:36:45', approver: 'James', refNo: '-', status: '簽核完成', isGreen: true, workStatus: '已完成' },
+        { oa: '行政', location: 'THQ', type: 'PU', docNo: 'PU-THQ-000003', applicant: 'Oliver', signature: 'Oliver', amounts: ['TWD 8,000', 'CNY 2137.09'],        date: '2026-05-12 15:36:45', approver: 'James', refNo: '-', status: '未簽核', isGreen: false, workStatus: '未派工' },
+        { oa: '行政', location: 'THQ', type: 'PU', docNo: 'PU-THQ-000002', applicant: 'Oliver', signature: 'Oliver', amounts: ['TWD 2,000,000', 'CNY 427407.40'], date: '2026-04-30 12:36:10', approver: 'James', refNo: '-', status: '簽核完成', isGreen: true, workStatus: '處理中' },
+        { oa: '財務', location: 'THQ', type: 'C',  docNo: 'C-THQ-000001',  applicant: 'Oliver', signature: 'Oliver', amounts: ['TWD 2,000', 'CNY 451.47'],          date: '2026-04-26 19:00:45', approver: 'James', refNo: '-', status: '待我簽核', isGreen: false, workStatus: '未派工' },
+        { oa: '財務', location: 'THQ', type: 'C',  docNo: 'C-THQ-000002',  applicant: 'Dev', signature: 'Dev', amounts: ['TWD 3,500', 'CNY 789.25'],          date: '2026-05-18 10:22:30', approver: 'James', refNo: '-', status: '待我簽核', isGreen: false, workStatus: '處理中' },
+        { oa: '行政', location: 'THQ', type: 'PU', docNo: 'PU-THQ-000001', applicant: 'Oliver', signature: 'Oliver', amounts: ['TWD 2,000', 'CNY 451.47'],          date: '2026-04-25 19:00:45', approver: 'James', refNo: '-', status: '簽核完成', isGreen: true, workStatus: '已完成' },
       ];
 
       // 關聯單號對應（PU 與 IC / B / C 互相關聯，依單號末碼配對）
@@ -481,7 +532,37 @@
         'PU-THQ-000001': 'C-THQ-000001',  'C-THQ-000001': 'PU-THQ-000001',
         'PU-THQ-000002': 'IC-THQ-000002', 'IC-THQ-000002': 'PU-THQ-000002',
         'PU-THQ-000003': 'B-THQ-000003',  'B-THQ-000003': 'PU-THQ-000003',
+        'C-THQ-000002': 'PU-THQ-000002',
       };
+
+      // C-THQ-000001 進度追蹤（依「進度追蹤C」文件）：審批節點 + 抄送
+      const progressCSteps = [
+        { seq: '1', status: '已審批', cond: '—',  level: '—',       title: '提交申請',   sign: 'Oliver', id: 'aaa123', time: '2026-04-15 18:30:00' },
+        { seq: '2', status: '已審批', cond: '串聯', level: 'project',  title: '項目負責人', sign: 'AAA',    id: '100962', time: '2026-04-16 15:00:07' },
+        { seq: '3', status: '已審批', cond: '串聯', level: 'project',  title: '費用會計',   sign: 'BBB',    id: '101517', time: '2026-04-16 15:01:01' },
+        { seq: '4', status: '已審批', cond: '串聯', level: 'special',  title: '財務負責人', sign: 'CCC',    id: '100064', time: '2026-04-20 13:05:17' },
+        { seq: '5', status: '已審批', cond: '串聯', level: 'location', title: '內審',       sign: 'DDD',    id: '101366', time: '2026-04-20 16:56:00' },
+        { seq: '6', status: '審批中', cond: '串聯', level: 'special',  title: '資金主管',   sign: 'EEE',    id: '100120', time: '' },
+      ];
+      // C-THQ-000001（費用會計範例）：費用會計「審批中」，其後皆「待審批」
+      const progressC1Steps = [
+        { seq: '1', status: '已審批', cond: '—',  level: '—',       title: '提交申請',   sign: 'Oliver', id: 'aaa123', time: '2026-04-15 18:30:00' },
+        { seq: '2', status: '已審批', cond: '串聯', level: 'project',  title: '項目負責人', sign: 'AAA',    id: '100962', time: '2026-04-16 15:00:07' },
+        { seq: '3', status: '審批中', cond: '串聯', level: 'project',  title: '費用會計',   sign: 'BBB',    id: '101517', time: '' },
+        { seq: '4', status: '待審批', cond: '串聯', level: 'special',  title: '財務負責人', sign: 'CCC',    id: '100064', time: '' },
+        { seq: '5', status: '待審批', cond: '串聯', level: 'location', title: '內審',       sign: 'DDD',    id: '101366', time: '' },
+        { seq: '6', status: '待審批', cond: '串聯', level: 'special',  title: '資金主管',   sign: 'EEE',    id: '100120', time: '' },
+      ];
+      // 依單號取得對應的審批節點清單
+      const getProgressSteps = (docNo) => docNo === 'C-THQ-000001' ? progressC1Steps : progressCSteps;
+      const progressCCc = [
+        { level: 'special',  title: '資金主管', sign: 'FFF', id: '100120' },
+        { level: 'special',  title: '記帳',     sign: 'GGG', id: '101081' },
+        { level: 'special',  title: '稽核',     sign: 'HHH', id: '100016' },
+        { level: 'location', title: '抄送內審', sign: 'III', id: '100324' },
+        { level: 'location', title: '抄送內審', sign: 'JJJ', id: '101023' },
+        { level: 'special',  title: '財務總監', sign: 'KKK', id: '100052' },
+      ];
 
       // 計算各頁籤未處理數量
       const formPendingCount = mockData.filter(d => d.status === '未簽核' || d.status === '待我簽核').length;
@@ -589,12 +670,13 @@
                           <th>申請日期</th>
                           <th>當前審批人</th>
                           <th>關聯單號</th>
-                          <th>狀態</th>
+                          <th>簽核狀態</th>
+                          <th>工作狀態</th>
                         </tr>
                       </thead>
                       <tbody>
                         {filteredFormData.length === 0 && (
-                          <tr><td colSpan="11" className="py-8 text-center text-gray-400">目前沒有符合條件的資料</td></tr>
+                          <tr><td colSpan="12" className="py-8 text-center text-gray-400">目前沒有符合條件的資料</td></tr>
                         )}
                         {filteredFormData.map((row, idx) => (
                           <tr
@@ -606,10 +688,10 @@
                             <td>{row.type}</td>
                             <td className="text-left">
                               <button
-                                onClick={() => { setModalRow(row); setIsModalOpen(true); }}
+                                onClick={() => openDocModal(row)}
                                 className="text-[#4A90E2] hover:underline font-medium text-left"
                               >
-                                {`${row.docNo}_${({ B: '一般費用', C: '費用報銷', IC: '內部合同', PU: '請購', HR: '人員帳號異動', SA: '用印申請' })[row.type] || '申請'}`}
+                                {row.docNo === 'C-THQ-000001' ? `${row.docNo}_辦公室用品費用報銷(費用會計範例)` : row.docNo === 'C-THQ-000002' ? `${row.docNo}_辦公室用品費用報銷(資金支付範例)` : `${row.docNo}_${({ B: '一般費用', C: '費用報銷', IC: '內部合同', PU: '請購', HR: '人員帳號異動', SA: '用印申請' })[row.type] || '申請'}`}
                               </button>
                             </td>
                             <td>{row.applicant}</td>
@@ -631,7 +713,7 @@
                             <td className="text-gray-400">
                               {relatedDocMap[row.docNo] ? (
                                 <button
-                                  onClick={() => { const t = mockData.find(r => r.docNo === relatedDocMap[row.docNo]); if (t) { setModalRow(t); setIsModalOpen(true); } }}
+                                  onClick={() => { const t = mockData.find(r => r.docNo === relatedDocMap[row.docNo]); if (t) openDocModal(t); }}
                                   className="text-[#4A90E2] hover:underline font-medium"
                                 >
                                   {relatedDocMap[row.docNo]}
@@ -640,7 +722,7 @@
                             </td>
                             <td>
                               <div className="flex items-center justify-center gap-3">
-                                {getStatusBadge(row.status)}
+                                {getStatusBadge(docOverrides[row.docNo]?.status || row.status)}
                                 {row.canWithdraw && (
                                   <button
                                     onClick={(e) => {
@@ -653,6 +735,15 @@
                                   </button>
                                 )}
                               </div>
+                            </td>
+                            <td className="text-center">
+                              {(() => {
+                                const ov = docOverrides[row.docNo] || {};
+                                const effStatus = ov.status || row.status;
+                                const ws = effStatus === '簽核完成' ? (ov.workStatus || row.workStatus || '未派工') : '未派工';
+                                const cls = { '已完成': 'ui-badge-success', '已派工': 'ui-badge-info', '處理中': 'ui-badge-info', '未派工': 'ui-badge-gray' }[ws] || 'ui-badge-gray';
+                                return <span className={`ui-badge ${cls}`}>{ws}</span>;
+                              })()}
                             </td>
                           </tr>
                         ))}
@@ -1029,7 +1120,7 @@
 
           {/* ================= 申請單詳情彈窗 ================= */}
           {isModalOpen && (
-            <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-center justify-center p-4 overflow-y-auto" onClick={() => setIsModalOpen(false)}>
+            <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-center justify-center p-4 overflow-y-auto" onClick={closeOrBackModal}>
               <div
                 className="bg-[#F0F2F5] rounded-xl shadow-2xl w-full max-w-[1450px] h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200 text-left"
                 onClick={e => e.stopPropagation()}
@@ -1039,7 +1130,7 @@
                 <div className="bg-[#EEF2F6] px-6 py-3.5 flex items-center justify-between border-b border-gray-200 flex-shrink-0">
                   <span className="font-bold text-gray-800 text-base">{`${({ B: '費用申請單', C: '費用報銷單', IC: '內部合同審批單', PU: '請購申請單' })[modalRow?.type] || '費用申請單'}(${modalRow?.type || 'B'})`}</span>
                   <button
-                    onClick={() => setIsModalOpen(false)}
+                    onClick={closeOrBackModal}
                     className="bg-[#3F51B5] hover:bg-blue-800 text-white p-1 rounded transition-colors"
                   >
                     <X size={18} strokeWidth={2.5} />
@@ -1058,56 +1149,197 @@
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                           <div>
                             <label className="block text-gray-700 text-xs mb-1.5 font-medium">文件編號</label>
-                            <input type="text" disabled value={modalRow?.docNo || ''} className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 cursor-not-allowed font-mono" />
+                            <input type="text" disabled value={modalRow?.docNo || ''} className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed font-mono" />
                           </div>
                           <div>
                             <label className="block text-gray-700 text-xs mb-1.5 font-medium">申請日期</label>
-                            <div className="flex items-center bg-[#EAECEF] border border-gray-300 rounded px-3 py-2 text-sm text-gray-700">
+                            <div className="flex items-center bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700">
                               <Calendar size={14} className="mr-2 text-gray-500" />
                               <span>{(modalRow?.date || '').slice(0, 10) || '—'}</span>
                             </div>
                           </div>
                           <div>
-                            <label className="block text-gray-700 text-xs mb-1.5 font-medium">標題</label>
-                            <input type="text" disabled value={modalRow ? `${modalRow.oa || ''}申請單` : ''} className="w-full bg-white border border-gray-200 rounded px-3 py-2 text-sm text-gray-800 font-medium" />
+                            <label className="block text-gray-700 text-xs mb-1.5 font-medium">申請人</label>
+                            <input type="text" disabled value={modalRow?.applicant || ''} className="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-sm text-gray-800" />
                           </div>
                           <div>
-                            <label className="block text-gray-700 text-xs mb-1.5 font-medium">申請人</label>
-                            <input type="text" disabled value={modalRow?.applicant || ''} className="w-full bg-white border border-gray-200 rounded px-3 py-2 text-sm text-gray-800" />
+                            <label className="block text-gray-700 text-xs mb-1.5 font-medium">{['C-THQ-000001', 'C-THQ-000002'].includes(modalRow?.docNo) ? '目的' : '標題'}</label>
+                            <input type="text" disabled value={modalRow ? (['C-THQ-000001', 'C-THQ-000002'].includes(modalRow.docNo) ? '辦公室用品費用報銷' : `${modalRow.oa || ''}申請單`) : ''} className="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-sm text-gray-800 font-medium" />
                           </div>
                           <div>
                             <label className="block text-gray-700 text-xs mb-1.5 font-medium">服務類型</label>
-                            <input type="text" disabled value="一般費用" className="w-full bg-white border border-gray-200 rounded px-3 py-2 text-sm text-gray-800" />
+                            <input type="text" disabled value="一般費用" className="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-sm text-gray-800" />
                           </div>
-                          <div>
-                            <label className="block text-gray-700 text-xs mb-1.5 font-medium">區域</label>
-                            <input type="text" disabled value={modalRow?.location || ''} className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 cursor-not-allowed" />
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* 費用申請明細卡片 */}
-                      <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-5">
-                        <div className="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2">費用申請明細</div>
-                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                          <div className="lg:col-span-8">
-                            <label className="block text-gray-700 text-xs mb-1.5 font-semibold">內容</label>
-                            <input type="text" disabled value="客戶業務餐敘 / 出差住宿 / 文具耗材採購" className="w-full bg-white border border-gray-200 rounded px-3 py-2 text-sm text-gray-800 font-medium" />
-                          </div>
-                          <div className="lg:col-span-4">
-                            <label className="block text-gray-700 text-xs mb-1.5 font-semibold">金額</label>
-                            <div className="flex items-center border border-gray-200 rounded overflow-hidden">
-                              <span className="bg-gray-50 border-r border-gray-200 px-3 py-2 text-sm text-gray-500 font-medium select-none">TWD</span>
-                              <input type="text" disabled value={(modalRow?.amounts && modalRow.amounts[0]) ? modalRow.amounts[0].replace(/^[A-Z]+ /, '') : ''} className="w-full bg-white px-3 py-2 text-sm text-gray-800 font-medium focus:outline-none" />
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <label className="block text-gray-700 text-xs mb-1.5 font-medium">項目</label>
+                              <input type="text" disabled value={modalRow?.project || 'GT'} className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed" />
+                            </div>
+                            <div>
+                              <label className="block text-gray-700 text-xs mb-1.5 font-medium">{['C-THQ-000001', 'C-THQ-000002'].includes(modalRow?.docNo) ? '地區' : '區域'}</label>
+                              <input type="text" disabled value={modalRow?.location || ''} className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed" />
                             </div>
                           </div>
                         </div>
                       </div>
 
+                      {/* 費用報銷卡片（C-THQ-000001 專用） */}
+                      {['C-THQ-000001', 'C-THQ-000002'].includes(modalRow?.docNo) && (
+                      <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-5">
+                        <div className="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2">費用報銷</div>
+                        {/* 關聯單號 */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                          {[
+                            { label: '關聯單號（B單）', val: '-' },
+                            { label: '關聯單號（IC單）', val: '-' },
+                            { label: '關聯單號（PU單）', val: relatedDocMap[modalRow?.docNo] || '-' },
+                          ].map((f, i) => {
+                            const target = (f.val && f.val !== '-') ? mockData.find(r => r.docNo === f.val) : null;
+                            return (
+                              <div key={i}>
+                                <label className="block text-gray-700 text-xs mb-1.5 font-medium">{f.label}</label>
+                                <div className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm">
+                                  {target ? (
+                                    <button onClick={() => openRelatedDoc(target)} className="text-[#4A90E2] hover:underline font-mono font-medium">{f.val}</button>
+                                  ) : (
+                                    <span className="text-gray-700 font-mono">{f.val}</span>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                        {/* 公司別 / 貨幣 */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                          <div>
+                            <label className="block text-gray-700 text-xs mb-1.5 font-medium">公司別</label>
+                            <input type="text" disabled value="台灣總部" className="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-sm text-gray-800" />
+                          </div>
+                          <div>
+                            <label className="block text-gray-700 text-xs mb-1.5 font-medium">貨幣</label>
+                            <input type="text" disabled value="TWD" className="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-sm text-gray-800" />
+                          </div>
+                        </div>
+                        {/* 開戶資訊（獨立一行）*/}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                          <div>
+                            <label className="block text-gray-700 text-xs mb-1.5 font-medium">開戶行姓名</label>
+                            <input type="text" disabled value={modalRow?.applicant || ''} className="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-sm text-gray-800" />
+                          </div>
+                          <div>
+                            <label className="block text-gray-700 text-xs mb-1.5 font-medium">開戶銀行</label>
+                            <input type="text" disabled value="台北富邦銀行" className="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-sm text-gray-800" />
+                          </div>
+                          <div>
+                            <label className="block text-gray-700 text-xs mb-1.5 font-medium">銀行帳號</label>
+                            <input type="text" disabled value="012-3456789012" className="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-sm text-gray-800 font-mono" />
+                          </div>
+                        </div>
+                        {/* 特批 */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                          <div>
+                            <label className="block text-gray-700 text-xs mb-1.5 font-medium">此單是否為特批</label>
+                            <input type="text" disabled value="否" className="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-sm text-gray-800" />
+                          </div>
+                          <div>
+                            <label className="block text-gray-700 text-xs mb-1.5 font-medium">特批原因</label>
+                            <input type="text" disabled value="—" className="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-sm text-gray-800" />
+                          </div>
+                          <div>
+                            <label className="block text-gray-700 text-xs mb-1.5 font-medium">特批金額</label>
+                            <input type="text" disabled value="—" className="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-sm text-gray-800 font-mono" />
+                          </div>
+                        </div>
+                      </div>
+                      )}
+
+                      {/* 費用申請明細 / 費用報銷明細卡片 */}
+                      <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-5">
+                        <div className="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2">{['C-THQ-000001', 'C-THQ-000002'].includes(modalRow?.docNo) ? '費用報銷明細' : '費用申請明細'}</div>
+                        {['C-THQ-000001', 'C-THQ-000002'].includes(modalRow?.docNo) ? (
+                          <div className="overflow-x-auto border border-gray-100 rounded-lg">
+                            <table className="w-full text-left text-sm border-collapse whitespace-nowrap">
+                              <thead>
+                                <tr className="border-b border-gray-200 bg-gray-50 text-gray-700 font-bold text-xs">
+                                  <th className="px-3 py-2 w-28">項目</th>
+                                  <th className="px-3 py-2 w-28">部門</th>
+                                  <th className="px-3 py-2 w-48">目的</th>
+                                  <th className="px-3 py-2 w-48">金額</th>
+                                  <th className="px-3 py-2">其他備註</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-gray-100">
+                                {[
+                                  { dept: 'RD', purpose: '辦公室文具採購', amount: '1,200', note: '—' },
+                                  { dept: 'HR', purpose: '茶水間用品補充', amount: '800', note: '—' },
+                                ].map((r, i) => (
+                                  <tr key={i}>
+                                    <td className="px-3 py-1.5">
+                                      <select className="w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2]"><option>GT</option></select>
+                                    </td>
+                                    <td className="px-3 py-1.5">
+                                      <select defaultValue={r.dept} className="w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2]"><option>RD</option><option>HR</option><option>MKT</option><option>IA1</option></select>
+                                    </td>
+                                    <td className="px-3 py-1.5"><input type="text" defaultValue={r.purpose} className="w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2]" /></td>
+                                    <td className="px-3 py-1.5">
+                                      <div className="flex items-center border border-gray-300 rounded overflow-hidden">
+                                        <span className="bg-gray-50 border-r border-gray-300 px-2 py-1 text-xs text-gray-500 select-none">TWD</span>
+                                        <input type="text" defaultValue={r.amount} className="w-full px-2 py-1 text-sm text-right outline-none" />
+                                      </div>
+                                    </td>
+                                    <td className="px-3 py-1.5"><input type="text" defaultValue={r.note} className="w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2]" /></td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        ) : (
+                          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                            <div className="lg:col-span-8">
+                              <label className="block text-gray-700 text-xs mb-1.5 font-semibold">內容</label>
+                              <input type="text" disabled value="客戶業務餐敘 / 出差住宿 / 文具耗材採購" className="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-sm text-gray-800 font-medium" />
+                            </div>
+                            <div className="lg:col-span-4">
+                              <label className="block text-gray-700 text-xs mb-1.5 font-semibold">金額</label>
+                              <div className="flex items-center border border-gray-200 rounded overflow-hidden">
+                                <span className="bg-gray-50 border-r border-gray-200 px-3 py-1.5 text-sm text-gray-500 font-medium select-none">TWD</span>
+                                <input type="text" disabled value={(modalRow?.amounts && modalRow.amounts[0]) ? modalRow.amounts[0].replace(/^[A-Z]+ /, '') : ''} className="w-full bg-white px-3 py-1.5 text-sm text-gray-800 font-medium focus:outline-none" />
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* 說明卡片（C-THQ-000001 專用：內嵌文字編輯器 + 上傳附件） */}
+                      {['C-THQ-000001', 'C-THQ-000002'].includes(modalRow?.docNo) && (
+                      <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-4">
+                        <div className="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2">說明</div>
+                        {/* 說明文字（檢視，直接顯示） */}
+                        <div className="text-sm text-gray-700 bg-gray-50 border border-gray-200 rounded-lg p-3 leading-relaxed whitespace-pre-line min-h-[80px]">本次為辦公室用品費用報銷，採購項目包含 A4 紙與洗碗精，發票共兩張（如附件），請審核核銷。</div>
+                        {/* 附件（檢視，唯讀） */}
+                        <div>
+                          <div className="text-xs font-semibold text-gray-500 mb-2">附件</div>
+                          {noteFiles.length > 0 ? (
+                            <ul className="space-y-1">
+                              {noteFiles.map((f, i) => (
+                                <li key={i} className="flex items-center gap-2 bg-gray-50 border border-gray-100 rounded px-3 py-1.5 text-xs text-gray-700">
+                                  <span className="text-gray-400">📎</span>
+                                  <span className="truncate">{f.name}</span>
+                                  <span className="text-gray-400 flex-shrink-0">{formatFileSize(f.size)}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          ) : (
+                            <div className="text-xs text-gray-400">無附件</div>
+                          )}
+                        </div>
+                      </div>
+                      )}
+
                       {/* 進度追蹤卡片 */}
                       <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
                         <div className="bg-[#EEF2F6] px-6 py-3.5 flex items-center justify-between border-b border-gray-200">
-                          <span className="font-bold text-[#1A237E] text-[15px]">進度追蹤</span>
+                          <span className="font-bold text-[#1A237E] text-[15px]">審批進度追蹤</span>
                           <div className="flex items-center gap-3">
                             <span className="text-xs font-semibold text-[#1A237E]">顯示審批意見與附件</span>
                             <button
@@ -1120,7 +1352,42 @@
                         </div>
 
                         <div className="p-6 space-y-6">
-                          {/* 橫向審批進度條 */}
+                          {['C-THQ-000001', 'C-THQ-000002'].includes(modalRow?.docNo) ? (
+                            /* C-THQ-000001：依「進度追蹤C」文件呈現審批節點表格 */
+                            <div className="overflow-x-auto border border-gray-100 rounded-lg">
+                              <table className="w-full text-left text-xs border-collapse whitespace-nowrap">
+                                <thead>
+                                  <tr className="border-b border-gray-200 bg-gray-50 text-gray-700 font-bold">
+                                    <th className="px-3 py-1.5 text-center w-12">序號</th>
+                                    <th className="px-3 py-1.5 text-center w-20">審批狀態</th>
+                                    <th className="px-3 py-1.5 text-center w-14">條件</th>
+                                    <th className="px-3 py-1.5 w-20">級別</th>
+                                    <th className="px-3 py-1.5">職稱</th>
+                                    <th className="px-3 py-1.5">簽名</th>
+                                    <th className="px-3 py-1.5">ID</th>
+                                    <th className="px-3 py-1.5 w-40">審批時間</th>
+                                  </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-100 font-medium">
+                                  {getProgressSteps(modalRow?.docNo).map((s) => (
+                                    <tr key={s.seq}>
+                                      <td className="px-3 py-1.5 text-center font-bold text-gray-800">{s.seq}</td>
+                                      <td className="px-3 py-1.5 text-center">
+                                        <span className={`ui-badge ${s.status === '審批中' ? 'ui-badge-info' : s.status === '待審批' ? 'ui-badge-gray' : 'ui-badge-success'}`}>{s.status}</span>
+                                      </td>
+                                      <td className="px-3 py-1.5 text-center text-gray-500">{s.cond}</td>
+                                      <td className="px-3 py-1.5 text-gray-500">{s.level}</td>
+                                      <td className="px-3 py-1.5 text-gray-800">{s.title}</td>
+                                      <td className="px-3 py-1.5 text-gray-800">{s.sign}</td>
+                                      <td className="px-3 py-1.5 text-gray-600 font-mono">{s.id}</td>
+                                      <td className="px-3 py-1.5 text-gray-400">{s.time || '-'}</td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          ) : (
+                          /* 橫向審批進度條 */
                           <div className="flex items-start">
                             <div className="flex flex-col items-center text-center w-28">
                               <div className="w-9 h-9 rounded-full bg-emerald-500 text-white flex items-center justify-center text-sm font-bold">✓</div>
@@ -1140,6 +1407,7 @@
                               <div className="text-[11px] text-gray-400 whitespace-nowrap">Felix · 待審批</div>
                             </div>
                           </div>
+                          )}
 
                           {/* 審批意見與附件（toggle 控制） */}
                           {showOpinions && (
@@ -1167,27 +1435,50 @@
                           <div>
                             <div className="text-xs font-semibold text-gray-500 mb-2">抄送</div>
                             <div className="overflow-x-auto border border-gray-100 rounded-lg">
-                              <table className="w-full text-left text-xs border-collapse">
-                                <thead>
-                                  <tr className="border-b border-gray-200 bg-gray-50 text-gray-700 font-bold">
-                                    <th className="px-4 py-1.5">職稱</th>
-                                    <th className="px-4 py-1.5">簽名</th>
-                                    <th className="px-4 py-1.5 w-40">時間</th>
-                                  </tr>
-                                </thead>
-                                <tbody className="divide-y divide-gray-100 font-medium">
-                                  <tr>
-                                    <td className="px-4 py-1.5 text-gray-800">財務</td>
-                                    <td className="px-4 py-1.5 text-gray-800">Stella</td>
-                                    <td className="px-4 py-1.5 text-gray-400">-</td>
-                                  </tr>
-                                  <tr>
-                                    <td className="px-4 py-1.5 text-gray-800">內審</td>
-                                    <td className="px-4 py-1.5 text-gray-800">Cora</td>
-                                    <td className="px-4 py-1.5 text-gray-400">-</td>
-                                  </tr>
-                                </tbody>
-                              </table>
+                              {['C-THQ-000001', 'C-THQ-000002'].includes(modalRow?.docNo) ? (
+                                <table className="w-full text-left text-xs border-collapse whitespace-nowrap">
+                                  <thead>
+                                    <tr className="border-b border-gray-200 bg-gray-50 text-gray-700 font-bold">
+                                      <th className="px-3 py-1.5 w-20">級別</th>
+                                      <th className="px-3 py-1.5">職稱</th>
+                                      <th className="px-3 py-1.5">簽名</th>
+                                      <th className="px-3 py-1.5">ID</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody className="divide-y divide-gray-100 font-medium">
+                                    {progressCCc.map((c, i) => (
+                                      <tr key={i}>
+                                        <td className="px-3 py-1.5 text-gray-500">{c.level}</td>
+                                        <td className="px-3 py-1.5 text-gray-800">{c.title}</td>
+                                        <td className="px-3 py-1.5 text-gray-800">{c.sign}</td>
+                                        <td className="px-3 py-1.5 text-gray-600 font-mono">{c.id}</td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              ) : (
+                                <table className="w-full text-left text-xs border-collapse">
+                                  <thead>
+                                    <tr className="border-b border-gray-200 bg-gray-50 text-gray-700 font-bold">
+                                      <th className="px-4 py-1.5">職稱</th>
+                                      <th className="px-4 py-1.5">簽名</th>
+                                      <th className="px-4 py-1.5 w-40">時間</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody className="divide-y divide-gray-100 font-medium">
+                                    <tr>
+                                      <td className="px-4 py-1.5 text-gray-800">財務</td>
+                                      <td className="px-4 py-1.5 text-gray-800">Stella</td>
+                                      <td className="px-4 py-1.5 text-gray-400">-</td>
+                                    </tr>
+                                    <tr>
+                                      <td className="px-4 py-1.5 text-gray-800">內審</td>
+                                      <td className="px-4 py-1.5 text-gray-800">Cora</td>
+                                      <td className="px-4 py-1.5 text-gray-400">-</td>
+                                    </tr>
+                                  </tbody>
+                                </table>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -1204,7 +1495,10 @@
                           {modalRow?.amounts && modalRow.amounts[1] ? ` / ${modalRow.amounts[1]}` : ''}
                         </span>
                       </div>
-                      <div className="w-full flex justify-center mt-2">
+                      <div className="w-full flex justify-center items-center gap-3 mt-2">
+                        {modalRow?.docNo === 'C-THQ-000001' && (
+                          <button className="ui-btn ui-btn-secondary ui-btn-lg">費用會計</button>
+                        )}
                         <button
                           onClick={openApproveAction}
                           className="ui-btn ui-btn-primary ui-btn-lg"
@@ -1219,45 +1513,34 @@
                   {/* 右側：審批流程預覽 */}
                   <div className="w-full lg:w-[350px] bg-white border-t lg:border-t-0 lg:border-l border-gray-200 overflow-y-auto flex flex-col flex-shrink-0">
                     <div className="bg-[#0097A7] text-white px-4 py-3.5 font-bold text-sm tracking-wide">
-                      審批流程預覽
+                      審批流程
                     </div>
-                    <div className="p-1 flex-1 overflow-y-auto">
-                      <table className="w-full text-xs text-center border-collapse">
-                        <thead>
-                          <tr className="border-b border-gray-200 bg-gray-50 text-gray-500 font-bold">
-                            <th className="px-3 py-2 w-12 border-r border-gray-200">序號</th>
-                            <th className="px-3 py-2 border-r border-gray-200">職稱</th>
-                            <th className="px-3 py-2 w-16">簽名</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-100 font-semibold text-gray-700">
-                          <tr className="border-b border-gray-200">
-                            <td className="px-3 py-1.5 border-r border-gray-200 font-bold text-center text-gray-800">1</td>
-                            <td className="px-3 py-1.5 border-r border-gray-200 text-gray-500">部門主管</td>
-                            <td className="px-3 py-1.5 text-center text-gray-400">-</td>
-                          </tr>
-                          <tr className="border-b border-gray-200">
-                            <td className="px-3 py-1.5 border-r border-gray-200 font-bold text-center text-gray-800">2</td>
-                            <td className="px-3 py-1.5 border-r border-gray-200 text-gray-500">項目負責人</td>
-                            <td className="px-3 py-1.5 text-center text-gray-400">-</td>
-                          </tr>
-                          <tr className="border-b border-gray-200">
-                            <td className="px-3 py-1.5 border-r border-gray-200 font-bold text-center text-gray-800">3</td>
-                            <td className="px-3 py-1.5 border-r border-gray-200 text-gray-500">費用會計</td>
-                            <td className="px-3 py-1.5 text-center text-gray-400">-</td>
-                          </tr>
-                          <tr className="border-b border-gray-200">
-                            <td className="px-3 py-1.5 border-r border-gray-200 font-bold text-center text-gray-800">4</td>
-                            <td className="px-3 py-1.5 border-r border-gray-200 text-gray-500">財務負責人</td>
-                            <td className="px-3 py-1.5 text-center text-gray-400">-</td>
-                          </tr>
-                          <tr className="border-b border-gray-200">
-                            <td className="px-3 py-1.5 border-r border-gray-200 font-bold text-center text-gray-800">5</td>
-                            <td className="px-3 py-1.5 border-r border-gray-200 text-gray-500">資金專員</td>
-                            <td className="px-3 py-1.5 text-center text-gray-400">-</td>
-                          </tr>
-                        </tbody>
-                      </table>
+                    <div className="p-4 flex-1 overflow-y-auto">
+                      {(['C-THQ-000001', 'C-THQ-000002'].includes(modalRow?.docNo)
+                        ? getProgressSteps(modalRow?.docNo)
+                        : [{ seq: '1', title: '部門主管' }, { seq: '2', title: '項目負責人' }, { seq: '3', title: '費用會計' }, { seq: '4', title: '財務負責人' }, { seq: '5', title: '資金專員' }]
+                      ).map((s, i, arr) => {
+                        const done = s.status === '已審批';
+                        const active = s.status === '審批中';
+                        return (
+                          <div key={i} className="relative flex gap-3 pb-6 last:pb-0">
+                            {i < arr.length - 1 && (
+                              <span className={`absolute left-[15px] top-8 -bottom-0 w-0.5 ${done ? 'bg-emerald-300' : 'bg-gray-200'}`}></span>
+                            )}
+                            <div className={`relative z-10 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${done ? 'bg-emerald-500 text-white' : active ? 'bg-[#4A90E2] text-white ring-4 ring-blue-100' : 'bg-gray-200 text-gray-500'}`}>
+                              {done ? '✓' : s.seq}
+                            </div>
+                            <div className="pt-1 min-w-0">
+                              <div className="text-sm font-bold text-gray-800 whitespace-nowrap">{s.title}</div>
+                              <div className="text-xs text-gray-400 mt-0.5 whitespace-nowrap">
+                                {(s.sign && s.sign !== '-') ? s.sign : '—'}
+                                {done && <span className="ml-1 text-emerald-600 font-medium">· 已審批</span>}
+                                {active && <span className="ml-1 text-[#4A90E2] font-medium">· 審批中</span>}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
 
@@ -1398,6 +1681,45 @@
                 <div className="flex justify-end gap-3 px-6 py-4 border-t border-gray-200 bg-gray-50">
                   <button onClick={() => setApproveActionOpen(false)} className="ui-btn ui-btn-secondary">取消</button>
                   <button onClick={submitApproveAction} className="ui-btn ui-btn-primary">確認送出</button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ========== 指派工作單彈窗（C-THQ-000002 審批通過後） ========== */}
+          {assignModalOpen && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 z-[80] flex items-center justify-center p-4" onClick={() => setAssignModalOpen(false)}>
+              <div
+                className="bg-white rounded-lg shadow-xl w-full max-w-[460px] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+                onClick={e => e.stopPropagation()}
+              >
+                <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+                  <span className="font-bold text-gray-800 text-base">指派工作單</span>
+                  <button onClick={() => setAssignModalOpen(false)} className="text-gray-400 hover:text-gray-600 text-xl leading-none">
+                    <i className="fas fa-times"></i>
+                  </button>
+                </div>
+                <div className="px-6 py-5 space-y-4">
+                  <p className="text-sm text-gray-600">審批已通過，請指派後續工作單的處理人員：</p>
+                  <div>
+                    <div className="text-sm font-semibold text-gray-700 mb-1.5">指派人員 <span className="text-red-500">*</span></div>
+                    <select
+                      value={assignee}
+                      onChange={(e) => setAssignee(e.target.value)}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#4A90E2]"
+                    >
+                      <option value="" disabled>請選擇人員</option>
+                      <option>Oliver（資金專員）</option>
+                      <option>James（資金主管）</option>
+                      <option>Stella（出納）</option>
+                      <option>Cora（記帳）</option>
+                      <option>Dev（費用會計）</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="flex justify-end gap-3 px-6 py-4 border-t border-gray-200 bg-gray-50">
+                  <button onClick={() => setAssignModalOpen(false)} className="ui-btn ui-btn-secondary">取消</button>
+                  <button onClick={submitAssign} disabled={!assignee} className="ui-btn ui-btn-primary disabled:opacity-50 disabled:cursor-not-allowed">確認指派</button>
                 </div>
               </div>
             </div>
