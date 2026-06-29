@@ -492,16 +492,18 @@
                 <button id="close-pta-btn" class="form-modal-close bg-blue-500 hover:bg-blue-600 text-white rounded p-1 transition-colors"><i data-lucide="x" class="w-4 h-4"></i></button>
             </div>
             <div class="flex flex-1 overflow-hidden bg-[#f4f5f8]">
-                <div class="flex-1 flex flex-col overflow-hidden">
+                <div class="relative flex-1 flex flex-col overflow-hidden">
+                    <!-- 錨點導覽 -->
+                    <div id="pta-anchor-nav" class="shrink-0 px-5 py-2.5 bg-white border-b border-gray-200 flex flex-wrap gap-2 items-center"><button type="button" onclick="ptaScrollTo('pta-sec-basic')" class="text-[12px] px-3 py-1 rounded-full border border-gray-200 text-gray-600 hover:bg-[#EAF2FC] hover:text-[#4A90E2] hover:border-[#4A90E2] transition-colors">基本資訊</button><button type="button" onclick="ptaScrollTo('pta-sec-asset')" class="text-[12px] px-3 py-1 rounded-full border border-gray-200 text-gray-600 hover:bg-[#EAF2FC] hover:text-[#4A90E2] hover:border-[#4A90E2] transition-colors">隨身資產／聯絡方式</button><button type="button" onclick="ptaScrollTo('pta-sec-trip')" class="text-[12px] px-3 py-1 rounded-full border border-gray-200 text-gray-600 hover:bg-[#EAF2FC] hover:text-[#4A90E2] hover:border-[#4A90E2] transition-colors">出差行程</button><button type="button" onclick="ptaScrollTo('pta-sec-daypack')" class="text-[12px] px-3 py-1 rounded-full border border-gray-200 text-gray-600 hover:bg-[#EAF2FC] hover:text-[#4A90E2] hover:border-[#4A90E2] transition-colors">日包計算</button><button type="button" onclick="ptaScrollTo('pta-sec-claim')" class="text-[12px] px-3 py-1 rounded-full border border-gray-200 text-gray-600 hover:bg-[#EAF2FC] hover:text-[#4A90E2] hover:border-[#4A90E2] transition-colors">應領金額</button><button type="button" onclick="ptaScrollTo('pta-sec-budget')" class="text-[12px] px-3 py-1 rounded-full border border-gray-200 text-gray-600 hover:bg-[#EAF2FC] hover:text-[#4A90E2] hover:border-[#4A90E2] transition-colors">差旅預算明細</button><button type="button" onclick="ptaScrollTo('pta-sec-plan')" class="text-[12px] px-3 py-1 rounded-full border border-gray-200 text-gray-600 hover:bg-[#EAF2FC] hover:text-[#4A90E2] hover:border-[#4A90E2] transition-colors">出差規劃表</button><button type="button" onclick="ptaScrollTo('pta-sec-attach')" class="text-[12px] px-3 py-1 rounded-full border border-gray-200 text-gray-600 hover:bg-[#EAF2FC] hover:text-[#4A90E2] hover:border-[#4A90E2] transition-colors">附件</button><button type="button" onclick="ptaScrollTo('pta-sec-progress')" class="text-[12px] px-3 py-1 rounded-full border border-gray-200 text-gray-600 hover:bg-[#EAF2FC] hover:text-[#4A90E2] hover:border-[#4A90E2] transition-colors">進度追蹤</button></div>
                     <div class="flex-1 overflow-y-auto p-5 pb-8">
                         <!-- 是否緊急 -->
-                        <label class="flex items-center gap-2 cursor-pointer select-none mt-4 mb-4 bg-amber-50 border border-amber-200 rounded-md px-4 py-2.5">
+                        <label class="flex items-center gap-2 cursor-pointer select-none mb-4 bg-amber-50 border border-amber-200 rounded-md px-4 py-2.5">
                             <input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
                             <span class="text-[13px] font-medium text-gray-700">是否緊急</span>
                         </label>
                         
                         <!-- 1. 基本資訊 -->
-                        <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5 mt-4">
+                        <div id="pta-sec-basic" class="scroll-mt-24 bg-white border border-gray-300 rounded-md shadow-sm mb-5 mt-4">
                             <div class="px-4 py-2.5 border-b border-gray-200"><h3 class="text-[#2b3b84] font-bold text-[15px]">基本資訊</h3></div>
                             <div class="p-4 grid grid-cols-5 gap-x-5 gap-y-3.5">
                                 <div class="col-span-2"><label class="block mb-1.5 text-[13px] text-gray-700">文件編號</label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed" value="自動生成" disabled></div>
@@ -518,7 +520,7 @@
                         </div>
 
                         <!-- 2/3. 隨身資產 + 聯絡方式（同一排） -->
-                        <div class="grid grid-cols-5 gap-5 mb-5">
+                        <div id="pta-sec-asset" class="scroll-mt-24 grid grid-cols-5 gap-5 mb-5">
                             <div class="col-span-3 bg-white border border-gray-300 rounded-md shadow-sm p-4">
                                 <h3 class="font-bold text-[15px] mb-4 text-[#2b3b84]">隨身資產</h3>
                                 <div class="grid grid-cols-3 gap-5">
@@ -537,7 +539,7 @@
                         </div>
                         
                         <!-- 出差行程 -->
-                        <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5">
+                        <div id="pta-sec-trip" class="scroll-mt-24 bg-white border border-gray-300 rounded-md shadow-sm mb-5">
                             <div class="px-4 py-2.5 border-b border-gray-200"><h3 class="font-bold text-[15px] text-[#2b3b84]">出差行程</h3></div>
                             <div class="p-4 space-y-5">
                                 <!-- 地點 / 限額區 -->
@@ -570,7 +572,7 @@
                         </div>
 
                         <!-- 日包計算 -->
-                        <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5">
+                        <div id="pta-sec-daypack" class="scroll-mt-24 bg-white border border-gray-300 rounded-md shadow-sm mb-5">
                             <div class="px-4 py-2.5 border-b border-gray-200 flex items-center gap-2"><h3 class="font-bold text-[15px] text-[#2b3b84]">日包計算</h3><span class="text-[12px] text-gray-400">（依上方目的地與出發/回程日期自動連動幣別、天數與餐數試算，不可編輯）</span></div>
                             <div class="p-4">
                                 <div class="overflow-x-auto border border-gray-100 rounded-lg">
@@ -615,7 +617,7 @@
                         </div>
 
                         <!-- 應領金額 -->
-                        <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5">
+                        <div id="pta-sec-claim" class="scroll-mt-24 bg-white border border-gray-300 rounded-md shadow-sm mb-5">
                             <div class="px-4 py-2.5 border-b border-gray-200 flex items-center gap-2"><h3 class="font-bold text-[15px] text-[#2b3b84]">應領金額</h3><span class="text-[12px] text-gray-400">（總領金額加總日包計算的應領金額；選擇幣別後，匯率與應領金額依即時匯率自動產生）</span></div>
                             <div class="p-4">
                                 <div class="grid grid-cols-4 gap-5">
@@ -642,7 +644,7 @@
                         </div>
 
                         <!-- 4. 差旅預算明細 -->
-                        <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5">
+                        <div id="pta-sec-budget" class="scroll-mt-24 bg-white border border-gray-300 rounded-md shadow-sm mb-5">
                             <div class="px-4 py-2.5 flex justify-between items-center border-b border-gray-200">
                                 <h3 class="font-bold text-[15px] text-[#2b3b84]">差旅預算明細</h3>
                                 <button type="button" onclick="ptaAddBudgetRow()" class="ui-btn ui-btn-primary"><i data-lucide="plus" class="w-4 h-4 mr-1"></i> 添加預算項</button>
@@ -682,52 +684,8 @@
                             </div>
                         </div>
                     <!-- 底部提交 -->
-                    <!-- 附件 -->
-                    <div class="mb-5">
-                        <label class="block mb-2 text-[14px] text-gray-700">附件</label>
-                        <div class="grid grid-cols-3 gap-4">
-                            <div class="file-upload">
-                                <div class="mb-1.5 text-[13px] text-gray-600">去程 Departure Boarding pass</div>
-                                <input type="file" class="hidden file-input" multiple>
-                                <div class="dropzone border-2 border-dashed border-gray-300 rounded-lg py-4 flex flex-col items-center justify-center gap-2 text-gray-400 cursor-pointer hover:border-blue-400 hover:text-blue-500 transition-colors">
-                                    <i data-lucide="upload-cloud" class="w-6 h-6"></i>
-                                    <div class="text-[12px] text-center px-2"><span class="text-blue-600 font-medium">點擊上傳</span> 或拖曳至此</div>
-                                </div>
-                                <ul class="file-list mt-2 space-y-1"></ul>
-                            </div>
-                            <div class="file-upload">
-                                <div class="mb-1.5 text-[13px] text-gray-600">回程 Return Boarding pass</div>
-                                <input type="file" class="hidden file-input" multiple>
-                                <div class="dropzone border-2 border-dashed border-gray-300 rounded-lg py-4 flex flex-col items-center justify-center gap-2 text-gray-400 cursor-pointer hover:border-blue-400 hover:text-blue-500 transition-colors">
-                                    <i data-lucide="upload-cloud" class="w-6 h-6"></i>
-                                    <div class="text-[12px] text-center px-2"><span class="text-blue-600 font-medium">點擊上傳</span> 或拖曳至此</div>
-                                </div>
-                                <ul class="file-list mt-2 space-y-1"></ul>
-                            </div>
-                            <div class="file-upload">
-                                <div class="mb-1.5 text-[13px] text-gray-600">匯率截圖</div>
-                                <input type="file" class="hidden file-input" multiple>
-                                <div class="dropzone border-2 border-dashed border-gray-300 rounded-lg py-4 flex flex-col items-center justify-center gap-2 text-gray-400 cursor-pointer hover:border-blue-400 hover:text-blue-500 transition-colors">
-                                    <i data-lucide="upload-cloud" class="w-6 h-6"></i>
-                                    <div class="text-[12px] text-center px-2"><span class="text-blue-600 font-medium">點擊上傳</span> 或拖曳至此</div>
-                                </div>
-                                <ul class="file-list mt-2 space-y-1"></ul>
-                            </div>
-                        </div>
-                        <div class="file-upload mt-4">
-                            <div class="mb-1.5 text-[13px] text-gray-600">其他附件</div>
-                            <input type="file" class="hidden file-input" multiple>
-                            <div class="dropzone border-2 border-dashed border-gray-300 rounded-lg py-4 flex flex-col items-center justify-center gap-2 text-gray-400 cursor-pointer hover:border-blue-400 hover:text-blue-500 transition-colors">
-                                <i data-lucide="upload-cloud" class="w-7 h-7"></i>
-                                <div class="text-[13px]"><span class="text-blue-600 font-medium">點擊上傳</span> 或將檔案拖曳至此</div>
-                                <div class="text-[12px] text-gray-400">支援多檔上傳</div>
-                            </div>
-                            <ul class="file-list mt-2 space-y-1"></ul>
-                        </div>
-                    </div>
-
                     <!-- 出差規劃表 -->
-                    <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5">
+                    <div id="pta-sec-plan" class="scroll-mt-24 bg-white border border-gray-300 rounded-md shadow-sm mb-5">
                         <div class="px-4 py-2.5 border-b border-gray-200"><h3 class="text-[#2b3b84] font-bold text-[15px]">出差規劃表</h3></div>
                         <div class="p-4 space-y-4">
                             <div class="plan-group">
@@ -778,8 +736,52 @@
                         </div>
                     </div>
 
+                    <!-- 附件 -->
+                    <div id="pta-sec-attach" class="scroll-mt-24 mb-5">
+                        <label class="block mb-2 text-[14px] text-gray-700">附件</label>
+                        <div class="grid grid-cols-3 gap-4">
+                            <div class="file-upload">
+                                <div class="mb-1.5 text-[13px] text-gray-600">去程 Departure Boarding pass</div>
+                                <input type="file" class="hidden file-input" multiple>
+                                <div class="dropzone border-2 border-dashed border-gray-300 rounded-lg py-4 flex flex-col items-center justify-center gap-2 text-gray-400 cursor-pointer hover:border-blue-400 hover:text-blue-500 transition-colors">
+                                    <i data-lucide="upload-cloud" class="w-6 h-6"></i>
+                                    <div class="text-[12px] text-center px-2"><span class="text-blue-600 font-medium">點擊上傳</span> 或拖曳至此</div>
+                                </div>
+                                <ul class="file-list mt-2 space-y-1"></ul>
+                            </div>
+                            <div class="file-upload">
+                                <div class="mb-1.5 text-[13px] text-gray-600">回程 Return Boarding pass</div>
+                                <input type="file" class="hidden file-input" multiple>
+                                <div class="dropzone border-2 border-dashed border-gray-300 rounded-lg py-4 flex flex-col items-center justify-center gap-2 text-gray-400 cursor-pointer hover:border-blue-400 hover:text-blue-500 transition-colors">
+                                    <i data-lucide="upload-cloud" class="w-6 h-6"></i>
+                                    <div class="text-[12px] text-center px-2"><span class="text-blue-600 font-medium">點擊上傳</span> 或拖曳至此</div>
+                                </div>
+                                <ul class="file-list mt-2 space-y-1"></ul>
+                            </div>
+                            <div class="file-upload">
+                                <div class="mb-1.5 text-[13px] text-gray-600">匯率截圖</div>
+                                <input type="file" class="hidden file-input" multiple>
+                                <div class="dropzone border-2 border-dashed border-gray-300 rounded-lg py-4 flex flex-col items-center justify-center gap-2 text-gray-400 cursor-pointer hover:border-blue-400 hover:text-blue-500 transition-colors">
+                                    <i data-lucide="upload-cloud" class="w-6 h-6"></i>
+                                    <div class="text-[12px] text-center px-2"><span class="text-blue-600 font-medium">點擊上傳</span> 或拖曳至此</div>
+                                </div>
+                                <ul class="file-list mt-2 space-y-1"></ul>
+                            </div>
+                        </div>
+                        <div class="file-upload mt-4">
+                            <div class="mb-1.5 text-[13px] text-gray-600">其他附件</div>
+                            <input type="file" class="hidden file-input" multiple>
+                            <div class="dropzone border-2 border-dashed border-gray-300 rounded-lg py-4 flex flex-col items-center justify-center gap-2 text-gray-400 cursor-pointer hover:border-blue-400 hover:text-blue-500 transition-colors">
+                                <i data-lucide="upload-cloud" class="w-7 h-7"></i>
+                                <div class="text-[13px]"><span class="text-blue-600 font-medium">點擊上傳</span> 或將檔案拖曳至此</div>
+                                <div class="text-[12px] text-gray-400">支援多檔上傳</div>
+                            </div>
+                            <ul class="file-list mt-2 space-y-1"></ul>
+                        </div>
+                    </div>
+
                     <!-- 區塊：進度追蹤（與右側「審批流程」連動；資訊不足時為空） -->
-                    <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5">
+                    <div id="pta-sec-progress" class="scroll-mt-24 bg-white border border-gray-300 rounded-md shadow-sm mb-5">
                         <div class="px-4 py-2.5 border-b border-gray-200">
                             <h3 class="text-[#2b3b84] font-bold text-[15px]">進度追蹤</h3>
                         </div>
@@ -794,6 +796,15 @@
                     </div>
                     <div class="bg-[#f4f5f8] border-t border-gray-200 py-4 flex justify-center shadow-sm">
                         <button type="button" onclick="showSaveToast('已儲存至臨時保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">臨時保存</button><button type="button" onclick="showSaveToast('已儲存至模板保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">模板保存</button><button class="ui-btn ui-btn-primary px-12">提交</button>
+                    </div>
+                    <!-- 懸浮總計金額 -->
+                    <div class="absolute right-6 bottom-[92px] z-30 bg-white border border-gray-200 rounded-xl shadow-xl px-5 py-3 min-w-[210px]">
+                        <div class="text-[11px] text-gray-400 font-medium">總計金額</div>
+                        <div class="flex items-baseline gap-1.5">
+                            <span id="pta-total-cur" class="text-[12px] font-medium text-gray-500">CNY</span>
+                            <span id="pta-total" class="text-[22px] font-bold text-[#2b3b84] leading-tight">0.00</span>
+                        </div>
+                        <div class="text-[12px] text-gray-400 mt-0.5">≈ CNY <span id="pta-total-cny" class="font-medium text-gray-600">0.00</span></div>
                     </div>
                 </div>
                 <!-- 右側預覽 -->
@@ -1377,7 +1388,7 @@
             <button class="form-modal-close bg-blue-500 hover:bg-blue-600 text-white rounded p-1 transition-colors"><i data-lucide="x" class="w-4 h-4"></i></button>
         </div>
         <div class="flex flex-1 overflow-hidden bg-[#f4f5f8]">
-            <div class="flex-1 flex flex-col overflow-hidden">
+            <div class="relative flex-1 flex flex-col overflow-hidden">
                 <div class="flex-1 overflow-y-auto p-5 pb-8">
                         <!-- 是否緊急 -->
                         <label class="flex items-center gap-2 cursor-pointer select-none mt-4 mb-4 bg-amber-50 border border-amber-200 rounded-md px-4 py-2.5">
@@ -1440,7 +1451,7 @@
                             </div>
                             <div>
                                 <label class="block mb-1.5 text-[13px] text-gray-700">貨幣類型</label>
-                                <select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>CNY</option></select>
+                                <select id="pu-currency" onchange="puUpdateTotal()" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>CNY</option></select>
                             </div>
                             <div>
                                 <label class="block mb-1.5 text-[13px] text-gray-700">採購類型</label>
@@ -1475,11 +1486,11 @@
                                         <tr>
                                             <td class="px-3 py-1.5"><input type="text" class="w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2]" placeholder="請輸入物品名稱"></td>
                                             <td class="px-3 py-1.5"><input type="text" class="w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2]" placeholder="請輸入規格"></td>
-                                            <td class="px-3 py-1.5"><input type="text" class="w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2]" placeholder="數量"></td>
+                                            <td class="px-3 py-1.5"><input type="text" oninput="puUpdateTotal()" class="pu-qty w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2]" placeholder="數量"></td>
                                             <td class="px-3 py-1.5">
                                                 <div class="flex items-center border border-gray-300 rounded overflow-hidden">
                                                     <span class="bg-gray-50 border-r border-gray-300 px-2 py-1 text-xs text-gray-500 select-none">¥</span>
-                                                    <input type="text" class="w-full px-2 py-1 text-sm text-right outline-none" value="0">
+                                                    <input type="text" oninput="puUpdateTotal()" class="pu-price w-full px-2 py-1 text-sm text-right outline-none" value="0">
                                                 </div>
                                             </td>
                                             <td class="px-3 py-1.5 text-center">
@@ -1544,6 +1555,15 @@
 
                 </div>
                 <div class="bg-[#f4f5f8] border-t border-gray-200 py-4 flex justify-center shadow-sm"><button type="button" onclick="showSaveToast('已儲存至臨時保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">臨時保存</button><button type="button" onclick="showSaveToast('已儲存至模板保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">模板保存</button><button class="ui-btn ui-btn-primary px-12">提交</button></div>
+                    <!-- 懸浮總計金額 -->
+                    <div class="absolute right-6 bottom-[92px] z-30 bg-white border border-gray-200 rounded-xl shadow-xl px-5 py-3 min-w-[210px]">
+                        <div class="text-[11px] text-gray-400 font-medium">總計金額</div>
+                        <div class="flex items-baseline gap-1.5">
+                            <span id="pu-total-cur" class="text-[12px] font-medium text-gray-500">CNY</span>
+                            <span id="pu-total" class="text-[22px] font-bold text-[#2b3b84] leading-tight">0.00</span>
+                        </div>
+                        <div class="text-[12px] text-gray-400 mt-0.5">≈ CNY <span id="pu-total-cny" class="font-medium text-gray-600">0.00</span></div>
+                    </div>
             </div>
             <div class="w-[300px] border-l border-gray-300 bg-white hidden md:block overflow-y-auto">
                 <div class="bg-[#17a2b8] text-white px-4 py-2 text-[14px] font-bold sticky top-0">審批流程</div>
@@ -4052,11 +4072,12 @@
             tr.innerHTML =
                 '<td class="px-3 py-1.5"><input type="text" class="w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2]" placeholder="請輸入物品名稱"></td>' +
                 '<td class="px-3 py-1.5"><input type="text" class="w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2]" placeholder="請輸入規格"></td>' +
-                '<td class="px-3 py-1.5"><input type="text" class="w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2]" placeholder="數量"></td>' +
-                '<td class="px-3 py-1.5"><div class="flex items-center border border-gray-300 rounded overflow-hidden"><span class="bg-gray-50 border-r border-gray-300 px-2 py-1 text-xs text-gray-500 select-none">¥</span><input type="text" class="w-full px-2 py-1 text-sm text-right outline-none" value="0"></div></td>' +
+                '<td class="px-3 py-1.5"><input type="text" oninput="puUpdateTotal()" class="pu-qty w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2]" placeholder="數量"></td>' +
+                '<td class="px-3 py-1.5"><div class="flex items-center border border-gray-300 rounded overflow-hidden"><span class="bg-gray-50 border-r border-gray-300 px-2 py-1 text-xs text-gray-500 select-none">¥</span><input type="text" oninput="puUpdateTotal()" class="pu-price w-full px-2 py-1 text-sm text-right outline-none" value="0"></div></td>' +
                 '<td class="px-3 py-1.5 text-center"><button type="button" onclick="puRemoveItemRow(this)" class="' + PU_DEL_BTN_CLS + '">刪除</button></td>';
             tbody.appendChild(tr);
             puUpdateRemoveState();
+            puUpdateTotal();
         }
         function puRemoveItemRow(btn) {
             const tbody = document.getElementById('pu-item-tbody');
@@ -4065,6 +4086,7 @@
             if (tbody.querySelectorAll('tr').length <= 1) return; // 至少保留一列
             tr.remove();
             puUpdateRemoveState();
+            puUpdateTotal();
         }
         function puUpdateRemoveState() {
             const tbody = document.getElementById('pu-item-tbody');
@@ -4074,6 +4096,30 @@
             tbody.querySelectorAll('button[onclick^="puRemoveItemRow"]').forEach(b => { b.disabled = onlyOne; });
         }
         puUpdateRemoveState();
+
+        /* ====== 懸浮總計：CNY 換算匯率（1 單位幣別 = X CNY） ====== */
+        const CNY_PER = { CNY: 1, TWD: 0.228, USD: 7.14, JPY: 0.046, EUR: 7.69, GBP: 9.09, MYR: 1.61, AED: 1.96, KRW: 0.0053, PHP: 0.127 };
+        const fmtAmt = n => (isFinite(n) ? n : 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+        // 請購單：物品明細合計 → 懸浮總計
+        function puUpdateTotal() {
+            const tbody = document.getElementById('pu-item-tbody');
+            const totalEl = document.getElementById('pu-total');
+            if (!tbody || !totalEl) return;
+            let total = 0;
+            tbody.querySelectorAll('tr').forEach(tr => {
+                const q = parseFloat(((tr.querySelector('.pu-qty') || {}).value || '').replace(/,/g, '')) || 0;
+                const p = parseFloat(((tr.querySelector('.pu-price') || {}).value || '').replace(/,/g, '')) || 0;
+                total += q * p;
+            });
+            const curEl = document.getElementById('pu-currency');
+            const cur = curEl ? curEl.value : 'CNY';
+            const per = CNY_PER[cur] != null ? CNY_PER[cur] : 1;
+            document.getElementById('pu-total-cur').textContent = cur;
+            totalEl.textContent = fmtAmt(total);
+            document.getElementById('pu-total-cny').textContent = fmtAmt(total * per);
+        }
+        puUpdateTotal();
 
         /* ====== 差旅預算明細：新增 / 刪除 列 ====== */
         function ptaAddBudgetRow() {
@@ -4132,6 +4178,12 @@
             nightCell.value = nights + ' 天';       // 住宿天數
         }
 
+        /* ====== 差旅申請：區塊錨點捲動 ====== */
+        function ptaScrollTo(id) {
+            const el = document.getElementById(id);
+            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
         /* ====== 出差規劃表：條列式 新增 / 刪除 列 ====== */
         function ptaPlanAddRow(btn) {
             const group = btn.closest('.plan-group');
@@ -4175,11 +4227,27 @@
             totalEl.value = total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             const cur = curSel.value;
             const rate = PTA_FX_RATE[cur];
-            if (!cur || rate == null) { rateEl.value = '-'; amtEl.value = '0'; return; }
+            if (!cur || rate == null) {
+                rateEl.value = '-'; amtEl.value = '0';
+                ptaUpdateTotalCard('CNY', total, total); // 未選幣別：以 CNY 顯示總領金額
+                return;
+            }
             rateEl.value = rate.toFixed(4);
             const claim = total * rate;
             amtEl.value = claim.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ' + cur;
+            ptaUpdateTotalCard(cur, claim, total); // 懸浮總計：應領金額(所選幣別) + CNY 換算(總領金額)
         }
+        // 差旅申請：更新懸浮總計卡片
+        function ptaUpdateTotalCard(cur, amount, cny) {
+            const curEl = document.getElementById('pta-total-cur');
+            const totalEl = document.getElementById('pta-total');
+            const cnyEl = document.getElementById('pta-total-cny');
+            if (!curEl || !totalEl || !cnyEl) return;
+            curEl.textContent = cur;
+            totalEl.textContent = fmtAmt(amount);
+            cnyEl.textContent = fmtAmt(cny);
+        }
+        ptaUpdateClaim();
 
         /* ====== Toast 提示（臨時保存 / 模板保存） ====== */
         let __saveToastTimer = null;

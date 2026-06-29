@@ -57,7 +57,7 @@
                         <tr>
                             <th class="w-32">分類</th>
                             <th>標題</th>
-                            <th class="w-48">發佈人</th>
+                            <th class="w-48">發布單位</th>
                             <th class="w-36">時間</th>
                             <th class="text-right w-24">瀏覽數</th>
                         </tr>
@@ -238,6 +238,11 @@
             <!-- 公告內容 -->
             <div class="p-6 overflow-y-auto">
                 <div id="detailContent" class="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap"></div>
+                <!-- 附件（檢視者可下載） -->
+                <div id="detailAttachmentsWrap" class="mt-5 pt-4 border-t border-gray-100 hidden">
+                    <div class="text-sm font-bold text-gray-700 mb-2.5 flex items-center gap-2"><i class="fa-solid fa-paperclip text-gray-400"></i> 附件</div>
+                    <ul id="detailAttachments" class="space-y-2"></ul>
+                </div>
             </div>
         </div>
     </div>
@@ -252,13 +257,17 @@
         // 初始化模擬資料庫 (增加系統的互動完整度，讓新增真正能在列表生效)
         let announcements = [
             { id: 1003, category: '全體', title: '端午節連續假期連線維護與伺服器暫停服務通知', author: 'dev', date: '2026-06-02', views: 1245,
-              content: '親愛的同仁您好：\n\n配合端午節連續假期，資訊部門將於 2026/06/08 22:00 至 2026/06/09 06:00 進行伺服器與網路設備例行維護。\n\n維護期間，內部 OA 系統、差勤系統及檔案伺服器將暫停服務，造成不便敬請見諒。如有緊急需求，請聯繫資訊部值班人員（分機 5168）。\n\n資訊部 敬上' },
+              content: '親愛的同仁您好：\n\n配合端午節連續假期，資訊部門將於 2026/06/08 22:00 至 2026/06/09 06:00 進行伺服器與網路設備例行維護。\n\n維護期間，內部 OA 系統、差勤系統及檔案伺服器將暫停服務，造成不便敬請見諒。如有緊急需求，請聯繫資訊部值班人員（分機 5168）。\n\n資訊部 敬上',
+              attachments: [ { name: '伺服器維護時程表.pdf', size: '320 KB' } ] },
             { id: 1002, category: '地區', title: '2026 年度員工健康檢查填報與預約事宜', author: 'HR_Admin', date: '2026-05-28', views: 842,
-              content: '2026 年度員工健康檢查即日起開放預約，請所有正職同仁於 2026/06/20 前完成線上填報與時段預約。\n\n本次健檢與「康健診所」合作，提供基礎與進階兩種方案，費用由公司全額補助。詳細項目與院所地址請參閱附件。\n\n如有疑問請洽人資部 HR_Admin。' },
+              content: '2026 年度員工健康檢查即日起開放預約，請所有正職同仁於 2026/06/20 前完成線上填報與時段預約。\n\n本次健檢與「康健診所」合作，提供基礎與進階兩種方案，費用由公司全額補助。詳細項目與院所地址請參閱附件。\n\n如有疑問請洽人資部 HR_Admin。',
+              attachments: [ { name: '健檢方案說明.pdf', size: '1.2 MB' }, { name: '合作院所地址清單.xlsx', size: '88 KB' } ] },
             { id: 1001, category: '全體', title: '第三季核心技術分享會（福爾摩沙會議室）', author: 'dev', date: '2026-05-15', views: 2108,
-              content: '第三季核心技術分享會將於 2026/07/05（五）下午 14:00 在福爾摩沙會議室舉行。\n\n本次主題涵蓋微服務架構實戰、前端效能優化與 AI 輔助開發工具導入經驗。歡迎各部門同仁踴躍報名參加，現場備有茶點。\n\n名額有限，報名從速。' },
+              content: '第三季核心技術分享會將於 2026/07/05（五）下午 14:00 在福爾摩沙會議室舉行。\n\n本次主題涵蓋微服務架構實戰、前端效能優化與 AI 輔助開發工具導入經驗。歡迎各部門同仁踴躍報名參加，現場備有茶點。\n\n名額有限，報名從速。',
+              attachments: [ { name: '技術分享會議程.pdf', size: '540 KB' } ] },
             { id: 1000, category: '地區', title: '辦公室冷氣設備定期保養通知', author: 'Admin', date: '2026-05-01', views: 3052,
-              content: '為維持辦公環境品質，總務將於 2026/05/10（六）對全棟冷氣設備進行定期保養與濾網清潔。\n\n保養期間部分樓層冷氣將輪流暫停，預計每區段約 1 小時。造成不便敬請見諒，感謝配合。\n\n總務組 敬上' }
+              content: '為維持辦公環境品質，總務將於 2026/05/10（六）對全棟冷氣設備進行定期保養與濾網清潔。\n\n保養期間部分樓層冷氣將輪流暫停，預計每區段約 1 小時。造成不便敬請見諒，感謝配合。\n\n總務組 敬上',
+              attachments: [] }
         ];
 
         let currentDetailId = null;  // 目前檢視中的公告 id
@@ -341,6 +350,26 @@
             document.getElementById('detailViews').innerText = item.views.toLocaleString();
             document.getElementById('detailContent').innerText = item.content || '（此公告尚無詳細內容）';
 
+            // 附件清單（檢視者可下載）
+            const attWrap = document.getElementById('detailAttachmentsWrap');
+            const attList = document.getElementById('detailAttachments');
+            const atts = item.attachments || [];
+            if (atts.length) {
+                attWrap.classList.remove('hidden');
+                attList.innerHTML = atts.map(f => `
+                    <li class="flex items-center justify-between bg-gray-50 border border-gray-100 rounded-lg px-3 py-2">
+                        <span class="flex items-center gap-2 min-w-0 text-sm text-gray-700">
+                            <i class="fa-regular fa-file text-primary"></i>
+                            <span class="truncate">${f.name}</span>
+                            <span class="text-xs text-gray-400 shrink-0">${f.size || ''}</span>
+                        </span>
+                        <button type="button" onclick="downloadAttachment('${f.name.replace(/'/g, "\\'")}')" class="ui-btn ui-btn-sm ui-btn-primary shrink-0"><i class="fa-solid fa-download mr-1"></i>下載</button>
+                    </li>`).join('');
+            } else {
+                attWrap.classList.add('hidden');
+                attList.innerHTML = '';
+            }
+
             const modal = document.getElementById('detailModal');
             const mc = document.getElementById('detailModalContent');
             modal.classList.remove('hidden');
@@ -348,6 +377,19 @@
                 mc.classList.remove('scale-95');
                 mc.classList.add('scale-100');
             }, 10);
+        }
+
+        // 下載附件（範例：產生示意檔案供下載）
+        function downloadAttachment(name) {
+            const blob = new Blob(['這是附件「' + name + '」的示意內容（範例下載）。'], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = name;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
         }
 
         function closeDetail() {
@@ -463,7 +505,7 @@
                 return;
             }
 
-            // 編輯模式：更新既有公告（保留分類、發佈人、日期、瀏覽數）
+            // 編輯模式：更新既有公告（保留分類、發布單位、日期、瀏覽數）
             if (editingId !== null) {
                 const item = announcements.find(a => a.id === editingId);
                 if (item) {

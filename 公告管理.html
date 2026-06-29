@@ -63,7 +63,7 @@
                         <tr>
                             <th class="w-32">分類</th>
                             <th>標題</th>
-                            <th class="w-48">發佈人</th>
+                            <th class="w-48">發布單位</th>
                             <th class="w-36">時間</th>
                             <th class="text-right w-24">瀏覽數</th>
                             <th class="text-center w-40">操作</th>
@@ -105,22 +105,57 @@
             </div>
 
             <!-- 視窗內容 (完全重現附圖配置與欄位) -->
-            <div class="p-6 space-y-4">
+            <div class="p-6 space-y-3">
 
-                <!-- 控制區：地區、選擇地區、必須確認、重置 -->
+                <!-- 控制區：發布對象、選擇地區、必須確認、重置 -->
                 <div class="flex flex-wrap items-center justify-between gap-4">
-                    <div class="flex items-center gap-3">
-                        <!-- 地區選單按鈕 -->
-                        <div class="relative">
-                            <button class="bg-emerald-700 hover:bg-emerald-800 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition shadow-sm">
-                                地區 <i class="fa-solid fa-caret-down text-xs"></i>
-                            </button>
-                        </div>
+                    <div class="flex flex-wrap items-center gap-3">
+                        <label class="w-20 shrink-0 text-sm font-semibold text-gray-700">發布對象</label>
+                        <!-- 分類選單 -->
+                        <select id="announcementCategory" onchange="onCategoryChange()" class="border border-gray-300 rounded-lg px-4 py-1.5 text-sm text-gray-700 focus:outline-none focus:border-primary bg-white">
+                            <option value="全體">全體</option>
+                            <option value="地區">地區</option>
+                        </select>
 
-                        <!-- 選擇地區按鈕 -->
-                        <button class="bg-emerald-700 hover:bg-emerald-800 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm">
-                            選擇地區
-                        </button>
+                        <!-- 選擇地區（僅「地區」時顯示） -->
+                        <select id="regionSelect" class="border border-gray-300 rounded-lg px-4 py-1.5 text-sm text-gray-700 focus:outline-none focus:border-primary bg-white hidden">
+                            <option value="" disabled selected>選擇地區</option>
+                            <option>D</option>
+                            <option>F</option>
+                            <option>I</option>
+                            <option>Ireland</option>
+                            <option>Isle of Man</option>
+                            <option>J</option>
+                            <option>K</option>
+                            <option>M（外籍）</option>
+                            <option>S（本地）</option>
+                            <option>T1</option>
+                            <option>T2（总部）</option>
+                            <option>U</option>
+                            <option>MC</option>
+                            <option>S（商务）</option>
+                            <option>THY</option>
+                            <option>BOSS</option>
+                            <option>T1-T2（总部）</option>
+                            <option>T2-M</option>
+                            <option>西马</option>
+                            <option>Tn</option>
+                            <option>Connor</option>
+                            <option>TEST</option>
+                            <option>HRIS</option>
+                            <option>Public Docs for All </option>
+                            <option>Docs for all HR</option>
+                            <option>M（本地）</option>
+                            <option>S（外籍）</option>
+                            <option>T2（LKG, RG）</option>
+                            <option>T1-T2（LKG, RG）</option>
+                            <option>U-J</option>
+                            <option>J（中心）</option>
+                            <option>U-T2</option>
+                            <option>T2-J</option>
+                            <option>IM (Instant Message)</option>
+                            <option>Z</option>
+                        </select>
 
                         <!-- 必須確認 複選框 (Custom Style) -->
                         <label class="flex items-center gap-2 cursor-pointer select-none ml-2">
@@ -140,16 +175,36 @@
                     </button>
                 </div>
 
-                <!-- 標題輸入框 (附圖風格：綠色框 + 綠色打勾確認圖示) -->
-                <div class="relative">
-                    <input type="text" id="announcementTitle" class="w-full border-2 border-emerald-500 rounded-lg pl-4 pr-10 py-2.5 focus:outline-none text-gray-800 font-medium placeholder-emerald-600/50 bg-white" placeholder="請輸入標題" value="test">
-                    <div class="absolute inset-y-0 right-3 flex items-center text-emerald-600 text-lg">
-                        <i class="fa-solid fa-check"></i>
-                    </div>
+                <!-- 發布單位 -->
+                <div class="flex flex-wrap items-center gap-3">
+                    <label class="w-20 shrink-0 text-sm font-semibold text-gray-700">發布單位</label>
+                    <select id="announcementUnit" onchange="onUnitChange()" class="border border-gray-300 rounded-lg px-4 py-1.5 text-sm text-gray-700 focus:outline-none focus:border-primary bg-white">
+                        <option value="" disabled selected>請選擇發布單位</option>
+                        <option>董事長辦公室</option>
+                        <option>總經理辦公室</option>
+                        <option>項目管理辦公室</option>
+                        <option>人事中心</option>
+                        <option>行政中心</option>
+                        <option>財務中心</option>
+                        <option>法務中心</option>
+                        <option>運維中心</option>
+                        <option>研發中心</option>
+                        <option>其他</option>
+                    </select>
+                    <input id="announcementUnitOther" type="text" placeholder="請輸入發布單位" class="hidden border border-gray-300 rounded-lg px-4 py-1.5 text-sm text-gray-800 focus:outline-none focus:border-primary bg-white grow min-w-[180px]">
                 </div>
 
-                <!-- 富文本編輯器模擬區 (還原附圖控制列與文字區域) -->
-                <div class="border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm">
+                <!-- 標題輸入框 -->
+                <div class="flex items-center gap-3">
+                    <label class="w-20 shrink-0 text-sm font-semibold text-gray-700">標題</label>
+                    <input type="text" id="announcementTitle" class="grow border border-gray-300 rounded-lg px-4 py-1.5 focus:outline-none focus:border-primary text-gray-800 font-medium placeholder-gray-400 bg-white" placeholder="請輸入標題" value="test">
+                </div>
+
+                <!-- 內文 -->
+                <div class="flex items-start gap-3">
+                    <label class="w-20 shrink-0 pt-2 text-sm font-semibold text-gray-700">內文</label>
+                    <!-- 富文本編輯器模擬區 (還原附圖控制列與文字區域) -->
+                    <div class="grow border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm">
                     <!-- 工具列 -->
                     <div class="bg-gray-50/80 px-4 py-2.5 border-b border-gray-200 flex flex-wrap items-center gap-y-2 gap-x-4 text-gray-500 text-sm">
                         <!-- 排版與樣式 -->
@@ -191,6 +246,7 @@
 
                     <!-- 編輯區 -->
                     <textarea id="announcementContent" class="w-full px-4 py-3 min-h-[180px] focus:outline-none resize-none text-gray-700 placeholder-gray-400 text-sm" placeholder="輸入公告內容...">test</textarea>
+                    </div>
                 </div>
 
                 <!-- 底部上傳附件與動作區 (完全復刻底排設計) -->
@@ -247,6 +303,11 @@
             <!-- 公告內容 -->
             <div class="p-6 overflow-y-auto">
                 <div id="detailContent" class="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap"></div>
+                <!-- 附件（檢視者可下載） -->
+                <div id="detailAttachmentsWrap" class="mt-5 pt-4 border-t border-gray-100 hidden">
+                    <div class="text-sm font-bold text-gray-700 mb-2.5 flex items-center gap-2"><i class="fa-solid fa-paperclip text-gray-400"></i> 附件</div>
+                    <ul id="detailAttachments" class="space-y-2"></ul>
+                </div>
             </div>
         </div>
     </div>
@@ -261,13 +322,17 @@
         // 初始化模擬資料庫 (增加系統的互動完整度，讓新增真正能在列表生效)
         let announcements = [
             { id: 1003, category: '全體', title: '端午節連續假期連線維護與伺服器暫停服務通知', author: 'dev', date: '2026-06-02', views: 1245,
-              content: '親愛的同仁您好：\n\n配合端午節連續假期，資訊部門將於 2026/06/08 22:00 至 2026/06/09 06:00 進行伺服器與網路設備例行維護。\n\n維護期間，內部 OA 系統、差勤系統及檔案伺服器將暫停服務，造成不便敬請見諒。如有緊急需求，請聯繫資訊部值班人員（分機 5168）。\n\n資訊部 敬上' },
+              content: '親愛的同仁您好：\n\n配合端午節連續假期，資訊部門將於 2026/06/08 22:00 至 2026/06/09 06:00 進行伺服器與網路設備例行維護。\n\n維護期間，內部 OA 系統、差勤系統及檔案伺服器將暫停服務，造成不便敬請見諒。如有緊急需求，請聯繫資訊部值班人員（分機 5168）。\n\n資訊部 敬上',
+              attachments: [ { name: '伺服器維護時程表.pdf', size: '320 KB' } ] },
             { id: 1002, category: '地區', title: '2026 年度員工健康檢查填報與預約事宜', author: 'HR_Admin', date: '2026-05-28', views: 842,
-              content: '2026 年度員工健康檢查即日起開放預約，請所有正職同仁於 2026/06/20 前完成線上填報與時段預約。\n\n本次健檢與「康健診所」合作，提供基礎與進階兩種方案，費用由公司全額補助。詳細項目與院所地址請參閱附件。\n\n如有疑問請洽人資部 HR_Admin。' },
+              content: '2026 年度員工健康檢查即日起開放預約，請所有正職同仁於 2026/06/20 前完成線上填報與時段預約。\n\n本次健檢與「康健診所」合作，提供基礎與進階兩種方案，費用由公司全額補助。詳細項目與院所地址請參閱附件。\n\n如有疑問請洽人資部 HR_Admin。',
+              attachments: [ { name: '健檢方案說明.pdf', size: '1.2 MB' }, { name: '合作院所地址清單.xlsx', size: '88 KB' } ] },
             { id: 1001, category: '全體', title: '第三季核心技術分享會（福爾摩沙會議室）', author: 'dev', date: '2026-05-15', views: 2108,
-              content: '第三季核心技術分享會將於 2026/07/05（五）下午 14:00 在福爾摩沙會議室舉行。\n\n本次主題涵蓋微服務架構實戰、前端效能優化與 AI 輔助開發工具導入經驗。歡迎各部門同仁踴躍報名參加，現場備有茶點。\n\n名額有限，報名從速。' },
+              content: '第三季核心技術分享會將於 2026/07/05（五）下午 14:00 在福爾摩沙會議室舉行。\n\n本次主題涵蓋微服務架構實戰、前端效能優化與 AI 輔助開發工具導入經驗。歡迎各部門同仁踴躍報名參加，現場備有茶點。\n\n名額有限，報名從速。',
+              attachments: [ { name: '技術分享會議程.pdf', size: '540 KB' } ] },
             { id: 1000, category: '地區', title: '辦公室冷氣設備定期保養通知', author: 'Admin', date: '2026-05-01', views: 3052,
-              content: '為維持辦公環境品質，總務將於 2026/05/10（六）對全棟冷氣設備進行定期保養與濾網清潔。\n\n保養期間部分樓層冷氣將輪流暫停，預計每區段約 1 小時。造成不便敬請見諒，感謝配合。\n\n總務組 敬上' }
+              content: '為維持辦公環境品質，總務將於 2026/05/10（六）對全棟冷氣設備進行定期保養與濾網清潔。\n\n保養期間部分樓層冷氣將輪流暫停，預計每區段約 1 小時。造成不便敬請見諒，感謝配合。\n\n總務組 敬上',
+              attachments: [] }
         ];
 
         let currentDetailId = null;  // 目前檢視中的公告 id
@@ -357,6 +422,26 @@
             document.getElementById('detailViews').innerText = item.views.toLocaleString();
             document.getElementById('detailContent').innerText = item.content || '（此公告尚無詳細內容）';
 
+            // 附件清單（檢視者可下載）
+            const attWrap = document.getElementById('detailAttachmentsWrap');
+            const attList = document.getElementById('detailAttachments');
+            const atts = item.attachments || [];
+            if (atts.length) {
+                attWrap.classList.remove('hidden');
+                attList.innerHTML = atts.map(f => `
+                    <li class="flex items-center justify-between bg-gray-50 border border-gray-100 rounded-lg px-3 py-2">
+                        <span class="flex items-center gap-2 min-w-0 text-sm text-gray-700">
+                            <i class="fa-regular fa-file text-primary"></i>
+                            <span class="truncate">${f.name}</span>
+                            <span class="text-xs text-gray-400 shrink-0">${f.size || ''}</span>
+                        </span>
+                        <button type="button" onclick="downloadAttachment('${f.name.replace(/'/g, "\\'")}')" class="ui-btn ui-btn-sm ui-btn-primary shrink-0"><i class="fa-solid fa-download mr-1"></i>下載</button>
+                    </li>`).join('');
+            } else {
+                attWrap.classList.add('hidden');
+                attList.innerHTML = '';
+            }
+
             const modal = document.getElementById('detailModal');
             const mc = document.getElementById('detailModalContent');
             modal.classList.remove('hidden');
@@ -364,6 +449,19 @@
                 mc.classList.remove('scale-95');
                 mc.classList.add('scale-100');
             }, 10);
+        }
+
+        // 下載附件（範例：產生示意檔案供下載）
+        function downloadAttachment(name) {
+            const blob = new Blob(['這是附件「' + name + '」的示意內容（範例下載）。'], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = name;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
         }
 
         function closeDetail() {
@@ -393,6 +491,9 @@
             document.getElementById('announcementContent').value = item.content || '';
             document.getElementById('fileNameDisplay').innerText = '未選擇任何檔案';
             document.getElementById('announcementFile').value = '';
+            document.getElementById('announcementCategory').value = (item.category === '地區') ? '地區' : '全體';
+            onCategoryChange();
+            setUnit(item.author || '');
 
             const modal = document.getElementById('addModal');
             const modalContent = document.getElementById('modalContent');
@@ -454,10 +555,54 @@
             document.getElementById('announcementContent').value = '';
             document.getElementById('fileNameDisplay').innerText = '未選擇任何檔案';
             document.getElementById('announcementFile').value = '';
+            document.getElementById('announcementCategory').value = '全體';
+            document.getElementById('regionSelect').selectedIndex = 0;
+            onCategoryChange();
+            setUnit('');
 
             const checkbox = document.getElementById('mustConfirm');
             checkbox.checked = false;
             toggleConfirmCheckbox(checkbox);
+        }
+
+        // 分類切換：選「地區」才顯示「選擇地區」下拉
+        function onCategoryChange() {
+            const cat = document.getElementById('announcementCategory').value;
+            const region = document.getElementById('regionSelect');
+            region.classList.toggle('hidden', cat !== '地區');
+        }
+
+        // 發布單位下拉選項
+        const UNIT_OPTIONS = ['董事長辦公室', '總經理辦公室', '項目管理辦公室', '人事中心', '行政中心', '財務中心', '法務中心', '運維中心', '研發中心'];
+
+        // 發布單位切換：選「其他」才顯示自訂輸入框
+        function onUnitChange() {
+            const isOther = document.getElementById('announcementUnit').value === '其他';
+            document.getElementById('announcementUnitOther').classList.toggle('hidden', !isOther);
+        }
+
+        // 取得目前選定的發布單位（含「其他」自訂值）
+        function getSelectedUnit() {
+            const sel = document.getElementById('announcementUnit').value;
+            if (sel === '其他') return document.getElementById('announcementUnitOther').value.trim();
+            return sel;
+        }
+
+        // 依既有值帶入發布單位下拉（不在清單則歸入「其他」）
+        function setUnit(value) {
+            const sel = document.getElementById('announcementUnit');
+            const other = document.getElementById('announcementUnitOther');
+            if (UNIT_OPTIONS.includes(value)) {
+                sel.value = value;
+                other.value = '';
+            } else if (value) {
+                sel.value = '其他';
+                other.value = value;
+            } else {
+                sel.selectedIndex = 0;
+                other.value = '';
+            }
+            onUnitChange();
         }
 
         // 啟動實體檔案選擇器
@@ -480,21 +625,27 @@
             const title = document.getElementById('announcementTitle').value.trim();
             const content = document.getElementById('announcementContent').value.trim();
 
-            // 由於輸入控制項已被移除，我們設定預設安全資料
-            const category = "全體";
+            const category = document.getElementById('announcementCategory').value || '全體';
+            const unit = getSelectedUnit();
             const date = new Date().toISOString().split('T')[0];
 
+            if (!unit) {
+                showToast('請選擇發布單位！', false);
+                return;
+            }
             if (!title) {
                 showToast('請填寫公告標題！', false);
                 return;
             }
 
-            // 編輯模式：更新既有公告（保留分類、發佈人、日期、瀏覽數）
+            // 編輯模式：更新既有公告（保留分類、發布單位、日期、瀏覽數）
             if (editingId !== null) {
                 const item = announcements.find(a => a.id === editingId);
                 if (item) {
                     item.title = title;
                     item.content = content;
+                    item.category = category;
+                    item.author = unit;
                 }
                 editingId = null;
                 closeModal();
@@ -512,7 +663,7 @@
                 id: nextId,
                 category: category,
                 title: title,
-                author: 'dev',
+                author: unit,
                 date: date,
                 views: 0,
                 content: content
