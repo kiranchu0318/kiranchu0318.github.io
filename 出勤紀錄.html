@@ -118,6 +118,7 @@
                         <tr>
                             <th scope="col">日期</th>
                             <th scope="col">上下班時間</th>
+                            <th scope="col" class="min-w-[120px]">外出時間</th>
                             <th scope="col" class="min-w-[180px]">打卡地點</th>
                             <th scope="col" class="min-w-[140px]">出勤狀況</th>
                             <th scope="col" class="w-28">狀態</th>
@@ -399,6 +400,20 @@
             { date: "2026-05-25", ci: "09:30", co: "17:30", loc: "信義門市",       method: "GPS",  ciState: "遲到", coState: "早退" }
         ];
 
+        // 個人外出紀錄（與人資端「外出時間」欄資訊同步；同日多筆各自一列）
+        const myOutings = [
+            { date: "2026-06-01", outTime: "14:00", backTime: "16:30", reason: "拜訪客戶討論專案需求。", status: "已返回" },
+            { date: "2026-05-29", outTime: "10:15", backTime: "", reason: "外出至供應商現場驗收。", status: "外出中" },
+            { date: "2026-05-25", outTime: "13:40", backTime: "15:10", reason: "至客戶端進行系統部署。", status: "已返回" }
+        ];
+
+        // 外出時間欄：找出當日的所有外出紀錄，格式「外出時間-返回時間」，多筆各自一列；無則顯示 -
+        function outingTimesCell(date) {
+            const list = myOutings.filter(o => o.date === date);
+            if (list.length === 0) return '<span class="text-gray-300">-</span>';
+            return list.map(o => `<div class="font-mono text-gray-700 whitespace-nowrap">${o.outTime}-${o.backTime || '進行中'}</div>`).join('');
+        }
+
         // 個人補卡單（出勤狀況欄會以單號呈現；完成=綠，其餘=紅/未審核）
         let myMakeupDocs = [
             { makeupDate: "2026-05-28", period: "下班打卡", time: "18:05", reason: "忘記打卡", appDate: "2026-05-29", desc: "下班忘記打卡，申請補卡。", status: "審批中" }
@@ -495,6 +510,7 @@
                 tr.innerHTML = `
                     <td class="text-primary font-bold">${r.date}</td>
                     <td class="text-left">${timeCell}</td>
+                    <td class="text-left">${outingTimesCell(r.date)}</td>
                     <td class="text-left">${locCell}</td>
                     <td class="text-left">${attendanceDocsCell(r.date)}</td>
                     <td>${statusBadgeHtml(r)}</td>

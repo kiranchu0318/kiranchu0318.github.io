@@ -195,14 +195,20 @@
             const kw = (document.getElementById('folder-search').value || '').trim().toLowerCase();
             const list = folders.filter(f => !kw || f.name.toLowerCase().includes(kw) || f.region.toLowerCase().includes(kw));
             const box = document.getElementById('folder-list');
-            const onCls = 'w-full text-left px-3 py-2.5 rounded-lg flex items-center gap-3 bg-primary-light text-primary transition-colors';
-            const offCls = 'w-full text-left px-3 py-2.5 rounded-lg flex items-center gap-3 text-gray-600 hover:bg-gray-50 transition-colors';
+            const onCls = 'w-full text-left px-3 py-2.5 rounded-lg flex items-start gap-2.5 bg-primary-light ring-1 ring-primary/20 transition-colors';
+            const offCls = 'w-full text-left px-3 py-2.5 rounded-lg flex items-start gap-2.5 hover:bg-gray-50 transition-colors';
+            const regBadge = (region) => region === '全區'
+                ? '<span class="inline-flex items-center gap-1 ui-badge ui-badge-success text-[11px] px-2 py-0.5"><i class="fa-solid fa-earth-asia text-[9px]"></i>全區</span>'
+                : '<span class="inline-flex items-center gap-1 ui-badge ui-badge-info text-[11px] px-2 py-0.5"><i class="fa-solid fa-location-dot text-[9px]"></i>' + esc(region) + '</span>';
             box.innerHTML = list.map(f => `
                 <button onclick="selectFolder(${f.id})" class="${f.id === currentFolderId ? onCls : offCls}">
-                    <i class="fa-solid fa-folder ${f.id === currentFolderId ? 'text-primary' : 'text-amber-400'} shrink-0"></i>
+                    <i class="fa-solid fa-folder ${f.id === currentFolderId ? 'text-primary' : 'text-amber-400'} shrink-0 mt-0.5"></i>
                     <span class="flex-1 min-w-0">
-                        <span class="block text-sm font-semibold truncate">${esc(f.name)}</span>
-                        <span class="block text-xs ${f.id === currentFolderId ? 'text-primary/70' : 'text-gray-400'} truncate">${esc(f.region)} · ${f.files.length} 檔</span>
+                        <span class="block text-sm font-semibold truncate ${f.id === currentFolderId ? 'text-primary' : 'text-gray-700'}">${esc(f.name)}</span>
+                        <span class="flex items-center gap-1.5 mt-1">
+                            ${regBadge(f.region)}
+                            <span class="text-[11px] text-gray-400 shrink-0">${f.files.length} 檔</span>
+                        </span>
                     </span>
                 </button>
             `).join('');
