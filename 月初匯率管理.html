@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>月初匯率管理</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: { extend: { colors: { primary: '#4A90E2', 'primary-light': '#EAF2FC' } } }
+        }
+    </script>
+    <link rel="stylesheet" href="shared-ui.css">
+</head>
+<body class="ui-page text-text-main antialiased relative">
+
+    <div class="relative mx-auto w-full space-y-6">
+
+        <!-- 頁面標題區塊 -->
+        <header class="ui-page-header">
+            <h1 class="ui-page-title">月初匯率管理</h1>
+        </header>
+
+        <!-- 列表卡片 -->
+        <section class="ui-card flex flex-col p-4 sm:p-6 space-y-4">
+
+            <!-- 工具列：期間 + 基準幣別 + 新增 -->
+            <div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
+                <div class="flex flex-wrap items-center gap-3">
+                    <div>
+                        <label class="block text-[11px] font-semibold text-text-muted mb-1">報表期間</label>
+                        <select id="period-filter" onchange="render()" class="ui-select">
+                            <option value="2026-06">2026 年 06 月</option>
+                            <option value="2026-05">2026 年 05 月</option>
+                            <option value="2026-04">2026 年 04 月</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-semibold text-text-muted mb-1">基準幣別</label>
+                        <select id="base-currency" disabled class="ui-select bg-[#e9ecef] text-gray-500 cursor-not-allowed">
+                            <option>CNY（人民幣）</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="flex items-end gap-2">
+                    <button onclick="openBatchModal()" class="ui-btn ui-btn-primary"><i class="fa-solid fa-pen-to-square"></i> 編輯匯率</button>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <h2 class="text-lg font-bold text-gray-900 whitespace-nowrap">月結匯率表</h2>
+                <span id="count-badge" class="bg-blue-50 text-primary text-xs px-2.5 py-1 rounded-md font-bold">0 筆</span>
+                <span class="text-xs text-gray-400">（以 1 外幣 = X 基準幣別 計算）</span>
+            </div>
+
+            <div id="rate-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3"></div>
+
+            <div id="no-data-view" class="hidden py-16 text-center space-y-3">
+                <div class="inline-flex p-4 bg-gray-50 text-gray-400 rounded-full"><i class="fa-solid fa-money-bill-transfer text-3xl"></i></div>
+                <p class="text-sm text-text-muted font-medium">此期間尚無匯率資料</p>
+            </div>
+
+            <div class="pt-4 border-t border-gray-100">
+                <span id="pagination-info" class="text-sm text-gray-500">共 0 種幣別匯率</span>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- 批量編輯匯率 彈窗（所有幣種一次填寫送出） -->
+    <div id="rate-modal" class="fixed inset-0 bg-black/40 z-50 flex justify-center items-center hidden p-4">
+        <div class="bg-white rounded-2xl shadow-modal w-full max-w-xl max-h-[90vh] flex flex-col overflow-hidden">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 flex-shrink-0">
+                <h3 id="rate-modal-title" class="text-base font-bold text-gray-900">編輯匯率</h3>
+                <button onclick="closeBatchModal()" class="text-gray-400 hover:text-gray-600 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="px-6 py-5 overflow-y-auto space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">生效月份</label>
+                    <input type="month" id="batch-month" class="ui-input cursor-pointer">
+                </div>
+                <div>
+                    <div class="flex items-center justify-between mb-1.5">
+                        <label class="block text-xs font-semibold text-text-muted">各幣種匯率（1 外幣 = ? CNY）</label>
+                        <span class="text-[11px] text-gray-400">留空者不列入</span>
+                    </div>
+                    <div class="rounded-lg border border-gray-100 divide-y divide-gray-100" id="batch-list"></div>
+                </div>
+            </div>
+            <div class="flex justify-end gap-2.5 px-6 py-4 bg-gray-50 border-t border-gray-100 flex-shrink-0">
+                <button onclick="closeBatchModal()" class="ui-btn ui-btn-secondary">取消</button>
+                <button onclick="saveBatch()" class="ui-btn ui-btn-primary"><i class="fa-solid fa-check"></i> 全部送出</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 新增單筆匯率 彈窗 -->
+    <div id="add-modal" class="fixed inset-0 bg-black/40 z-50 flex justify-center items-center hidden p-4">
+        <div class="bg-white rounded-2xl shadow-modal w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 flex-shrink-0">
+                <h3 class="text-base font-bold text-gray-900">新增匯率</h3>
+                <button onclick="closeAddModal()" class="text-gray-400 hover:text-gray-600 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="px-6 py-5 overflow-y-auto space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">生效月份</label>
+                    <input type="month" id="add-month" class="ui-input cursor-pointer">
+                </div>
+                <div>
+                    <div class="flex items-center justify-between mb-1.5">
+                        <label class="block text-xs font-semibold text-text-muted">尚未設定的幣別（1 外幣 = ? CNY）</label>
+                        <span class="text-[11px] text-gray-400">留空者不新增</span>
+                    </div>
+                    <div class="rounded-lg border border-gray-100 divide-y divide-gray-100" id="add-list"></div>
+                </div>
+            </div>
+            <div class="flex justify-end gap-2.5 px-6 py-4 bg-gray-50 border-t border-gray-100 flex-shrink-0">
+                <button onclick="closeAddModal()" class="ui-btn ui-btn-secondary">取消</button>
+                <button onclick="saveAdd()" class="ui-btn ui-btn-primary"><i class="fa-solid fa-plus"></i> 全部新增</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 新增貨幣（幣種主檔）彈窗 -->
+    <div id="currency-modal" class="fixed inset-0 bg-black/40 z-50 flex justify-center items-center hidden p-4">
+        <div class="bg-white rounded-2xl shadow-modal w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 flex-shrink-0">
+                <h3 class="text-base font-bold text-gray-900">新增貨幣</h3>
+                <button onclick="closeCurrencyModal()" class="text-gray-400 hover:text-gray-600 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="px-6 py-5 overflow-y-auto space-y-4">
+                <p class="text-xs text-gray-400">新增後即可於「新增匯率／編輯匯率」中設定其匯率。</p>
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">幣別代碼 <span class="text-rose-500">*</span></label>
+                    <input type="text" id="cur-code" maxlength="6" placeholder="例如：SGD" class="ui-input uppercase">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">幣別名稱 <span class="text-rose-500">*</span></label>
+                    <input type="text" id="cur-name" placeholder="例如：新加坡幣" class="ui-input">
+                </div>
+            </div>
+            <div class="flex justify-end gap-2.5 px-6 py-4 bg-gray-50 border-t border-gray-100 flex-shrink-0">
+                <button onclick="closeCurrencyModal()" class="ui-btn ui-btn-secondary">取消</button>
+                <button onclick="saveCurrency()" class="ui-btn ui-btn-primary"><i class="fa-solid fa-check"></i> 新增貨幣</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] flex items-center gap-2 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-2xl text-sm font-medium opacity-0 translate-y-3 transition-all duration-300 pointer-events-none">
+        <i class="fa-solid fa-circle-check text-emerald-400"></i><span id="toast-text"></span>
+    </div>
+
+    <script>
+        // 各幣別月初匯率（以 1 外幣 = X CNY）— 各期間皆完整呈現所有幣別
+        const BASE_RATES = {
+            USD: '7.1400', TWD: '0.2280', MYR: '1.6100', GBP: '9.0900', EUR: '7.6900',
+            PHP: '0.1270', NGN: '0.0047', HKD: '0.9120', SGD: '5.3000', AED: '1.9400',
+            KRW: '0.0053', JPY: '0.0460', ZAR: '0.3900', CNY: '1.0000', USDT: '7.1400'
+        };
+        // 月份微調係數，讓不同期間的匯率略有差異（示意）
+        const MONTH_ADJ = { '2026-06': 1, '2026-05': 1.004, '2026-04': 1.008 };
+        function seedMonth(m) {
+            const adj = MONTH_ADJ[m] || 1;
+            return Object.keys(BASE_RATES).map((code, i) => ({
+                id: i + 1, code, name: code,
+                rate: (parseFloat(BASE_RATES[code]) * adj).toFixed(4), date: m
+            }));
+        }
+        const ratesByPeriod = {
+            '2026-06': seedMonth('2026-06'),
+            '2026-05': seedMonth('2026-05'),
+            '2026-04': seedMonth('2026-04')
+        };
+        let editingId = null;
+
+        // 支援的幣種主檔（批量編輯依此清單呈現）
+        const CURRENCIES = [
+            { code: 'USD', name: 'USD' },
+            { code: 'TWD', name: 'TWD' },
+            { code: 'MYR', name: 'MYR' },
+            { code: 'GBP', name: 'GBP' },
+            { code: 'EUR', name: 'EUR' },
+            { code: 'PHP', name: 'PHP' },
+            { code: 'NGN', name: 'NGN' },
+            { code: 'HKD', name: 'HKD' },
+            { code: 'SGD', name: 'SGD' },
+            { code: 'AED', name: 'AED' },
+            { code: 'KRW', name: 'KRW' },
+            { code: 'JPY', name: 'JPY' },
+            { code: 'ZAR', name: 'ZAR' },
+            { code: 'CNY', name: 'CNY' },
+            { code: 'USDT', name: 'USDT' },
+        ];
+
+        // ====== 持久化（localStorage）：所有新增/編輯/新增貨幣皆保存 ======
+        const LS_RATES = 'hroa_fx_rates_v2';
+        const LS_CUR = 'hroa_fx_currencies_v2';
+        (function loadState() {
+            try {
+                const r = JSON.parse(localStorage.getItem(LS_RATES));
+                if (r && typeof r === 'object') { Object.keys(ratesByPeriod).forEach(k => delete ratesByPeriod[k]); Object.assign(ratesByPeriod, r); }
+            } catch (e) {}
+            try {
+                const c = JSON.parse(localStorage.getItem(LS_CUR));
+                if (Array.isArray(c) && c.length) { CURRENCIES.length = 0; c.forEach(x => CURRENCIES.push(x)); }
+            } catch (e) {}
+        })();
+        function persist() {
+            try {
+                localStorage.setItem(LS_RATES, JSON.stringify(ratesByPeriod));
+                localStorage.setItem(LS_CUR, JSON.stringify(CURRENCIES));
+            } catch (e) {}
+        }
+
+        const currentPeriod = () => document.getElementById('period-filter').value;
+        const periodLabel = (m) => { const p = m.split('-'); return p[0] + ' 年 ' + p[1] + ' 月'; };
+
+        // 依資料中所有月份重建期間下拉（新月份自動出現），可指定要選取的月份
+        function rebuildPeriods(preferred) {
+            const sel = document.getElementById('period-filter');
+            const want = preferred || sel.value;
+            const months = new Set(Array.from(sel.options).map(o => o.value).filter(Boolean));
+            Object.keys(ratesByPeriod).forEach(m => months.add(m));
+            const sorted = Array.from(months).sort().reverse();
+            sel.innerHTML = sorted.map(m => '<option value="' + m + '">' + periodLabel(m) + '</option>').join('');
+            sel.value = sorted.includes(want) ? want : (sorted[0] || '');
+        }
+
+        function render() {
+            const list = ratesByPeriod[currentPeriod()] || [];
+            const grid = document.getElementById('rate-grid');
+            // 卡片式呈現，一眼看到所有幣別設定
+            grid.innerHTML = list.map(r => `
+                <div class="border border-gray-200 rounded-xl px-4 py-3 hover:border-primary hover:shadow-sm transition-all">
+                    <div class="flex items-center justify-between">
+                        <span class="font-mono font-bold text-gray-800 text-[15px]">${r.code}</span>
+                        <span class="text-[11px] text-gray-400">${r.date}</span>
+                    </div>
+                    <div class="mt-2 text-[22px] font-black text-[#2b3b84] tabular-nums leading-tight">${r.rate}</div>
+                    <div class="text-[11px] text-gray-400">兌 CNY</div>
+                </div>
+            `).join('');
+            document.getElementById('count-badge').innerText = list.length + ' 種幣別';
+            document.getElementById('pagination-info').innerText = '共 ' + list.length + ' 種幣別匯率';
+            document.getElementById('no-data-view').classList.toggle('hidden', list.length > 0);
+        }
+
+        // 編輯：只列出當期「已存在」的匯率，整批修改後送出
+        function openBatchModal() {
+            const period = currentPeriod();
+            const list = ratesByPeriod[period] || [];
+            document.getElementById('rate-modal-title').innerText = '編輯匯率（' + period + '）';
+            document.getElementById('batch-month').value = period;
+            const box = document.getElementById('batch-list');
+            if (!list.length) {
+                box.innerHTML = '<div class="px-3 py-6 text-center text-sm text-gray-400">此月份尚無匯率，請改用「新增匯率」</div>';
+            } else {
+                box.innerHTML = list.map(r =>
+                    '<div class="flex items-center gap-3 px-3 py-2">' +
+                    '<div class="w-28 shrink-0"><span class="font-medium font-mono text-gray-800">' + r.code + '</span></div>' +
+                    '<input type="text" inputmode="decimal" data-code="' + r.code + '" data-name="' + r.name + '" value="' + r.rate + '" placeholder="清空可移除此幣別" class="ui-input flex-1 text-right">' +
+                    '</div>'
+                ).join('');
+            }
+            document.getElementById('rate-modal').classList.remove('hidden');
+        }
+        function closeBatchModal() { document.getElementById('rate-modal').classList.add('hidden'); }
+
+        function saveBatch() {
+            const month = document.getElementById('batch-month').value || currentPeriod();
+            const inputs = document.querySelectorAll('#batch-list input[data-code]');
+            const rows = [];
+            let id = 1, invalid = false;
+            inputs.forEach(inp => {
+                const raw = inp.value.trim();
+                if (!raw) return;                       // 清空者移除該幣別
+                const num = parseFloat(raw);
+                if (isNaN(num)) { invalid = true; return; }
+                rows.push({ id: id++, code: inp.dataset.code, name: inp.dataset.name, rate: num.toFixed(4), date: month });
+            });
+            if (invalid) { showToast('部分匯率數值無效，請確認'); return; }
+            ratesByPeriod[month] = rows;             // 整批覆寫該月份既有匯率
+            if (!rows.length) delete ratesByPeriod[month];
+            persist();
+            rebuildPeriods(ratesByPeriod[month] ? month : null);
+            closeBatchModal();
+            render();
+            showToast('已更新 ' + rows.length + ' 筆匯率（' + month + '）');
+        }
+
+        // 新增：列出當期尚未設定的幣別，可整批填寫一次新增
+        function openAddModal() {
+            const period = currentPeriod();
+            const list = ratesByPeriod[period] || [];
+            const remain = CURRENCIES.filter(c => !list.some(r => r.code === c.code));
+            const box = document.getElementById('add-list');
+            if (!remain.length) {
+                box.innerHTML = '<div class="px-3 py-6 text-center text-sm text-gray-400">本月所有幣別皆已設定</div>';
+            } else {
+                box.innerHTML = remain.map(c =>
+                    '<div class="flex items-center gap-3 px-3 py-2">' +
+                    '<div class="w-28 shrink-0"><span class="font-medium font-mono text-gray-800">' + c.code + '</span></div>' +
+                    '<input type="text" inputmode="decimal" data-code="' + c.code + '" data-name="' + c.name + '" placeholder="未設定" class="ui-input flex-1 text-right">' +
+                    '</div>'
+                ).join('');
+            }
+            document.getElementById('add-month').value = period;
+            document.getElementById('add-modal').classList.remove('hidden');
+        }
+        function closeAddModal() { document.getElementById('add-modal').classList.add('hidden'); }
+
+        function saveAdd() {
+            const month = document.getElementById('add-month').value || currentPeriod();
+            const inputs = document.querySelectorAll('#add-list input[data-code]');
+            const list = ratesByPeriod[month] || (ratesByPeriod[month] = []);
+            let nextId = list.length ? Math.max(...list.map(x => x.id)) + 1 : 1;
+            const added = [];
+            let invalid = false;
+            inputs.forEach(inp => {
+                const raw = inp.value.trim();
+                if (!raw) return;                       // 留空者不新增
+                const num = parseFloat(raw);
+                if (isNaN(num)) { invalid = true; return; }
+                if (list.some(r => r.code === inp.dataset.code)) return; // 已存在則略過
+                list.push({ id: nextId++, code: inp.dataset.code, name: inp.dataset.name, rate: num.toFixed(4), date: month });
+                added.push(inp.dataset.code);
+            });
+            if (invalid) { showToast('部分匯率數值無效，請確認'); return; }
+            if (!added.length) { showToast('請至少填寫一筆匯率'); return; }
+            persist();
+            rebuildPeriods(month);
+            closeAddModal();
+            render();
+            showToast('已新增 ' + added.length + ' 筆匯率（' + month + '）');
+        }
+
+        // 新增貨幣：將新幣種加入主檔，供後續設定匯率
+        function openCurrencyModal() {
+            document.getElementById('cur-code').value = '';
+            document.getElementById('cur-name').value = '';
+            document.getElementById('currency-modal').classList.remove('hidden');
+        }
+        function closeCurrencyModal() { document.getElementById('currency-modal').classList.add('hidden'); }
+
+        function saveCurrency() {
+            const code = (document.getElementById('cur-code').value || '').trim().toUpperCase();
+            const name = (document.getElementById('cur-name').value || '').trim();
+            if (!code) { showToast('請輸入幣別代碼'); return; }
+            if (!/^[A-Z]{2,6}$/.test(code)) { showToast('幣別代碼請輸入 2-6 位英文字母'); return; }
+            if (!name) { showToast('請輸入幣別名稱'); return; }
+            if (CURRENCIES.some(c => c.code === code)) { showToast(code + ' 已存在'); return; }
+            CURRENCIES.push({ code, name });
+            persist();
+            closeCurrencyModal();
+            showToast('已新增貨幣 ' + code + '（' + name + '）');
+        }
+
+        let toastTimer = null;
+        function showToast(text) {
+            const t = document.getElementById('toast');
+            document.getElementById('toast-text').innerText = text;
+            t.style.opacity = '1'; t.style.transform = 'translate(-50%, 0)';
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translate(-50%, 12px)'; }, 2200);
+        }
+
+        document.getElementById('rate-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeBatchModal(); });
+        document.getElementById('add-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeAddModal(); });
+        document.getElementById('currency-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeCurrencyModal(); });
+        rebuildPeriods();
+        render();
+    </script>
+
+</body>
+</html>

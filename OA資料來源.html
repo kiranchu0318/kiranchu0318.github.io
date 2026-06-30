@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OA資料來源</title>
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 Font Awesome 用於圖標 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4A90E2',
+                        'primary-light': '#EAF2FC',
+                        background: '#F8F9FB',
+                        card: '#FFFFFF',
+                        text: { main: '#1F2937', muted: '#6B7280', light: '#9CA3AF' }
+                    },
+                    fontFamily: {
+                        sans: ['"Inter"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'card': '0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03)',
+                        'modal': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: theme('colors.background');
+            font-family: theme('fontFamily.sans');
+        }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+    </style>
+    <link rel="stylesheet" href="shared-ui.css">
+</head>
+<body class="ui-page text-text-main antialiased relative">
+
+    <div class="relative mx-auto w-full space-y-6">
+
+        <!-- 頁面標題區塊 -->
+        <header class="ui-page-header">
+            <h1 class="ui-page-title">OA資料來源</h1>
+        </header>
+
+        <!-- 主版面：左側資料來源選單 + 右側列表 -->
+        <div class="ui-card overflow-hidden flex flex-col lg:flex-row min-h-[640px]">
+
+            <!-- 左側：資料來源選單 -->
+            <aside class="lg:w-56 shrink-0 border-b lg:border-b-0 lg:border-r border-gray-100 flex flex-col">
+                <div class="px-4 py-3 border-b border-gray-100">
+                    <h2 class="font-bold text-gray-900 text-sm">清單</h2>
+                </div>
+                <div id="tab-bar" class="flex-1 overflow-y-auto p-2 space-y-0.5 custom-scrollbar lg:max-h-[600px]"><!-- 動態由 JavaScript 渲染 --></div>
+            </aside>
+
+            <!-- 右側：列表 -->
+            <section class="flex-1 min-w-0 flex flex-col p-4 sm:p-6 space-y-4">
+
+                <!-- 工具列：搜尋 + 新增 -->
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                    <div class="flex items-center gap-2">
+                        <select id="category-filter" onchange="render()" class="ui-select hidden !w-28 shrink-0">
+                            <option value="">全部分類</option>
+                            <option value="行政">行政</option>
+                            <option value="財務">財務</option>
+                            <option value="商務">商務</option>
+                            <option value="合同">合同</option>
+                            <option value="事業部">事業部</option>
+                            <option value="PMO">PMO</option>
+                            <option value="人事">人事</option>
+                        </select>
+                        <div class="ui-search w-48 sm:w-64 shrink-0">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="text" id="search-input" oninput="render()" placeholder="搜尋名稱..." class="ui-input ui-search-input">
+                        </div>
+                        <button onclick="render()" class="ui-btn ui-btn-primary ui-btn-sm shrink-0"><i class="fa-solid fa-magnifying-glass"></i> 查詢</button>
+                    </div>
+                    <button onclick="openCreate()" class="ui-btn ui-btn-primary w-full sm:w-auto">
+                        <i class="fa-solid fa-plus"></i> 新增
+                    </button>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <h2 id="list-title" class="text-lg font-bold text-gray-900 whitespace-nowrap">列表</h2>
+                    <span id="count-badge" class="bg-blue-50 text-primary text-xs px-2.5 py-1 rounded-md font-bold">0 筆資料</span>
+                </div>
+
+                <div class="overflow-x-auto rounded-lg border border-gray-100 custom-scrollbar">
+                    <table class="ui-table text-center">
+                        <thead>
+                            <tr id="table-head">
+                                <th scope="col" class="text-left">名稱</th>
+                                <th scope="col" class="text-center">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="org-tbody"><!-- 動態由 JavaScript 渲染 --></tbody>
+                    </table>
+                </div>
+
+                <div id="no-data-view" class="hidden py-16 text-center space-y-3">
+                    <div class="inline-flex p-4 bg-gray-50 text-gray-400 rounded-full"><i class="fa-solid fa-folder-open text-3xl"></i></div>
+                    <p class="text-sm text-text-muted font-medium">查無符合條件的資料</p>
+                </div>
+
+                <div class="flex items-center justify-between pt-4 mt-auto border-t border-gray-100">
+                    <span id="pagination-info" class="text-sm text-gray-500">顯示第 0 到 0 筆，共 0 筆記錄</span>
+                    <div class="flex gap-1">
+                        <button class="ui-page-btn"><i class="fa-solid fa-chevron-left text-xs"></i></button>
+                        <button class="ui-page-btn is-active">1</button>
+                        <button class="ui-page-btn"><i class="fa-solid fa-chevron-right text-xs"></i></button>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+    </div>
+
+    <!-- ============ 新增 / 編輯 彈窗 ============ -->
+    <div id="edit-modal" class="fixed inset-0 bg-black/40 z-50 flex justify-center items-center hidden p-4">
+        <div class="bg-white rounded-2xl shadow-modal w-full max-w-md overflow-hidden">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                <h3 id="modal-title" class="text-base font-bold text-gray-900">新增</h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="px-6 py-5 space-y-4">
+                <div>
+                    <label id="field-name-label" class="block text-xs font-semibold text-text-muted mb-1.5">名稱 <span class="text-rose-500">*</span></label>
+                    <input type="text" id="field-name" placeholder="請輸入名稱" class="ui-input">
+                </div>
+                <!-- OA申請單 專屬欄位 -->
+                <div id="oaform-fields" class="hidden space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-text-muted mb-1.5">分類 <span class="text-rose-500">*</span></label>
+                        <select id="field-category" class="ui-select">
+                            <option value="行政">行政</option>
+                            <option value="財務">財務</option>
+                            <option value="商務">商務</option>
+                            <option value="合同">合同</option>
+                            <option value="事業部">事業部</option>
+                            <option value="PMO">PMO</option>
+                            <option value="人事">人事</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-text-muted mb-1.5">說明</label>
+                        <textarea id="field-desc" rows="3" placeholder="選填" class="ui-input resize-none"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-text-muted mb-1.5">排序</label>
+                        <div class="flex items-center border border-gray-300 rounded-md overflow-hidden w-full max-w-[200px]">
+                            <button type="button" onclick="changeSort(-1)" class="w-10 py-2 bg-gray-50 text-gray-500 hover:bg-gray-100 border-r border-gray-300 transition-colors focus:outline-none flex justify-center items-center"><i class="fa-solid fa-minus text-xs"></i></button>
+                            <input type="text" id="field-sort" value="1" class="w-full text-center py-2 text-sm text-gray-700 focus:outline-none">
+                            <button type="button" onclick="changeSort(1)" class="w-10 py-2 bg-gray-50 text-gray-500 hover:bg-gray-100 border-l border-gray-300 transition-colors focus:outline-none flex justify-center items-center"><i class="fa-solid fa-plus text-xs"></i></button>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">狀態</label>
+                    <select id="field-status" class="ui-select">
+                        <option value="true">啟用</option>
+                        <option value="false">停用</option>
+                    </select>
+                </div>
+            </div>
+            <div class="flex justify-end gap-2.5 px-6 py-4 bg-gray-50 border-t border-gray-100">
+                <button onclick="closeModal()" class="ui-btn ui-btn-secondary">取消</button>
+                <button onclick="saveRecord()" class="ui-btn ui-btn-primary">儲存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 提示消息 (Toast) -->
+    <div id="toast" class="fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+        <i id="toast-icon" class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
+        <span id="toast-text" class="text-sm font-medium">操作成功！</span>
+    </div>
+
+    <script>
+        // 各資料來源分頁設定
+        const CATEGORIES = [
+            { key: 'oaCategory',     label: 'OA分類' },
+            { key: 'oaForm',         label: 'OA申請單' },
+            { key: 'currency',       label: '貨幣' },
+            { key: 'expenseAccount', label: '費用會計科目' },
+            { key: 'payment',        label: '支付方式' },
+            { key: 'assetType',      label: '資產類型' },
+            { key: 'assetStatus',    label: '資產狀態' }
+        ];
+
+        // 各分頁資料庫（名稱 / 啟用狀態）
+        const dataStore = {
+            oaCategory: [
+                { name: '行政', active: true },
+                { name: '財務', active: true },
+                { name: '合同', active: true },
+                { name: '事業部', active: true },
+                { name: 'PMO', active: true },
+                { name: '人事', active: true }
+            ],
+            oaForm: [
+                { name: '請購單 (PU)', category: '行政', sort: 1, desc: '部門採購物品或服務之請購表單。', active: true },
+                { name: '差旅申請單 (PTA)', category: '商務', sort: 2, desc: '員工因公出差之行程、住宿與費用申請。', active: true },
+                { name: '費用報銷單 (C)', category: '財務', sort: 3, desc: '員工費用核銷與報銷之表單。', active: true },
+                { name: '一般費用 (B)', category: '財務', sort: 4, desc: '一般性費用支出申請。', active: true },
+                { name: '內部合同 (IC)', category: '合同', sort: 5, desc: '內部合約之簽訂與管理。', active: true },
+                { name: '用印申請 (SA)', category: '行政', sort: 6, desc: '公司印章用印之申請。', active: true },
+                { name: '資產調撥申請 (AA)', category: '行政', sort: 7, desc: '資產調撥異動之申請。', active: false }
+            ],
+            currency: [
+                { name: 'USD', active: true },
+                { name: 'TWD', active: true },
+                { name: 'MYR', active: true },
+                { name: 'GBP', active: true },
+                { name: 'EUR', active: true },
+                { name: 'PHP', active: true },
+                { name: 'NGN', active: true },
+                { name: 'HKD', active: true },
+                { name: 'SGD', active: true },
+                { name: 'AED', active: true },
+                { name: 'KRW', active: true },
+                { name: 'JPY', active: true },
+                { name: 'ZAR', active: true },
+                { name: 'CNY', active: true },
+                { name: 'USDT', active: true }
+            ],
+            expenseAccount: [
+                { name: '辦公用品費', active: true },
+                { name: '差旅費', active: true },
+                { name: '交際費', active: true },
+                { name: '運費', active: true },
+                { name: '租金支出', active: true },
+                { name: '水電費', active: true },
+                { name: '折舊費用', active: false }
+            ],
+            payment: [
+                { name: '銀行轉帳', active: true },
+                { name: 'Autopay（自動轉帳）', active: true },
+                { name: '支票', active: true },
+                { name: '現金', active: true },
+                { name: '電匯', active: false }
+            ],
+            assetType: [
+                { name: '筆記型電腦', active: true },
+                { name: '桌上型電腦', active: true },
+                { name: '行動電話', active: true },
+                { name: '顯示器', active: true },
+                { name: '辦公家具', active: true },
+                { name: '軟體授權', active: true }
+            ],
+            assetStatus: [
+                { name: '在用', active: true },
+                { name: '閒置', active: true },
+                { name: '維修中', active: true },
+                { name: '報廢', active: true },
+                { name: '遺失', active: false }
+            ]
+        };
+
+        let activeCat = 'oaCategory';
+        let editIndex = -1;   // -1 = 新增；>=0 = 編輯第幾筆（指向 dataStore[activeCat] 的索引）
+
+        function currentLabel() {
+            return CATEGORIES.find(c => c.key === activeCat).label;
+        }
+
+        // 渲染頁籤
+        function renderTabs() {
+            const bar = document.getElementById('tab-bar');
+            const onCls = 'w-full text-left px-3 py-2 rounded-lg text-sm font-semibold text-primary bg-primary-light transition-colors';
+            const offCls = 'w-full text-left px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors';
+            bar.innerHTML = CATEGORIES.map(c =>
+                `<button onclick="switchCat('${c.key}')" class="${c.key === activeCat ? onCls : offCls}">${c.label}</button>`
+            ).join('');
+        }
+
+        function switchCat(key) {
+            activeCat = key;
+            document.getElementById('search-input').value = '';
+            document.getElementById('category-filter').value = '';
+            renderTabs();
+            document.getElementById('list-title').innerText = `${currentLabel()}列表`;
+            render();
+        }
+
+        const isFormCat = () => activeCat === 'oaForm';
+
+        // 依分頁設定表頭
+        function renderHead() {
+            const head = document.getElementById('table-head');
+            head.innerHTML = isFormCat()
+                ? '<th scope="col" class="text-left">表單名稱</th><th scope="col" class="w-24 text-center">分類</th><th scope="col" class="w-16 text-center">排序</th><th scope="col" class="w-24 text-center">狀態</th><th scope="col" class="text-left min-w-[200px]">說明</th><th scope="col" class="text-center w-52">操作</th>'
+                : '<th scope="col" class="text-left">名稱</th><th scope="col" class="text-center">操作</th>';
+        }
+
+        // 渲染列表（套用搜尋）
+        function render() {
+            renderHead();
+            // 分類篩選僅在 OA申請單 顯示
+            const catFilter = document.getElementById('category-filter');
+            catFilter.classList.toggle('hidden', !isFormCat());
+            const tbody = document.getElementById('org-tbody');
+            const noData = document.getElementById('no-data-view');
+            const kw = document.getElementById('search-input').value.trim().toLowerCase();
+            const cat = isFormCat() ? catFilter.value : '';
+            const list = dataStore[activeCat];
+            let rows = list.map((r, i) => ({ r, i }))
+                .filter(({ r }) => !kw || r.name.toLowerCase().includes(kw))
+                .filter(({ r }) => !cat || r.category === cat);
+            if (isFormCat()) rows = rows.sort((a, b) => (a.r.sort || 0) - (b.r.sort || 0));
+
+            tbody.innerHTML = '';
+
+            if (rows.length === 0) {
+                tbody.parentElement.classList.add('hidden');
+                noData.classList.remove('hidden');
+                document.getElementById('count-badge').innerText = '0 筆資料';
+                document.getElementById('pagination-info').innerText = '顯示第 0 到 0 筆，共 0 筆記錄';
+                return;
+            }
+            tbody.parentElement.classList.remove('hidden');
+            noData.classList.add('hidden');
+
+            const statusBadge = (a) => a
+                ? '<span class="ui-badge ui-badge-success">啟用</span>'
+                : '<span class="ui-badge bg-gray-100 text-gray-500">停用</span>';
+
+            rows.forEach(({ r, i }) => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-50/70 transition-colors';
+                const toggleBtn = r.active
+                    ? `<button onclick="toggleStatus(${i})" class="ui-btn ui-btn-sm text-amber-600 border border-amber-200 hover:bg-amber-50"><i class="fa-solid fa-ban"></i> 停用</button>`
+                    : `<button onclick="toggleStatus(${i})" class="ui-btn ui-btn-sm text-emerald-600 border border-emerald-200 hover:bg-emerald-50"><i class="fa-solid fa-circle-check"></i> 啟用</button>`;
+                const editBtn = `<button onclick="openEdit(${i})" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-pen-to-square"></i> 編輯</button>`;
+                if (isFormCat()) {
+                    tr.innerHTML = `
+                        <td class="text-left font-medium text-gray-800">${r.name}</td>
+                        <td class="text-center"><span class="ui-badge ui-badge-info">${r.category || '-'}</span></td>
+                        <td class="text-center font-medium text-gray-700">${r.sort != null ? r.sort : '-'}</td>
+                        <td class="text-center">${statusBadge(r.active)}</td>
+                        <td class="text-left text-gray-600 text-sm">${r.desc || '<span class="text-gray-300">—</span>'}</td>
+                        <td><div class="flex items-center justify-center gap-2">${editBtn}${toggleBtn}</div></td>
+                    `;
+                } else {
+                    tr.innerHTML = `
+                        <td class="text-left font-medium text-gray-800">${r.name} ${r.active ? '' : '<span class="ui-badge bg-gray-100 text-gray-500 ml-1">停用</span>'}</td>
+                        <td><div class="flex items-center justify-center gap-2">${editBtn}${toggleBtn}</div></td>
+                    `;
+                }
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('count-badge').innerText = `${rows.length} 筆資料`;
+            document.getElementById('pagination-info').innerText = `顯示第 1 到 ${rows.length} 筆，共 ${rows.length} 筆記錄`;
+        }
+
+        // 排序增減
+        function changeSort(d) {
+            const el = document.getElementById('field-sort');
+            const n = Math.max(1, (parseInt(el.value, 10) || 1) + d);
+            el.value = n;
+        }
+
+        // 切換啟用 / 停用
+        function toggleStatus(i) {
+            const rec = dataStore[activeCat][i];
+            rec.active = !rec.active;
+            showToast(rec.active ? 'success' : 'info', `已${rec.active ? '啟用' : '停用'}「${rec.name}」`);
+            render();
+        }
+
+        /* ============ 新增 / 編輯 彈窗 ============ */
+        // 依分頁切換彈窗欄位（OA申請單顯示分類/說明/排序）
+        function applyModalFields() {
+            const form = isFormCat();
+            document.getElementById('oaform-fields').classList.toggle('hidden', !form);
+            document.getElementById('field-name-label').innerHTML = (form ? '表單名稱' : '名稱') + ' <span class="text-rose-500">*</span>';
+        }
+
+        function openCreate() {
+            editIndex = -1;
+            applyModalFields();
+            document.getElementById('modal-title').innerText = `新增${currentLabel()}`;
+            document.getElementById('field-name').value = '';
+            document.getElementById('field-status').value = 'true';
+            if (isFormCat()) {
+                document.getElementById('field-category').value = '行政';
+                document.getElementById('field-desc').value = '';
+                const list = dataStore[activeCat];
+                document.getElementById('field-sort').value = list.length ? Math.max(...list.map(r => r.sort || 0)) + 1 : 1;
+            }
+            document.getElementById('edit-modal').classList.remove('hidden');
+        }
+
+        function openEdit(i) {
+            editIndex = i;
+            applyModalFields();
+            const rec = dataStore[activeCat][i];
+            document.getElementById('modal-title').innerText = `編輯${currentLabel()}`;
+            document.getElementById('field-name').value = rec.name;
+            document.getElementById('field-status').value = String(rec.active);
+            if (isFormCat()) {
+                document.getElementById('field-category').value = rec.category || '行政';
+                document.getElementById('field-desc').value = rec.desc || '';
+                document.getElementById('field-sort').value = rec.sort != null ? rec.sort : 1;
+            }
+            document.getElementById('edit-modal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('edit-modal').classList.add('hidden');
+        }
+
+        function saveRecord() {
+            const name = document.getElementById('field-name').value.trim();
+            const active = document.getElementById('field-status').value === 'true';
+
+            if (!name) {
+                showToast('error', `請填寫${isFormCat() ? '表單名稱' : '名稱'}`);
+                return;
+            }
+
+            const list = dataStore[activeCat];
+            const dup = list.some((r, idx) => r.name === name && idx !== editIndex);
+            if (dup) {
+                showToast('error', `「${name}」已存在`);
+                return;
+            }
+
+            let extra = {};
+            if (isFormCat()) {
+                extra = {
+                    category: document.getElementById('field-category').value,
+                    desc: document.getElementById('field-desc').value.trim(),
+                    sort: Math.max(1, parseInt(document.getElementById('field-sort').value, 10) || 1)
+                };
+            }
+
+            if (editIndex === -1) {
+                list.push({ name, active, ...extra });
+                showToast('success', `已新增${currentLabel()}「${name}」`);
+            } else {
+                list[editIndex] = { ...list[editIndex], name, active, ...extra };
+                showToast('success', `已更新${currentLabel()}「${name}」`);
+            }
+            closeModal();
+            render();
+        }
+
+        /* ============ Toast 提示控制 ============ */
+        function showToast(type, text) {
+            const toast = document.getElementById('toast');
+            const toastIcon = document.getElementById('toast-icon');
+            const toastText = document.getElementById('toast-text');
+            toastText.innerText = text;
+            if (type === 'success') {
+                toast.className = "fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform transition-all duration-300 border border-emerald-500/20";
+                toastIcon.className = "fa-solid fa-circle-check text-emerald-400 text-base";
+            } else if (type === 'error') {
+                toast.className = "fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform transition-all duration-300 border border-rose-500/20";
+                toastIcon.className = "fa-solid fa-circle-xmark text-rose-400 text-base";
+            } else {
+                toast.className = "fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform transition-all duration-300 border border-blue-500/20";
+                toastIcon.className = "fa-solid fa-circle-info text-blue-400 text-base";
+            }
+            toast.style.transform = 'translateY(0)';
+            toast.style.opacity = '1';
+            clearTimeout(window.__toastTimer);
+            window.__toastTimer = setTimeout(() => {
+                toast.style.transform = 'translateY(5rem)';
+                toast.style.opacity = '0';
+            }, 2600);
+        }
+
+        // 點擊彈窗外圍關閉
+        document.getElementById('edit-modal').addEventListener('click', e => {
+            if (e.target === e.currentTarget) closeModal();
+        });
+
+        // 初始化
+        window.onload = function () {
+            renderTabs();
+            document.getElementById('list-title').innerText = `${currentLabel()}列表`;
+            render();
+        };
+    </script>
+</body>
+</html>

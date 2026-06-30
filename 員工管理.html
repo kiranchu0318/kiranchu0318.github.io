@@ -153,18 +153,6 @@
         <!-- ===== 分頁 1：員工管理 ===== -->
         <div id="page-emp" class="space-y-6">
 
-            <!-- 操作按鈕區 -->
-            <div class="flex justify-end gap-4">
-                <button class="ui-btn ui-btn-secondary">
-                    <i class="fa-solid fa-file-export text-gray-500"></i>
-                    匯出清單
-                </button>
-                <button onclick="openAddEmployeeModal()" class="ui-btn ui-btn-primary">
-                    <i class="fa-solid fa-user-plus"></i>
-                    添加新員工
-                </button>
-            </div>
-
         <section class="ui-card p-6">
 
             <!-- 列表工具列 (搜尋與篩選) -->
@@ -188,6 +176,12 @@
 
                 <!-- 查詢按鈕 -->
                 <button class="ui-btn ui-btn-primary ui-btn-sm"><i class="fa-solid fa-magnifying-glass"></i> 查詢</button>
+
+                <!-- 匯出 / 新增（移至列表區塊內，靠右） -->
+                <div class="flex gap-2 w-full sm:w-auto sm:ml-auto">
+                    <button class="ui-btn ui-btn-secondary"><i class="fa-solid fa-file-export text-gray-500"></i> 匯出清單</button>
+                    <button onclick="openAddEmployeeModal()" class="ui-btn ui-btn-primary"><i class="fa-solid fa-user-plus"></i> 添加新員工</button>
+                </div>
 
             </div>
 
@@ -218,7 +212,7 @@
                             <td class="px-6 py-4">前端架構組</td>
                             <td class="px-6 py-4 text-center">
                                 <div class="flex items-center justify-center gap-2">
-                                    <button onclick="openEditModal()" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-circle-info"></i> 詳情</button>
+                                    <button onclick="openEditModal('EMP001','Logan')" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-circle-info"></i> 詳情</button>
                                 </div>
                             </td>
                         </tr>
@@ -236,7 +230,7 @@
                             <td class="px-6 py-4">客戶成功部</td>
                             <td class="px-6 py-4 text-center">
                                 <div class="flex items-center justify-center gap-2">
-                                    <button onclick="openEditModal()" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-circle-info"></i> 詳情</button>
+                                    <button onclick="openEditModal('EMP042','Jackson')" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-circle-info"></i> 詳情</button>
                                 </div>
                             </td>
                         </tr>
@@ -254,7 +248,7 @@
                             <td class="px-6 py-4">華南區銷售</td>
                             <td class="px-6 py-4 text-center">
                                 <div class="flex items-center justify-center gap-2">
-                                    <button onclick="openEditModal()" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-circle-info"></i> 詳情</button>
+                                    <button onclick="openEditModal('EMP089','Levi')" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-circle-info"></i> 詳情</button>
                                 </div>
                             </td>
                         </tr>
@@ -272,7 +266,7 @@
                             <td class="px-6 py-4">後端開發組</td>
                             <td class="px-6 py-4 text-center">
                                 <div class="flex items-center justify-center gap-2">
-                                    <button onclick="openEditModal()" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-circle-info"></i> 詳情</button>
+                                    <button onclick="openEditModal('EMP156','Mia')" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-circle-info"></i> 詳情</button>
                                 </div>
                             </td>
                         </tr>
@@ -290,7 +284,7 @@
                             <td class="px-6 py-4">會計組</td>
                             <td class="px-6 py-4 text-center">
                                 <div class="flex items-center justify-center gap-2">
-                                    <button onclick="openEditModal()" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-circle-info"></i> 詳情</button>
+                                    <button onclick="openEditModal('EMP201','Luna')" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-circle-info"></i> 詳情</button>
                                 </div>
                             </td>
                         </tr>
@@ -544,6 +538,11 @@
                         <li>
                             <a href="#" id="btn-tab-asset" onclick="switchTab('tab-asset')" class="inline-block pb-2 text-gray-700 hover:text-gray-900 hover:border-b-[3px] hover:border-gray-300 border-b-[3px] border-transparent transition-colors">
                                 資產領用
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" id="btn-tab-docs" onclick="switchTab('tab-docs')" class="inline-block pb-2 text-gray-700 hover:text-gray-900 hover:border-b-[3px] hover:border-gray-300 border-b-[3px] border-transparent transition-colors">
+                                個人文件
                             </a>
                         </li>
                     </ul>
@@ -1252,6 +1251,24 @@
                         </div>
                     </div>
 
+                    <!-- 頁籤內容：個人文件（員工於文件庫上傳，admin 可下載） -->
+                    <div id="tab-docs" class="tab-content hidden max-w-4xl mx-auto space-y-4">
+                        <div class="overflow-x-auto rounded-lg border border-gray-100">
+                            <table class="ui-table whitespace-nowrap">
+                                <thead>
+                                    <tr>
+                                        <th class="text-left">文件名稱</th>
+                                        <th class="text-center w-28">大小</th>
+                                        <th class="text-center w-32">上傳日期</th>
+                                        <th class="text-center w-28">操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="emp-docs-tbody"></tbody>
+                            </table>
+                        </div>
+                        <div id="emp-docs-empty" class="hidden py-12 text-center text-sm text-gray-400">此員工尚未於文件庫上傳個人文件</div>
+                    </div>
+
                 </div>
 
                 <div class="px-6 sm:px-8 py-4 flex flex-col sm:flex-row justify-between items-center shrink-0 border-t border-gray-100 bg-white rounded-b-xl gap-3">
@@ -1868,7 +1885,11 @@
         /* -----------------------
            主頁面詳情彈窗 (Edit Modal / Details)
            ----------------------- */
-        function openEditModal() {
+        let currentEmpId = '';
+        let currentEmpName = '';
+        function openEditModal(empId, empName) {
+            currentEmpId = empId || 'EMP001';
+            currentEmpName = empName || '';
             if (editModal && editModalPanel) {
                 editModal.classList.remove('hidden');
                 // 強制重繪以觸發過渡動畫
@@ -1879,7 +1900,43 @@
                 // 每次開啟皆預設為「檢視」狀態，並顯示第一個頁籤
                 setEditMode(false);
                 switchTab('tab-personal');
+                renderEmpDocs();
             }
+        }
+
+        /* ----- 個人文件（與「文件庫」共用 localStorage，員工上傳、admin 下載） ----- */
+        function loadPersonalDocs(empId) {
+            try {
+                const all = JSON.parse(localStorage.getItem('hroa_personal_docs')) || {};
+                return Array.isArray(all[empId]) ? all[empId] : [];
+            } catch (e) { return []; }
+        }
+        function renderEmpDocs() {
+            const lbl = document.getElementById('docs-emp-label');
+            if (lbl) lbl.innerText = currentEmpId + (currentEmpName ? '（' + currentEmpName + '）' : '');
+            const docs = loadPersonalDocs(currentEmpId);
+            const tbody = document.getElementById('emp-docs-tbody');
+            const empty = document.getElementById('emp-docs-empty');
+            if (!tbody) return;
+            tbody.innerHTML = docs.map(d => {
+                const safe = String(d.name).replace(/'/g, "\\'");
+                return '<tr>' +
+                    '<td class="text-left font-medium text-gray-800"><i class="fa-regular fa-file-lines text-primary mr-2"></i>' + d.name + '</td>' +
+                    '<td class="text-center text-gray-500">' + (d.size || '—') + '</td>' +
+                    '<td class="text-center text-gray-500">' + (d.date || '') + '</td>' +
+                    '<td class="text-center"><button onclick="downloadEmpDoc(\'' + safe + '\')" class="ui-btn ui-btn-primary ui-btn-sm"><i class="fa-solid fa-download"></i> 下載</button></td>' +
+                    '</tr>';
+            }).join('');
+            tbody.parentElement.classList.toggle('hidden', docs.length === 0);
+            if (empty) empty.classList.toggle('hidden', docs.length > 0);
+        }
+        function downloadEmpDoc(name) {
+            const blob = new Blob(['這是個人文件「' + name + '」的示意內容（範例下載）。'], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = name;
+            document.body.appendChild(a); a.click(); a.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
         }
 
         /* -----------------------
