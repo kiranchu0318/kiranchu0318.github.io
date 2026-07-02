@@ -118,8 +118,8 @@
                         <tr>
                             <th scope="col">日期</th>
                             <th scope="col">上下班時間</th>
-                            <th scope="col" class="min-w-[120px]">外出時間</th>
                             <th scope="col" class="min-w-[180px]">打卡地點</th>
+                            <th scope="col" class="min-w-[120px]">外出時間</th>
                             <th scope="col" class="min-w-[140px]">出勤狀況</th>
                             <th scope="col" class="w-28">狀態</th>
                             <th scope="col" class="w-24">操作</th>
@@ -493,25 +493,25 @@
 
             data.forEach((r) => {
                 const coClass = (r.co === '--:--' && r.coState === '未打卡') ? 'text-red-500 font-medium' : (r.co === '--:--' ? 'text-gray-400' : '');
+                // 上下班時間：顯示為「上班時間-下班時間」
                 const timeCell = `
-                    <div class="text-gray-700"><span class="text-[10px] text-gray-400 mr-1">上</span>${fmtPunch(r.ci, r.ciMakeup)}</div>
-                    <div class="mt-0.5 ${coClass}"><span class="text-[10px] text-gray-400 mr-1">下</span>${fmtPunch(r.co, r.coMakeup)}</div>`;
+                    <div class="whitespace-nowrap text-gray-700">${fmtPunch(r.ci, r.ciMakeup)}<span class="text-gray-400 mx-0.5">-</span><span class="${coClass}">${fmtPunch(r.co, r.coMakeup)}</span></div>`;
 
-                const locText = `${r.loc}（${r.method}）`;
-                const outLine = r.co === '--:--'
-                    ? `<div class="flex items-center gap-1 mt-0.5"><span class="text-[10px] text-gray-400 shrink-0">下</span><span class="text-gray-300">—</span></div>`
-                    : `<div class="flex items-center gap-1 max-w-[200px] mt-0.5" title="下班打卡地點：${locText}"><span class="text-[10px] text-gray-400 shrink-0">下</span><span class="truncate min-w-0">${r.loc}</span><span class="text-gray-400 text-xs shrink-0">(${r.method})</span></div>`;
-                const locCell = `
-                    <div class="flex items-center gap-1 max-w-[200px]" title="上班打卡地點：${locText}"><span class="text-[10px] text-gray-400 shrink-0">上</span><span class="truncate min-w-0">${r.loc}</span><span class="text-gray-400 text-xs shrink-0">(${r.method})</span></div>
-                    ${outLine}`;
+                // 打卡地點：顯示為「上班打卡地點/下班打卡地點」，兩段各只顯示前 10 字元，hover 顯示完整地址
+                const truncLoc = (t) => (t && t.length > 10) ? t.slice(0, 10) + '…' : (t || '');
+                const inLoc = `<span title="上班打卡地點：${r.loc}（${r.method}）">${truncLoc(r.loc)}</span>`;
+                const outLoc = r.co === '--:--'
+                    ? `<span class="text-gray-300">—</span>`
+                    : `<span title="下班打卡地點：${r.loc}（${r.method}）">${truncLoc(r.loc)}</span>`;
+                const locCell = `<div class="whitespace-nowrap">${inLoc}<span class="text-gray-400 mx-0.5">/</span>${outLoc}</div>`;
 
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-gray-50/70 transition-colors";
                 tr.innerHTML = `
                     <td class="text-primary font-bold">${r.date}</td>
                     <td class="text-left">${timeCell}</td>
-                    <td class="text-left">${outingTimesCell(r.date)}</td>
                     <td class="text-left">${locCell}</td>
+                    <td class="text-left">${outingTimesCell(r.date)}</td>
                     <td class="text-left">${attendanceDocsCell(r.date)}</td>
                     <td>${statusBadgeHtml(r)}</td>
                     <td>${actionCell(r)}</td>

@@ -173,8 +173,8 @@
                                 <th scope="col">部門</th>
                                 <th scope="col">日期</th>
                                 <th scope="col">上下班時間</th>
-                                <th scope="col" class="min-w-[120px]">外出時間</th>
                                 <th scope="col" class="min-w-[160px]">打卡地點</th>
+                                <th scope="col" class="min-w-[120px]">外出時間</th>
                                 <th scope="col" class="min-w-[140px]">出勤狀況</th>
                                 <th scope="col" class="w-24">狀態</th>
                             </tr>
@@ -1162,31 +1162,20 @@
                     ? (s.coState === '未打卡' ? 'text-red-500 font-medium' : 'text-gray-400')
                     : '';
 
-                // 上下班時間：可有多組班別，組與組之間以虛線分隔
+                // 上下班時間：可有多組班別，每組顯示為「上班時間-下班時間」，組與組之間以虛線分隔
                 const timeCell = shifts.map((s, i) => `
-                    <div class="${i > 0 ? 'border-t border-dashed border-gray-200 pt-1 mt-1' : ''}">
-                        <div class="text-gray-700"><span class="text-[10px] text-gray-400 mr-1">上</span>${fmtPunch(s.ci, s.ciMakeup)}</div>
-                        <div class="mt-0.5 ${coClassOf(s)}"><span class="text-[10px] text-gray-400 mr-1">下</span>${fmtPunch(s.co, s.coMakeup)}</div>
+                    <div class="${i > 0 ? 'border-t border-dashed border-gray-200 pt-1 mt-1' : ''} whitespace-nowrap text-gray-700">
+                        ${fmtPunch(s.ci, s.ciMakeup)}<span class="text-gray-400 mx-0.5">-</span><span class="${coClassOf(s)}">${fmtPunch(s.co, s.coMakeup)}</span>
                     </div>`).join('');
 
-                // 打卡地點：對應各班別的上/下班地點；過長以 … 省略，hover 顯示全文
+                // 打卡地點：顯示為「上班打卡地點/下班打卡地點」，兩段各只顯示前 10 字元，hover 顯示完整地址
+                const truncLoc = (t) => (t && t.length > 10) ? t.slice(0, 10) + '…' : (t || '');
                 const locCell = shifts.map((s, i) => {
-                    const locText = `${s.loc}（${s.method}）`;
-                    const inLine = `
-                        <div class="flex items-center gap-1 max-w-[200px]" title="上班打卡地點：${locText}">
-                            <span class="text-[10px] text-gray-400 shrink-0">上</span>
-                            <span class="truncate min-w-0">${s.loc}</span>
-                            <span class="text-gray-400 text-xs shrink-0">(${s.method})</span>
-                        </div>`;
-                    const outLine = s.co === '--:--'
-                        ? `<div class="flex items-center gap-1 mt-0.5"><span class="text-[10px] text-gray-400 shrink-0">下</span><span class="text-gray-300">—</span></div>`
-                        : `
-                        <div class="flex items-center gap-1 max-w-[200px] mt-0.5" title="下班打卡地點：${locText}">
-                            <span class="text-[10px] text-gray-400 shrink-0">下</span>
-                            <span class="truncate min-w-0">${s.loc}</span>
-                            <span class="text-gray-400 text-xs shrink-0">(${s.method})</span>
-                        </div>`;
-                    return `<div class="${i > 0 ? 'border-t border-dashed border-gray-200 pt-1 mt-1' : ''}">${inLine}${outLine}</div>`;
+                    const inLoc = `<span title="上班打卡地點：${s.loc}（${s.method}）">${truncLoc(s.loc)}</span>`;
+                    const outLoc = s.co === '--:--'
+                        ? `<span class="text-gray-300">—</span>`
+                        : `<span title="下班打卡地點：${s.loc}（${s.method}）">${truncLoc(s.loc)}</span>`;
+                    return `<div class="${i > 0 ? 'border-t border-dashed border-gray-200 pt-1 mt-1' : ''} whitespace-nowrap">${inLoc}<span class="text-gray-400 mx-0.5">/</span>${outLoc}</div>`;
                 }).join('');
 
                 const tr = document.createElement('tr');
@@ -1200,8 +1189,8 @@
                     <td class="font-semibold text-gray-700"><span class="px-2 py-0.5 bg-gray-100 rounded text-xs">${record.dept}</span></td>
                     <td class="text-primary font-bold">${record.date}</td>
                     <td>${timeCell}</td>
-                    <td class="text-left">${outingTimesCell(record.id, record.date)}</td>
                     <td class="text-left">${locCell}</td>
+                    <td class="text-left">${outingTimesCell(record.id, record.date)}</td>
                     <td class="text-left">${attendanceDocsCell(record.id, record.date)}</td>
                     <td>${statusBadgeHtml(record)}</td>
                 `;

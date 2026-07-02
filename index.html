@@ -137,7 +137,7 @@
             // 個人：員工日常自助（首頁 / 考勤 / 績效 / 資訊），以群組分隔不同子領域
             { title: '個人', icon: 'layout-dashboard', groups: [
                 [ { title: '首頁', href: '首頁.html' }, { title: '公告' } ],
-                [ { title: '打卡' }, { title: '出勤紀錄' }, { title: '補卡申請' }, { title: '假期申請' } ],
+                [ { title: '考勤管理', dropdown: [ { title: '打卡' }, { title: '出勤紀錄' }, { title: '補卡申請' }, { title: '請假申請', href: '假期申請.html' }, { title: '加班申請' } ] } ],
                 [ { title: '個人資訊' }, { title: '文件庫', href: '文件庫.html' } ]
             ] },
             // 申請 / 簽核：電子表單申請與審批
@@ -145,7 +145,7 @@
                 { title: '申請', href: '申請.html' }, { title: '我的申請' }, { title: '簽核', badge: '3' } ] },
             // 人事管理：HR 後台（員工 / 考勤 / 假勤 / 績效）
             { title: '人事管理', icon: 'user-cog', children: [
-                { title: '員工管理' }, { title: '出勤管理' }, { title: '假期管理' } ] },
+                { title: '員工管理' }, { title: '出勤管理' }, { title: '假期管理' }, { title: '打卡規則' } ] },
             // 財務管理
             { title: '財務管理', icon: 'wallet', children: [
                 { title: '付款管理' }, { title: '費用分攤' }, { title: '財務報表' }, { title: '月初匯率管理' } ] },
