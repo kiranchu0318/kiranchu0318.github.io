@@ -201,10 +201,141 @@
         </div>
 
         <!-- ============================================================ -->
-        <!-- 頁籤 2：請假紀錄 (內嵌假期管理.html 內容) -->
+        <!-- 頁籤 2：請假紀錄（人資視角，含請假 / 銷假，專屬篩選台 + 列表） -->
         <!-- ============================================================ -->
-        <div id="panel-leave" class="hidden">
-            <iframe src="假期管理.html" title="請假紀錄" class="w-full h-[calc(100vh-180px)] min-h-[640px] border-0 rounded-xl bg-white"></iframe>
+        <div id="panel-leave" class="space-y-6 hidden">
+
+            <!-- 篩選台 (請假 / 銷假) -->
+            <div class="ui-card p-5 space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="relative">
+                        <label class="block text-xs font-semibold text-text-muted mb-1.5">員工搜尋 (姓名/工號)</label>
+                        <div class="relative ui-search">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="text" id="lv-search" oninput="applyLeaveFilters()" placeholder="輸入員工姓名或工號..." class="ui-input ui-search-input">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-text-muted mb-1.5">地區</label>
+                        <div id="lv-region-ms"></div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-text-muted mb-1.5">事業部</label>
+                        <div id="lv-bu-ms"></div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-text-muted mb-1.5">項目</label>
+                        <div id="lv-item-ms"></div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-text-muted mb-1.5">部門</label>
+                        <div id="lv-dept-ms"></div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-text-muted mb-1.5">單別</label>
+                        <select id="lv-doctype" onchange="applyLeaveFilters()" class="ui-select">
+                            <option value="all">全部單別</option>
+                            <option value="請假">請假</option>
+                            <option value="銷假">銷假</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-text-muted mb-1.5">假別</label>
+                        <select id="lv-type" onchange="applyLeaveFilters()" class="ui-select">
+                            <option value="all">全部假別</option>
+                            <option value="特休">特休</option>
+                            <option value="病假">病假</option>
+                            <option value="事假">事假</option>
+                            <option value="婚假">婚假</option>
+                            <option value="喪假">喪假</option>
+                            <option value="公假">公假</option>
+                            <option value="補休">補休</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-text-muted mb-1.5">狀態</label>
+                        <select id="lv-status" onchange="applyLeaveFilters()" class="ui-select">
+                            <option value="all">全部狀態</option>
+                            <option value="已提交">已提交</option>
+                            <option value="審批中">審批中</option>
+                            <option value="完成">完成</option>
+                            <option value="駁回">駁回</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-text-muted mb-1.5">申請日期區間</label>
+                        <div class="flex items-center gap-1.5">
+                            <input type="date" id="lv-date-start" onchange="applyLeaveFilters()" class="ui-input flex-1 min-w-0">
+                            <span class="text-gray-400 text-xs font-medium shrink-0">至</span>
+                            <input type="date" id="lv-date-end" onchange="applyLeaveFilters()" class="ui-input flex-1 min-w-0">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap items-center justify-end pt-2 gap-2">
+                    <button onclick="applyLeaveFilters()" class="ui-btn ui-btn-primary ui-btn-sm"><i class="fa-solid fa-magnifying-glass"></i> 查詢</button>
+                    <button onclick="resetLeaveFilters()" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-arrows-rotate"></i> 重置</button>
+                </div>
+            </div>
+
+            <!-- 列表 (請假 / 銷假) -->
+            <section class="ui-card p-4 sm:p-6">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
+                    <div class="flex items-center gap-2">
+                        <h2 class="text-lg font-bold text-gray-900 whitespace-nowrap">請假 / 銷假紀錄列表</h2>
+                        <span id="leave-count-badge" class="bg-blue-50 text-primary text-xs px-2.5 py-1 rounded-md font-bold">0 筆資料</span>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
+                        <div class="text-xs text-text-muted flex items-center gap-2 flex-wrap">
+                            <span class="ui-badge ui-badge-info">請假</span>
+                            <span class="ui-badge ui-badge-purple">銷假</span>
+                        </div>
+                        <button onclick="mockExport('請假／銷假')" class="ui-btn ui-btn-secondary ui-btn-sm">
+                            <i class="fa-solid fa-download"></i> 匯出報表
+                        </button>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto rounded-lg border border-gray-100 custom-scrollbar">
+                    <table class="ui-table text-center whitespace-nowrap">
+                        <thead>
+                            <tr>
+                                <th scope="col" class="text-left">工號</th>
+                                <th scope="col" class="text-left">姓名</th>
+                                <th scope="col">地區</th>
+                                <th scope="col">事業部</th>
+                                <th scope="col">項目</th>
+                                <th scope="col">部門</th>
+                                <th scope="col">申請日期</th>
+                                <th scope="col">單別</th>
+                                <th scope="col">假別</th>
+                                <th scope="col" class="text-left min-w-[160px]">起訖時間</th>
+                                <th scope="col">時數</th>
+                                <th scope="col" class="text-left">事由</th>
+                                <th scope="col">單號</th>
+                                <th scope="col" class="w-24">狀態</th>
+                                <th scope="col" class="col-action">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="leave-tbody"><!-- 動態由 JavaScript 渲染 --></tbody>
+                    </table>
+                </div>
+
+                <div id="leave-no-data-view" class="hidden py-16 text-center space-y-3">
+                    <div class="inline-flex p-4 bg-gray-50 text-gray-400 rounded-full"><i class="fa-solid fa-calendar-xmark text-3xl"></i></div>
+                    <p class="text-sm text-text-muted font-medium">查無符合條件的請假 / 銷假紀錄</p>
+                    <button onclick="resetLeaveFilters()" class="text-xs text-primary font-semibold hover:underline">清除篩選條件</button>
+                </div>
+
+                <div class="flex items-center justify-between mt-6 pt-4 border-t border-gray-100">
+                    <span id="leave-pagination-info" class="text-sm text-gray-500">顯示第 0 到 0 筆，共 0 筆記錄</span>
+                    <div class="flex gap-1">
+                        <button class="ui-page-btn"><i class="fa-solid fa-chevron-left text-xs"></i></button>
+                        <button class="ui-page-btn is-active">1</button>
+                        <button class="ui-page-btn"><i class="fa-solid fa-chevron-right text-xs"></i></button>
+                    </div>
+                </div>
+            </section>
         </div>
 
         <!-- ============================================================ -->
@@ -971,9 +1102,23 @@
             if (!r.region) r.region = deriveRegion(r.id);
             if (!r.bu) r.bu = deriveBu(r.dept);
         }
+        // 請假 / 銷假 紀錄資料庫 (人資視角)
+        let leaveRecordsDb = [
+            { id: "100423", name: "Henry",     dept: "HR",  appDate: "2026-06-09", docType: "請假", leaveType: "特休", start: "2026-06-12 09:00", end: "2026-06-12 18:00", hours: 8,  reason: "家庭旅遊，事先排定特休。",        docNo: "假-20260609-023", status: "完成" },
+            { id: "101122", name: "Daniel",    dept: "HR",  appDate: "2026-06-08", docType: "請假", leaveType: "病假", start: "2026-06-10 09:00", end: "2026-06-10 13:00", hours: 4,  reason: "感冒就醫，附診斷證明。",          docNo: "假-20260608-019", status: "完成" },
+            { id: "101383", name: "Matthew",   dept: "RD",  appDate: "2026-06-09", docType: "銷假", leaveType: "特休", start: "2026-06-10 09:00", end: "2026-06-10 18:00", hours: 8,  reason: "原訂特休取消，當日正常出勤。",    docNo: "銷-20260610-018", status: "完成" },
+            { id: "101334", name: "Alexander", dept: "RD",  appDate: "2026-06-05", docType: "請假", leaveType: "事假", start: "2026-06-06 14:00", end: "2026-06-06 18:00", hours: 4,  reason: "處理個人事務。",                  docNo: "假-20260605-011", status: "審批中" },
+            { id: "100645", name: "William",   dept: "HR",  appDate: "2026-06-04", docType: "請假", leaveType: "婚假", start: "2026-06-15 09:00", end: "2026-06-22 18:00", hours: 64, reason: "本人結婚，依規辦理婚假。",        docNo: "假-20260604-008", status: "已提交" },
+            { id: "101312", name: "Samuel",    dept: "IA1", appDate: "2026-06-03", docType: "請假", leaveType: "喪假", start: "2026-06-04 09:00", end: "2026-06-06 18:00", hours: 24, reason: "親屬過世治喪。",                  docNo: "假-20260603-006", status: "完成" },
+            { id: "101363", name: "Thomas",    dept: "HR",  appDate: "2026-06-02", docType: "銷假", leaveType: "病假", start: "2026-06-03 09:00", end: "2026-06-03 13:00", hours: 4,  reason: "康復提前返崗，銷回病假。",        docNo: "銷-20260603-004", status: "完成" },
+            { id: "101334", name: "Alexander", dept: "RD",  appDate: "2026-05-28", docType: "請假", leaveType: "補休", start: "2026-05-30 09:00", end: "2026-05-30 18:00", hours: 8,  reason: "加班補休。",                      docNo: "假-20260528-015", status: "駁回" },
+            { id: "100423", name: "Henry",     dept: "HR",  appDate: "2026-05-25", docType: "銷假", leaveType: "事假", start: "2026-05-26 09:00", end: "2026-05-26 12:00", hours: 3,  reason: "原請事假取消，銷假。",            docNo: "銷-20260526-002", status: "審批中" }
+        ];
+
         attendanceDb.forEach(enrichRecord);
         makeupDb.forEach(enrichRecord);
         outingDb.forEach(enrichRecord);
+        leaveRecordsDb.forEach(enrichRecord);
 
         let activeIndex = null;
         let activeTab = 'attendance';   // 當前頁籤
@@ -997,6 +1142,7 @@
         window.onload = function() {
             // 預設日期區間留空，顯示全部出勤／補卡／外出紀錄（與員工端頁面一致）
             applyAttendanceFilters();
+            applyLeaveFilters();
             applyMakeupFilters();
             applyOutingFilters();
         };
@@ -1075,7 +1221,7 @@
                 }
             });
             if (docs.length === 0) return '<span class="text-gray-300">-</span>';
-            return docs.map(d => `<button type="button" onclick="openLeaveDocModal('${id}','${date}','${d.no}','${d.label}')" class="font-mono font-semibold whitespace-nowrap hover:underline cursor-pointer ${d.done ? 'text-emerald-600' : 'text-red-500'}" title="${d.label}：${d.done ? '已審批' : '未審批'}（點擊檢視申請單）">${d.no}</button>`).join('');
+            return '<div class="flex flex-col gap-0.5 items-start">' + docs.map(d => `<button type="button" onclick="openLeaveDocModal('${id}','${date}','${d.no}','${d.label}')" class="font-mono font-semibold whitespace-nowrap hover:underline cursor-pointer ${d.done ? 'text-emerald-600' : 'text-red-500'}" title="${d.label}：${d.done ? '已審批' : '未審批'}（點擊檢視申請單）">${d.no}</button>`).join('') + '</div>';
         }
 
         // 通用：填入並開啟「申請單」彈窗（比照簽核.html 的請假/補卡申請單樣式）
@@ -1381,6 +1527,10 @@
         const msOutBu     = createMultiSelect('out-bu-ms',     BU_OPTIONS,     '全部事業部', applyOutingFilters);
         const msOutItem   = createMultiSelect('out-item-ms',   ITEM_OPTIONS,   '全部項目', applyOutingFilters);
         const msOutDept   = createMultiSelect('out-dept-ms',   DEPT_OPTIONS,   '全部部門', applyOutingFilters);
+        const msLvRegion  = createMultiSelect('lv-region-ms',  REGION_OPTIONS, '全部地區', applyLeaveFilters);
+        const msLvBu      = createMultiSelect('lv-bu-ms',      BU_OPTIONS,     '全部事業部', applyLeaveFilters);
+        const msLvItem    = createMultiSelect('lv-item-ms',    ITEM_OPTIONS,   '全部項目', applyLeaveFilters);
+        const msLvDept    = createMultiSelect('lv-dept-ms',    DEPT_OPTIONS,   '全部部門', applyLeaveFilters);
 
         // 出勤紀錄篩選
         function applyAttendanceFilters() {
@@ -1459,6 +1609,118 @@
             document.getElementById('mk-date-end').value = '';
             showToast('info', '已還原補卡紀錄的篩選設定');
             applyMakeupFilters();
+        }
+
+        // 單別徽章（請假 / 銷假）
+        function docTypeBadge(t) {
+            return t === '銷假'
+                ? '<span class="ui-badge ui-badge-purple">銷假</span>'
+                : '<span class="ui-badge ui-badge-info">請假</span>';
+        }
+        // 渲染 請假 / 銷假 紀錄列表
+        function renderLeave(data) {
+            const tbody = document.getElementById('leave-tbody');
+            const noData = document.getElementById('leave-no-data-view');
+            tbody.innerHTML = '';
+            if (data.length === 0) {
+                tbody.parentElement.classList.add('hidden');
+                noData.classList.remove('hidden');
+                document.getElementById('leave-count-badge').innerText = `0 筆資料`;
+                document.getElementById('leave-pagination-info').innerText = `顯示第 0 到 0 筆，共 0 筆記錄`;
+                return;
+            }
+            tbody.parentElement.classList.remove('hidden');
+            noData.classList.add('hidden');
+            data.forEach((record) => {
+                const idx = leaveRecordsDb.indexOf(record);
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-gray-50/70 transition-colors";
+                tr.innerHTML = `
+                    <td class="text-left font-mono font-semibold text-gray-500">${record.id}</td>
+                    <td class="text-left"><span class="font-bold text-gray-800">${record.name}</span></td>
+                    <td><span class="px-2 py-0.5 bg-orange-50 text-orange-600 rounded text-xs font-semibold">${record.region}</span></td>
+                    <td><span class="px-2 py-0.5 bg-emerald-50 text-emerald-600 rounded text-xs font-semibold">${record.bu}</span></td>
+                    <td><span class="px-2 py-0.5 bg-blue-50 text-primary rounded text-xs font-semibold">${record.item}</span></td>
+                    <td class="font-semibold text-gray-700"><span class="px-2 py-0.5 bg-gray-100 rounded text-xs">${record.dept}</span></td>
+                    <td class="text-gray-600">${record.appDate}</td>
+                    <td>${docTypeBadge(record.docType)}</td>
+                    <td class="text-gray-700 font-medium">${record.leaveType}</td>
+                    <td class="text-left font-mono text-gray-600 text-xs">${record.start}<br>~ ${record.end}</td>
+                    <td class="text-gray-700">${record.hours} 小時</td>
+                    <td class="text-left text-gray-600 whitespace-normal break-words max-w-[240px]">${record.reason || '—'}</td>
+                    <td class="font-mono font-semibold ${record.status === '完成' ? 'text-emerald-600' : 'text-gray-600'}">${record.docNo}</td>
+                    <td>${makeupStatusBadge(record.status)}</td>
+                    <td class="col-action">
+                        <button onclick="openLeaveRecordDetail(${idx})" class="ui-btn ui-btn-secondary ui-btn-sm mx-auto">
+                            <i class="fa-solid fa-circle-info"></i> 詳情
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+            document.getElementById('leave-count-badge').innerText = `${data.length} 筆資料`;
+            document.getElementById('leave-pagination-info').innerText = `顯示第 1 到 ${data.length} 筆，共 ${data.length} 筆記錄`;
+        }
+
+        // 請假 / 銷假 詳情 → 開啟申請單彈窗
+        function openLeaveRecordDetail(index) {
+            if (index === null || index < 0) return;
+            const r = leaveRecordsDb[index];
+            fillSignDocModal({
+                title: r.docType === '銷假' ? '銷假申請單' : '請假申請單 (A)',
+                section: r.docType === '銷假' ? '銷假資訊' : '請假資訊',
+                docNo: r.docNo, appDate: r.appDate, name: r.name, empNo: r.id, project: r.item || 'GT', dept: r.dept,
+                fields: [
+                    { label: '假別', value: r.leaveType },
+                    { label: '開始時間', value: r.start },
+                    { label: '結束時間', value: r.end },
+                    { label: '時數（小時／最小單位 0.5）', value: `${r.hours} 小時` },
+                ],
+                reasonLabel: r.docType === '銷假' ? '銷假事由' : '請假事由',
+                reason: r.reason || ''
+            });
+        }
+
+        // 請假 / 銷假 紀錄篩選
+        function applyLeaveFilters() {
+            const searchValue = document.getElementById('lv-search').value.toLowerCase().trim();
+            const regions = msLvRegion ? msLvRegion.getSelected() : [];
+            const bus = msLvBu ? msLvBu.getSelected() : [];
+            const items = msLvItem ? msLvItem.getSelected() : [];
+            const depts = msLvDept ? msLvDept.getSelected() : [];
+            const docTypeValue = document.getElementById('lv-doctype').value;
+            const typeValue = document.getElementById('lv-type').value;
+            const statusValue = document.getElementById('lv-status').value;
+            const dateStart = document.getElementById('lv-date-start').value;
+            const dateEnd = document.getElementById('lv-date-end').value;
+
+            const filtered = leaveRecordsDb.filter(r =>
+                (!searchValue || r.name.toLowerCase().includes(searchValue) || r.id.toLowerCase().includes(searchValue)) &&
+                (regions.length === 0 || regions.includes(r.region)) &&
+                (bus.length === 0 || bus.includes(r.bu)) &&
+                (items.length === 0 || items.includes(r.item)) &&
+                (depts.length === 0 || depts.includes(r.dept)) &&
+                (docTypeValue === 'all' || r.docType === docTypeValue) &&
+                (typeValue === 'all' || r.leaveType === typeValue) &&
+                (statusValue === 'all' || r.status === statusValue) &&
+                (!dateStart || r.appDate >= dateStart) &&
+                (!dateEnd || r.appDate <= dateEnd));
+            renderLeave(filtered);
+        }
+
+        function resetLeaveFilters() {
+            document.getElementById('lv-search').value = '';
+            if (msLvRegion) msLvRegion.reset();
+            if (msLvBu) msLvBu.reset();
+            if (msLvItem) msLvItem.reset();
+            if (msLvDept) msLvDept.reset();
+            document.getElementById('lv-doctype').value = 'all';
+            document.getElementById('lv-type').value = 'all';
+            document.getElementById('lv-status').value = 'all';
+            document.getElementById('lv-date-start').value = '';
+            document.getElementById('lv-date-end').value = '';
+            showToast('info', '已還原請假 / 銷假紀錄的篩選設定');
+            applyLeaveFilters();
         }
 
         // 外出紀錄篩選

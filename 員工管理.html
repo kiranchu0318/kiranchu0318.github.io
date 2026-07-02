@@ -147,7 +147,7 @@
         <!-- 主分頁：員工管理 / 員工考勤屬性 -->
         <div class="flex items-center gap-1 border-b border-gray-200">
             <button id="ptab-emp" onclick="switchPageTab('emp')" class="px-4 py-2.5 text-sm font-semibold text-primary border-b-2 border-primary -mb-px transition-colors whitespace-nowrap">員工管理</button>
-            <button id="ptab-attr" onclick="switchPageTab('attr')" class="px-4 py-2.5 text-sm font-medium text-gray-500 border-b-2 border-transparent -mb-px hover:text-gray-700 transition-colors whitespace-nowrap">員工考勤屬性</button>
+            <button id="ptab-attr" onclick="switchPageTab('attr')" class="px-4 py-2.5 text-sm font-medium text-gray-500 border-b-2 border-transparent -mb-px hover:text-gray-700 transition-colors whitespace-nowrap">員工考勤設置</button>
         </div>
 
         <!-- ===== 分頁 1：員工管理 ===== -->
@@ -319,25 +319,26 @@
         </section>
         </div>
 
-        <!-- ===== 分頁 2：員工考勤屬性 ===== -->
+        <!-- ===== 分頁 2：員工考勤管理 ===== -->
         <div id="page-attr" class="hidden space-y-6">
             <section class="ui-card p-6">
 
+                <!-- 說明 -->
+                <div class="flex items-start gap-2.5 mb-6 p-3.5 rounded-lg bg-primary-light/60 border border-primary/20">
+                    <i class="fa-solid fa-circle-info text-primary mt-0.5"></i>
+                    <p class="text-sm text-gray-600 leading-relaxed">本頁可為個別員工單獨設定考勤規則。一經設定，該員工的出勤即以此頁設定為準，不再套用一般打卡規則；未於本頁設定的員工，則仍依其所屬的<span class="font-semibold text-primary">打卡規則</span>進行出勤判定。</p>
+                </div>
+
                 <!-- 列表工具列 (搜尋與篩選) -->
-                <div class="flex flex-col sm:flex-row items-start sm:items-center mb-6 gap-4">
-                    <div class="ui-search w-full sm:w-[280px]">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                        <input type="text" placeholder="搜尋員工編號或姓名" class="ui-input ui-search-input">
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between mb-6 gap-4">
+                    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+                        <div class="ui-search w-full sm:w-[280px]">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="text" placeholder="搜尋員工編號或姓名" class="ui-input ui-search-input">
+                        </div>
+                        <button class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-magnifying-glass"></i> 查詢</button>
                     </div>
-                    <div class="relative w-full sm:w-[160px]">
-                        <select class="ui-select">
-                            <option value="all" selected>全部班別</option>
-                            <option value="day">常日班</option>
-                            <option value="shift">輪班</option>
-                            <option value="flex">彈性工時</option>
-                        </select>
-                    </div>
-                    <button class="ui-btn ui-btn-primary ui-btn-sm"><i class="fa-solid fa-magnifying-glass"></i> 查詢</button>
+                    <button onclick="openNewEmpModal()" class="ui-btn ui-btn-primary w-full sm:w-auto"><i class="fa-solid fa-user-plus"></i> 新增員工帳號</button>
                 </div>
 
                 <div class="overflow-x-auto rounded-lg border border-gray-200 mb-6">
@@ -348,9 +349,9 @@
                                 <th scope="col" class="px-6 py-4">姓名</th>
                                 <th scope="col" class="px-6 py-4">事業部</th>
                                 <th scope="col" class="px-6 py-4">分部</th>
-                                <th scope="col" class="px-6 py-4">考勤班別</th>
                                 <th scope="col" class="px-6 py-4">彈性工時</th>
                                 <th scope="col" class="px-6 py-4">需打卡</th>
+                                <th scope="col" class="px-6 py-4">免除GPS定位</th>
                                 <th scope="col" class="px-6 py-4 text-center">操作</th>
                             </tr>
                         </thead>
@@ -360,11 +361,11 @@
                                 <td class="px-6 py-4">Logan</td>
                                 <td class="px-6 py-4">研發事業部 (RD BU)</td>
                                 <td class="px-6 py-4">台北分部</td>
-                                <td class="px-6 py-4"><span class="ui-badge ui-badge-info">常日班</span></td>
                                 <td class="px-6 py-4"><span class="ui-badge ui-badge-gray">否</span></td>
                                 <td class="px-6 py-4"><span class="ui-badge ui-badge-success">是</span></td>
+                                <td class="px-6 py-4"><span class="ui-badge ui-badge-gray">否</span></td>
                                 <td class="px-6 py-4 text-center">
-                                    <button onclick="openAttrModal('EMP001','Logan')" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-sliders"></i> 設置考勤屬性</button>
+                                    <button onclick="openAttrModal('EMP001','Logan')" class="ui-btn ui-btn-secondary ui-btn-sm">考勤設置</button>
                                 </td>
                             </tr>
                             <tr class="hover:bg-gray-50 transition-colors">
@@ -372,11 +373,11 @@
                                 <td class="px-6 py-4">Jackson</td>
                                 <td class="px-6 py-4">營運中心 (Ops)</td>
                                 <td class="px-6 py-4">台中分部</td>
-                                <td class="px-6 py-4"><span class="ui-badge ui-badge-warning">輪班</span></td>
                                 <td class="px-6 py-4"><span class="ui-badge ui-badge-gray">否</span></td>
                                 <td class="px-6 py-4"><span class="ui-badge ui-badge-success">是</span></td>
+                                <td class="px-6 py-4"><span class="ui-badge ui-badge-gray">否</span></td>
                                 <td class="px-6 py-4 text-center">
-                                    <button onclick="openAttrModal('EMP042','Jackson')" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-sliders"></i> 設置考勤屬性</button>
+                                    <button onclick="openAttrModal('EMP042','Jackson')" class="ui-btn ui-btn-secondary ui-btn-sm">考勤設置</button>
                                 </td>
                             </tr>
                             <tr class="hover:bg-gray-50 transition-colors">
@@ -384,11 +385,11 @@
                                 <td class="px-6 py-4">Levi</td>
                                 <td class="px-6 py-4">業務行銷部 (Sales)</td>
                                 <td class="px-6 py-4">高雄分部</td>
-                                <td class="px-6 py-4"><span class="ui-badge ui-badge-info">彈性工時</span></td>
                                 <td class="px-6 py-4"><span class="ui-badge ui-badge-success">是</span></td>
                                 <td class="px-6 py-4"><span class="ui-badge ui-badge-gray">否</span></td>
+                                <td class="px-6 py-4"><span class="ui-badge ui-badge-gray">否</span></td>
                                 <td class="px-6 py-4 text-center">
-                                    <button onclick="openAttrModal('EMP089','Levi')" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-sliders"></i> 設置考勤屬性</button>
+                                    <button onclick="openAttrModal('EMP089','Levi')" class="ui-btn ui-btn-secondary ui-btn-sm">考勤設置</button>
                                 </td>
                             </tr>
                             <tr class="hover:bg-gray-50 transition-colors">
@@ -396,11 +397,11 @@
                                 <td class="px-6 py-4">Mia</td>
                                 <td class="px-6 py-4">研發事業部 (RD BU)</td>
                                 <td class="px-6 py-4">台北分部</td>
-                                <td class="px-6 py-4"><span class="ui-badge ui-badge-info">常日班</span></td>
                                 <td class="px-6 py-4"><span class="ui-badge ui-badge-gray">否</span></td>
                                 <td class="px-6 py-4"><span class="ui-badge ui-badge-success">是</span></td>
+                                <td class="px-6 py-4"><span class="ui-badge ui-badge-gray">否</span></td>
                                 <td class="px-6 py-4 text-center">
-                                    <button onclick="openAttrModal('EMP156','Mia')" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-sliders"></i> 設置考勤屬性</button>
+                                    <button onclick="openAttrModal('EMP156','Mia')" class="ui-btn ui-btn-secondary ui-btn-sm">考勤設置</button>
                                 </td>
                             </tr>
                             <tr class="hover:bg-gray-50 transition-colors">
@@ -408,11 +409,11 @@
                                 <td class="px-6 py-4">Luna</td>
                                 <td class="px-6 py-4">財務行政部 (Finance)</td>
                                 <td class="px-6 py-4">台北分部</td>
-                                <td class="px-6 py-4"><span class="ui-badge ui-badge-info">常日班</span></td>
                                 <td class="px-6 py-4"><span class="ui-badge ui-badge-gray">否</span></td>
                                 <td class="px-6 py-4"><span class="ui-badge ui-badge-success">是</span></td>
+                                <td class="px-6 py-4"><span class="ui-badge ui-badge-gray">否</span></td>
                                 <td class="px-6 py-4 text-center">
-                                    <button onclick="openAttrModal('EMP201','Luna')" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-sliders"></i> 設置考勤屬性</button>
+                                    <button onclick="openAttrModal('EMP201','Luna')" class="ui-btn ui-btn-secondary ui-btn-sm">考勤設置</button>
                                 </td>
                             </tr>
                         </tbody>
@@ -440,48 +441,95 @@
     <div id="attrModal" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true">
         <div class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm" onclick="closeAttrModal()"></div>
         <div class="fixed inset-0 z-10 flex items-center justify-center p-4">
-            <div class="relative bg-white rounded-2xl shadow-modal w-full max-w-lg overflow-hidden">
-                <div class="px-6 py-4 flex items-center justify-between border-b border-gray-100">
-                    <h3 class="text-base font-bold text-gray-900">設置考勤屬性 — <span id="attr-emp" class="text-primary"></span></h3>
+            <div class="relative bg-white rounded-2xl shadow-modal w-full max-w-2xl max-h-[92vh] flex flex-col overflow-hidden">
+                <div class="px-6 py-4 flex items-center justify-between border-b border-gray-100 flex-shrink-0">
+                    <h3 id="attr-modal-title" class="text-base font-bold text-gray-900">設置考勤屬性 — <span id="attr-emp" class="text-primary"></span></h3>
                     <button onclick="closeAttrModal()" class="text-gray-400 hover:text-gray-600 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"><i class="fa-solid fa-xmark"></i></button>
                 </div>
-                <div class="px-6 py-5 space-y-4">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-xs font-semibold text-text-muted mb-1.5">考勤班別</label>
-                            <select id="attr-shift" onchange="onShiftChange()" class="ui-select"><option>常日班</option><option>輪班</option><option>彈性工時</option></select>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-text-muted mb-1.5">加班計算方式</label>
-                            <select class="ui-select"><option>不計加班</option><option>實報實銷</option><option>補休</option></select>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-text-muted mb-1.5">上班時間</label>
-                            <input type="text" value="09:00" class="ui-input">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-text-muted mb-1.5">下班時間</label>
-                            <input type="text" value="18:00" class="ui-input">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-text-muted mb-1.5">遲到容許（分鐘）</label>
-                            <input type="text" value="10" class="ui-input">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-text-muted mb-1.5">週末是否出勤</label>
-                            <select class="ui-select"><option>否</option><option>是</option></select>
-                        </div>
-                        <div id="attr-flex-wrap" class="hidden">
-                            <label class="block text-xs font-semibold text-text-muted mb-1.5">彈性時間（分鐘）</label>
-                            <input type="text" value="60" class="ui-input">
+                <form id="attr-form" onsubmit="return false" class="px-6 py-5 overflow-y-auto space-y-6">
+
+                    <!-- ===== 基本資料（僅新增員工帳號時顯示）===== -->
+                    <div id="attr-basic-block" class="hidden space-y-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-[140px_1fr] gap-2 sm:gap-4 sm:items-center">
+                            <label class="text-xs font-semibold text-gray-600">工號 <span class="text-rose-500">*</span></label>
+                            <div class="flex flex-wrap items-center gap-3">
+                                <input list="na-emp-options" id="na-empid" oninput="onEmpPick()" placeholder="輸入或選擇工號查詢" class="ui-input max-w-[240px]" autocomplete="off">
+                                <datalist id="na-emp-options"></datalist>
+                                <span class="text-sm text-gray-500">姓名：<span id="na-name-display" class="font-semibold text-gray-800">—</span></span>
+                            </div>
                         </div>
                     </div>
-                    <div class="flex flex-wrap gap-6 pt-1">
-                        <label class="inline-flex items-center gap-2 cursor-pointer select-none"><input type="checkbox" checked class="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"><span class="text-sm text-gray-700">特殊考勤分組</span></label>
-                        <label class="inline-flex items-center gap-2 cursor-pointer select-none"><input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"><span class="text-sm text-gray-700">是否免除GPS定位</span></label>
+
+                    <!-- ===== 考勤設置 ===== -->
+                    <div class="space-y-4">
+                        <h4 class="text-sm font-bold text-primary flex items-center gap-2"><span class="w-1 h-4 bg-primary rounded-full"></span>考勤設置</h4>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-[140px_1fr] gap-2 sm:gap-4 sm:items-center">
+                            <label class="text-xs font-semibold text-gray-600">規則模板名稱 <span class="text-rose-500">*</span></label>
+                            <input type="text" id="attr-name" value="打卡規則1" class="ui-input">
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-[140px_1fr] gap-2 sm:gap-4 sm:items-center">
+                            <label class="text-xs font-semibold text-gray-600">固定上班時間</label>
+                            <div class="flex flex-wrap items-center gap-2">
+                                <input type="time" id="attr-work-start" value="09:00" class="border border-gray-300 rounded px-2 py-1 text-sm" onchange="calcAttrHours()">
+                                <span class="text-gray-400 text-sm">~</span>
+                                <input type="time" id="attr-work-end" value="18:00" class="border border-gray-300 rounded px-2 py-1 text-sm" onchange="calcAttrHours()">
+                                <label class="inline-flex items-center gap-1.5 text-sm text-gray-700 cursor-pointer ml-2"><input type="checkbox" id="attr-overnight" class="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary" onchange="calcAttrHours()"> 跨日打卡</label>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-[140px_1fr] gap-2 sm:gap-4 sm:items-center">
+                            <label class="text-xs font-semibold text-gray-600">休息時間</label>
+                            <div class="flex items-center gap-2">
+                                <input type="time" id="attr-rest-start" value="12:00" class="border border-gray-300 rounded px-2 py-1 text-sm" onchange="calcAttrHours()">
+                                <span class="text-gray-400 text-sm">~</span>
+                                <input type="time" id="attr-rest-end" value="13:00" class="border border-gray-300 rounded px-2 py-1 text-sm" onchange="calcAttrHours()">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-[140px_1fr] gap-2 sm:gap-4">
+                            <label class="text-xs font-semibold text-gray-600 sm:pt-1">休息時間打卡</label>
+                            <div class="flex flex-col gap-2">
+                                <label class="inline-flex items-start gap-2 text-sm text-gray-700 cursor-pointer"><input type="radio" name="attr-rest-clock" data-label="需打卡" class="w-4 h-4 mt-0.5 text-primary focus:ring-primary" checked> <span>需打卡<span class="block text-xs text-primary">勾選需打卡，系統將判斷在休息時間未滿足兩次打卡即為缺卡異常</span></span></label>
+                                <label class="inline-flex items-center gap-2 text-sm text-gray-700 cursor-pointer"><input type="radio" name="attr-rest-clock" data-label="免打卡" class="w-4 h-4 text-primary focus:ring-primary"> 免打卡</label>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-[140px_1fr] gap-2 sm:gap-4 sm:items-center">
+                            <label class="text-xs font-semibold text-gray-600">免除GPS定位</label>
+                            <label class="inline-flex items-center gap-2 text-sm text-gray-700 cursor-pointer"><input type="checkbox" id="attr-gps-exempt" class="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"> 免除此員工打卡之 GPS 定位驗證</label>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-[140px_1fr] gap-2 sm:gap-4 sm:items-center">
+                            <label class="text-xs font-semibold text-gray-600">工時</label>
+                            <input type="text" id="attr-work-hours" readonly class="ui-input bg-gray-50 text-gray-600 max-w-[200px]">
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-[140px_1fr] gap-2 sm:gap-4">
+                            <label class="text-xs font-semibold text-gray-600 sm:pt-1">彈性上班時間</label>
+                            <div class="flex flex-col gap-2">
+                                <label class="inline-flex items-center gap-2 text-sm text-gray-700 cursor-pointer"><input type="radio" name="attr-flex-start" class="w-4 h-4 text-primary focus:ring-primary" checked> 無</label>
+                                <label class="inline-flex items-center gap-2 text-sm text-gray-700 cursor-pointer flex-wrap"><input type="radio" name="attr-flex-start" class="w-4 h-4 text-primary focus:ring-primary"> 有，可提前 <input type="text" inputmode="numeric" value="30" class="w-14 border border-gray-300 rounded px-2 py-1 text-sm text-center"> 分鐘，或延後 <input type="text" inputmode="numeric" value="30" class="w-14 border border-gray-300 rounded px-2 py-1 text-sm text-center"> 分鐘上班。</label>
+                                <p class="text-xs text-amber-600 pl-6">注意：彈性上班時間與休息時間交集時失效。</p>
+                            </div>
+                        </div>
                     </div>
-                </div>
-                <div class="flex justify-end gap-2.5 px-6 py-4 bg-gray-50 border-t border-gray-100">
+
+                    <!-- ===== 補卡限制 ===== -->
+                    <div class="space-y-4 pt-2 border-t border-gray-100">
+                        <h4 class="text-sm font-bold text-primary flex items-center gap-2"><span class="w-1 h-4 bg-primary rounded-full"></span>補卡限制</h4>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-[140px_1fr] gap-2 sm:gap-4">
+                            <label class="text-xs font-semibold text-gray-600 sm:pt-1">補卡次數限制</label>
+                            <div class="flex flex-col gap-2">
+                                <label class="inline-flex items-center gap-2 text-sm text-gray-700 cursor-pointer"><input type="radio" name="attr-mk-count" class="w-4 h-4 text-primary focus:ring-primary" checked> 無限制</label>
+                                <label class="inline-flex items-center gap-2 text-sm text-gray-700 cursor-pointer flex-wrap"><input type="radio" name="attr-mk-count" class="w-4 h-4 text-primary focus:ring-primary"> 每月不得超過 <input type="text" inputmode="numeric" class="w-14 border border-gray-300 rounded px-2 py-1 text-sm text-center"> 次（超過者僅能由主管 / 人資代為申請）</label>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+                <div class="flex justify-end gap-2.5 px-6 py-4 bg-gray-50 border-t border-gray-100 flex-shrink-0">
                     <button onclick="closeAttrModal()" class="ui-btn ui-btn-secondary">取消</button>
                     <button onclick="saveAttr()" class="ui-btn ui-btn-primary">儲存</button>
                 </div>
@@ -1038,14 +1086,6 @@
                                 </div>
                                 <div>
                                     <label class="block text-xs font-semibold text-gray-500 mb-1.5">Apple ID</label>
-                                    <input type="text" readonly class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded-md text-sm text-gray-800 outline-none cursor-default">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">門禁卡片</label>
-                                    <input type="text" readonly class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded-md text-sm text-gray-800 outline-none cursor-default">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">指紋</label>
                                     <input type="text" readonly class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded-md text-sm text-gray-800 outline-none cursor-default">
                                 </div>
                             </div>
@@ -1862,23 +1902,102 @@
         /* -----------------------
            設置考勤屬性彈窗
            ----------------------- */
+        // 員工目錄（工號 → 姓名 / 事業部 / 分部），供「新增員工帳號」查詢帶出
+        const EMP_DIRECTORY = [
+            { id: 'EMP302', name: 'Ethan',    bu: '研發事業部 (RD BU)',    branch: '台北分部' },
+            { id: 'EMP315', name: 'Sophia',   bu: '營運中心 (Ops)',        branch: '台中分部' },
+            { id: 'EMP330', name: 'Oliver',   bu: '業務行銷部 (Sales)',    branch: '高雄分部' },
+            { id: 'EMP348', name: 'Amelia',   bu: '財務行政部 (Finance)',  branch: '台北分部' },
+            { id: 'EMP356', name: 'Benjamin', bu: '研發事業部 (RD BU)',    branch: '台北分部' },
+            { id: 'EMP371', name: 'Charlotte',bu: '人力資源部 (HR)',       branch: '台中分部' },
+            { id: 'EMP388', name: 'Lucas',    bu: '業務行銷部 (Sales)',    branch: '高雄分部' }
+        ];
+        function initEmpOptions() {
+            document.getElementById('na-emp-options').innerHTML =
+                EMP_DIRECTORY.map(e => `<option value="${e.id}">${e.name}（${e.bu}）</option>`).join('');
+        }
+        function findEmp(id) { return EMP_DIRECTORY.find(e => e.id === (id || '').trim()); }
+        function onEmpPick() {
+            const e = findEmp(document.getElementById('na-empid').value);
+            document.getElementById('na-name-display').innerText = e ? e.name : '—';
+        }
+
+        let attrMode = 'edit'; // 'edit' = 設置既有員工考勤；'new' = 新增員工帳號
         function openAttrModal(emp, name) {
-            document.getElementById('attr-emp').innerText = emp + ' ' + name;
+            attrMode = 'edit';
+            document.getElementById('attr-basic-block').classList.add('hidden');
+            document.getElementById('attr-modal-title').innerHTML = '設置考勤屬性 — <span id="attr-emp" class="text-primary">' + emp + ' ' + name + '</span>';
             document.getElementById('attrModal').classList.remove('hidden');
-            onShiftChange();
+            calcAttrHours();
+        }
+        // 新增員工帳號（加入員工考勤管理列表，並同時設定考勤）
+        function openNewEmpModal() {
+            attrMode = 'new';
+            document.getElementById('attr-form').reset();
+            initEmpOptions();
+            document.getElementById('na-name-display').innerText = '—';
+            document.getElementById('attr-basic-block').classList.remove('hidden');
+            document.getElementById('attr-modal-title').innerHTML = '新增員工帳號';
+            document.getElementById('attr-name').value = '打卡規則1';
+            document.getElementById('attrModal').classList.remove('hidden');
+            calcAttrHours();
         }
         function closeAttrModal() {
             document.getElementById('attrModal').classList.add('hidden');
         }
-        // 考勤班別＝彈性工時 → 顯示「彈性時間（分鐘）」
-        function onShiftChange() {
-            const sel = document.getElementById('attr-shift');
-            const wrap = document.getElementById('attr-flex-wrap');
-            if (!sel || !wrap) return;
-            wrap.classList.toggle('hidden', sel.value !== '彈性工時');
+        // 工時自動計算（固定上班時間 - 單段休息時間；支援跨日打卡）
+        function attrToMin(v) {
+            if (!v || v.indexOf(':') < 0) return null;
+            const p = v.split(':'); const h = parseInt(p[0], 10); const m = parseInt(p[1], 10);
+            if (isNaN(h) || isNaN(m)) return null;
+            return h * 60 + m;
+        }
+        function calcAttrHours() {
+            const ws = attrToMin(document.getElementById('attr-work-start').value);
+            const we = attrToMin(document.getElementById('attr-work-end').value);
+            const overnight = document.getElementById('attr-overnight').checked;
+            let total = (ws !== null && we !== null) ? (we - ws) : 0;
+            if (total < 0 || (overnight && total <= 0)) total += 24 * 60;
+            const rs = attrToMin(document.getElementById('attr-rest-start').value);
+            const re = attrToMin(document.getElementById('attr-rest-end').value);
+            let rest = 0;
+            if (rs !== null && re !== null) { rest = re - rs; if (rest < 0) rest += 24 * 60; }
+            const net = Math.max(0, total - rest);
+            const h = Math.floor(net / 60), m = net % 60;
+            document.getElementById('attr-work-hours').value = total ? `${h} 小時 ${m} 分` : '';
         }
         function saveAttr() {
-            // Demo：實際儲存考勤屬性可於此串接 API，此處僅關閉彈窗
+            if (attrMode === 'new') {
+                const empId = document.getElementById('na-empid').value.trim();
+                if (!empId) { alert('請選擇工號'); return; }
+                const emp = findEmp(empId);
+                if (!emp) { alert('查無此工號，請由下拉選單選擇'); return; }
+                const name = emp.name;
+                const bu = emp.bu;
+                const branch = emp.branch;
+                // 彈性工時：依「彈性上班時間」是否選「有」；需打卡：依「休息時間打卡」
+                const flexOn = !document.querySelector('input[name="attr-flex-start"]:checked').closest('label').textContent.includes('無');
+                const restClock = document.querySelector('input[name="attr-rest-clock"]:checked');
+                const needClock = restClock && restClock.dataset.label === '需打卡';
+                const gpsExempt = document.getElementById('attr-gps-exempt').checked;
+                const flexBadge = flexOn ? '<span class="ui-badge ui-badge-success">是</span>' : '<span class="ui-badge ui-badge-gray">否</span>';
+                const clockBadge = needClock ? '<span class="ui-badge ui-badge-success">是</span>' : '<span class="ui-badge ui-badge-gray">否</span>';
+                const gpsBadge = gpsExempt ? '<span class="ui-badge ui-badge-success">是</span>' : '<span class="ui-badge ui-badge-gray">否</span>';
+                const tbody = document.querySelector('#page-attr tbody');
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-50 transition-colors';
+                tr.innerHTML =
+                    '<td class="px-6 py-4 font-medium text-gray-900">' + empId + '</td>' +
+                    '<td class="px-6 py-4">' + name + '</td>' +
+                    '<td class="px-6 py-4">' + bu + '</td>' +
+                    '<td class="px-6 py-4">' + branch + '</td>' +
+                    '<td class="px-6 py-4">' + flexBadge + '</td>' +
+                    '<td class="px-6 py-4">' + clockBadge + '</td>' +
+                    '<td class="px-6 py-4">' + gpsBadge + '</td>' +
+                    '<td class="px-6 py-4 text-center"><button onclick="openAttrModal(\'' + empId + '\',\'' + name + '\')" class="ui-btn ui-btn-secondary ui-btn-sm">考勤設置</button></td>';
+                tbody.appendChild(tr);
+            }
+            // Demo：實際儲存可於此串接 API
             closeAttrModal();
         }
 
