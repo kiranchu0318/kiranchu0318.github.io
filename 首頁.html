@@ -537,11 +537,12 @@
   <!-- ==================== JavaScript ==================== -->
   <script>
     const state = {
+      // pendingLeave：有假單審核中→預扣（顯示負號）；pendingOT：有加班申請→預添加（顯示正號）
       leaveBalances: [
-        { id: 'al', name: '特休 / 年假', total: 56, used: 16, color: 'bg-blue-500' },
-        { id: 'fl', name: '彈性休假', total: 24, used: 8, color: 'bg-emerald-500' },
-        { id: 'sl', name: '不扣薪病假', total: 30, used: 0, color: 'bg-amber-500' },
-        { id: 'ct', name: '補休', total: 12, used: 4, color: 'bg-rose-500' }
+        { id: 'al', name: '特休 / 年假', total: 56, used: 16, pendingLeave: 8, pendingOT: 0, color: 'bg-blue-500' },
+        { id: 'fl', name: '彈性休假', total: 24, used: 8, pendingLeave: 4, pendingOT: 0, color: 'bg-emerald-500' },
+        { id: 'sl', name: '不扣薪病假', total: 30, used: 0, pendingLeave: 0, pendingOT: 0, color: 'bg-amber-500' },
+        { id: 'ct', name: '補休', total: 12, used: 4, pendingLeave: 0, pendingOT: 6, color: 'bg-rose-500' }
       ],
       announcements: [
         { id: 1, title: '【重要】2026年端午節連假出勤與值班排班調整通知', date: '2026-06-01', author: 'Arlo', content: '各位同仁好，2026年端午節假期將至，本公司調整放假及補班規則如下：6月15日至6月17日為放假日。' },
@@ -662,40 +663,67 @@
         'bg-blue-500':    { bar: 'bg-blue-500',    light: 'bg-blue-50',    text: 'text-blue-600',    ring: 'ring-blue-100',    glow: 'from-blue-500/10' },
         'bg-emerald-500': { bar: 'bg-emerald-500', light: 'bg-emerald-50', text: 'text-emerald-600', ring: 'ring-emerald-100', glow: 'from-emerald-500/10' },
         'bg-amber-500':   { bar: 'bg-amber-500',   light: 'bg-amber-50',   text: 'text-amber-600',   ring: 'ring-amber-100',   glow: 'from-amber-500/10' },
+        'bg-rose-500':    { bar: 'bg-rose-500',    light: 'bg-rose-50',    text: 'text-rose-600',    ring: 'ring-rose-100',    glow: 'from-rose-500/10' },
       };
       const icons = {
         al: '<svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5A2.25 2.25 0 0 1 5.25 5.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 11.25h13.5A2.25 2.25 0 0 1 21 13.5v5.25"/></svg>',
         fl: '<svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>',
         sl: '<svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.313 2.733-.714-1.607-2.376-2.733-4.312-2.733C5.099 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z"/></svg>',
+        ct: '<svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l3 3m6-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>',
       };
 
       container.innerHTML = state.leaveBalances.map(leave => {
         const remaining = leave.total - leave.used;
-        const pct = leave.total > 0 ? Math.min(100, Math.round((leave.used / leave.total) * 100)) : 0;
+        const pl = leave.pendingLeave || 0;   // 審核中假單→預扣
+        const po = leave.pendingOT || 0;      // 加班申請→預添加
+        const projected = remaining - pl + po; // 預估剩餘
+        const usedPct = leave.total > 0 ? Math.min(100, (leave.used / leave.total) * 100) : 0;
+        const plPct = leave.total > 0 ? Math.min(100 - usedPct, (pl / leave.total) * 100) : 0;
         const c = palette[leave.color] || palette['bg-blue-500'];
         const icon = icons[leave.id] || icons.al;
+
+        // 剩餘時數旁的 () 預估調整：假單預扣顯示負號、加班預添加顯示正號
+        const segs = [];
+        if (pl) segs.push('<span class="text-rose-500">-' + pl + '</span>');
+        if (po) segs.push('<span class="text-emerald-600">+' + po + '</span>');
+        const pendingHtml = segs.length
+          ? '<span class="text-[13px] whitespace-nowrap">(' + segs.join('<span class="text-slate-300"> </span>') + ')</span>'
+          : '';
+
         return `
           <div class="group bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm hover-card-effect relative overflow-hidden">
             <div class="absolute -top-10 -right-10 w-28 h-28 rounded-full bg-gradient-to-br ${c.glow} to-transparent pointer-events-none"></div>
-            <div class="flex items-center gap-3 mb-5">
+            <div class="flex items-center gap-3 mb-4">
               <div class="w-11 h-11 rounded-xl ${c.light} ${c.text} ring-4 ${c.ring} flex items-center justify-center shrink-0">
                 ${icon}
               </div>
               <div class="min-w-0">
                 <p class="text-sm font-bold text-slate-700 truncate">${leave.name}</p>
-                <p class="text-[11px] text-slate-400 font-medium">剩餘可用時數</p>
+                <p class="text-[11px] text-slate-400 font-medium">單位：小時 (H)</p>
               </div>
             </div>
-            <div class="flex items-baseline gap-1.5 mb-3">
-              <span class="text-4xl font-black text-slate-800 tracking-tight tabular-nums">${remaining}</span>
-              <span class="text-sm text-slate-400 font-semibold">/ ${leave.total} H</span>
+
+            <!-- 原始時數 / 剩餘時數(預估調整) / 已用時數 -->
+            <div class="grid grid-cols-3 divide-x divide-slate-100 text-center mb-3">
+              <div class="px-1">
+                <div class="text-[11px] text-slate-400 mb-0.5">原始時數</div>
+                <div class="text-xl text-slate-700 tabular-nums">${leave.total}</div>
+              </div>
+              <div class="px-1">
+                <div class="text-[11px] text-slate-400 mb-0.5">剩餘時數</div>
+                <div class="flex items-baseline justify-center gap-1">
+                  <span class="text-2xl ${c.text} tabular-nums leading-none">${remaining}</span>
+                  ${pendingHtml}
+                </div>
+              </div>
+              <div class="px-1">
+                <div class="text-[11px] text-slate-400 mb-0.5">已用時數</div>
+                <div class="text-xl text-slate-700 tabular-nums">${leave.used}</div>
+              </div>
             </div>
-            <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden mb-2.5">
-              <div class="${c.bar} h-full rounded-full transition-all duration-500" style="width:${pct}%"></div>
-            </div>
-            <div class="flex items-center justify-between text-xs">
-              <span class="text-slate-500">已使用 <span class="font-bold text-slate-700">${leave.used} H</span></span>
-              <span class="text-slate-500">剩餘 <span class="font-bold ${c.text}">${remaining} H</span></span>
+
+            <div class="text-[11px] text-slate-400">
+              ${(pl || po) ? `預估剩餘 <span class="text-slate-600 tabular-nums">${projected} H</span>（含審核中假單/加班預估）` : '目前無審核中之預估調整'}
             </div>
           </div>
         `;
