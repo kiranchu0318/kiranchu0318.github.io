@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>行政設定</title>
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 Font Awesome 用於圖標 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4A90E2',
+                        'primary-light': '#EAF2FC',
+                        background: '#F8F9FB',
+                        card: '#FFFFFF',
+                        text: { main: '#1F2937', muted: '#6B7280', light: '#9CA3AF' }
+                    },
+                    fontFamily: {
+                        sans: ['"Inter"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'card': '0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03)',
+                        'modal': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: theme('colors.background');
+            font-family: theme('fontFamily.sans');
+        }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        /* 福利制度：名稱 / 生日福利 / 節日福利 三欄平分寬度並自動換行 */
+        #cfg-table.table-fixed th, #cfg-table.table-fixed td {
+            white-space: normal !important;
+            word-break: break-word;
+            overflow-wrap: anywhere;
+            vertical-align: top;
+        }
+        /* 操作欄固定寬度、不換行 */
+        #cfg-table.table-fixed th.col-action, #cfg-table.table-fixed td.col-action {
+            width: 12rem;
+            white-space: nowrap !important;
+            overflow-wrap: normal;
+            word-break: keep-all;
+        }
+    </style>
+    <link rel="stylesheet" href="shared-ui.css">
+</head>
+<body class="ui-page text-text-main antialiased relative">
+
+    <div class="relative mx-auto w-full space-y-6">
+
+        <!-- 頁面標題區塊 -->
+        <header class="ui-page-header">
+            <h1 class="ui-page-title">行政設定</h1>
+        </header>
+
+        <!-- 主版面：左側資料來源選單 + 右側列表 -->
+        <div class="ui-card overflow-hidden flex flex-col lg:flex-row min-h-[640px]">
+
+            <!-- 左側：資料來源選單 -->
+            <aside class="lg:w-56 shrink-0 border-b lg:border-b-0 lg:border-r border-gray-100 flex flex-col">
+                <div class="px-4 py-3 border-b border-gray-100">
+                    <h2 class="font-bold text-gray-900 text-sm">清單</h2>
+                </div>
+                <div id="tab-bar" class="flex-1 overflow-y-auto p-2 space-y-0.5 custom-scrollbar lg:max-h-[600px]"><!-- 動態由 JavaScript 渲染 --></div>
+            </aside>
+
+            <!-- 右側：列表 -->
+            <section class="flex-1 min-w-0 flex flex-col p-4 sm:p-6 space-y-4">
+
+                <!-- 工具列：搜尋 + 新增 -->
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                    <div class="flex items-center gap-2">
+                        <div class="ui-search w-full sm:w-80">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="text" id="search-input" oninput="render()" placeholder="搜尋名稱..." class="ui-input ui-search-input">
+                        </div>
+                        <button onclick="render()" class="ui-btn ui-btn-primary ui-btn-sm"><i class="fa-solid fa-magnifying-glass"></i> 查詢</button>
+                    </div>
+                    <button onclick="openCreate()" class="ui-btn ui-btn-primary w-full sm:w-auto">
+                        <i class="fa-solid fa-plus"></i> 新增
+                    </button>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <h2 id="list-title" class="text-lg font-bold text-gray-900 whitespace-nowrap">結算日列表</h2>
+                    <span id="count-badge" class="bg-blue-50 text-primary text-xs px-2.5 py-1 rounded-md font-bold">0 筆資料</span>
+                </div>
+
+                <div class="overflow-x-auto rounded-lg border border-gray-100 custom-scrollbar">
+                    <table id="cfg-table" class="ui-table text-center w-full">
+                        <thead>
+                            <tr id="thead-row">
+                                <th scope="col" class="text-left">名稱</th>
+                                <th scope="col" class="text-center">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="org-tbody"><!-- 動態由 JavaScript 渲染 --></tbody>
+                    </table>
+                </div>
+
+                <div id="no-data-view" class="hidden py-16 text-center space-y-3">
+                    <div class="inline-flex p-4 bg-gray-50 text-gray-400 rounded-full"><i class="fa-solid fa-folder-open text-3xl"></i></div>
+                    <p class="text-sm text-text-muted font-medium">查無符合條件的資料</p>
+                </div>
+
+                <div class="flex items-center justify-between pt-4 mt-auto border-t border-gray-100">
+                    <span id="pagination-info" class="text-sm text-gray-500">顯示第 0 到 0 筆，共 0 筆記錄</span>
+                    <div class="flex gap-1">
+                        <button class="ui-page-btn"><i class="fa-solid fa-chevron-left text-xs"></i></button>
+                        <button class="ui-page-btn is-active">1</button>
+                        <button class="ui-page-btn"><i class="fa-solid fa-chevron-right text-xs"></i></button>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+    </div>
+
+    <!-- ============ 新增 / 編輯 彈窗 ============ -->
+    <div id="edit-modal" class="fixed inset-0 bg-black/40 z-50 flex justify-center items-center hidden p-4">
+        <div class="bg-white rounded-2xl shadow-modal w-full max-w-md overflow-hidden">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                <h3 id="modal-title" class="text-base font-bold text-gray-900">新增結算日</h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="px-6 py-5 space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">名稱 <span class="text-rose-500">*</span></label>
+                    <input type="text" id="field-name" placeholder="請輸入名稱" class="ui-input">
+                </div>
+                <div id="benefit-fields" class="hidden space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-text-muted mb-1.5">生日福利</label>
+                        <textarea id="field-birthday" rows="2" placeholder="請輸入生日福利" class="ui-input resize-y"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-text-muted mb-1.5">節日福利</label>
+                        <textarea id="field-festival" rows="4" placeholder="請輸入節日福利" class="ui-input resize-y"></textarea>
+                    </div>
+                </div>
+                <div id="status-field">
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">狀態</label>
+                    <select id="field-status" class="ui-select">
+                        <option value="true">啟用</option>
+                        <option value="false">停用</option>
+                    </select>
+                </div>
+            </div>
+            <div class="flex justify-end gap-2.5 px-6 py-4 bg-gray-50 border-t border-gray-100">
+                <button onclick="closeModal()" class="ui-btn ui-btn-secondary">取消</button>
+                <button onclick="saveRecord()" class="ui-btn ui-btn-primary">儲存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 提示消息 (Toast) -->
+    <div id="toast" class="fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+        <i id="toast-icon" class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
+        <span id="toast-text" class="text-sm font-medium">操作成功！</span>
+    </div>
+
+    <script>
+        // 各資料來源分頁設定
+        const CATEGORIES = [
+            { key: 'benefit',       label: '福利制度' },
+            { key: 'assetType',     label: '資產類型' }
+        ];
+
+        // 各分頁資料庫（名稱 / 啟用狀態）
+        const dataStore = {
+            settleDay: [
+                { name: '每月 10 日', active: true },
+                { name: '每月 15 日', active: true },
+                { name: '每月 25 日', active: true },
+                { name: '每月最後一日', active: true }
+            ],
+            currency: [
+                { name: 'TWD（新台幣）', active: true },
+                { name: 'USD（美元）', active: true },
+                { name: 'CNY（人民幣）', active: true },
+                { name: 'JPY（日圓）', active: true },
+                { name: 'VND（越南盾）', active: false }
+            ],
+            payment: [
+                { name: 'Autopay（自動轉帳）', active: true },
+                { name: '銀行轉帳', active: true },
+                { name: '支票', active: true },
+                { name: '現金', active: false }
+            ],
+            bonus: [
+                { name: 'A', active: true },
+                { name: 'B', active: true },
+                { name: 'C', active: true },
+                { name: '無獎金', active: true }
+            ],
+            teamBuild: [
+                { name: '團建分類-一般', active: true },
+                { name: '團建分類-主管', active: true },
+                { name: '團建分類-高階', active: true }
+            ],
+            approvalLevel: [
+                { name: '1', active: true },
+                { name: '2', active: true },
+                { name: '3', active: true },
+                { name: '4', active: true },
+                { name: '5', active: true }
+            ],
+            acctStatus: [
+                { name: 'Active（啟用）', active: true },
+                { name: 'Inactive（停用）', active: true },
+                { name: 'Suspended（暫停）', active: true },
+                { name: 'Resigned（離職）', active: true }
+            ],
+            salutation: [
+                { name: 'Mr', active: true },
+                { name: 'Ms', active: true },
+                { name: 'Mrs', active: true },
+                { name: 'Dr', active: true },
+                { name: 'Prefer not to say', active: true }
+            ],
+            resumeSource: [
+                { name: '自招 / Internal Recruit', active: true },
+                { name: '人力銀行', active: true },
+                { name: '員工推薦', active: true },
+                { name: '獵頭', active: true },
+                { name: 'Unknown', active: false }
+            ],
+            employType: [
+                { name: 'Full-Time', active: true },
+                { name: 'Part-Time', active: true },
+                { name: 'Contract', active: true },
+                { name: 'Intern', active: true },
+                { name: 'Dispatch', active: false }
+            ],
+            hrManager: [
+                { name: 'James（100423）', active: true },
+                { name: 'Zoey（100479）', active: true },
+                { name: 'Layla（100139）', active: true },
+                { name: 'William（100645）', active: false }
+            ],
+            marital: [
+                { name: 'Single', active: true },
+                { name: 'Married', active: true },
+                { name: 'Divorced', active: true },
+                { name: 'Widowed', active: true }
+            ],
+            grade: [
+                { name: 'X', active: true },
+                { name: 'P1', active: true },
+                { name: 'P2', active: true },
+                { name: 'P3', active: true },
+                { name: 'M1', active: true },
+                { name: 'M2', active: true }
+            ],
+            relation: [
+                { name: 'Mother', active: true },
+                { name: 'Father', active: true },
+                { name: 'Spouse', active: true },
+                { name: 'Sibling', active: true },
+                { name: 'Friend', active: true }
+            ],
+            gender: [
+                { name: 'Male', active: true },
+                { name: 'Female', active: true },
+                { name: 'Prefer not to say', active: true }
+            ],
+            approvalOrder: [
+                { name: '第 1 順位', active: true },
+                { name: '第 2 順位', active: true },
+                { name: '第 3 順位', active: true },
+                { name: '第 4 順位', active: true }
+            ],
+            countryCode: [
+                { name: 'TW', active: true },
+                { name: 'US', active: true },
+                { name: 'CN', active: true },
+                { name: 'JP', active: true },
+                { name: 'GB', active: true },
+                { name: 'VN', active: false }
+            ],
+            timezone: [
+                { name: 'Asia/Taipei', active: true },
+                { name: 'America/New_York', active: true },
+                { name: 'Asia/Shanghai', active: true },
+                { name: 'Asia/Tokyo', active: true },
+                { name: 'Europe/London', active: false }
+            ],
+            benefit: [
+                { name: 'T區U幣_TRD中心-HR-001-員工手冊暨人力资源管理制度-V1.2',
+                  birthday: '(試用期&轉正後) 新台幣 2,000 元',
+                  festival: '(試用期) 新年：新台幣 1,000 元；端午、中秋：新台幣 500 元等值禮品\n(轉正後) 三節禮金——新年：新台幣 1,000 元；端午、中秋：新台幣 500 元等值禮品及禮金新台幣 1,000 元',
+                  active: true },
+                { name: 'T區法幣_TRG-HR-001-員工手冊暨人力資源管理制度-V1.0',
+                  birthday: '(轉正後) 新台幣 1,000 元',
+                  festival: '(轉正後) 三節禮金——新年 / 端午 / 中秋 各新台幣 1,000 元',
+                  active: true }
+            ],
+            assetType: [
+                { name: '筆記型電腦', active: true },
+                { name: '桌上型電腦', active: true },
+                { name: '行動電話', active: true },
+                { name: '顯示器', active: true },
+                { name: '辦公家具', active: true },
+                { name: '軟體授權', active: true }
+            ]
+        };
+
+        let activeCat = 'benefit';
+        let editIndex = -1;   // -1 = 新增；>=0 = 編輯第幾筆（指向 dataStore[activeCat] 的索引）
+
+        function currentLabel() {
+            return CATEGORIES.find(c => c.key === activeCat).label;
+        }
+
+        // 渲染頁籤
+        function renderTabs() {
+            const bar = document.getElementById('tab-bar');
+            const onCls = 'w-full text-left px-3 py-2 rounded-lg text-sm font-semibold text-primary bg-primary-light transition-colors';
+            const offCls = 'w-full text-left px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors';
+            bar.innerHTML = CATEGORIES.map(c =>
+                `<button onclick="switchCat('${c.key}')" class="${c.key === activeCat ? onCls : offCls}">${c.label}</button>`
+            ).join('');
+        }
+
+        function switchCat(key) {
+            activeCat = key;
+            document.getElementById('search-input').value = '';
+            renderTabs();
+            document.getElementById('list-title').innerText = `${currentLabel()}列表`;
+            render();
+        }
+
+        // 渲染列表（套用搜尋）
+        const isBenefit = () => activeCat === 'benefit';
+        const isAssetType = () => activeCat === 'assetType';
+        const noStatus = () => isBenefit() || isAssetType();
+
+        function render() {
+            const tbody = document.getElementById('org-tbody');
+            const noData = document.getElementById('no-data-view');
+            const kw = document.getElementById('search-input').value.trim().toLowerCase();
+            const list = dataStore[activeCat];
+            // 依分類切換表頭（福利制度：名稱 / 生日福利 / 節日福利 三欄平分寬度 + 操作）
+            document.getElementById('thead-row').innerHTML = isBenefit()
+                ? '<th scope="col" class="text-left">名稱</th><th scope="col" class="text-left">生日福利</th><th scope="col" class="text-left">節日福利</th><th scope="col" class="text-center col-action">操作</th>'
+                : '<th scope="col" class="text-left">名稱</th><th scope="col" class="text-center">操作</th>';
+            // 福利制度採固定表格佈局，讓三欄平分寬度並自動換行
+            document.getElementById('cfg-table').classList.toggle('table-fixed', isBenefit());
+            const rows = list.map((r, i) => ({ r, i }))
+                .filter(({ r }) => !kw || r.name.toLowerCase().includes(kw));
+
+            tbody.innerHTML = '';
+
+            if (rows.length === 0) {
+                tbody.parentElement.classList.add('hidden');
+                noData.classList.remove('hidden');
+                document.getElementById('count-badge').innerText = '0 筆資料';
+                document.getElementById('pagination-info').innerText = '顯示第 0 到 0 筆，共 0 筆記錄';
+                return;
+            }
+            tbody.parentElement.classList.remove('hidden');
+            noData.classList.add('hidden');
+
+            rows.forEach(({ r, i }) => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-50/70 transition-colors';
+                const statusBadge = r.active
+                    ? '<span class="ui-badge ui-badge-success mx-auto">啟用</span>'
+                    : '<span class="ui-badge mx-auto bg-gray-100 text-gray-500">停用</span>';
+                const toggleBtn = noStatus()
+                    ? ''
+                    : (r.active
+                        ? `<button onclick="toggleStatus(${i})" class="ui-btn ui-btn-sm text-amber-600 border border-amber-200 hover:bg-amber-50"><i class="fa-solid fa-ban"></i> 停用</button>`
+                        : `<button onclick="toggleStatus(${i})" class="ui-btn ui-btn-sm text-emerald-600 border border-emerald-200 hover:bg-emerald-50"><i class="fa-solid fa-circle-check"></i> 啟用</button>`);
+                const extraCells = isBenefit()
+                    ? `<td class="text-left text-gray-600 whitespace-pre-wrap break-words align-top">${r.birthday || '—'}</td><td class="text-left text-gray-600 whitespace-pre-wrap break-words align-top">${r.festival || '—'}</td>`
+                    : '';
+                const nameCls = isBenefit() ? 'text-left font-medium text-gray-800 whitespace-normal break-words align-top' : 'text-left font-medium text-gray-800';
+                tr.innerHTML = `
+                    <td class="${nameCls}">${r.name}</td>
+                    ${extraCells}
+                    <td class="col-action">
+                        <div class="flex items-center justify-center gap-2">
+                            <button onclick="openEdit(${i})" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-pen-to-square"></i> 編輯</button>
+                            ${toggleBtn}
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('count-badge').innerText = `${rows.length} 筆資料`;
+            document.getElementById('pagination-info').innerText = `顯示第 1 到 ${rows.length} 筆，共 ${rows.length} 筆記錄`;
+        }
+
+        // 切換啟用 / 停用
+        function toggleStatus(i) {
+            const rec = dataStore[activeCat][i];
+            rec.active = !rec.active;
+            showToast(rec.active ? 'success' : 'info', `已${rec.active ? '啟用' : '停用'}「${rec.name}」`);
+            render();
+        }
+
+        /* ============ 新增 / 編輯 彈窗 ============ */
+        function openCreate() {
+            editIndex = -1;
+            document.getElementById('modal-title').innerText = `新增${currentLabel()}`;
+            document.getElementById('field-name').value = '';
+            document.getElementById('field-birthday').value = '';
+            document.getElementById('field-festival').value = '';
+            document.getElementById('benefit-fields').classList.toggle('hidden', !isBenefit());
+            document.getElementById('status-field').classList.toggle('hidden', noStatus());
+            document.getElementById('field-status').value = 'true';
+            document.getElementById('edit-modal').classList.remove('hidden');
+        }
+
+        function openEdit(i) {
+            editIndex = i;
+            const rec = dataStore[activeCat][i];
+            document.getElementById('modal-title').innerText = `編輯${currentLabel()}`;
+            document.getElementById('field-name').value = rec.name;
+            document.getElementById('field-birthday').value = rec.birthday || '';
+            document.getElementById('field-festival').value = rec.festival || '';
+            document.getElementById('benefit-fields').classList.toggle('hidden', !isBenefit());
+            document.getElementById('status-field').classList.toggle('hidden', noStatus());
+            document.getElementById('field-status').value = String(rec.active);
+            document.getElementById('edit-modal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('edit-modal').classList.add('hidden');
+        }
+
+        function saveRecord() {
+            const name = document.getElementById('field-name').value.trim();
+            // 福利制度不含狀態欄位：新增預設啟用，編輯沿用原狀態
+            const active = noStatus()
+                ? (editIndex === -1 ? true : dataStore[activeCat][editIndex].active)
+                : document.getElementById('field-status').value === 'true';
+
+            if (!name) {
+                showToast('error', '請填寫名稱');
+                return;
+            }
+
+            const list = dataStore[activeCat];
+            const dup = list.some((r, idx) => r.name === name && idx !== editIndex);
+            if (dup) {
+                showToast('error', `「${name}」已存在`);
+                return;
+            }
+
+            const extra = isBenefit() ? {
+                birthday: document.getElementById('field-birthday').value.trim(),
+                festival: document.getElementById('field-festival').value.trim()
+            } : {};
+            if (editIndex === -1) {
+                list.push({ name, active, ...extra });
+                showToast('success', `已新增${currentLabel()}「${name}」`);
+            } else {
+                list[editIndex] = { ...list[editIndex], name, active, ...extra };
+                showToast('success', `已更新${currentLabel()}「${name}」`);
+            }
+            closeModal();
+            render();
+        }
+
+        /* ============ Toast 提示控制 ============ */
+        function showToast(type, text) {
+            const toast = document.getElementById('toast');
+            const toastIcon = document.getElementById('toast-icon');
+            const toastText = document.getElementById('toast-text');
+            toastText.innerText = text;
+            if (type === 'success') {
+                toast.className = "fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform transition-all duration-300 border border-emerald-500/20";
+                toastIcon.className = "fa-solid fa-circle-check text-emerald-400 text-base";
+            } else if (type === 'error') {
+                toast.className = "fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform transition-all duration-300 border border-rose-500/20";
+                toastIcon.className = "fa-solid fa-circle-xmark text-rose-400 text-base";
+            } else {
+                toast.className = "fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform transition-all duration-300 border border-blue-500/20";
+                toastIcon.className = "fa-solid fa-circle-info text-blue-400 text-base";
+            }
+            toast.style.transform = 'translateY(0)';
+            toast.style.opacity = '1';
+            clearTimeout(window.__toastTimer);
+            window.__toastTimer = setTimeout(() => {
+                toast.style.transform = 'translateY(5rem)';
+                toast.style.opacity = '0';
+            }, 2600);
+        }
+
+        // 點擊彈窗外圍關閉
+        document.getElementById('edit-modal').addEventListener('click', e => {
+            if (e.target === e.currentTarget) closeModal();
+        });
+
+        // 初始化
+        window.onload = function () {
+            renderTabs();
+            document.getElementById('list-title').innerText = `${currentLabel()}列表`;
+            render();
+        };
+    </script>
+</body>
+</html>

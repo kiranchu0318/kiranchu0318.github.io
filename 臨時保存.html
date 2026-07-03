@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>我的申請</title>
+  <title>臨時保存</title>
   
   <!-- 載入 Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -136,8 +136,8 @@
     // --- 主程式元件 ---
     const App = () => {
       // 頁籤狀態
-      const tabs = ['申請中'];
-      const [activeTab, setActiveTab] = useState('申請中');
+      const tabs = ['臨時保存'];
+      const [activeTab, setActiveTab] = useState('臨時保存');
 
       // 費用詳情彈窗控制狀態
       const [isModalOpen, setIsModalOpen] = useState(false);
@@ -506,7 +506,7 @@
           
           {/* 大標題 - 改為個人的申請 */}
           <div className="mb-6">
-            <h1 className="ui-page-title">我的申請</h1>
+            <h1 className="ui-page-title">臨時保存</h1>
           </div>
 
           {/* 白色主卡片 */}

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>審批角色權限</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: { extend: {
+                colors: { primary: '#4A90E2', 'primary-light': '#EAF2FC', background: '#F8F9FB', card: '#FFFFFF',
+                    text: { main: '#1F2937', muted: '#6B7280', light: '#9CA3AF' } },
+                fontFamily: { sans: ['"Inter"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'] },
+                boxShadow: { 'card': '0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03)', 'modal': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)' }
+            } }
+        }
+    </script>
+    <style>
+        body { background-color: theme('colors.background'); font-family: theme('fontFamily.sans'); }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+    <link rel="stylesheet" href="shared-ui.css">
+</head>
+<body class="ui-page text-text-main antialiased relative">
+
+    <div class="relative mx-auto w-full space-y-6">
+        <header class="ui-page-header">
+            <h1 class="ui-page-title">審批角色權限</h1>
+        </header>
+
+        <section class="ui-card p-4 sm:p-6 space-y-4">
+            <div class="flex items-start gap-2.5 p-3.5 rounded-lg bg-primary-light/60 border border-primary/20">
+                <i class="fa-solid fa-user-shield text-primary mt-0.5"></i>
+                <p class="text-sm text-gray-600 leading-relaxed">設定各「審批角色」於單據流程中可執行的操作權限。勾選後按「儲存」即套用。</p>
+            </div>
+
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                <div class="ui-search w-full sm:w-72">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="role-search" oninput="renderMatrix()" placeholder="搜尋審批角色..." class="ui-input ui-search-input">
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="resetAll()" class="ui-btn ui-btn-secondary"><i class="fa-solid fa-arrows-rotate"></i> 重設</button>
+                    <button onclick="savePerms()" class="ui-btn ui-btn-primary"><i class="fa-solid fa-floppy-disk"></i> 儲存</button>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto rounded-lg border border-gray-100">
+                <table class="ui-table whitespace-nowrap text-center">
+                    <thead>
+                        <tr>
+                            <th class="text-left sticky left-0 bg-gray-50 z-10 min-w-[160px]">審批角色</th>
+                            <th class="w-24">檢視單據</th>
+                            <th class="w-24">核准</th>
+                            <th class="w-24">駁回</th>
+                            <th class="w-24">加簽</th>
+                            <th class="w-28">轉簽 / 改派</th>
+                            <th class="w-24">批次簽核</th>
+                            <th class="w-28">設定代理人</th>
+                            <th class="w-24">匯出報表</th>
+                        </tr>
+                    </thead>
+                    <tbody id="perm-tbody"></tbody>
+                </table>
+            </div>
+            <div id="perm-no-data" class="hidden py-16 text-center space-y-3">
+                <div class="inline-flex p-4 bg-gray-50 text-gray-400 rounded-full"><i class="fa-solid fa-user-shield text-3xl"></i></div>
+                <p class="text-sm text-text-muted font-medium">查無符合條件的審批角色</p>
+            </div>
+        </section>
+    </div>
+
+    <div id="toast" class="fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+        <i id="toast-icon" class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
+        <span id="toast-text" class="text-sm font-medium">操作成功！</span>
+    </div>
+
+    <script>
+        // 權限鍵（對應表頭欄位順序）
+        const PERM_KEYS = ['view', 'approve', 'reject', 'countersign', 'transfer', 'batch', 'delegate', 'export'];
+        // 審批角色（同「審批角色」頁）與各自預設權限
+        let roles = [
+            { name: '申請人直屬主管', perms: { view: true, approve: true, reject: true, countersign: true, transfer: true, batch: true, delegate: true, export: false } },
+            { name: '部門主管',       perms: { view: true, approve: true, reject: true, countersign: true, transfer: true, batch: true, delegate: true, export: true } },
+            { name: '負責人',         perms: { view: true, approve: true, reject: true, countersign: true, transfer: false, batch: true, delegate: true, export: true } },
+            { name: '人事專員',       perms: { view: true, approve: true, reject: true, countersign: false, transfer: false, batch: false, delegate: false, export: true } },
+            { name: '人事主管',       perms: { view: true, approve: true, reject: true, countersign: true, transfer: true, batch: true, delegate: true, export: true } },
+            { name: '財務人員',       perms: { view: true, approve: true, reject: true, countersign: false, transfer: false, batch: false, delegate: false, export: true } },
+            { name: '財務主管',       perms: { view: true, approve: true, reject: true, countersign: true, transfer: true, batch: true, delegate: true, export: true } },
+            { name: '執行長',         perms: { view: true, approve: true, reject: true, countersign: true, transfer: true, batch: true, delegate: true, export: true } },
+            { name: '董事長',         perms: { view: true, approve: true, reject: true, countersign: true, transfer: true, batch: true, delegate: true, export: true } }
+        ];
+
+        function renderMatrix() {
+            const kw = (document.getElementById('role-search').value || '').trim().toLowerCase();
+            const list = roles.filter(r => !kw || r.name.toLowerCase().includes(kw));
+            const tbody = document.getElementById('perm-tbody');
+            tbody.innerHTML = list.map(r => {
+                const idx = roles.indexOf(r);
+                const cells = PERM_KEYS.map(k =>
+                    `<td><input type="checkbox" ${r.perms[k] ? 'checked' : ''} onchange="togglePerm(${idx},'${k}',this.checked)" class="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"></td>`
+                ).join('');
+                return '<tr class="hover:bg-gray-50/70 transition-colors">' +
+                    '<td class="text-left font-medium text-gray-800 sticky left-0 bg-white z-10">' + r.name + '</td>' +
+                    cells + '</tr>';
+            }).join('');
+            document.getElementById('perm-no-data').classList.toggle('hidden', list.length > 0);
+            tbody.parentElement.classList.toggle('hidden', list.length === 0);
+        }
+
+        function togglePerm(idx, key, val) { if (roles[idx]) roles[idx].perms[key] = val; }
+
+        function resetAll() {
+            roles.forEach(r => PERM_KEYS.forEach(k => { r.perms[k] = (k !== 'export'); }));
+            renderMatrix();
+            showToast('info', '已重設為預設權限');
+        }
+
+        function savePerms() { showToast('success', '已儲存審批角色權限設定'); }
+
+        function showToast(type, text) {
+            const toast = document.getElementById('toast');
+            const icon = document.getElementById('toast-icon');
+            document.getElementById('toast-text').innerText = text;
+            const base = 'fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform transition-all duration-300 border ';
+            if (type === 'error') { toast.className = base + 'border-rose-500/20'; icon.className = 'fa-solid fa-circle-xmark text-rose-400 text-base'; }
+            else if (type === 'info') { toast.className = base + 'border-blue-500/20'; icon.className = 'fa-solid fa-circle-info text-blue-400 text-base'; }
+            else { toast.className = base + 'border-emerald-500/20'; icon.className = 'fa-solid fa-circle-check text-emerald-400 text-base'; }
+            toast.style.transform = 'translateY(0)'; toast.style.opacity = '1';
+            clearTimeout(window.__t); window.__t = setTimeout(() => { toast.style.transform = 'translateY(5rem)'; toast.style.opacity = '0'; }, 2600);
+        }
+
+        renderMatrix();
+    </script>
+</body>
+</html>

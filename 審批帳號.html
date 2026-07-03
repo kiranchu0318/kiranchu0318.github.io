@@ -1,0 +1,1871 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>審批帳號</title>
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 Font Awesome 用於圖標 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- 設定 Tailwind 自訂主題 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4A90E2', 
+                        'primary-light': '#EAF2FC',
+                        background: '#F8F9FB', 
+                        card: '#FFFFFF',
+                        text: {
+                            main: '#1F2937',
+                            muted: '#6B7280',
+                            light: '#9CA3AF'
+                        },
+                        status: {
+                            submitted: '#DBEAFE',
+                            pending: '#FEF3C7',
+                            completed: '#D1FAE5',
+                            rejected: '#FEE2E2',
+                            active: '#ECFDF5', 
+                            text: {
+                                submitted: '#1D4ED8',
+                                pending: '#D97706',
+                                completed: '#059669',
+                                rejected: '#DC2626',
+                                active: '#10B981' 
+                            }
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['"Inter"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'card': '0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03)',
+                        'modal': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: theme('colors.background');
+            font-family: theme('fontFamily.sans');
+        }
+        /* 自訂滾動條 */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        /* Modal 動畫過渡 */
+        .modal-enter {
+            opacity: 0;
+            transform: scale(0.95) translateY(10px);
+        }
+        .modal-enter-active {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+            transition: opacity 200ms ease-out, transform 200ms ease-out;
+        }
+
+        /* 隱藏/顯示 Tab 內容 */
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+    <link rel="stylesheet" href="shared-ui.css">
+</head>
+
+<body class="ui-page text-text-main antialiased relative">
+
+    <div class="mx-auto w-full space-y-6">
+        
+        <!-- 頁面標題區塊 -->
+        <header class="ui-page-header">
+            <h1 class="ui-page-title">審批帳號</h1>
+        </header>
+
+        <!-- ============ 分頁 1：帳號角色 ============ -->
+        <div id="acct-tab-roles">
+        <!-- 主要內容區塊 (卡片樣式) -->
+        <section class="ui-card p-4 sm:p-6">
+
+            <!-- 列表工具列 (搜尋、篩選與主要操作) -->
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
+
+                <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full sm:w-auto">
+                    <!-- 搜尋框 -->
+                    <div class="ui-search w-full sm:w-[280px]">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="acctSearch" oninput="filterAccounts()" placeholder="搜尋員工編號、姓名或 Email" class="ui-input ui-search-input">
+                    </div>
+
+                    <!-- 狀態下拉選單 -->
+                    <div class="w-full sm:w-[150px]">
+                        <select id="acctStatus" onchange="filterAccounts()" class="ui-select">
+                            <option value="all" selected>全部</option>
+                            <option value="active">啟用</option>
+                            <option value="inactive">停用</option>
+                        </select>
+                    </div>
+
+                    <!-- 查詢按鈕 -->
+                    <button onclick="filterAccounts()" class="ui-btn ui-btn-primary ui-btn-sm"><i class="fa-solid fa-magnifying-glass"></i> 查詢</button>
+                </div>
+
+                <!-- 新增按鈕 -->
+                <button type="button" onclick="openAddAccountModal()" class="ui-btn ui-btn-primary w-full sm:w-auto">
+                    <i class="fa-solid fa-plus font-normal"></i> 新增帳號角色
+                </button>
+
+            </div>
+
+            <!-- 表格容器 -->
+            <div class="overflow-x-auto rounded-lg border border-gray-100 mb-6">
+                <table class="ui-table whitespace-nowrap">
+                    <thead>
+                        <tr>
+                            <th scope="col" class="w-28">員工編號</th>
+                            <th scope="col">顯示名稱</th>
+                            <th scope="col">審批角色</th>
+                            <th scope="col" class="w-24">狀態</th>
+                            <th scope="col" class="min-w-[150px]">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="acctTbody">
+
+                        <!-- 資料列 1 -->
+                        <tr class="acct-row">
+                            <td>50030</td>
+                            <td>Ellie Nelson</td>
+                            <td>財務主管、財務人員、人事專員</td>
+                            <td><span class="acct-status-badge ui-badge ui-badge-success">啟用</span></td>
+                            <td>
+                                <div class="flex items-center justify-center gap-2">
+                                    <button onclick="openApprovalModal()" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-pen"></i> 綁定角色</button>
+                                    <button onclick="toggleAccountStatus(this)" class="acct-toggle ui-btn ui-btn-sm text-amber-600 border border-amber-200 hover:bg-amber-50"><i class="fa-solid fa-ban"></i> 停用</button>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- 資料列 2 -->
+                        <tr class="acct-row">
+                            <td>50029</td>
+                            <td>Logan Adams</td>
+                            <td>人事專員</td>
+                            <td><span class="acct-status-badge ui-badge ui-badge-success">啟用</span></td>
+                            <td>
+                                <div class="flex items-center justify-center gap-2">
+                                    <button onclick="openApprovalModal()" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-pen"></i> 綁定角色</button>
+                                    <button onclick="toggleAccountStatus(this)" class="acct-toggle ui-btn ui-btn-sm text-amber-600 border border-amber-200 hover:bg-amber-50"><i class="fa-solid fa-ban"></i> 停用</button>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- 資料列 3 -->
+                        <tr class="acct-row">
+                            <td>50028</td>
+                            <td>Poppy Baker</td>
+                            <td>財務主管、財務人員</td>
+                            <td><span class="acct-status-badge ui-badge bg-gray-100 text-gray-500">停用</span></td>
+                            <td>
+                                <div class="flex items-center justify-center gap-2">
+                                    <button onclick="openApprovalModal()" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-pen"></i> 綁定角色</button>
+                                    <button onclick="toggleAccountStatus(this)" class="acct-toggle ui-btn ui-btn-sm text-emerald-600 border border-emerald-200 hover:bg-emerald-50"><i class="fa-solid fa-circle-check"></i> 啟用</button>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- 查無資料 -->
+                        <tr id="acctNoData" class="hidden"><td colspan="5" class="text-center text-gray-400 py-10 text-sm">查無符合條件的帳號</td></tr>
+
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 列表分頁區塊 -->
+            <div class="flex flex-col sm:flex-row justify-between items-center gap-4 pt-2">
+                <div class="text-sm text-gray-500 font-medium">
+                    顯示第 1 到 4 筆，共 12 筆紀錄
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <button type="button" class="ui-page-btn">
+                        上一頁
+                    </button>
+                    <button type="button" class="ui-page-btn is-active">
+                        1
+                    </button>
+                    <button type="button" class="ui-page-btn">
+                        2
+                    </button>
+                    <button type="button" class="ui-page-btn">
+                        3
+                    </button>
+                    <button type="button" class="ui-page-btn">
+                        下一頁
+                    </button>
+                </div>
+            </div>
+
+        </section>
+        </div>
+
+        <!-- ============ 分頁 2：審批角色（由審批流設定移入）============ -->
+        <div id="acct-tab-approval" class="hidden">
+            <section class="ui-card p-4 sm:p-6">
+                <div class="flex justify-end mb-4">
+                    <button onclick="openApprovalRoleModal()" class="ui-btn ui-btn-primary"><i class="fa-solid fa-plus"></i> 新增審批角色</button>
+                </div>
+                <div class="overflow-x-auto rounded-lg border border-gray-100">
+                    <table class="ui-table text-left">
+                        <thead>
+                            <tr>
+                                <th scope="col" class="w-1/4">角色名稱</th>
+                                <th scope="col">說明</th>
+                            </tr>
+                        </thead>
+                        <tbody id="approval-role-tbody"><!-- 動態渲染 --></tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+
+    </div>
+
+    <!-- 新增審批角色 彈窗 -->
+    <div id="approvalRoleModal" class="fixed inset-0 bg-black/40 z-50 flex justify-center items-center hidden p-4">
+        <div class="bg-white rounded-2xl shadow-modal w-full max-w-md overflow-hidden">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                <h3 class="text-base font-bold text-gray-900">新增審批角色</h3>
+                <button onclick="closeApprovalRoleModal()" class="text-gray-400 hover:text-gray-600 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="px-6 py-5 space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">角色名稱 <span class="text-rose-500">*</span></label>
+                    <input type="text" id="approvalRoleName" placeholder="請輸入角色名稱" class="ui-input">
+                </div>
+                <div>
+                    <label class="inline-flex items-center gap-2 cursor-pointer select-none">
+                        <input type="checkbox" id="approvalRoleNoGroup" class="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer">
+                        <span class="text-sm text-gray-700">此角色無分組</span>
+                    </label>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">說明</label>
+                    <textarea id="approvalRoleDesc" rows="3" placeholder="請輸入角色說明（選填）" class="ui-input resize-none"></textarea>
+                </div>
+            </div>
+            <div class="flex justify-end gap-2.5 px-6 py-4 bg-gray-50 border-t border-gray-100">
+                <button onclick="closeApprovalRoleModal()" class="ui-btn ui-btn-secondary">取消</button>
+                <button onclick="saveApprovalRole()" class="ui-btn ui-btn-primary">儲存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 提示消息 (Toast) -->
+    <div id="toast" class="fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+        <i id="toast-icon" class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
+        <span id="toast-text" class="text-sm font-medium">操作成功！</span>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 彈出視窗 1：編輯帳號 (大彈窗) -->
+    <!-- ========================================== -->
+    <div id="editModal" class="fixed inset-0 z-50 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <!-- 背景遮罩 -->
+        <div class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm transition-opacity" onclick="closeEditModal()"></div>
+
+        <!-- 彈窗內容容器 (置中對齊) -->
+        <div class="fixed inset-0 z-10 flex items-center justify-center p-4 sm:p-6 pointer-events-none">
+            
+            <!-- Modal 實體 -->
+            <div id="editModalPanel" class="relative bg-white rounded-xl shadow-modal flex flex-col w-[95vw] max-w-6xl max-h-[90vh] pointer-events-auto transition-all transform modal-enter">
+                
+                <!-- 標題與關閉按鈕 -->
+                <div class="px-6 pt-5 pb-3 flex justify-between items-center shrink-0 border-b border-gray-100">
+                    <h3 class="text-lg font-bold text-gray-900" id="modal-title">編輯帳號</h3>
+                    <button onclick="closeEditModal()" class="text-gray-400 hover:text-gray-600 transition-colors outline-none">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                </div>
+
+                <!-- 頁籤導覽 (Tab) - 底部線條樣式，加上水平滾動 -->
+                <div class="px-6 pt-2 border-b border-gray-200 shrink-0 overflow-x-auto custom-scrollbar">
+                    <ul class="flex text-[15px] font-medium gap-x-6 -mb-[1px] whitespace-nowrap">
+                        <li>
+                            <a href="#" id="btn-tab-personal" onclick="switchTab('tab-personal')" class="inline-block pb-2 text-gray-800 border-b-[3px] border-[#3b82f6] transition-colors">
+                                個人信息
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" id="btn-tab-job" onclick="switchTab('tab-job')" class="inline-block pb-2 text-gray-700 hover:text-gray-900 hover:border-b-[3px] hover:border-gray-300 border-b-[3px] border-transparent transition-colors">
+                                職位信息
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" id="btn-tab-account" onclick="switchTab('tab-account')" class="inline-block pb-2 text-gray-700 hover:text-gray-900 hover:border-b-[3px] hover:border-gray-300 border-b-[3px] border-transparent transition-colors">
+                                人員帳號
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" id="btn-tab-leave" onclick="switchTab('tab-leave')" class="inline-block pb-2 text-gray-700 hover:text-gray-900 hover:border-b-[3px] hover:border-gray-300 border-b-[3px] border-transparent transition-colors">
+                                假期信息
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" id="btn-tab-leave-history" onclick="switchTab('tab-leave-history')" class="inline-block pb-2 text-gray-700 hover:text-gray-900 hover:border-b-[3px] hover:border-gray-300 border-b-[3px] border-transparent transition-colors">
+                                個人假期紀錄
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" id="btn-tab-punch-history" onclick="switchTab('tab-punch-history')" class="inline-block pb-2 text-gray-700 hover:text-gray-900 hover:border-b-[3px] hover:border-gray-300 border-b-[3px] border-transparent transition-colors">
+                                補打卡 - 紀錄
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="inline-block pb-2 text-gray-700 hover:text-gray-900 hover:border-b-[3px] hover:border-gray-300 border-b-[3px] border-transparent transition-colors">
+                                薪資(月)
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="inline-block pb-2 text-gray-700 hover:text-gray-900 hover:border-b-[3px] hover:border-gray-300 border-b-[3px] border-transparent transition-colors">
+                                HR資料室
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="inline-block pb-2 text-gray-700 hover:text-gray-900 hover:border-b-[3px] hover:border-gray-300 border-b-[3px] border-transparent transition-colors">
+                                人力成本分析
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="inline-block pb-2 text-gray-700 hover:text-gray-900 hover:border-b-[3px] hover:border-gray-300 border-b-[3px] border-transparent transition-colors">
+                                出勤
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="inline-block pb-2 text-gray-700 hover:text-gray-900 hover:border-b-[3px] hover:border-gray-300 border-b-[3px] border-transparent transition-colors">
+                                績效
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="inline-block pb-2 text-gray-700 hover:text-gray-900 hover:border-b-[3px] hover:border-gray-300 border-b-[3px] border-transparent transition-colors">
+                                個人文件
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- 內容滾動區 (Flex-1 確保佔滿剩餘高度並可滾動) -->
+                <div class="px-6 md:px-8 py-6 overflow-y-auto custom-scrollbar flex-1 min-h-0">
+                    
+                    <!-- ========================================== -->
+                    <!-- 頁籤內容：個人信息 -->
+                    <!-- ========================================== -->
+                    <div id="tab-personal" class="tab-content active max-w-4xl mx-auto space-y-8">
+                        
+                        <!-- 區塊：基礎信息 -->
+                        <div>
+                            <h4 class="text-[15px] font-bold text-gray-900 mb-5">基礎信息</h4>
+                            <div class="space-y-4 sm:space-y-5">
+                                <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-8">
+                                    <label class="text-sm font-medium text-gray-700 sm:w-[160px] shrink-0">工號*</label>
+                                    <div class="flex-1 max-w-lg flex gap-3">
+                                        <input type="text" value="100139" readonly class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded-md text-sm text-gray-800 outline-none cursor-default">
+                                        <button class="px-4 py-2 bg-[#4A90E2] text-white text-sm rounded-md hover:bg-opacity-90 transition-colors shadow-sm whitespace-nowrap">查看履歷</button>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-8">
+                                    <label class="text-sm font-medium text-gray-700 sm:w-[160px] shrink-0">姓名*</label>
+                                    <div class="flex-1 max-w-lg">
+                                        <input type="text" value="100139" readonly class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded-md text-sm text-gray-800 outline-none cursor-default">
+                                    </div>
+                                </div>
+                                <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-8">
+                                    <label class="text-sm font-medium text-gray-700 sm:w-[160px] shrink-0">僱傭類型*</label>
+                                    <div class="flex-1 max-w-lg relative sm:max-w-[240px]">
+                                        <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white border border-transparent rounded-md text-sm outline-none cursor-pointer shadow-sm">
+                                            <option>Full-Time</option>
+                                        </select>
+                                        <i class="fa-solid fa-caret-down text-white absolute right-3 top-1/2 transform -translate-y-1/2 text-xs pointer-events-none"></i>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-8">
+                                    <label class="text-sm font-medium text-gray-700 sm:w-[160px] shrink-0">招聘需求憑證單號</label>
+                                    <div class="flex-1 max-w-lg">
+                                        <input type="text" readonly class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded-md text-sm text-gray-800 outline-none cursor-default">
+                                    </div>
+                                </div>
+                                <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-8">
+                                    <label class="text-sm font-medium text-gray-700 sm:w-[160px] shrink-0">入職審批憑證單號</label>
+                                    <div class="flex-1 max-w-lg">
+                                        <input type="text" readonly class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded-md text-sm text-gray-800 outline-none cursor-default">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 區塊：個人信息 -->
+                        <div>
+                            <h4 class="text-[15px] font-bold text-gray-900 mb-5 mt-8">個人信息</h4>
+                            <div class="space-y-4 sm:space-y-5">
+                                <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-8">
+                                    <label class="text-sm font-medium text-gray-700 sm:w-[160px] shrink-0">帳號狀態*</label>
+                                    <div class="flex-1 max-w-lg relative sm:max-w-[240px]">
+                                        <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white border border-transparent rounded-md text-sm outline-none cursor-pointer shadow-sm">
+                                            <option>Active</option>
+                                        </select>
+                                        <i class="fa-solid fa-caret-down text-white absolute right-3 top-1/2 transform -translate-y-1/2 text-xs pointer-events-none"></i>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-8">
+                                    <label class="text-sm font-medium text-gray-700 sm:w-[160px] shrink-0">履歷來源*</label>
+                                    <div class="flex-1 max-w-lg relative sm:max-w-[240px]">
+                                        <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white border border-transparent rounded-md text-sm outline-none cursor-pointer shadow-sm">
+                                            <option>自招/Internal Recruit</option>
+                                        </select>
+                                        <i class="fa-solid fa-caret-down text-white absolute right-3 top-1/2 transform -translate-y-1/2 text-xs pointer-events-none"></i>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-8">
+                                    <label class="text-sm font-medium text-gray-700 sm:w-[160px] shrink-0">性別*</label>
+                                    <div class="flex-1 max-w-lg relative sm:max-w-[240px]">
+                                        <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white border border-transparent rounded-md text-sm outline-none cursor-pointer shadow-sm">
+                                            <option>Prefer not to say</option>
+                                        </select>
+                                        <i class="fa-solid fa-caret-down text-white absolute right-3 top-1/2 transform -translate-y-1/2 text-xs pointer-events-none"></i>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-8">
+                                    <label class="text-sm font-medium text-gray-700 sm:w-[160px] shrink-0">稱謂*</label>
+                                    <div class="flex-1 max-w-lg relative sm:max-w-[240px]">
+                                        <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white border border-transparent rounded-md text-sm outline-none cursor-pointer shadow-sm">
+                                            <option>Prefer not to say</option>
+                                        </select>
+                                        <i class="fa-solid fa-caret-down text-white absolute right-3 top-1/2 transform -translate-y-1/2 text-xs pointer-events-none"></i>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-8">
+                                    <label class="text-sm font-medium text-gray-700 sm:w-[160px] shrink-0 sm:mt-2">出生年月日</label>
+                                    <div class="flex-1 max-w-lg">
+                                        <input type="text" value="1976/07/13" readonly class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded-md text-sm text-gray-800 outline-none cursor-default mb-1.5">
+                                        <p class="text-[13px] text-red-500">為使人事流程與相關福利順利進行，原則上建議填寫正確的出生日期資訊。</p>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-8">
+                                    <label class="text-sm font-medium text-gray-700 sm:w-[160px] shrink-0">婚姻狀況</label>
+                                    <div class="flex-1 max-w-lg relative sm:max-w-[240px]">
+                                        <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white border border-transparent rounded-md text-sm outline-none cursor-pointer shadow-sm">
+                                            <option>選擇</option>
+                                        </select>
+                                        <i class="fa-solid fa-caret-down text-white absolute right-3 top-1/2 transform -translate-y-1/2 text-xs pointer-events-none"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 區塊：公司聯繫方式 -->
+                        <div>
+                            <h4 class="text-[15px] font-bold text-gray-900 mb-5 mt-8">公司聯繫方式</h4>
+                            <div class="space-y-4 sm:space-y-5">
+                                <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-8">
+                                    <label class="text-sm font-medium text-gray-700 sm:w-[160px] shrink-0">公司郵箱</label>
+                                    <div class="flex-1 max-w-lg">
+                                        <input type="text" readonly class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded-md text-sm text-gray-800 outline-none cursor-default">
+                                    </div>
+                                </div>
+                                <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-8">
+                                    <label class="text-sm font-medium text-gray-700 sm:w-[160px] shrink-0">公司聯繫方式</label>
+                                    <div class="flex-1 max-w-lg">
+                                        <input type="text" readonly class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded-md text-sm text-gray-800 outline-none cursor-default">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 區塊：個人聯繫方式 -->
+                        <div>
+                            <h4 class="text-[15px] font-bold text-gray-900 mb-5 mt-8">個人聯繫方式</h4>
+                            <div class="space-y-4 sm:space-y-5">
+                                <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-8">
+                                    <label class="text-sm font-medium text-gray-700 sm:w-[160px] shrink-0">個人郵箱</label>
+                                    <div class="flex-1 max-w-lg">
+                                        <input type="text" readonly class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded-md text-sm text-gray-800 outline-none cursor-default">
+                                    </div>
+                                </div>
+                                <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-8">
+                                    <label class="text-sm font-medium text-gray-700 sm:w-[160px] shrink-0">個人聯繫方式</label>
+                                    <div class="flex-1 max-w-lg">
+                                        <input type="text" readonly class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded-md text-sm text-gray-800 outline-none cursor-default">
+                                    </div>
+                                </div>
+                                <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-8">
+                                    <label class="text-sm font-medium text-gray-700 sm:w-[160px] shrink-0">個人地址</label>
+                                    <div class="flex-1 max-w-2xl">
+                                        <input type="text" readonly class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded-md text-sm text-gray-800 outline-none cursor-default">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 區塊：緊急聯繫人電話 -->
+                        <div>
+                            <h4 class="text-[15px] font-bold text-gray-900 mb-5 mt-8">緊急聯繫人電話</h4>
+                            <div class="space-y-4 sm:space-y-5">
+                                <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-8">
+                                    <label class="text-sm font-medium text-gray-700 sm:w-[160px] shrink-0">緊急聯繫人</label>
+                                    <div class="flex-1 max-w-lg">
+                                        <input type="text" readonly class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded-md text-sm text-gray-800 outline-none cursor-default">
+                                    </div>
+                                </div>
+                                <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-8">
+                                    <label class="text-sm font-medium text-gray-700 sm:w-[160px] shrink-0">緊急聯繫人電話</label>
+                                    <div class="flex-1 max-w-lg">
+                                        <input type="text" readonly class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded-md text-sm text-gray-800 outline-none cursor-default">
+                                    </div>
+                                </div>
+                                <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-8">
+                                    <label class="text-sm font-medium text-gray-700 sm:w-[160px] shrink-0">與員工的關係</label>
+                                    <div class="flex-1 max-w-lg relative sm:max-w-[240px]">
+                                        <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white border border-transparent rounded-md text-sm outline-none cursor-pointer shadow-sm">
+                                            <option>Mother</option>
+                                        </select>
+                                        <i class="fa-solid fa-caret-down text-white absolute right-3 top-1/2 transform -translate-y-1/2 text-xs pointer-events-none"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 區塊：其他項目 -->
+                        <div>
+                            <h4 class="text-[15px] font-bold text-gray-900 mb-5 mt-8">其他項目</h4>
+                            <!-- 預留區塊 -->
+                        </div>
+
+                    </div>
+
+                    <!-- ========================================== -->
+                    <!-- 頁籤內容：職位信息 -->
+                    <!-- ========================================== -->
+                    <div id="tab-job" class="tab-content hidden max-w-5xl mx-auto space-y-8">
+                        
+                        <!-- 分部 -->
+                        <div class="border border-gray-200 rounded-lg overflow-hidden bg-white">
+                            <div class="bg-blue-50 px-4 py-3 border-b border-gray-200 text-blue-800 font-bold text-base">分部*</div>
+                            <div class="p-6 space-y-6">
+                                <div class="flex flex-col sm:flex-row sm:items-center gap-4">
+                                    <label class="text-sm font-bold text-red-600 w-24 shrink-0">分部 選擇*</label>
+                                    <div class="flex flex-wrap gap-2">
+                                        <div class="flex flex-col gap-1 text-center">
+                                            <span class="text-gray-700 font-medium text-sm">Location</span>
+                                            <select class="appearance-none px-4 py-2 bg-[#4b5563] text-white rounded text-sm outline-none cursor-pointer w-40 text-center">
+                                                <option>T2 ( LKG, RG )</option>
+                                            </select>
+                                        </div>
+                                        <div class="flex flex-col gap-1 text-center">
+                                            <span class="text-gray-700 font-medium text-sm">Business</span>
+                                            <select class="appearance-none px-4 py-2 bg-[#4b5563] text-white rounded text-sm outline-none cursor-pointer w-48 text-center">
+                                                <option>项目管理中心 PMO</option>
+                                            </select>
+                                        </div>
+                                        <div class="flex flex-col gap-1 text-center">
+                                            <span class="text-gray-700 font-medium text-sm">Approval Level</span>
+                                            <select class="appearance-none px-4 py-2 bg-[#4b5563] text-white rounded text-sm outline-none cursor-pointer w-32 text-center">
+                                                <option>1</option>
+                                            </select>
+                                        </div>
+                                        <div class="flex flex-col gap-1 justify-end">
+                                            <button class="px-4 py-2 bg-[#4A90E2] text-white text-sm rounded hover:bg-opacity-90 transition-colors">查看履歷</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col sm:flex-row sm:items-center gap-4 ml-[112px]">
+                                    <input type="text" value="T2 ( LKG, RG ) -项目管理中心 PMO-1" readonly class="w-[340px] px-3 py-2 bg-[#f1f3f5] border border-transparent rounded text-sm text-gray-800 outline-none cursor-default">
+                                    <span class="text-green-600 text-sm flex items-center gap-1"><i class="fa-solid fa-check font-normal"></i> It's a division that exists.</span>
+                                </div>
+                                <div class="flex flex-col sm:flex-row sm:items-center gap-4">
+                                    <label class="text-sm font-bold text-red-600 w-24 shrink-0">人事經理</label>
+                                    <input type="text" value="100423" readonly class="w-[340px] px-3 py-2 bg-[#f1f3f5] border border-transparent rounded text-sm text-gray-800 outline-none cursor-default">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 職位 -->
+                        <div>
+                            <h4 class="text-base font-bold text-gray-800 mb-4">職位</h4>
+                            <div class="space-y-4">
+                                <div class="flex flex-col sm:flex-row sm:items-center gap-4">
+                                    <label class="text-sm font-medium text-gray-700 w-24 shrink-0">入職日期*</label>
+                                    <input type="text" value="2020/06/03" readonly class="w-[300px] px-3 py-2 bg-[#f1f3f5] border border-transparent rounded text-sm text-gray-800 outline-none cursor-default">
+                                </div>
+                                <div class="flex flex-col sm:flex-row sm:items-center gap-4">
+                                    <label class="text-sm font-medium text-gray-700 w-24 shrink-0">試用期通過日</label>
+                                    <div class="flex items-center">
+                                        <div class="bg-[#EAF2FC] border border-[#EAF2FC] border-r-0 px-3 py-2 rounded-l text-[#4A90E2] flex items-center justify-center">
+                                            <i class="fa-solid fa-square-check"></i>
+                                        </div>
+                                        <input type="text" value="2020/09/03" readonly class="w-[150px] px-3 py-2 bg-[#f1f3f5] border border-transparent rounded-r text-sm text-gray-800 outline-none cursor-default">
+                                    </div>
+                                </div>
+                                <div class="flex flex-col sm:flex-row sm:items-center gap-4">
+                                    <label class="text-sm font-medium text-gray-700 w-24 shrink-0">累計年資</label>
+                                    <div class="text-sm text-gray-800">
+                                        入職迄今<span class="text-red-500 underline mx-1">06年 00月 05日</span> ( 結算至系統當天日期 )
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 基本工資 -->
+                        <div>
+                            <h4 class="text-base font-bold text-gray-800 mb-4">基本工資</h4>
+                            <div class="border-t border-gray-200 pt-4 overflow-x-auto">
+                                <div class="min-w-[800px] grid grid-cols-6 gap-2 mb-2">
+                                    <div class="text-sm font-bold text-gray-800 text-center">生效日期*</div>
+                                    <div class="text-sm font-bold text-gray-800 text-center">發薪日*</div>
+                                    <div class="text-sm font-bold text-gray-800 text-center">貨幣類型*</div>
+                                    <div class="text-sm font-bold text-gray-800 text-center">薪資(月)*</div>
+                                    <div class="text-sm font-bold text-gray-800 text-center">支付方式*</div>
+                                    <div class="text-sm font-bold text-gray-800 text-center">薪資調整原因</div>
+                                </div>
+                                <div class="min-w-[800px] grid grid-cols-6 gap-2 items-start">
+                                    <input type="text" value="2024/08/01" readonly class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded text-sm text-gray-800 outline-none cursor-default">
+                                    <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded text-sm outline-none cursor-pointer text-center">
+                                        <option>Every 10th</option>
+                                    </select>
+                                    <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded text-sm outline-none cursor-pointer text-center">
+                                        <option>TWD</option>
+                                    </select>
+                                    <input type="text" value="99.000000" readonly class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded text-sm text-gray-800 outline-none cursor-default text-center">
+                                    <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded text-sm outline-none cursor-pointer text-center">
+                                        <option>Autopay</option>
+                                    </select>
+                                    <input type="text" readonly class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded text-sm outline-none cursor-default">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 獎金 -->
+                        <div>
+                            <h4 class="text-base font-bold text-gray-800 mb-4">獎金</h4>
+                            <div class="border-t border-gray-200 pt-4">
+                                <div class="grid grid-cols-2 gap-8 w-[400px] mb-2">
+                                    <div class="text-sm font-bold text-gray-800">13薪*</div>
+                                    <div class="text-sm font-bold text-gray-800">獎金類型*</div>
+                                </div>
+                                <div class="grid grid-cols-2 gap-8 w-[400px]">
+                                    <select class="appearance-none px-4 py-2 bg-[#4b5563] text-white rounded text-sm outline-none cursor-pointer text-center w-16">
+                                        <option>Y</option>
+                                    </select>
+                                    <select class="appearance-none px-4 py-2 bg-[#4b5563] text-white rounded text-sm outline-none cursor-pointer text-center w-16">
+                                        <option>A</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 其他福利 -->
+                        <div>
+                            <h4 class="text-base font-bold text-gray-800 mb-4">其他福利</h4>
+                            <div class="border-t border-gray-200 pt-4 overflow-x-auto">
+                                <div class="min-w-[800px] grid grid-cols-4 gap-4 mb-2">
+                                    <div class="text-sm font-bold text-gray-800 text-center">團建分類*</div>
+                                    <div class="text-sm font-bold text-gray-800 text-center col-span-2">福利制度</div>
+                                    <div class="text-sm font-bold text-gray-800 text-center">生日福利</div>
+                                </div>
+                                <div class="min-w-[800px] grid grid-cols-4 gap-4 items-start">
+                                    <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded text-sm outline-none cursor-pointer text-center">
+                                        <option>团建分类-一般</option>
+                                    </select>
+                                    <select class="w-full col-span-2 appearance-none px-3 py-2 bg-[#4b5563] text-white rounded text-sm outline-none cursor-pointer text-center">
+                                        <option>T區法幣_TRG-HR-001-員工手冊暨人力資源管理制度-V1.0</option>
+                                    </select>
+                                    <textarea readonly class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded text-sm text-gray-800 outline-none cursor-default resize-none" rows="2">(試用期&轉正後)&#10;新台幣1000元</textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 職位信息(歷史) -->
+                        <div>
+                            <h4 class="text-base font-bold text-gray-800 mb-4">職位信息</h4>
+                            <div class="border-t border-gray-200 pt-4 overflow-x-auto">
+                                <div class="min-w-[800px] grid grid-cols-5 gap-2 mb-2">
+                                    <div class="text-sm font-bold text-gray-800 text-center">生效日期*</div>
+                                    <div class="text-sm font-bold text-gray-800 text-center">主體*</div>
+                                    <div class="text-sm font-bold text-gray-800 text-center">部門*</div>
+                                    <div class="text-sm font-bold text-gray-800 text-center">職位*</div>
+                                    <div class="text-sm font-bold text-gray-800 text-center">直屬上司*</div>
+                                </div>
+                                <div class="min-w-[800px] space-y-2">
+                                    <div class="grid grid-cols-5 gap-2 items-center">
+                                        <input type="text" value="2025/05/01" readonly class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded text-sm text-gray-800 outline-none cursor-default">
+                                        <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded text-sm outline-none cursor-pointer text-center">
+                                            <option>RG</option>
+                                        </select>
+                                        <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded text-sm outline-none cursor-pointer text-center">
+                                            <option>PMO</option>
+                                        </select>
+                                        <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded text-sm outline-none cursor-pointer text-center">
+                                            <option>Project Manager/專案經理/項目經理</option>
+                                        </select>
+                                        <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded text-sm outline-none cursor-pointer text-center">
+                                            <option>100479</option>
+                                        </select>
+                                    </div>
+                                    <div class="grid grid-cols-5 gap-2 items-center">
+                                        <input type="text" value="2020/06/03" readonly class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded text-sm text-gray-800 outline-none cursor-default">
+                                        <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded text-sm outline-none cursor-pointer text-center">
+                                            <option>LKG</option>
+                                        </select>
+                                        <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded text-sm outline-none cursor-pointer text-center">
+                                            <option>PMO</option>
+                                        </select>
+                                        <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded text-sm outline-none cursor-pointer text-center">
+                                            <option>Project Manager/專案經理/項目經理</option>
+                                        </select>
+                                        <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded text-sm outline-none cursor-pointer text-center">
+                                            <option>100479</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 事業部 -->
+                        <div>
+                            <h4 class="text-base font-bold text-gray-800 mb-4">事業部</h4>
+                            <div class="border-t border-gray-200 pt-4">
+                                <div class="grid grid-cols-2 gap-4 max-w-2xl mb-2">
+                                    <div class="text-sm font-bold text-gray-800 text-center">生效日期*</div>
+                                    <div class="text-sm font-bold text-gray-800 text-center">項目*</div>
+                                </div>
+                                <div class="space-y-2 max-w-2xl">
+                                    <div class="grid grid-cols-2 gap-4 items-center">
+                                        <input type="text" value="2025/06/01" readonly class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded text-sm text-gray-800 outline-none cursor-default">
+                                        <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded text-sm outline-none cursor-pointer text-center">
+                                            <option>GT</option>
+                                        </select>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-4 items-center">
+                                        <input type="text" value="2020/06/03" readonly class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded text-sm text-gray-800 outline-none cursor-default">
+                                        <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded text-sm outline-none cursor-pointer text-center">
+                                            <option>GT/VN</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 職級 -->
+                        <div>
+                            <h4 class="text-base font-bold text-gray-800 mb-4">職級</h4>
+                            <div class="border-t border-gray-200 pt-4">
+                                <div class="grid grid-cols-2 gap-4 max-w-2xl mb-2">
+                                    <div class="text-sm font-bold text-gray-800 text-center">生效日期*</div>
+                                    <div class="text-sm font-bold text-gray-800 text-center">職級*</div>
+                                </div>
+                                <div class="max-w-2xl">
+                                    <div class="grid grid-cols-2 gap-4 items-center">
+                                        <input type="text" value="2010/01/01" readonly class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded text-sm text-gray-800 outline-none cursor-default">
+                                        <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded text-sm outline-none cursor-pointer text-center">
+                                            <option>X</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- ========================================== -->
+                    <!-- 頁籤內容：人員帳號 -->
+                    <!-- ========================================== -->
+                    <div id="tab-account" class="tab-content hidden max-w-4xl mx-auto space-y-8">
+                        <div>
+                            <h4 class="text-[15px] font-bold text-gray-900 mb-5">人員帳號</h4>
+                            <div class="space-y-4 sm:space-y-5">
+                                <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-8">
+                                    <label class="text-sm font-medium text-gray-700 sm:w-[200px] shrink-0">Mobile number/whatsapp</label>
+                                    <div class="flex-1 max-w-lg">
+                                        <input type="text" value="&quot;T2&quot; 601114372701" readonly class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded-md text-sm text-gray-800 outline-none cursor-default">
+                                    </div>
+                                </div>
+                                
+                                <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-8">
+                                    <label class="text-sm font-medium text-gray-700 sm:w-[200px] shrink-0">MM</label>
+                                    <div class="flex-1 max-w-lg">
+                                        <!-- 空白欄位預留 -->
+                                    </div>
+                                </div>
+
+                                <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-8">
+                                    <label class="text-sm font-medium text-gray-700 sm:w-[200px] shrink-0">E-mail</label>
+                                    <div class="flex-1 max-w-lg">
+                                        <input type="text" value="gibsonyang@roycetechnology.com" readonly class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded-md text-sm text-gray-800 outline-none cursor-default">
+                                    </div>
+                                </div>
+
+                                <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-8">
+                                    <label class="text-sm font-medium text-gray-700 sm:w-[200px] shrink-0">OA</label>
+                                    <div class="flex-1 max-w-lg">
+                                        <input type="text" value="100139" readonly class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded-md text-sm text-gray-800 outline-none cursor-default">
+                                    </div>
+                                </div>
+
+                                <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-8">
+                                    <label class="text-sm font-medium text-gray-700 sm:w-[200px] shrink-0">Jira</label>
+                                    <div class="flex-1 max-w-lg">
+                                        <input type="text" value="gibson252" readonly class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded-md text-sm text-gray-800 outline-none cursor-default">
+                                    </div>
+                                </div>
+
+                                <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-8">
+                                    <label class="text-sm font-medium text-gray-700 sm:w-[200px] shrink-0">Apple ID</label>
+                                    <div class="flex-1 max-w-lg">
+                                        <input type="text" value="gibson_yang@roycetechnology.com" readonly class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded-md text-sm text-gray-800 outline-none cursor-default">
+                                    </div>
+                                </div>
+
+                                <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-8">
+                                    <label class="text-sm font-medium text-gray-700 sm:w-[200px] shrink-0">門禁卡片</label>
+                                    <div class="flex-1 max-w-lg">
+                                        <!-- 空白欄位預留 -->
+                                    </div>
+                                </div>
+
+                                <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-8">
+                                    <label class="text-sm font-medium text-gray-700 sm:w-[200px] shrink-0">指紋</label>
+                                    <div class="flex-1 max-w-lg">
+                                        <!-- 空白欄位預留 -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ========================================== -->
+                    <!-- 頁籤內容：假期信息 -->
+                    <!-- ========================================== -->
+                    <div id="tab-leave" class="tab-content hidden max-w-5xl mx-auto space-y-8">
+                        
+                        <!-- 分部資訊 -->
+                        <div>
+                            <div class="flex items-center gap-4 mb-4">
+                                <h4 class="text-lg font-bold text-gray-800">分部資訊</h4>
+                                <span class="text-red-600 font-bold text-lg">(保存失敗)</span>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-4 gap-2 sm:items-center">
+                                <label class="text-sm font-medium text-gray-800 sm:col-span-1">已選分部</label>
+                                <div class="sm:col-span-3">
+                                    <input type="text" value="BOSS-BOSS-BOSS" readonly class="w-full sm:w-[400px] px-3 py-2 bg-[#e8ecf1] border border-gray-300 rounded text-sm text-gray-800 outline-none cursor-default">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 假期政策 -->
+                        <div>
+                            <h4 class="text-lg font-bold text-gray-800 mb-4 mt-8">假期政策</h4>
+                            <div class="space-y-4">
+                                <div class="grid grid-cols-1 sm:grid-cols-4 gap-2 sm:items-center">
+                                    <label class="text-sm font-medium text-gray-800 sm:col-span-1">時區</label>
+                                    <div class="sm:col-span-3">
+                                        <input type="text" value="Europe/London" readonly class="w-full sm:w-[400px] px-3 py-2 bg-[#e8ecf1] border border-gray-300 rounded text-sm text-gray-800 outline-none cursor-default">
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-1 sm:grid-cols-4 gap-2 sm:items-center">
+                                    <label class="text-sm font-medium text-gray-800 sm:col-span-1">國家代碼</label>
+                                    <div class="sm:col-span-3">
+                                        <input type="text" value="GB" readonly class="w-full sm:w-[400px] px-3 py-2 bg-[#e8ecf1] border border-gray-300 rounded text-sm text-gray-800 outline-none cursor-default">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 大表格區域 -->
+                        <div class="mt-8">
+                            <div class="flex justify-end mb-2">
+                                <button class="px-4 py-1.5 bg-[#4A90E2] text-white text-sm rounded hover:bg-opacity-90 transition-colors">查看履歷</button>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <!-- 表頭 -->
+                                <div class="min-w-[800px] grid grid-cols-[1.5fr_1fr_1.5fr_2fr_1fr] gap-4 mb-2 pb-2 border-b border-gray-200">
+                                    <div class="text-sm font-bold text-gray-800 text-center">假期名稱</div>
+                                    <div class="text-sm font-bold text-gray-800 text-center">支薪類型</div>
+                                    <div class="text-sm font-bold text-gray-800 text-center">時間單位定義</div>
+                                    <div class="text-sm font-bold text-gray-800 text-center">Increase / Decrease</div>
+                                    <div class="text-sm font-bold text-gray-800 text-center">總生成時數*</div>
+                                </div>
+                                <!-- 表格內容 -->
+                                <div class="min-w-[800px] space-y-3">
+                                    
+                                    <!-- Row 1 -->
+                                    <div class="grid grid-cols-[1.5fr_1fr_1.5fr_2fr_1fr] gap-4 items-center">
+                                        <input type="text" value="N/A" readonly class="w-full px-3 py-2 bg-[#e8ecf1] border border-gray-200 rounded text-sm text-gray-800 outline-none cursor-default">
+                                        <input type="text" readonly class="w-full px-3 py-2 bg-[#e8ecf1] border border-gray-200 rounded text-sm text-gray-800 outline-none cursor-default">
+                                        <input type="text" readonly class="w-full px-3 py-2 bg-[#e8ecf1] border border-gray-200 rounded text-sm text-gray-800 outline-none cursor-default">
+                                        <input type="text" value="Decrease" readonly class="w-full px-3 py-2 bg-[#e8ecf1] border border-gray-200 rounded text-sm text-gray-800 outline-none cursor-default">
+                                        <input type="text" readonly class="w-full px-3 py-2 bg-[#e8ecf1] border border-gray-200 rounded text-sm text-gray-800 outline-none cursor-default">
+                                    </div>
+                                    
+                                    <!-- Row 2 -->
+                                    <div class="grid grid-cols-[1.5fr_1fr_1.5fr_2fr_1fr] gap-4 items-center border-t border-gray-100 pt-3">
+                                        <input type="text" readonly class="w-full px-3 py-2 bg-[#e8ecf1] border border-gray-200 rounded text-sm text-gray-800 outline-none cursor-default">
+                                        <input type="text" readonly class="w-full px-3 py-2 bg-[#e8ecf1] border border-gray-200 rounded text-sm text-gray-800 outline-none cursor-default">
+                                        <input type="text" readonly class="w-full px-3 py-2 bg-[#e8ecf1] border border-gray-200 rounded text-sm text-gray-800 outline-none cursor-default">
+                                        <input type="text" value="Decrease" readonly class="w-full px-3 py-2 bg-[#e8ecf1] border border-gray-200 rounded text-sm text-gray-800 outline-none cursor-default">
+                                        <input type="text" readonly class="w-full px-3 py-2 bg-[#e8ecf1] border border-gray-200 rounded text-sm text-gray-800 outline-none cursor-default">
+                                    </div>
+                                    
+                                    <!-- Row 3 -->
+                                    <div class="grid grid-cols-[1.5fr_1fr_1.5fr_2fr_1fr] gap-4 items-center border-t border-gray-100 pt-3">
+                                        <input type="text" readonly class="w-full px-3 py-2 bg-[#e8ecf1] border border-gray-200 rounded text-sm text-gray-800 outline-none cursor-default">
+                                        <input type="text" readonly class="w-full px-3 py-2 bg-[#e8ecf1] border border-gray-200 rounded text-sm text-gray-800 outline-none cursor-default">
+                                        <input type="text" readonly class="w-full px-3 py-2 bg-[#e8ecf1] border border-gray-200 rounded text-sm text-gray-800 outline-none cursor-default">
+                                        <input type="text" value="Decrease" readonly class="w-full px-3 py-2 bg-[#e8ecf1] border border-gray-200 rounded text-sm text-gray-800 outline-none cursor-default">
+                                        <input type="text" readonly class="w-full px-3 py-2 bg-[#e8ecf1] border border-gray-200 rounded text-sm text-gray-800 outline-none cursor-default">
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- ========================================== -->
+                    <!-- 頁籤內容：個人假期 - 紀錄 -->
+                    <!-- ========================================== -->
+                    <div id="tab-leave-history" class="tab-content hidden max-w-5xl mx-auto space-y-6">
+                        
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-center text-sm whitespace-nowrap">
+                                <thead class="border-b border-gray-200 bg-white">
+                                    <tr>
+                                        <th scope="col" class="px-4 sm:px-6 py-4 font-bold text-gray-900">審批進度</th>
+                                        <th scope="col" class="px-4 sm:px-6 py-4 font-bold text-gray-900">開始日</th>
+                                        <th scope="col" class="px-4 sm:px-6 py-4 font-bold text-gray-900">結束日</th>
+                                        <th scope="col" class="px-4 sm:px-6 py-4 font-bold text-gray-900">假期種類</th>
+                                        <th scope="col" class="px-4 sm:px-6 py-4 font-bold text-gray-900">單位</th>
+                                        <th scope="col" class="px-4 sm:px-6 py-4 font-bold text-gray-900 text-left">申請說明</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-100">
+                                    <tr>
+                                        <td class="px-4 sm:px-6 py-4 text-gray-800">Progress</td>
+                                        <td class="px-4 sm:px-6 py-4 text-gray-800">2026-06-02</td>
+                                        <td class="px-4 sm:px-6 py-4 text-gray-800">2026-06-13</td>
+                                        <td class="px-4 sm:px-6 py-4 text-gray-800">陪产假</td>
+                                        <td class="px-4 sm:px-6 py-4 text-gray-800">72</td>
+                                        <td class="px-4 sm:px-6 py-4 text-gray-800 text-left"></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-4 sm:px-6 py-4 text-gray-800">Wait</td>
+                                        <td class="px-4 sm:px-6 py-4 text-gray-800">2026-06-01</td>
+                                        <td class="px-4 sm:px-6 py-4 text-gray-800">2026-06-05</td>
+                                        <td class="px-4 sm:px-6 py-4 text-gray-800">陪产假</td>
+                                        <td class="px-4 sm:px-6 py-4 text-gray-800">44</td>
+                                        <td class="px-4 sm:px-6 py-4 text-gray-800 text-left"></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-4 sm:px-6 py-4 text-gray-800">Wait</td>
+                                        <td class="px-4 sm:px-6 py-4 text-gray-800">2026-06-02</td>
+                                        <td class="px-4 sm:px-6 py-4 text-gray-800">2026-06-05</td>
+                                        <td class="px-4 sm:px-6 py-4 text-gray-800">陪产假</td>
+                                        <td class="px-4 sm:px-6 py-4 text-gray-800">32</td>
+                                        <td class="px-4 sm:px-6 py-4 text-gray-800 text-left"></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-4 sm:px-6 py-4 text-gray-800">Wait</td>
+                                        <td class="px-4 sm:px-6 py-4 text-gray-800">2026-06-01</td>
+                                        <td class="px-4 sm:px-6 py-4 text-gray-800">2026-06-06</td>
+                                        <td class="px-4 sm:px-6 py-4 text-gray-800">陪产假</td>
+                                        <td class="px-4 sm:px-6 py-4 text-gray-800">41</td>
+                                        <td class="px-4 sm:px-6 py-4 text-gray-800 text-left"></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- 分頁控制 -->
+                        <div class="flex justify-center mt-6 pt-4 border-t border-gray-100">
+                            <div class="inline-flex rounded shadow-sm overflow-hidden" role="group">
+                                <button type="button" class="px-3 py-1.5 text-sm font-medium text-gray-500 bg-[#f1f3f5] border border-gray-200 hover:bg-gray-200 focus:z-10 transition-colors">
+                                    «
+                                </button>
+                                <button type="button" class="px-3 py-1.5 text-sm font-medium text-gray-500 bg-[#f1f3f5] border-t border-b border-r border-gray-200 hover:bg-gray-200 focus:z-10 transition-colors">
+                                    &lt;
+                                </button>
+                                <button type="button" class="px-4 py-1.5 text-sm font-medium text-white bg-[#4A90E2] border border-[#4A90E2] focus:z-10">
+                                    1
+                                </button>
+                                <button type="button" class="px-3 py-1.5 text-sm font-medium text-gray-500 bg-[#f1f3f5] border-t border-b border-gray-200 hover:bg-gray-200 focus:z-10 transition-colors">
+                                    &gt;
+                                </button>
+                                <button type="button" class="px-3 py-1.5 text-sm font-medium text-gray-500 bg-[#f1f3f5] border border-gray-200 hover:bg-gray-200 focus:z-10 transition-colors">
+                                    »
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- ========================================== -->
+                    <!-- 頁籤內容：補打卡 - 紀錄 -->
+                    <!-- ========================================== -->
+                    <div id="tab-punch-history" class="tab-content hidden max-w-5xl mx-auto space-y-6">
+                        
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-center text-sm whitespace-nowrap">
+                                <thead class="border-b border-gray-200 bg-white">
+                                    <tr>
+                                        <th scope="col" class="px-4 sm:px-6 py-4 font-bold text-gray-900">審批狀態</th>
+                                        <th scope="col" class="px-4 sm:px-6 py-4 font-bold text-gray-900">提交日期</th>
+                                        <th scope="col" class="px-4 sm:px-6 py-4 font-bold text-gray-900">補打卡時間</th>
+                                        <th scope="col" class="px-4 sm:px-6 py-4 font-bold text-gray-900">時段</th>
+                                        <th scope="col" class="px-4 sm:px-6 py-4 font-bold text-gray-900">種類</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-100">
+                                    <tr>
+                                        <td class="px-4 sm:px-6 py-4 text-gray-800">審批中</td>
+                                        <td class="px-4 sm:px-6 py-4 text-gray-800">2026-06-03</td>
+                                        <td class="px-4 sm:px-6 py-4 text-gray-800">2026-06-04 ~ 2026-06-07</td>
+                                        <td class="px-4 sm:px-6 py-4 text-gray-800">上班未打卡</td>
+                                        <td class="px-4 sm:px-6 py-4 text-gray-800">因公外出</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-4 sm:px-6 py-4 text-gray-800">審批中</td>
+                                        <td class="px-4 sm:px-6 py-4 text-gray-800">2026-06-03</td>
+                                        <td class="px-4 sm:px-6 py-4 text-gray-800">2026-06-01</td>
+                                        <td class="px-4 sm:px-6 py-4 text-gray-800">上班未打卡</td>
+                                        <td class="px-4 sm:px-6 py-4 text-gray-800">不可抗力</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-4 sm:px-6 py-4 text-gray-800">審批中</td>
+                                        <td class="px-4 sm:px-6 py-4 text-gray-800">2026-06-03</td>
+                                        <td class="px-4 sm:px-6 py-4 text-gray-800">2026-06-03</td>
+                                        <td class="px-4 sm:px-6 py-4 text-gray-800">下班未打卡</td>
+                                        <td class="px-4 sm:px-6 py-4 text-gray-800">未打卡</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- 分頁控制 -->
+                        <div class="flex justify-center mt-6 pt-4 border-t border-gray-100">
+                            <div class="inline-flex rounded shadow-sm overflow-hidden" role="group">
+                                <button type="button" class="px-3 py-1.5 text-sm font-medium text-gray-500 bg-[#f1f3f5] border border-gray-200 hover:bg-gray-200 focus:z-10 transition-colors">
+                                    «
+                                </button>
+                                <button type="button" class="px-3 py-1.5 text-sm font-medium text-gray-500 bg-[#f1f3f5] border-t border-b border-r border-gray-200 hover:bg-gray-200 focus:z-10 transition-colors">
+                                    &lt;
+                                </button>
+                                <button type="button" class="px-4 py-1.5 text-sm font-medium text-white bg-[#4A90E2] border border-[#4A90E2] focus:z-10">
+                                    1
+                                </button>
+                                <button type="button" class="px-3 py-1.5 text-sm font-medium text-gray-500 bg-[#f1f3f5] border-t border-b border-gray-200 hover:bg-gray-200 focus:z-10 transition-colors">
+                                    &gt;
+                                </button>
+                                <button type="button" class="px-3 py-1.5 text-sm font-medium text-gray-500 bg-[#f1f3f5] border border-gray-200 hover:bg-gray-200 focus:z-10 transition-colors">
+                                    »
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- 底部按鈕區 -->
+                <div class="px-6 sm:px-8 py-4 flex flex-col sm:flex-row justify-between items-center shrink-0 border-t border-gray-100 bg-white rounded-b-xl gap-3">
+                    <div class="flex gap-2 w-full sm:w-auto">
+                        <button type="button" class="flex-1 sm:flex-none px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded shadow-sm hover:bg-gray-50 transition-colors">
+                            重置密碼
+                        </button>
+                        <button type="button" class="flex-1 sm:flex-none px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded shadow-sm hover:bg-gray-50 transition-colors">
+                            離職
+                        </button>
+                        <button type="button" class="flex-1 sm:flex-none px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded shadow-sm hover:bg-gray-50 transition-colors">
+                            刪除
+                        </button>
+                    </div>
+                    <div class="flex gap-2 w-full sm:w-auto">
+                        <button type="button" class="flex-1 sm:flex-none px-5 py-2 text-sm font-medium text-white bg-[#4A90E2] rounded shadow-sm hover:bg-opacity-90 transition-colors">
+                            修改
+                        </button>
+                        <button type="button" onclick="closeEditModal()" class="flex-1 sm:flex-none px-5 py-2 text-sm font-medium text-white bg-gray-500 rounded shadow-sm hover:bg-gray-600 transition-colors">
+                            關閉
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 彈出視窗 2：審批角色 (中彈窗) -->
+    <!-- ========================================== -->
+    <div id="approvalModal" class="fixed inset-0 z-50 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <!-- 背景遮罩 -->
+        <div class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm transition-opacity" onclick="closeApprovalModal()"></div>
+
+        <!-- 彈窗內容容器 -->
+        <div class="fixed inset-0 z-10 overflow-y-auto">
+            <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-6">
+                
+                <div id="approvalModalPanel" class="relative transform bg-white text-left shadow-modal transition-all w-full max-w-4xl rounded-xl modal-enter flex flex-col max-h-[90vh]">
+                    
+                    <!-- 標題與關閉按鈕 -->
+                    <div class="px-6 pt-5 pb-3 flex justify-between items-center shrink-0 border-b border-gray-100">
+                        <h3 class="text-lg font-bold text-gray-900">審批角色</h3>
+                        <button onclick="closeApprovalModal()" class="text-gray-400 hover:text-gray-600 transition-colors outline-none">
+                            <i class="fa-solid fa-xmark text-lg"></i>
+                        </button>
+                    </div>
+
+                    <!-- 內容區域 -->
+                    <div class="px-6 md:px-8 py-6 overflow-y-auto custom-scrollbar flex-1 space-y-6">
+                        
+                        <!-- 角色清單 -->
+                        <div id="editApprovalRolesList" class="space-y-6">
+
+                            <!-- 財務主管 -->
+                            <div class="role-group flex flex-wrap items-center gap-x-3 gap-y-2" data-role="財務主管">
+                                <div class="inline-block px-3 py-1 bg-blue-50 text-[#4A90E2] border border-blue-100 rounded text-sm shrink-0">財務主管</div>
+                                <div class="role-rows flex flex-wrap items-center gap-x-4 gap-y-1.5">
+                                    <span class="role-row inline-flex items-center gap-1.5 text-sm text-gray-800">
+                                        <span class="role-name">第三事業部</span>
+                                        <span class="default-cell"><span class="ui-badge ui-badge-success default-tag">預設</span></span>
+                                        <button type="button" onclick="removeRoleRow(this)" class="text-gray-400 hover:text-red-500 transition-colors" aria-label="移除"><i class="fa-solid fa-xmark"></i></button>
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- 財務人員 -->
+                            <div class="role-group flex flex-wrap items-center gap-x-3 gap-y-2" data-role="財務人員">
+                                <div class="inline-block px-3 py-1 bg-blue-50 text-[#4A90E2] border border-blue-100 rounded text-sm shrink-0">財務人員</div>
+                                <div class="role-rows flex flex-wrap items-center gap-x-4 gap-y-1.5">
+                                    <span class="role-row inline-flex items-center gap-1.5 text-sm text-gray-800">
+                                        <span class="role-name">KX</span>
+                                        <span class="default-cell"><span class="ui-badge ui-badge-success default-tag">預設</span></span>
+                                        <button type="button" onclick="removeRoleRow(this)" class="text-gray-400 hover:text-red-500 transition-colors" aria-label="移除"><i class="fa-solid fa-xmark"></i></button>
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- 人事專員 -->
+                            <div class="role-group flex flex-wrap items-center gap-x-3 gap-y-2" data-role="人事專員">
+                                <div class="inline-block px-3 py-1 bg-blue-50 text-[#4A90E2] border border-blue-100 rounded text-sm shrink-0">人事專員</div>
+                                <div class="role-rows flex flex-wrap items-center gap-x-4 gap-y-1.5">
+                                    <span class="role-row inline-flex items-center gap-1.5 text-sm text-gray-800">
+                                        <span class="role-name">台灣</span>
+                                        <span class="default-cell"><span class="ui-badge ui-badge-success default-tag">預設</span></span>
+                                        <button type="button" onclick="removeRoleRow(this)" class="text-gray-400 hover:text-red-500 transition-colors" aria-label="移除"><i class="fa-solid fa-xmark"></i></button>
+                                    </span>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <!-- 空狀態：尚未添加或無審批角色 -->
+                        <div id="editApprovalRolesListEmpty" class="hidden text-center text-gray-400 py-10">
+                            <i class="fa-regular fa-folder-open text-3xl mb-2 text-gray-300"></i>
+                            <p class="text-sm">無審批角色</p>
+                        </div>
+                    </div>
+
+                    <!-- 底部按鈕區 -->
+                    <div class="px-6 py-4 flex justify-between items-center shrink-0 border-t border-gray-100 bg-white rounded-b-xl">
+                        <button type="button" onclick="openAddRoleModal('editApprovalRolesList')" class="ui-btn ui-btn-primary">
+                            <i class="fa-solid fa-plus font-normal"></i> 綁定審批角色
+                        </button>
+                        <button type="button" onclick="closeApprovalModal()" class="ui-btn ui-btn-secondary">
+                            關閉
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 彈出視窗 3：新增審批角色 (小彈窗) -->
+    <!-- ========================================== -->
+    <div id="addRoleModal" class="fixed inset-0 z-[60] hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <!-- 背景遮罩 (略深一點區分層級) -->
+        <div class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm transition-opacity" onclick="closeAddRoleModal()"></div>
+
+        <!-- 彈窗內容容器 -->
+        <div class="fixed inset-0 z-10 overflow-y-auto">
+            <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
+                
+                <div id="addRoleModalPanel" class="relative transform bg-white text-left shadow-modal transition-all sm:my-8 w-full max-w-lg rounded-xl modal-enter">
+                    
+                    <!-- 標題與關閉按鈕 -->
+                    <div class="px-6 pt-4 pb-3 flex justify-between items-center border-b border-gray-50">
+                        <h3 class="text-lg font-bold text-gray-800">配置審批角色</h3>
+                        <button onclick="closeAddRoleModal()" class="text-gray-400 hover:text-gray-600 transition-colors outline-none">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+
+                    <!-- 表單內容 (緊湊間距) -->
+                    <div class="px-8 py-5 space-y-4">
+                        
+                        <!-- 角色 (自訂下拉選單) -->
+                        <div class="flex items-center gap-4 relative">
+                            <label class="text-sm font-medium text-gray-700 w-20 shrink-0 text-right">角色</label>
+                            <div class="w-full relative" id="role-select-container">
+                                <!-- 觸發按鈕 -->
+                                <button type="button" onclick="toggleSelect('role')" class="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-sm text-left text-gray-700 focus:outline-none focus:border-[#4A90E2] transition-colors flex justify-between items-center" id="role-btn">
+                                    <span id="role-value" class="text-gray-400">請選擇角色</span>
+                                    <i class="fa-solid fa-angle-down text-gray-400"></i>
+                                </button>
+                                
+                                <!-- 選單面板 -->
+                                <div id="role-dropdown" class="hidden absolute z-20 w-full mt-2 bg-white rounded-md shadow-lg border border-gray-100 pb-1">
+                                    <!-- 小箭頭 (Popover Arrow) -->
+                                    <div class="absolute -top-2 left-1/2 transform -translate-x-1/2 w-4 h-4 bg-white border-t border-l border-gray-100 rotate-45"></div>
+                                    
+                                    <ul class="relative z-10 max-h-60 overflow-y-auto text-sm py-1">
+                                        <li class="px-4 py-2 hover:bg-[#f5f5f5] cursor-pointer text-gray-700 transition-colors" onclick="selectOption('role', '負責人')">負責人</li>
+                                        <li class="px-4 py-2 hover:bg-[#f5f5f5] cursor-pointer text-gray-700 transition-colors" onclick="selectOption('role', '人事專員')">人事專員</li>
+                                        <li class="px-4 py-2 hover:bg-[#f5f5f5] cursor-pointer text-gray-700 transition-colors" onclick="selectOption('role', '人事主管')">人事主管</li>
+                                        <li class="px-4 py-2 hover:bg-[#f5f5f5] cursor-pointer text-[#1677ff] font-medium transition-colors" onclick="selectOption('role', '財務人員')">財務人員</li>
+                                        <li class="px-4 py-2 hover:bg-[#f5f5f5] cursor-pointer text-gray-700 transition-colors" onclick="selectOption('role', '財務主管')">財務主管</li>
+                                        <li class="px-4 py-2 hover:bg-[#f5f5f5] cursor-pointer text-gray-700 transition-colors" onclick="selectOption('role', '執行長')">執行長</li>
+                                        <li class="px-4 py-2 hover:bg-[#f5f5f5] cursor-pointer text-gray-700 transition-colors" onclick="selectOption('role', '董事長')">董事長</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 分組類型 (自訂下拉選單) -->
+                        <div class="flex items-center gap-4 relative">
+                            <label class="text-sm font-medium text-gray-700 w-20 shrink-0 text-right">分組類型</label>
+                            <div class="w-full relative" id="type-select-container">
+                                <!-- 觸發按鈕 -->
+                                <button type="button" onclick="toggleSelect('type')" class="w-full bg-white border border-[#4A90E2] rounded-md px-3 py-2 text-sm text-left text-gray-700 focus:outline-none transition-colors flex justify-between items-center" id="type-btn">
+                                    <span id="type-value" class="text-gray-400">請選擇分組類型</span>
+                                    <i class="fa-solid fa-angle-up text-[#4A90E2]"></i>
+                                </button>
+                                
+                                <!-- 選單面板 -->
+                                <div id="type-dropdown" class="absolute z-20 w-full mt-2 bg-white rounded-md shadow-lg border border-gray-100 pb-1">
+                                    <!-- 小箭頭 (Popover Arrow) -->
+                                    <div class="absolute -top-2 left-1/2 transform -translate-x-1/2 w-4 h-4 bg-white border-t border-l border-gray-100 rotate-45"></div>
+                                    
+                                    <ul class="relative z-10 max-h-60 overflow-y-auto text-sm py-1">
+                                        <li class="px-4 py-2.5 hover:bg-[#f5f5f5] cursor-pointer text-[#1677ff] font-medium transition-colors" onclick="selectOption('type', '地區')">地區</li>
+                                        <li class="px-4 py-2.5 hover:bg-[#f5f5f5] cursor-pointer text-gray-700 transition-colors" onclick="selectOption('type', '公司')">公司</li>
+                                        <li class="px-4 py-2.5 hover:bg-[#f5f5f5] cursor-pointer text-gray-700 transition-colors" onclick="selectOption('type', '事業部')">事業部</li>
+                                        <li class="px-4 py-2.5 hover:bg-[#f5f5f5] cursor-pointer text-gray-700 transition-colors" onclick="selectOption('type', '項目')">項目</li>
+                                        <li class="px-4 py-2.5 hover:bg-[#f5f5f5] cursor-pointer text-gray-700 transition-colors" onclick="selectOption('type', '部門')">部門</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 指定分組 (自訂連動下拉選單) -->
+                        <div class="flex items-center gap-4 relative">
+                            <label class="text-sm font-medium text-gray-700 w-20 shrink-0 text-right">指定分組</label>
+                            <div class="w-full relative" id="group-select-container">
+                                <!-- 觸發按鈕 -->
+                                <button type="button" onclick="toggleSelect('group')" class="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-sm text-left focus:outline-none focus:border-[#4A90E2] transition-colors flex justify-between items-center" id="group-btn">
+                                    <span id="group-value" class="text-gray-400">選擇具體分組</span>
+                                    <i class="fa-solid fa-angle-down text-gray-400" id="group-icon"></i>
+                                </button>
+                                
+                                <!-- 選單面板 -->
+                                <div id="group-dropdown" class="hidden absolute z-20 w-full mt-2 bg-white rounded-md shadow-lg border border-gray-100 pb-1">
+                                    <div class="absolute -top-2 left-1/2 transform -translate-x-1/2 w-4 h-4 bg-white border-t border-l border-gray-100 rotate-45"></div>
+                                    <ul id="group-options-list" class="relative z-10 max-h-60 overflow-y-auto text-sm py-1">
+                                        <!-- 選項由 JS 動態生成 -->
+                                        <li class="px-4 py-2 text-gray-400 cursor-default">請先選擇分組類型</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- 底部按鈕區 (無背景色) -->
+                    <div class="px-8 py-4 mb-2 flex justify-end gap-3 rounded-b-xl">
+                        <button type="button" onclick="closeAddRoleModal()" class="ui-btn ui-btn-secondary">
+                            取消
+                        </button>
+                        <button type="button" onclick="confirmAddRole()" class="ui-btn ui-btn-primary">
+                            確定
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 彈出視窗 4：新增帳號角色 - 查詢 (小彈窗) -->
+    <!-- ========================================== -->
+    <div id="addAccountModal" class="fixed inset-0 z-50 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <!-- 背景遮罩 -->
+        <div class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm transition-opacity" onclick="closeAddAccountModal()"></div>
+
+        <!-- 彈窗內容容器 -->
+        <div class="fixed inset-0 z-10 flex items-center justify-center p-4 text-center sm:p-0">
+            <div id="addAccountModalPanel" class="relative transform bg-white text-left shadow-modal transition-all sm:my-8 w-full max-w-4xl rounded-xl modal-enter flex flex-col max-h-[90vh]">
+                
+                <!-- 標題與關閉按鈕 -->
+                <div class="px-6 pt-5 pb-3 flex justify-between items-center shrink-0 border-b border-gray-100">
+                    <h3 class="text-lg font-bold text-gray-900">新增帳號角色</h3>
+                    <button onclick="closeAddAccountModal()" class="text-gray-400 hover:text-gray-600 transition-colors outline-none">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                </div>
+
+                <!-- 查詢區 -->
+                <div class="px-6 md:px-8 py-5 border-b border-gray-100 bg-gray-50/50 shrink-0">
+                    <p class="text-sm text-gray-500 mb-3">請輸入員工編號進行查詢，以確認帳號真實存在後再添加角色。</p>
+                    <div class="flex flex-col sm:flex-row items-end gap-3">
+                        <div class="flex-1 w-full max-w-sm">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">員工編號 <span class="text-red-500">*</span></label>
+                            <input type="text" id="addAccountSearchInput" placeholder="例如：100139" class="ui-input">
+                        </div>
+                        <button type="button" onclick="performAccountSearch()" class="ui-btn ui-btn-primary w-full sm:w-auto">
+                            查詢
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 查詢結果與角色設定區 (初始隱藏) -->
+                <div id="addAccountResultArea" class="px-6 md:px-8 py-6 overflow-y-auto custom-scrollbar flex-1 space-y-6 hidden">
+                    <!-- 成功提示與員工摘要 -->
+                    <div class="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-circle-check text-green-500"></i>
+                            <div class="text-sm text-gray-800">
+                                <span class="text-gray-500 mr-1">查詢成功：</span>
+                                <span class="font-bold mr-3" id="displayEmpId">100139</span>
+                                <span class="font-medium text-gray-700">Ellie Nelson</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 新增按鈕 -->
+                    <div>
+                        <button type="button" onclick="openAddRoleModal('addAccountRolesList')" class="ui-btn ui-btn-primary">
+                            <i class="fa-solid fa-plus font-normal"></i> 新增審批角色
+                        </button>
+                    </div>
+
+                    <!-- 角色清單容器 (初次新增，此處預留空白) -->
+                    <div id="addAccountRolesList" class="space-y-6">
+                        <!-- 當用戶點擊「新增審批角色」並送出後，新的角色表格會動態加入到這裡 -->
+                    </div>
+                </div>
+
+                <!-- 底部按鈕區 -->
+                <div class="px-6 py-4 flex justify-end shrink-0 border-t border-gray-100 bg-white rounded-b-xl gap-3">
+                    <button type="button" onclick="closeAddAccountModal()" class="ui-btn ui-btn-secondary">
+                        取消
+                    </button>
+                    <button type="button" id="addAccountConfirmBtn" onclick="closeAddAccountModal()" class="ui-btn ui-btn-primary hidden">
+                        確定
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- 互動腳本 -->
+    <script>
+        /* -----------------------
+           新增帳號角色 - 查詢彈窗 (Add Account Modal)
+           ----------------------- */
+        const addAccountModal = document.getElementById('addAccountModal');
+        const addAccountModalPanel = document.getElementById('addAccountModalPanel');
+
+        function openAddAccountModal() {
+            // 開啟時重置狀態
+            document.getElementById('addAccountSearchInput').value = '';
+            document.getElementById('addAccountResultArea').classList.add('hidden');
+            document.getElementById('addAccountConfirmBtn').classList.add('hidden');
+            // 清空列表
+            document.getElementById('addAccountRolesList').innerHTML = '';
+
+            addAccountModal.classList.remove('hidden');
+            setTimeout(() => {
+                addAccountModalPanel.classList.add('modal-enter-active');
+            }, 10);
+        }
+
+        function closeAddAccountModal() {
+            addAccountModalPanel.classList.remove('modal-enter-active');
+            setTimeout(() => {
+                addAccountModal.classList.add('hidden');
+            }, 200);
+        }
+
+        function performAccountSearch() {
+            const input = document.getElementById('addAccountSearchInput').value.trim();
+            // 只要有輸入字串，模擬查詢成功展開區域
+            if (input !== '') {
+                document.getElementById('displayEmpId').textContent = input;
+                document.getElementById('addAccountResultArea').classList.remove('hidden');
+                document.getElementById('addAccountConfirmBtn').classList.remove('hidden');
+            }
+        }
+
+        /* -----------------------
+           編輯帳號彈窗 (Edit Modal)
+           ----------------------- */
+        const editModal = document.getElementById('editModal');
+        const editModalPanel = document.getElementById('editModalPanel');
+
+        function openEditModal() {
+            editModal.classList.remove('hidden');
+            setTimeout(() => {
+                editModalPanel.classList.add('modal-enter-active');
+            }, 10);
+            
+            // 每次開啟預設顯示第一個頁籤
+            switchTab('tab-personal');
+        }
+
+        function closeEditModal() {
+            editModalPanel.classList.remove('modal-enter-active');
+            setTimeout(() => {
+                editModal.classList.add('hidden');
+            }, 200);
+        }
+
+        /* -----------------------
+           頁籤切換邏輯
+           ----------------------- */
+        function switchTab(tabId) {
+            // 隱藏所有內容
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // 取消所有按鈕的高亮狀態 (恢復為未選中樣式)
+            document.querySelectorAll('[id^="btn-tab-"]').forEach(btn => {
+                btn.classList.remove('text-gray-800', 'border-[#3b82f6]');
+                btn.classList.add('text-gray-700', 'border-transparent', 'hover:text-gray-900', 'hover:border-gray-300');
+            });
+
+            // 顯示目標內容
+            document.getElementById(tabId).classList.add('active');
+            
+            // 高亮目標按鈕
+            const activeBtn = document.getElementById('btn-' + tabId);
+            if (activeBtn) {
+                activeBtn.classList.remove('text-gray-700', 'border-transparent', 'hover:text-gray-900', 'hover:border-gray-300');
+                activeBtn.classList.add('text-gray-800', 'border-[#3b82f6]');
+            }
+        }
+
+        /* -----------------------
+           審批角色彈窗 (Approval Modal)
+           ----------------------- */
+        const approvalModal = document.getElementById('approvalModal');
+        const approvalModalPanel = document.getElementById('approvalModalPanel');
+
+        function openApprovalModal() {
+            approvalModal.classList.remove('hidden');
+            updateRoleEmptyState(document.getElementById('editApprovalRolesList'));
+            setTimeout(() => {
+                approvalModalPanel.classList.add('modal-enter-active');
+            }, 10);
+        }
+
+        // 依清單是否有審批角色，切換「無審批角色」空狀態提示
+        function updateRoleEmptyState(listContainer) {
+            if (!listContainer) return;
+            const empty = document.getElementById(listContainer.id + 'Empty');
+            if (!empty) return;
+            const hasGroups = listContainer.querySelector('.role-group') !== null;
+            empty.classList.toggle('hidden', hasGroups);
+        }
+
+        function closeApprovalModal() {
+            approvalModalPanel.classList.remove('modal-enter-active');
+            setTimeout(() => {
+                approvalModal.classList.add('hidden');
+            }, 200);
+        }
+
+        /* -----------------------
+           新增審批角色 (Add Role Modal) 與 列表互動邏輯
+           ----------------------- */
+        const addRoleModal = document.getElementById('addRoleModal');
+        const addRoleModalPanel = document.getElementById('addRoleModalPanel');
+        let currentTargetListId = ''; // 用來記錄要加在哪一個列表裡
+
+        function openAddRoleModal(targetId) {
+            currentTargetListId = targetId; // 記錄目標的 Container ID
+            
+            addRoleModal.classList.remove('hidden');
+            setTimeout(() => {
+                addRoleModalPanel.classList.add('modal-enter-active');
+            }, 10);
+            
+            // 開啟時重置所有下拉選單狀態
+            closeAllSelects();
+            
+            // 重置文字
+            document.getElementById('role-value').textContent = '請選擇角色';
+            document.getElementById('role-value').className = 'text-gray-400';
+            
+            document.getElementById('type-value').textContent = '請選擇分組類型';
+            document.getElementById('type-value').className = 'text-gray-400';
+            
+            document.getElementById('group-value').textContent = '選擇具體分組';
+            document.getElementById('group-value').className = 'text-gray-400';
+            document.getElementById('group-options-list').innerHTML = '<li class="px-4 py-2 text-gray-400 cursor-default">請先選擇分組類型</li>';
+        }
+
+        function closeAddRoleModal() {
+            addRoleModalPanel.classList.remove('modal-enter-active');
+            setTimeout(() => {
+                addRoleModal.classList.add('hidden');
+            }, 200);
+        }
+
+        // 確認新增角色並生成畫面區塊
+        function confirmAddRole() {
+            const roleSpan = document.getElementById('role-value');
+            const typeSpan = document.getElementById('type-value');
+            const groupSpan = document.getElementById('group-value');
+
+            const role = roleSpan.textContent;
+            const type = typeSpan.textContent;
+            const group = groupSpan.textContent;
+
+            // 基本的防呆驗證
+            if (role === '請選擇角色' || type === '請選擇分組類型' || group === '選擇具體分組' || group === '請先選擇分組類型') {
+                alert('請完整選擇角色、分組類型與指定分組');
+                return;
+            }
+
+            const listContainer = document.getElementById(currentTargetListId);
+            if(!listContainer) return;
+
+            // 檢查該角色是否已經有對應的群組區塊
+            let roleGroupDiv = listContainer.querySelector(`.role-group[data-role="${role}"]`);
+            let isFirstRow = false;
+
+            // 如果沒有，就建立一個新的角色區塊和表格
+            if (!roleGroupDiv) {
+                isFirstRow = true;
+                roleGroupDiv = document.createElement('div');
+                roleGroupDiv.className = 'role-group flex flex-wrap items-center gap-x-3 gap-y-2';
+                roleGroupDiv.setAttribute('data-role', role);
+
+                roleGroupDiv.innerHTML = `
+                    <div class="inline-block px-3 py-1 bg-blue-50 text-[#4A90E2] border border-blue-100 rounded text-sm shrink-0">${role}</div>
+                    <div class="role-rows flex flex-wrap items-center gap-x-4 gap-y-1.5"></div>
+                `;
+                listContainer.appendChild(roleGroupDiv);
+            } else {
+                isFirstRow = roleGroupDiv.querySelector('.role-rows').children.length === 0;
+            }
+
+            // 第一筆自動標示為「預設」，其餘不顯示（已移除「設為預設」功能）
+            const defaultCellContent = isFirstRow
+                ? `<span class="ui-badge ui-badge-success default-tag">預設</span>`
+                : '';
+
+            // 將資料作為新的一筆加入該角色清單（行內顯示：分組名稱 + 預設 + ✕）
+            const rowsContainer = roleGroupDiv.querySelector('.role-rows');
+            const row = document.createElement('span');
+            row.className = 'role-row inline-flex items-center gap-1.5 text-sm text-gray-800';
+            row.innerHTML = `
+                <span class="role-name">${group}</span>
+                <span class="default-cell">${defaultCellContent}</span>
+                <button type="button" onclick="removeRoleRow(this)" class="text-gray-400 hover:text-red-500 transition-colors" aria-label="移除"><i class="fa-solid fa-xmark"></i></button>
+            `;
+            rowsContainer.appendChild(row);
+
+            // 有資料後更新空狀態提示
+            updateRoleEmptyState(listContainer);
+
+            // 加入完畢後關閉小彈窗
+            closeAddRoleModal();
+        }
+
+        // 移除單一筆的邏輯
+        function removeRoleRow(btn) {
+            const row = btn.closest('.role-row');
+            const container = row.parentElement; // .role-rows
+            const roleGroup = container.closest('.role-group');
+            const listContainer = roleGroup.parentElement; // 角色清單容器
+
+            const wasDefault = row.querySelector('.default-tag') !== null;
+
+            row.remove(); // 移除該筆
+
+            // 若該角色清單全部清空，連同角色分類區塊一起移除
+            if (container.children.length === 0) {
+                roleGroup.remove();
+            } else if (wasDefault) {
+                // 若刪除的是預設項目且仍有其他項目，自動將第一筆標示為預設
+                const firstCell = container.querySelector('.role-row:first-child .default-cell');
+                if (firstCell) {
+                    firstCell.innerHTML = '<span class="ui-badge ui-badge-success default-tag">預設</span>';
+                }
+            }
+
+            // 移除後更新空狀態提示（全部角色移除時顯示「無審批角色」）
+            updateRoleEmptyState(listContainer);
+        }
+
+        /* -----------------------
+           自訂下拉選單與連動邏輯
+           ----------------------- */
+        // 分組類型的連動資料
+        const groupOptionsData = {
+            '地區': ['台灣', '日本', '英國'],
+            '公司': ['總公司', '分公司A', '海外子公司'],
+            '事業部': ['第一事業部', '第二事業部', '第三事業部'],
+            '項目': ['專案A', '專案B', '專案C'],
+            '部門': ['研發部', '行銷部', '財務部', '人資部']
+        };
+
+        // 開關特定的下拉選單
+        function toggleSelect(type) {
+            const dropdown = document.getElementById(`${type}-dropdown`);
+            const btn = document.getElementById(`${type}-btn`);
+            const icon = btn.querySelector('i');
+            
+            const isHidden = dropdown.classList.contains('hidden');
+            
+            // 先關閉所有的
+            closeAllSelects();
+
+            if (isHidden) {
+                // 打開當前的
+                dropdown.classList.remove('hidden');
+                btn.classList.add('border-[#4A90E2]');
+                
+                // 更換箭頭方向與顏色
+                icon.classList.remove('fa-angle-down', 'text-gray-400');
+                icon.classList.add('fa-angle-up', 'text-[#4A90E2]');
+            }
+        }
+
+        // 選擇選項
+        function selectOption(type, value) {
+            const valueSpan = document.getElementById(`${type}-value`);
+            const btn = document.getElementById(`${type}-btn`);
+            
+            // 更新文字與樣式
+            valueSpan.textContent = value;
+            valueSpan.classList.remove('text-gray-400');
+            valueSpan.classList.add('text-gray-700');
+            
+            // 關閉選單
+            closeAllSelects();
+
+            // 如果改變的是「分組類型」，需要連動更新「指定分組」的選項
+            if (type === 'type') {
+                updateGroupOptions(value);
+            }
+        }
+
+        // 連動更新指定分組的選項清單
+        function updateGroupOptions(selectedType) {
+            const listEl = document.getElementById('group-options-list');
+            const groupValueSpan = document.getElementById('group-value');
+            const options = groupOptionsData[selectedType] || [];
+            
+            // 重置指定分組的選擇狀態
+            groupValueSpan.textContent = '選擇具體分組';
+            groupValueSpan.classList.add('text-gray-400');
+            groupValueSpan.classList.remove('text-gray-700');
+
+            // 重新渲染清單
+            listEl.innerHTML = '';
+            if (options.length === 0) {
+                listEl.innerHTML = '<li class="px-4 py-2 text-gray-400 cursor-default">無對應選項</li>';
+            } else {
+                options.forEach(opt => {
+                    const li = document.createElement('li');
+                    li.className = 'px-4 py-2.5 hover:bg-[#f5f5f5] cursor-pointer text-gray-700 transition-colors';
+                    li.textContent = opt;
+                    li.onclick = function(e) {
+                        e.stopPropagation(); // 阻止事件冒泡
+                        selectOption('group', opt);
+                        
+                        // 點擊後將被選中的選項變成藍色高亮
+                        Array.from(listEl.children).forEach(child => {
+                            child.classList.remove('text-[#1677ff]', 'font-medium');
+                            child.classList.add('text-gray-700');
+                        });
+                        li.classList.remove('text-gray-700');
+                        li.classList.add('text-[#1677ff]', 'font-medium');
+                    };
+                    listEl.appendChild(li);
+                });
+            }
+        }
+
+        // 關閉所有下拉選單
+        function closeAllSelects() {
+            const types = ['role', 'type', 'group'];
+            types.forEach(t => {
+                const dropdown = document.getElementById(`${t}-dropdown`);
+                const btn = document.getElementById(`${t}-btn`);
+                const icon = btn ? btn.querySelector('i') : null;
+                
+                if (dropdown) dropdown.classList.add('hidden');
+                if (btn) btn.classList.remove('border-[#4A90E2]');
+                if (icon) {
+                    icon.classList.remove('fa-angle-up', 'text-[#4A90E2]');
+                    icon.classList.add('fa-angle-down', 'text-gray-400');
+                }
+            });
+        }
+
+        // 點擊空白處關閉下拉選單
+        document.addEventListener('click', function(event) {
+            const isClickInsideSelect = event.target.closest('#role-select-container') || 
+                                        event.target.closest('#type-select-container') || 
+                                        event.target.closest('#group-select-container');
+            
+            if (!isClickInsideSelect) {
+                closeAllSelects();
+            }
+        });
+
+        /* ===== 主分頁切換（帳號角色 / 審批角色）===== */
+        function switchMainTab(tab) {
+            const onCls = 'px-4 py-2.5 text-sm font-semibold text-primary border-b-2 border-primary -mb-px transition-colors';
+            const offCls = 'px-4 py-2.5 text-sm font-medium text-gray-500 border-b-2 border-transparent -mb-px hover:text-gray-700 transition-colors';
+            document.getElementById('acct-tab-roles').classList.toggle('hidden', tab !== 'roles');
+            document.getElementById('acct-tab-approval').classList.toggle('hidden', tab !== 'approval');
+            document.getElementById('mtab-roles').className = tab === 'roles' ? onCls : offCls;
+            document.getElementById('mtab-approval').className = tab === 'approval' ? onCls : offCls;
+        }
+
+        /* ===== 審批角色（由審批流設定移入）===== */
+        let approvalRoles = [
+            { name: '申請人直屬主管', desc: '從員工組織歸屬中取得直屬主管，動態解析，無需設定群組' },
+            { name: '部門主管', desc: '從部門資料解析部門主管，動態解析，無需設定群組' },
+            { name: '負責人', desc: '依分組類型從審批對應解析對應負責人 (需同時選擇分組)' },
+            { name: '人事專員', desc: '依分組類型從審批對應解析對應人事專員' },
+            { name: '人事主管', desc: '依分組類型從審批對應解析對應人事主管' },
+            { name: '財務人員', desc: '依分組類型從審批對應解析對應財務人員' },
+            { name: '財務主管', desc: '依分組類型從審批對應解析對應財務主管' },
+            { name: '執行長', desc: '特殊層級，從審批對應解析，需在帳號管理設定 scopeType=special' },
+            { name: '董事長', desc: '特殊層級，從審批對應解析，需在帳號管理設定 scopeType=special' }
+        ];
+
+        function renderApprovalRoles() {
+            const tbody = document.getElementById('approval-role-tbody');
+            if (!tbody) return;
+            tbody.innerHTML = approvalRoles.map(r => `
+                <tr class="hover:bg-gray-50/70 transition-colors">
+                    <td class="font-medium text-gray-800">${r.name}</td>
+                    <td class="whitespace-normal leading-relaxed text-gray-600">${r.desc}</td>
+                </tr>`).join('');
+        }
+
+        function openApprovalRoleModal() {
+            document.getElementById('approvalRoleName').value = '';
+            document.getElementById('approvalRoleDesc').value = '';
+            document.getElementById('approvalRoleModal').classList.remove('hidden');
+        }
+        function closeApprovalRoleModal() { document.getElementById('approvalRoleModal').classList.add('hidden'); }
+        function saveApprovalRole() {
+            const name = document.getElementById('approvalRoleName').value.trim();
+            const desc = document.getElementById('approvalRoleDesc').value.trim();
+            if (!name) { showToast('error', '請填寫角色名稱'); return; }
+            if (approvalRoles.some(r => r.name === name)) { showToast('error', `角色「${name}」已存在`); return; }
+            approvalRoles.push({ name, desc: desc || '—' });
+            renderApprovalRoles();
+            closeApprovalRoleModal();
+            showToast('success', `已新增審批角色「${name}」`);
+        }
+
+        function showToast(type, text) {
+            const toast = document.getElementById('toast');
+            const icon = document.getElementById('toast-icon');
+            document.getElementById('toast-text').innerText = text;
+            if (type === 'success') { toast.className = 'fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform transition-all duration-300 border border-emerald-500/20'; icon.className = 'fa-solid fa-circle-check text-emerald-400 text-base'; }
+            else if (type === 'error') { toast.className = 'fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform transition-all duration-300 border border-rose-500/20'; icon.className = 'fa-solid fa-circle-xmark text-rose-400 text-base'; }
+            else { toast.className = 'fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform transition-all duration-300 border border-blue-500/20'; icon.className = 'fa-solid fa-circle-info text-blue-400 text-base'; }
+            toast.style.transform = 'translateY(0)'; toast.style.opacity = '1';
+            clearTimeout(window.__t); window.__t = setTimeout(() => { toast.style.transform = 'translateY(5rem)'; toast.style.opacity = '0'; }, 2400);
+        }
+
+        document.getElementById('approvalRoleModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeApprovalRoleModal(); });
+
+        /* ===== 帳號角色清單：搜尋 / 狀態篩選 / 啟用停用切換（模擬交互）===== */
+        function filterAccounts() {
+            const kw = (document.getElementById('acctSearch').value || '').trim().toLowerCase();
+            const st = document.getElementById('acctStatus').value;
+            let visible = 0;
+            document.querySelectorAll('#acctTbody .acct-row').forEach(row => {
+                const id = row.children[0].textContent.toLowerCase();
+                const name = row.children[1].textContent.toLowerCase();
+                const status = row.querySelector('.acct-status-badge').textContent.trim() === '啟用' ? 'active' : 'inactive';
+                const matchKw = !kw || id.includes(kw) || name.includes(kw);
+                const matchSt = st === 'all' || st === status;
+                const show = matchKw && matchSt;
+                row.style.display = show ? '' : 'none';
+                if (show) visible++;
+            });
+            const noData = document.getElementById('acctNoData');
+            if (noData) noData.classList.toggle('hidden', visible > 0);
+        }
+
+        function toggleAccountStatus(btn) {
+            const row = btn.closest('tr');
+            const badge = row.querySelector('.acct-status-badge');
+            const name = row.children[1].textContent.trim();
+            const isActive = badge.textContent.trim() === '啟用';
+            if (isActive) {
+                badge.className = 'acct-status-badge ui-badge bg-gray-100 text-gray-500';
+                badge.textContent = '停用';
+                btn.className = 'acct-toggle ui-btn ui-btn-sm text-emerald-600 border border-emerald-200 hover:bg-emerald-50';
+                btn.innerHTML = '<i class="fa-solid fa-circle-check"></i> 啟用';
+                showToast('info', `已停用帳號 ${name}`);
+            } else {
+                badge.className = 'acct-status-badge ui-badge ui-badge-success';
+                badge.textContent = '啟用';
+                btn.className = 'acct-toggle ui-btn ui-btn-sm text-amber-600 border border-amber-200 hover:bg-amber-50';
+                btn.innerHTML = '<i class="fa-solid fa-ban"></i> 停用';
+                showToast('success', `已啟用帳號 ${name}`);
+            }
+            filterAccounts();
+        }
+
+        // 初始化審批角色清單
+        renderApprovalRoles();
+    </script>
+</body>
+</html>

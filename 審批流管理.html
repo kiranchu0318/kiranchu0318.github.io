@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>審批流管理</title>
+  
+  <!-- 載入 Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- 載入 React 核心庫 -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  
+  <!-- 載入 Babel 供瀏覽器即時編譯 JSX -->
+  <script src="https://unpkg.com/@babel/standalone@7.29.7/babel.min.js"></script>
+
+  <style>
+    /* 自定義捲軸樣式 (僅針對表格區域) */
+    .custom-scrollbar::-webkit-scrollbar {
+        height: 8px;
+        width: 8px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: #f1f1f1; 
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #d1d5db; 
+        border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: #9ca3af; 
+    }
+  </style>
+    <link rel="stylesheet" href="shared-ui.css">
+</head>
+<body class="">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState } = React;
+
+    // --- 圖示 SVG 元件 ---
+    const IconBase = ({ size = 24, strokeWidth = 2, children, className = '', ...props }) => (
+      <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+        {children}
+      </svg>
+    );
+
+    const ChevronDown = (props) => <IconBase {...props}><polyline points="6 9 12 15 18 9"></polyline></IconBase>;
+    const Plus = (props) => <IconBase {...props}><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></IconBase>;
+    const X = (props) => <IconBase {...props}><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></IconBase>;
+
+    // --- 假資料 ---
+    const initialTemplateData = [
+      { name: '採購申請審批流', type: '採購申請', priority: 100, steps: 3, status: '啟用', grade: 'P1 ~ M9', amount: 'NT$ 1 ~ 500,000', days: '—' , currency: '法幣' },
+      { name: '採購申請審批流（大額）', type: '採購申請', priority: 90, steps: 4, status: '啟用', grade: 'M1 ~ BOSS', amount: 'NT$ 500,001 ~ 不限', days: '—' , currency: '法幣' },
+      { name: '費用報銷審批流', type: '費用報銷', priority: 100, steps: 3, status: '啟用', grade: 'P1 ~ M9', amount: 'NT$ 1 ~ 100,000', days: '—' , currency: 'U幣' },
+      { name: '費用報銷審批流（高額）', type: '費用報銷', priority: 90, steps: 4, status: '啟用', grade: 'M3 ~ BOSS', amount: 'NT$ 100,001 ~ 不限', days: '—' , currency: 'U幣' },
+      { name: '出差申請審批流', type: '出差申請', priority: 100, steps: 3, status: '啟用', grade: '全職等', amount: 'NT$ 1 ~ 200,000', days: '1 ~ 14 天' , currency: '法幣' },
+      { name: 'OA 資產申請審批流', type: 'OA 資產申請', priority: 100, steps: 3, status: '啟用', grade: 'P1 ~ M9', amount: 'NT$ 1 ~ 300,000', days: '—' , currency: '法幣' },
+      { name: '資訊需求申請審批流', type: '資訊需求申請', priority: 100, steps: 3, status: '啟用', grade: '全職等', amount: '不限', days: '—' , currency: '法幣' },
+      { name: '人力需求申請審批流', type: '人力需求申請', priority: 100, steps: 3, status: '啟用', grade: 'M1 ~ M9', amount: '—', days: '—' , currency: '法幣' },
+      { name: '薪資申請審批流', type: '薪資申請', priority: 100, steps: 3, status: '啟用', grade: 'M3 ~ BOSS', amount: '不限', days: '—' , currency: 'U幣' },
+    ];
+
+    // 職等清單（供新增 / 編輯模板的職等下限・上限下拉）
+    const GRADE_LEVELS = ['P1', 'P2', 'P3', 'P4', 'P5', 'P6', 'P7', 'P8', 'P9', 'P10', 'M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7', 'M8', 'M9', 'R', 'K', 'H', 'N', 'G', 'Y', 'X', 'C', 'BOSS', '顾问/C类'];
+
+    const initialRoleData = [
+      { code: 'applicant_direct_manager', name: '申請人直屬主管', parseType: '組織動態解析', description: '從員工組織歸屬中取得直屬主管，動態解析，無需設定群組' },
+      { code: 'department_manager', name: '部門主管', parseType: '組織動態解析', description: '從部門資料解析部門主管，動態解析，無需設定群組' },
+      { code: 'lead', name: '負責人', parseType: '審批對應解析', description: '依分組類型從審批對應解析對應負責人 (需同時選擇分組)' },
+      { code: 'hr', name: '人事專員', parseType: '審批對應解析', description: '依分組類型從審批對應解析對應人事專員' },
+      { code: 'hr_manager', name: '人事主管', parseType: '審批對應解析', description: '依分組類型從審批對應解析對應人事主管' },
+      { code: 'finance', name: '財務人員', parseType: '審批對應解析', description: '依分組類型從審批對應解析對應財務人員' },
+      { code: 'finance_manager', name: '財務主管', parseType: '審批對應解析', description: '依分組類型從審批對應解析對應財務主管' },
+      { code: 'ceo', name: '執行長', parseType: '審批對應解析', description: '特殊層級，從審批對應解析，需在帳號管理設定 scopeType=special' },
+      { code: 'chairman', name: '董事長', parseType: '審批對應解析', description: '特殊層級，從審批對應解析，需在帳號管理設定 scopeType=special' },
+    ];
+
+    // --- 主程式元件 ---
+    const App = () => {
+      const tabs = ['審批模板'];
+      const [activeTab, setActiveTab] = useState('審批模板');
+      
+      // 模板列表狀態
+      const [templates, setTemplates] = useState(initialTemplateData);
+      const [selectedListType, setSelectedListType] = useState(null); // 左側選單選定的表單類型
+
+      // 新增用的狀態
+      const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+      const [isTemplateEnabled, setIsTemplateEnabled] = useState(false);
+      const [selectedFormType, setSelectedFormType] = useState('');
+
+      // 編輯用的狀態
+      const [editingTemplate, setEditingTemplate] = useState(null);
+      const [isEditTemplateEnabled, setIsEditTemplateEnabled] = useState(true);
+      const [editSelectedFormType, setEditSelectedFormType] = useState('');
+
+      // 步驟設定用的狀態
+      const [isStepModalOpen, setIsStepModalOpen] = useState(false);
+      const [currentStepTemplate, setCurrentStepTemplate] = useState(null);
+      const [showRoleWarning, setShowRoleWarning] = useState(false); // 儲存步驟前的「角色分組未設置帳號」提示
+      const [warningRoles, setWarningRoles] = useState([]);
+      const [groupErrors, setGroupErrors] = useState({}); // 角色分組未選的必填錯誤 { 'stepIdx-approverIdx': true }
+      const [showSaved, setShowSaved] = useState(false); // 儲存成功提示
+      const [stepsData, setStepsData] = useState([]);
+
+      // 拖曳排序用的狀態
+      const [draggedItemIndex, setDraggedItemIndex] = useState(null);
+      const [dragOverItemIndex, setDragOverItemIndex] = useState(null);
+
+      // 審批角色清單與「新增審批角色」彈窗狀態
+      const [roleData, setRoleData] = useState(initialRoleData);
+      const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
+      const [newRoleName, setNewRoleName] = useState('');
+      const [newRoleDesc, setNewRoleDesc] = useState('');
+      const addApprovalRole = () => {
+        const name = newRoleName.trim();
+        if (!name) { window.alert('請填寫角色名稱'); return; }
+        setRoleData([...roleData, { code: 'custom_' + (roleData.length + 1), name, parseType: '審批對應解析', description: newRoleDesc.trim() || '—' }]);
+        setNewRoleName(''); setNewRoleDesc(''); setIsRoleModalOpen(false);
+      };
+
+      // 開啟編輯彈窗並預填資料
+      const openEditModal = (row) => {
+        setEditingTemplate(row);
+        setIsEditTemplateEnabled(row.status === '啟用');
+        setEditSelectedFormType(''); // 下拉預設值，藉由 placeholder 顯示目前 row.type
+      };
+
+      // 開啟步驟設定彈窗並載入假資料
+      const openStepModal = (row) => {
+        setCurrentStepTemplate(row);
+        // 載入符合截圖的初始資料
+        setStepsData([
+          { id: 1, kind: 'approval', signMethod: '串聯', allowAddSigner: false, approvers: ['申請人直屬主管'] },
+          { id: 2, kind: 'approval', signMethod: '串聯', allowAddSigner: false, approvers: ['部門主管'] },
+          { id: 3, kind: 'approval', signMethod: '串聯', allowAddSigner: false, approvers: ['負責人'] }
+        ]);
+        setGroupErrors({});
+        setShowRoleWarning(false);
+        setIsStepModalOpen(true);
+      };
+
+      const grouplessRoles = ['申請人直屬主管', '部門主管', '執行長', '董事長'];
+
+      // 更新某審批人的角色分組選擇，並清除該欄的必填錯誤
+      const updateGroup = (stepIndex, approverIndex, value) => {
+        setStepsData(stepsData.map((s, i) => {
+          if (i !== stepIndex) return s;
+          const groups = s.groups ? [...s.groups] : [];
+          groups[approverIndex] = value;
+          return { ...s, groups };
+        }));
+        const key = stepIndex + '-' + approverIndex;
+        if (groupErrors[key]) {
+          const ng = { ...groupErrors };
+          delete ng[key];
+          setGroupErrors(ng);
+        }
+      };
+
+      // 完成儲存：關閉彈窗並顯示「儲存成功」提示
+      const saveDone = () => {
+        setIsStepModalOpen(false);
+        setShowSaved(true);
+        setTimeout(() => setShowSaved(false), 2500);
+      };
+
+      // 點擊「儲存步驟」：1) 角色分組必填驗證；2) 模擬分組上尚未設置帳號的提示
+      const handleSaveSteps = () => {
+        // 1) 需指定分組的審批角色若未選分組 → 紅框 + 必填，阻擋儲存
+        const errors = {};
+        stepsData.forEach((s, si) => {
+          if (s.kind === 'approval') {
+            s.approvers.forEach((a, ai) => {
+              if (a && grouplessRoles.indexOf(a) === -1) {
+                const g = s.groups && s.groups[ai];
+                if (!g) errors[si + '-' + ai] = true;
+              }
+            });
+          }
+        });
+        if (Object.keys(errors).length > 0) {
+          setGroupErrors(errors);
+          return;
+        }
+        setGroupErrors({});
+
+        // 2) 分組已選，但模擬該分組上尚未設置帳號 → 提示
+        const roles = [];
+        stepsData.forEach(s => {
+          if (s.kind === 'approval') {
+            s.approvers.forEach(a => {
+              if (a && grouplessRoles.indexOf(a) === -1 && roles.indexOf(a) === -1) roles.push(a);
+            });
+          }
+        });
+        if (roles.length > 0) {
+          setWarningRoles(roles);
+          setShowRoleWarning(true);
+        } else {
+          saveDone();
+        }
+      };
+
+      // --- 拖曳排序處理函式 ---
+      const handleDragStart = (e, index) => {
+        setDraggedItemIndex(index);
+        e.dataTransfer.effectAllowed = "move";
+        // Firefox 相容性需要 setData
+        e.dataTransfer.setData("text/html", e.target.parentNode);
+      };
+
+      const handleDragEnter = (e, index) => {
+        e.preventDefault();
+        setDragOverItemIndex(index);
+      };
+
+      const handleDragOver = (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "move";
+      };
+
+      const handleDrop = (e, index) => {
+        e.preventDefault();
+        if (draggedItemIndex === null || draggedItemIndex === index) return;
+
+        const newSteps = [...stepsData];
+        const draggedItem = newSteps[draggedItemIndex];
+        // 移除被拖曳的項目
+        newSteps.splice(draggedItemIndex, 1);
+        // 插入到目標位置
+        newSteps.splice(index, 0, draggedItem);
+
+        setStepsData(newSteps);
+        setDraggedItemIndex(null);
+        setDragOverItemIndex(null);
+      };
+
+      const handleDragEnd = () => {
+        setDraggedItemIndex(null);
+        setDragOverItemIndex(null);
+      };
+
+      // --- 刪除模板 ---
+      const handleDeleteTemplate = (index) => {
+        if (window.confirm('確定要刪除此模板嗎？')) {
+          const newTemplates = [...templates];
+          newTemplates.splice(index, 1);
+          setTemplates(newTemplates);
+        }
+      };
+
+      // --- 更新簽署方式 ---
+      const updateSignMethod = (index, method) => {
+        const newSteps = [...stepsData];
+        newSteps[index].signMethod = method;
+        setStepsData(newSteps);
+      };
+
+      // --- 更新允許加簽 ---
+      const toggleAllowAddSigner = (index) => {
+        const newSteps = [...stepsData];
+        newSteps[index].allowAddSigner = !newSteps[index].allowAddSigner;
+        setStepsData(newSteps);
+      };
+
+      // --- 審批人設定操作 ---
+      const addApprover = (stepIndex) => {
+        const newSteps = [...stepsData];
+        newSteps[stepIndex].approvers.push('');
+        setStepsData(newSteps);
+      };
+
+      const removeApprover = (stepIndex, approverIndex) => {
+        const newSteps = [...stepsData];
+        newSteps[stepIndex].approvers.splice(approverIndex, 1);
+        setStepsData(newSteps);
+      };
+
+      const updateApprover = (stepIndex, approverIndex, value) => {
+        const newSteps = [...stepsData];
+        newSteps[stepIndex].approvers[approverIndex] = value;
+        setStepsData(newSteps);
+      };
+
+      // --- 新增審批步驟（插入於工作步驟之前）/ 新增工作步驟（附加於最後）/ 刪除步驟 ---
+      const nextStepId = (arr) => arr.reduce((m, s) => Math.max(m, s.id), 0) + 1;
+      const addApprovalStep = () => {
+        const newSteps = [...stepsData];
+        const approvalCount = newSteps.filter(s => s.kind === 'approval').length;
+        newSteps.splice(approvalCount, 0, { id: nextStepId(newSteps), kind: 'approval', signMethod: '串聯', allowAddSigner: false, approvers: [''] });
+        setStepsData(newSteps);
+      };
+      const addWorkStep = () => {
+        const newSteps = [...stepsData];
+        newSteps.push({ id: nextStepId(newSteps), kind: 'work', task: '', assignee: '' });
+        setStepsData(newSteps);
+      };
+      const removeStep = (index) => {
+        const newSteps = [...stepsData];
+        newSteps.splice(index, 1);
+        setStepsData(newSteps);
+      };
+      const updateWorkField = (index, field, value) => {
+        const newSteps = [...stepsData];
+        newSteps[index][field] = value;
+        setStepsData(newSteps);
+      };
+
+      // 依類型分組（保留原始索引以供操作）
+      const approvalSteps = stepsData.map((s, i) => ({ s, i })).filter(x => x.s.kind === 'approval');
+      const workSteps = stepsData.map((s, i) => ({ s, i })).filter(x => x.s.kind === 'work');
+
+      return (
+        <div className="min-h-screen bg-[#F5F6F8] font-sans text-gray-800 flex flex-col p-6">
+          
+          {/* 大標題 */}
+          <div className="mb-6">
+            <h1 className="ui-page-title">審批流管理</h1>
+          </div>
+
+          {/* 白色主卡片 */}
+          <main className="ui-card overflow-hidden w-full">
+            
+            {/* 內容區塊 */}
+            <div className="p-6 space-y-5">
+              <>
+                {(() => {
+                  // 依「表單類型」彙整（保留原始索引供編輯／刪除）
+                  const groups = [];
+                  const seen = {};
+                  templates.forEach((row, idx) => {
+                    if (!(row.type in seen)) { seen[row.type] = groups.length; groups.push({ type: row.type, items: [] }); }
+                    groups[seen[row.type]].items.push({ row, idx });
+                  });
+                  const activeType = (selectedListType && groups.some(g => g.type === selectedListType)) ? selectedListType : (groups[0] ? groups[0].type : null);
+                  const activeGroup = groups.find(g => g.type === activeType);
+                  return (
+                    <div className="flex gap-5">
+                      {/* 左側：表單類型選單 */}
+                      <aside className="w-60 shrink-0 border-r border-gray-200 pr-4">
+                        <div className="text-xs font-semibold text-gray-400 mb-2 px-1">表單類型</div>
+                        <div className="space-y-1 max-h-[62vh] overflow-y-auto custom-scrollbar pr-1">
+                          {groups.map(g => (
+                            <button
+                              key={g.type}
+                              onClick={() => setSelectedListType(g.type)}
+                              className={`w-full text-left px-3 py-2 rounded-md text-sm flex items-center justify-between transition-colors ${activeType === g.type ? 'bg-[#EAF2FC] text-[#2b3b84] font-semibold' : 'text-gray-700 hover:bg-gray-50'}`}
+                            >
+                              <span className="truncate">{g.type}</span>
+                              <span className={`ml-2 shrink-0 text-xs ${activeType === g.type ? 'text-[#4A90E2]' : 'text-gray-400'}`}>{g.items.length}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </aside>
+
+                      {/* 右側：選定表單類型的模板 */}
+                      <section className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between mb-3">
+                          <h3 className="font-bold text-gray-800 text-[15px] inline-flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-[#4A90E2]"></span>
+                            {activeType || '—'}
+                            <span className="ml-1 font-normal text-gray-400 text-[13px]">· 共 {activeGroup ? activeGroup.items.length : 0} 個模板</span>
+                          </h3>
+                          <button onClick={() => setIsAddModalOpen(true)} className="ui-btn ui-btn-primary">
+                            <Plus size={15} strokeWidth={2.5} /> 新增模板
+                          </button>
+                        </div>
+                        <div className="border border-gray-200 rounded overflow-x-auto custom-scrollbar">
+                          <table className="ui-table text-left whitespace-nowrap">
+                            <thead>
+                              <tr>
+                                <th className="w-[24%]">模板名稱</th>
+                                <th className="text-center w-[12%]">職等</th>
+                                <th className="text-center w-[18%]">金額上下限</th>
+                                <th className="text-center w-[11%]">請假天數</th>
+                                <th className="text-center w-[10%]">貨幣類型</th>
+                                <th className="text-center w-[9%]">狀態</th>
+                                <th className="text-center w-[16%]">操作</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {activeGroup && activeGroup.items.map(({ row, idx }) => (
+                                <tr key={idx}>
+                                  <td>{row.name}</td>
+                                  <td className="text-center text-gray-700">{row.grade || '—'}</td>
+                                  <td className="text-center font-mono text-gray-700">{row.amount}</td>
+                                  <td className="text-center text-gray-700">{row.days}</td>
+                                  <td className="text-center text-gray-700">{row.currency || '—'}</td>
+                                  <td className="text-center"><span className="ui-badge ui-badge-success">{row.status}</span></td>
+                                  <td className="text-center">
+                                    <div className="flex items-center justify-center gap-2">
+                                      <button onClick={() => openEditModal(row)} className="ui-btn ui-btn-secondary ui-btn-sm">編輯</button>
+                                      <button onClick={() => openStepModal(row)} className="ui-btn ui-btn-secondary ui-btn-sm">步驟設定</button>
+                                      <button onClick={() => handleDeleteTemplate(idx)} className="ui-btn ui-btn-sm text-rose-600 border border-rose-200 hover:bg-rose-50">刪除</button>
+                                    </div>
+                                  </td>
+                                </tr>
+                              ))}
+                              {(!activeGroup || activeGroup.items.length === 0) && (
+                                <tr><td colSpan={7} className="text-center text-gray-400 py-6">此表單類型尚無模板</td></tr>
+                              )}
+                            </tbody>
+                          </table>
+                        </div>
+                      </section>
+                    </div>
+                  );
+                })()}
+              </>
+
+            </div>
+          </main>
+
+          {/* 新增審批模板彈窗 */}
+          {isAddModalOpen && (
+            <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-center justify-center p-4" onClick={() => setIsAddModalOpen(false)}>
+              <div
+                className="bg-white rounded-lg shadow-xl w-full max-w-[760px] flex flex-col overflow-hidden text-left"
+                onClick={e => e.stopPropagation()}
+              >
+                <div className="p-8 pb-6 space-y-6">
+                  {/* Header */}
+                  <div className="flex items-center justify-between mb-2">
+                    <h2 className="text-[20px] font-medium text-gray-800">新增審批模板</h2>
+                    <button onClick={() => setIsAddModalOpen(false)} className="text-gray-400 hover:text-gray-600 transition-colors">
+                      <X size={20} />
+                    </button>
+                  </div>
+
+                  {/* Body / Form Fields */}
+                  <div className="space-y-4">
+                    {/* 表單類型 */}
+                    <div className="flex items-center gap-4">
+                      <div className="w-[100px] text-right text-[14px] text-gray-700 shrink-0 whitespace-nowrap"><span className="text-red-500 mr-1">*</span>表單類型</div>
+                      <div className="flex-1">
+                        <select
+                          value={selectedFormType}
+                          onChange={(e) => setSelectedFormType(e.target.value)}
+                          className={`ui-select ${selectedFormType === '' ? 'text-gray-400' : 'text-gray-800'}`}
+                        >
+                          <option value="" disabled hidden>請選擇</option>
+                          <option value="AA">資產調撥申請 (AA)</option>
+                          <option value="AM">資產維修申請 (AM)</option>
+                          <option value="AR">資產減少申請 (AR)</option>
+                          <option value="ASSETS">新增資產申請 (ASSETS)</option>
+                          <option value="PTA">差旅申請單 (PTA)</option>
+                          <option value="PU">請購申請 (PU)</option>
+                          <option value="SA">其他申請 (SA)</option>
+                          <option value="B_FEE">一般費用 (B)</option>
+                          <option value="C_FEE">費用報銷單 (C)</option>
+                          <option value="B_HR">人力成本及猎头费 (B)</option>
+                          <option value="C_HR">人力成本及猎头费 (C)</option>
+                          <option value="B_COMM">佣金返点 (B)</option>
+                          <option value="C_COMM">佣金返点 (C)</option>
+                          <option value="B_BAD">其他壞帳審批 (B)</option>
+                          <option value="C_BAD">其他壞帳審批 (C)</option>
+                          <option value="B_REG">區域備用金（仅限资金部使用） (B)</option>
+                          <option value="C_REG">區域備用金（仅限资金部使用） (C)</option>
+                          <option value="B_WEL">员工福利及團建費 (B)</option>
+                          <option value="C_WEL">员工福利及團建費 (C)</option>
+                          <option value="B_SUB">子表單B（申請費用） (B)</option>
+                          <option value="C_SUB">子表單C（報銷費用） (C)</option>
+                          <option value="B_TRIP">差旅報銷線 (B)</option>
+                          <option value="C_TRIP">差旅報銷線 (C)</option>
+                          <option value="B_AR">應收壞帳 (B)</option>
+                          <option value="C_AR">應收壞帳 (C)</option>
+                          <option value="B_PRIV">私帳 (B)</option>
+                          <option value="C_PRIV">私帳 (C)</option>
+                          <option value="B_PRIV_PROJ">私帳項目審批線 (B)</option>
+                          <option value="C_PRIV_PROJ">私帳項目審批線 (C)</option>
+                          <option value="B_PERF">績效審批線 (B)</option>
+                          <option value="C_PERF">績效審批線 (C)</option>
+                          <option value="BU">商務公告(BU)</option>
+                          <option value="IC">內部合同審批單 (IC)</option>
+                          <option value="PMO">PMO項目立項申請 (PMO)</option>
+                          <option value="PMOA">PMO項目變更 (PMOA)</option>
+                          <option value="PMOS">PMO項目終止 (PMOS)</option>
+                          <option value="HR_CHANGE">員工一般人事異動</option>
+                          <option value="HR_HIRE">錄用審批單</option>
+                          <option value="HR_REQ">招聘需求單</option>
+                          <option value="HR_SALARY">薪資、職級異動單</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* 模板名稱 */}
+                    <div className="flex items-center gap-4">
+                      <div className="w-[100px] text-right text-[14px] text-gray-700 shrink-0 whitespace-nowrap"><span className="text-red-500 mr-1">*</span>模板名稱</div>
+                      <input type="text" className="ui-input flex-1" />
+                    </div>
+
+                    {/* 職等範圍（下限 ~ 上限）*/}
+                    <div className="flex items-center gap-4 pt-1">
+                      <div className="w-[100px] text-right text-[14px] text-gray-700 shrink-0 whitespace-nowrap">職等</div>
+                      <div className="flex-1 flex items-center gap-2">
+                        <select defaultValue="" className="ui-select flex-1">
+                          <option value="" disabled hidden>職等下限</option>
+                          {GRADE_LEVELS.map(g => <option key={g} value={g}>{g}</option>)}
+                        </select>
+                        <span className="text-gray-400">~</span>
+                        <select defaultValue="" className="ui-select flex-1">
+                          <option value="" disabled hidden>職等上限</option>
+                          {GRADE_LEVELS.map(g => <option key={g} value={g}>{g}</option>)}
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* 金額範圍（下限 ~ 上限）*/}
+                    <div className="flex items-center gap-4 pt-1">
+                      <div className="w-[100px] text-right text-[14px] text-gray-700 shrink-0 whitespace-nowrap">金額範圍</div>
+                      <div className="flex-1 flex items-center gap-2">
+                        <div className="flex-1 flex items-center border border-gray-300 rounded overflow-hidden">
+                          <button className="px-3 py-2 border-r border-gray-300 text-gray-500 hover:bg-gray-50 transition-colors"><span className="text-lg leading-none">−</span></button>
+                          <input type="text" placeholder="下限" className="flex-1 w-0 text-center text-[14px] outline-none text-gray-400" readOnly />
+                          <button className="px-3 py-2 border-l border-gray-300 text-gray-500 hover:bg-gray-50 transition-colors"><Plus size={16} /></button>
+                        </div>
+                        <span className="text-gray-400 shrink-0">~</span>
+                        <div className="flex-1 flex items-center border border-gray-300 rounded overflow-hidden">
+                          <button className="px-3 py-2 border-r border-gray-300 text-gray-500 hover:bg-gray-50 transition-colors"><span className="text-lg leading-none">−</span></button>
+                          <input type="text" placeholder="上限" className="flex-1 w-0 text-center text-[14px] outline-none text-gray-400" readOnly />
+                          <button className="px-3 py-2 border-l border-gray-300 text-gray-500 hover:bg-gray-50 transition-colors"><Plus size={16} /></button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 請假天數（下限 ~ 上限）*/}
+                    <div className="flex items-center gap-4">
+                      <div className="w-[100px] text-right text-[14px] text-gray-700 shrink-0 whitespace-nowrap">請假天數</div>
+                      <div className="flex-1 flex items-center gap-2">
+                        <div className="flex-1 flex items-center border border-gray-300 rounded overflow-hidden">
+                          <button className="px-3 py-2 border-r border-gray-300 text-gray-500 hover:bg-gray-50 transition-colors"><span className="text-lg leading-none">−</span></button>
+                          <input type="text" placeholder="下限" className="flex-1 w-0 text-center text-[14px] outline-none text-gray-400" readOnly />
+                          <button className="px-3 py-2 border-l border-gray-300 text-gray-500 hover:bg-gray-50 transition-colors"><Plus size={16} /></button>
+                        </div>
+                        <span className="text-gray-400 shrink-0">~</span>
+                        <div className="flex-1 flex items-center border border-gray-300 rounded overflow-hidden">
+                          <button className="px-3 py-2 border-r border-gray-300 text-gray-500 hover:bg-gray-50 transition-colors"><span className="text-lg leading-none">−</span></button>
+                          <input type="text" placeholder="上限" className="flex-1 w-0 text-center text-[14px] outline-none text-gray-400" readOnly />
+                          <button className="px-3 py-2 border-l border-gray-300 text-gray-500 hover:bg-gray-50 transition-colors"><Plus size={16} /></button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 貨幣類型 */}
+                    <div className="flex items-center gap-4">
+                      <div className="w-[100px] text-right text-[14px] text-gray-700 shrink-0 whitespace-nowrap">貨幣類型</div>
+                      <div className="flex-1">
+                        <select className="w-full border border-gray-300 rounded px-3 py-2 text-[14px] outline-none focus:border-[#4A90E2]">
+                          <option>法幣</option>
+                          <option>U幣</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* 狀態 */}
+                    <div className="flex items-center gap-4 pt-2">
+                      <div className="w-[100px] text-right text-[14px] text-gray-700 shrink-0 whitespace-nowrap">狀態</div>
+                      <div className="flex items-center pl-1">
+                        <button
+                          onClick={() => setIsTemplateEnabled(!isTemplateEnabled)}
+                          className={`relative inline-flex h-6 w-[42px] items-center rounded-full transition-colors focus:outline-none ${isTemplateEnabled ? 'bg-[#4A90E2]' : 'bg-gray-300'}`}
+                        >
+                          <span className={`inline-block h-[18px] w-[18px] transform rounded-full bg-white transition-transform ${isTemplateEnabled ? 'translate-x-[21px]' : 'translate-x-0.5'}`} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Footer */}
+                  <div className="flex justify-end gap-3 pt-6 mt-2">
+                    <button onClick={() => setIsAddModalOpen(false)} className="ui-btn ui-btn-secondary">取消</button>
+                    <button className="ui-btn ui-btn-primary">確定</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 編輯審批模板彈窗 */}
+          {editingTemplate && (
+            <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-center justify-center p-4" onClick={() => setEditingTemplate(null)}>
+              <div
+                className="bg-white rounded-lg shadow-xl w-full max-w-[760px] flex flex-col overflow-hidden text-left"
+                onClick={e => e.stopPropagation()}
+              >
+                <div className="p-8 pb-6 space-y-6">
+                  {/* Header */}
+                  <div className="flex items-center justify-between mb-2">
+                    <h2 className="text-[20px] font-medium text-gray-800">編輯審批模板</h2>
+                    <button onClick={() => setEditingTemplate(null)} className="text-gray-400 hover:text-gray-600 transition-colors">
+                      <X size={20} />
+                    </button>
+                  </div>
+
+                  {/* Body / Form Fields */}
+                  <div className="space-y-4">
+                    {/* 表單類型（不可修改） */}
+                    <div className="flex items-center gap-4">
+                      <div className="w-[100px] text-right text-[14px] text-gray-700 shrink-0 whitespace-nowrap"><span className="text-red-500 mr-1">*</span>表單類型</div>
+                      <input type="text" defaultValue={editingTemplate.type} disabled className="ui-input flex-1 bg-gray-100 text-gray-500 cursor-not-allowed" />
+                    </div>
+
+                    {/* 模板名稱 */}
+                    <div className="flex items-center gap-4">
+                      <div className="w-[100px] text-right text-[14px] text-gray-700 shrink-0 whitespace-nowrap"><span className="text-red-500 mr-1">*</span>模板名稱</div>
+                      <input type="text" defaultValue={editingTemplate.name} className="ui-input flex-1" />
+                    </div>
+
+                    {/* 職等範圍（下限 ~ 上限）*/}
+                    <div className="flex items-center gap-4 pt-1">
+                      <div className="w-[100px] text-right text-[14px] text-gray-700 shrink-0 whitespace-nowrap">職等</div>
+                      <div className="flex-1 flex items-center gap-2">
+                        <select defaultValue="" className="ui-select flex-1">
+                          <option value="" disabled hidden>職等下限</option>
+                          {GRADE_LEVELS.map(g => <option key={g} value={g}>{g}</option>)}
+                        </select>
+                        <span className="text-gray-400">~</span>
+                        <select defaultValue="" className="ui-select flex-1">
+                          <option value="" disabled hidden>職等上限</option>
+                          {GRADE_LEVELS.map(g => <option key={g} value={g}>{g}</option>)}
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* 金額範圍（下限 ~ 上限）— 可編輯 */}
+                    <div className="flex items-center gap-4 pt-1">
+                      <div className="w-[100px] text-right text-[14px] text-gray-700 shrink-0 whitespace-nowrap">金額範圍</div>
+                      <div className="flex-1 flex items-center gap-2">
+                        <div className="flex-1 flex items-center border border-gray-300 rounded overflow-hidden focus-within:border-blue-500">
+                          <button className="px-3 py-2 border-r border-gray-300 text-gray-500 hover:bg-gray-50 transition-colors"><span className="text-lg leading-none">−</span></button>
+                          <input type="text" placeholder="下限" className="flex-1 w-0 text-center text-[14px] outline-none text-gray-700" />
+                          <button className="px-3 py-2 border-l border-gray-300 text-gray-500 hover:bg-gray-50 transition-colors"><Plus size={16} /></button>
+                        </div>
+                        <span className="text-gray-400 shrink-0">~</span>
+                        <div className="flex-1 flex items-center border border-gray-300 rounded overflow-hidden focus-within:border-blue-500">
+                          <button className="px-3 py-2 border-r border-gray-300 text-gray-500 hover:bg-gray-50 transition-colors"><span className="text-lg leading-none">−</span></button>
+                          <input type="text" placeholder="上限" className="flex-1 w-0 text-center text-[14px] outline-none text-gray-700" />
+                          <button className="px-3 py-2 border-l border-gray-300 text-gray-500 hover:bg-gray-50 transition-colors"><Plus size={16} /></button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 請假天數（下限 ~ 上限）— 可編輯 */}
+                    <div className="flex items-center gap-4">
+                      <div className="w-[100px] text-right text-[14px] text-gray-700 shrink-0 whitespace-nowrap">請假天數</div>
+                      <div className="flex-1 flex items-center gap-2">
+                        <div className="flex-1 flex items-center border border-gray-300 rounded overflow-hidden focus-within:border-blue-500">
+                          <button className="px-3 py-2 border-r border-gray-300 text-gray-500 hover:bg-gray-50 transition-colors"><span className="text-lg leading-none">−</span></button>
+                          <input type="text" placeholder="下限" className="flex-1 w-0 text-center text-[14px] outline-none text-gray-700" />
+                          <button className="px-3 py-2 border-l border-gray-300 text-gray-500 hover:bg-gray-50 transition-colors"><Plus size={16} /></button>
+                        </div>
+                        <span className="text-gray-400 shrink-0">~</span>
+                        <div className="flex-1 flex items-center border border-gray-300 rounded overflow-hidden focus-within:border-blue-500">
+                          <button className="px-3 py-2 border-r border-gray-300 text-gray-500 hover:bg-gray-50 transition-colors"><span className="text-lg leading-none">−</span></button>
+                          <input type="text" placeholder="上限" className="flex-1 w-0 text-center text-[14px] outline-none text-gray-700" />
+                          <button className="px-3 py-2 border-l border-gray-300 text-gray-500 hover:bg-gray-50 transition-colors"><Plus size={16} /></button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 貨幣類型 — 可編輯 */}
+                    <div className="flex items-center gap-4">
+                      <div className="w-[100px] text-right text-[14px] text-gray-700 shrink-0 whitespace-nowrap">貨幣類型</div>
+                      <div className="flex-1">
+                        <select defaultValue={editingTemplate.currency || '法幣'} className="w-full border border-gray-300 rounded px-3 py-2 text-[14px] outline-none focus:border-blue-500">
+                          <option>法幣</option>
+                          <option>U幣</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* 狀態 */}
+                    <div className="flex items-center gap-4 pt-2">
+                      <div className="w-[100px] text-right text-[14px] text-gray-700 shrink-0 whitespace-nowrap">狀態</div>
+                      <div className="flex items-center pl-1">
+                        <button
+                          onClick={() => setIsEditTemplateEnabled(!isEditTemplateEnabled)}
+                          className={`relative inline-flex h-6 w-[42px] items-center rounded-full transition-colors focus:outline-none ${isEditTemplateEnabled ? 'bg-[#4A90E2]' : 'bg-gray-300'}`}
+                        >
+                          <span className={`inline-block h-[18px] w-[18px] transform rounded-full bg-white transition-transform ${isEditTemplateEnabled ? 'translate-x-[21px]' : 'translate-x-0.5'}`} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Footer */}
+                  <div className="flex justify-end gap-3 pt-6 mt-2">
+                    <button onClick={() => setEditingTemplate(null)} className="ui-btn ui-btn-secondary">取消</button>
+                    <button className="ui-btn ui-btn-primary">確定</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 步驟設定彈窗 */}
+          {isStepModalOpen && currentStepTemplate && (
+            <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-center justify-center p-4" onClick={() => setIsStepModalOpen(false)}>
+              <div
+                className="bg-white rounded-lg shadow-xl w-full max-w-[850px] max-h-[90vh] flex flex-col overflow-hidden text-left"
+                onClick={e => e.stopPropagation()}
+              >
+                {/* Header */}
+                <div className="px-6 py-4 flex items-center justify-between bg-white shrink-0">
+                  <h2 className="text-[20px] font-medium text-gray-800">步驟設定 — {currentStepTemplate.name}</h2>
+                  <button onClick={() => setIsStepModalOpen(false)} className="text-gray-400 hover:text-gray-600 transition-colors">
+                    <X size={22} />
+                  </button>
+                </div>
+
+                {/* Body */}
+                <div className="p-6 pt-5 bg-[#F5F6F8] flex-1 overflow-y-auto">
+                  
+                  {/* 操作列：新增審批 / 新增工作步驟 */}
+                  <div className="flex items-center gap-3 mb-5 flex-wrap">
+                    <button onClick={addApprovalStep} className="ui-btn ui-btn-primary">
+                      <Plus size={15} strokeWidth={2.5} /> 新增審批
+                    </button>
+                    <button onClick={addWorkStep} className="ui-btn ui-btn-secondary">
+                      <Plus size={15} strokeWidth={2.5} /> 新增工作步驟
+                    </button>
+                    <span className="text-gray-500 text-[13px] ml-auto">共 {approvalSteps.length} 個審批步驟 · {workSteps.length} 個工作步驟</span>
+                  </div>
+
+                  {/* === 審批步驟 分區 === */}
+                  <div className="space-y-2 mb-5">
+                      {approvalSteps.length === 0 && (
+                        <p className="text-[13px] text-gray-400 text-center py-4">尚無審批步驟，請點擊「新增審批」。</p>
+                      )}
+                      {approvalSteps.map(({ s: step, i: index }, pos) => (
+                        <div
+                          key={step.id}
+                          draggable
+                          onDragStart={(e) => handleDragStart(e, index)}
+                          onDragEnter={(e) => handleDragEnter(e, index)}
+                          onDragOver={handleDragOver}
+                          onDrop={(e) => handleDrop(e, index)}
+                          onDragEnd={handleDragEnd}
+                          className={`bg-white border rounded-lg px-4 py-2.5 shadow-sm cursor-grab active:cursor-grabbing transition-all duration-200 ${
+                            draggedItemIndex === index ? 'opacity-40 border-dashed border-[#4A90E2] scale-[0.98]' :
+                            dragOverItemIndex === index ? 'border-dashed border-2 border-[#4A90E2] bg-[#F0F7FF]' : 'border-gray-200'
+                          }`}
+                        >
+                          {/* 步驟序號 + 審批人下拉 + 刪除 */}
+                          <div className="flex items-start gap-3">
+                            <span className="mt-1 shrink-0 inline-flex items-center justify-center px-2.5 py-1 rounded-md bg-[#EAF2FC] text-[#3949AB] font-bold text-[13px]">審批 {pos + 1}</span>
+                            <div className="flex-1 min-w-0 flex flex-col gap-2">
+                              {step.approvers.map((approver, aIdx) => (
+                                <div key={aIdx} className="flex items-center gap-2">
+                                  <select
+                                    value={approver}
+                                    onChange={(e) => updateApprover(index, aIdx, e.target.value)}
+                                    onMouseDown={(e) => e.stopPropagation()}
+                                    className="ui-select flex-1 max-w-[320px]"
+                                  >
+                                    <option value="" disabled hidden>請選擇審批人</option>
+                                    {roleData.map(r => (
+                                      <option key={r.code} value={r.name}>{r.name}</option>
+                                    ))}
+                                  </select>
+                                  {approver !== '' && approver !== '申請人直屬主管' && approver !== '部門主管' && approver !== '執行長' && approver !== '董事長' && (
+                                    <div className="shrink-0 flex items-center gap-1.5">
+                                      <select
+                                        value={(step.groups && step.groups[aIdx]) || ''}
+                                        onChange={(e) => updateGroup(index, aIdx, e.target.value)}
+                                        onMouseDown={(e) => e.stopPropagation()}
+                                        className={`ui-select w-[150px] ${groupErrors[index + '-' + aIdx] ? '!border-red-400 ring-2 ring-red-200' : ''}`}
+                                      >
+                                        <option value="" disabled hidden>角色分組</option>
+                                        <option value="region">地區</option>
+                                        <option value="company">公司</option>
+                                        <option value="bu">事業部</option>
+                                        <option value="project">項目</option>
+                                        <option value="department">部門</option>
+                                      </select>
+                                      {groupErrors[index + '-' + aIdx] && (
+                                        <span className="text-red-500 text-[11px] shrink-0">必填</span>
+                                      )}
+                                    </div>
+                                  )}
+                                  {step.approvers.length > 1 && (
+                                    <button onClick={() => removeApprover(index, aIdx)} onMouseDown={(e) => e.stopPropagation()} className="text-[#D93025] hover:text-red-700 text-[13px] font-bold shrink-0">移除</button>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                            <button onClick={() => addApprover(index)} onMouseDown={(e) => e.stopPropagation()} className="mt-1 shrink-0 text-[#4A90E2] hover:text-blue-700 text-[13px] font-medium flex items-center gap-1">
+                              <Plus size={14} strokeWidth={2} /> 新增審批人
+                            </button>
+                            <button onClick={() => removeStep(index)} onMouseDown={(e) => e.stopPropagation()} className="mt-1 text-[#E53935] hover:text-red-700 text-[13px] font-bold shrink-0">刪除</button>
+                          </div>
+
+                          {/* 簽署方式 + 允許加簽 */}
+                          <div className="flex items-center gap-3 mt-2 pt-2 border-t border-gray-100 flex-wrap">
+                            <span className="text-gray-600 text-[13px] shrink-0">簽署方式</span>
+                            <div className="flex border border-gray-200 rounded overflow-hidden text-[12px] shadow-sm" onMouseDown={(e) => e.stopPropagation()}>
+                              {['串聯', '並聯', '抄送'].map((method, mIdx) => (
+                                <button
+                                  key={method}
+                                  onClick={() => updateSignMethod(index, method)}
+                                  className={`px-3.5 py-1.5 font-medium transition-colors ${
+                                    step.signMethod === method ? 'bg-[#4A90E2] text-white' : 'bg-white text-gray-700 hover:bg-gray-50'
+                                  } ${mIdx > 0 ? 'border-l border-gray-200' : ''}`}
+                                >
+                                  {method}
+                                </button>
+                              ))}
+                            </div>
+                            <div className="flex items-center gap-2 ml-2">
+                              <span className="text-gray-600 text-[13px]">允許加簽</span>
+                              <button onClick={() => toggleAllowAddSigner(index)} onMouseDown={(e) => e.stopPropagation()} className={`relative inline-flex h-5 w-[38px] items-center rounded-full transition-colors focus:outline-none ${step.allowAddSigner ? 'bg-[#4A90E2]' : 'bg-gray-300'}`}>
+                                <span className={`inline-block h-[14px] w-[14px] transform rounded-full bg-white transition-transform ${step.allowAddSigner ? 'translate-x-[21px]' : 'translate-x-[3px]'}`} />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+
+                  {/* === 工作步驟 分區 === */}
+                  {workSteps.length > 0 && (
+                    <div className="rounded-lg border border-[#9FE3DE] bg-[#F0FBFA] p-4">
+                      <div className="flex items-center gap-2 mb-3">
+                        <span className="w-1.5 h-5 bg-[#0EA5A0] rounded-full"></span>
+                        <h3 className="font-bold text-gray-800 text-[15px]">工作步驟</h3>
+                        <span className="text-[12px] text-gray-400">審批通過後執行的作業</span>
+                      </div>
+                      <div className="space-y-2">
+                        {workSteps.map(({ s: step, i: index }, pos) => (
+                          <div key={step.id} className="bg-white border border-[#BFECE8] rounded-lg p-4 shadow-sm">
+                            <div className="flex items-start gap-3">
+                              <span className="mt-1 shrink-0 inline-flex items-center justify-center px-2.5 py-1 rounded-md bg-[#D7F5F2] text-[#0E7C77] font-bold text-[13px]">工作 {pos + 1}</span>
+                              <div className="flex-1 min-w-0 flex flex-col gap-2">
+                                <input
+                                  type="text"
+                                  value={step.task}
+                                  onChange={(e) => updateWorkField(index, 'task', e.target.value)}
+                                  placeholder="請輸入工作項目名稱（例如：建立員工帳號、寄送通知）"
+                                  className="ui-input"
+                                />
+                                <div className="flex items-center gap-2">
+                                  <span className="text-gray-600 text-[13px] shrink-0">負責人</span>
+                                  <select
+                                    value={step.assignee}
+                                    onChange={(e) => updateWorkField(index, 'assignee', e.target.value)}
+                                    className="ui-select flex-1 max-w-[320px]"
+                                  >
+                                    <option value="" disabled hidden>請選擇負責人</option>
+                                    {roleData.map(r => (
+                                      <option key={r.code} value={r.name}>{r.name}</option>
+                                    ))}
+                                  </select>
+                                </div>
+                              </div>
+                              <button onClick={() => removeStep(index)} className="text-[#E53935] hover:text-red-700 text-[13px] font-bold shrink-0">刪除</button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                </div>
+
+                {/* Footer */}
+                <div className="px-6 py-4 border-t border-gray-200 flex justify-end gap-3 bg-white shrink-0">
+                  <button onClick={() => setIsStepModalOpen(false)} className="ui-btn ui-btn-secondary">取消</button>
+                  <button onClick={handleSaveSteps} className="ui-btn ui-btn-primary">儲存步驟</button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 儲存步驟前的提示：審批角色在分組上尚未設置帳號 */}
+          {showRoleWarning && (
+            <div className="fixed inset-0 bg-black bg-opacity-45 z-[60] flex items-center justify-center p-4" onClick={() => setShowRoleWarning(false)}>
+              <div className="bg-white rounded-lg shadow-xl w-full max-w-[460px] overflow-hidden" onClick={e => e.stopPropagation()}>
+                <div className="px-6 py-4 flex items-start gap-3 border-b border-gray-100">
+                  <div className="w-9 h-9 rounded-full bg-amber-50 text-amber-500 flex items-center justify-center shrink-0 font-bold text-lg">!</div>
+                  <div>
+                    <h3 className="text-base font-bold text-gray-900">部分審批角色尚未設置帳號</h3>
+                    <p className="text-sm text-gray-500 mt-1">下列審批角色在所選分組尚未設置對應帳號，請確認是否仍要儲存：</p>
+                  </div>
+                </div>
+                <div className="px-6 py-4">
+                  <ul className="space-y-1.5 text-sm text-gray-700">
+                    {warningRoles.map(r => (
+                      <li key={r} className="flex items-start gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0 mt-[7px]"></span>
+                        <div>
+                          <span className="font-medium">{r}</span>
+                          <div className="text-gray-500 text-xs mt-0.5">分組（地區）僅設置「英國」，「日本」、「台灣」尚未設定</div>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="px-6 py-4 flex justify-end gap-2.5 bg-gray-50 border-t border-gray-100">
+                  <button onClick={() => setShowRoleWarning(false)} className="ui-btn ui-btn-secondary">返回設置</button>
+                  <button onClick={() => { setShowRoleWarning(false); saveDone(); }} className="ui-btn ui-btn-primary">仍要儲存</button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 儲存成功提示 */}
+          {showSaved && (
+            <div className="fixed bottom-5 right-5 z-[70] flex items-center gap-2.5 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-2xl">
+              <span className="w-5 h-5 rounded-full bg-emerald-500 text-white text-xs flex items-center justify-center">✓</span>
+              <span className="text-sm font-medium">儲存成功</span>
+            </div>
+          )}
+
+        </div>
+      );
+    };
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>

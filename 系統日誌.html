@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>系統日誌</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: { extend: {
+                colors: { primary: '#4A90E2', 'primary-light': '#EAF2FC', background: '#F8F9FB', card: '#FFFFFF',
+                    text: { main: '#1F2937', muted: '#6B7280', light: '#9CA3AF' } },
+                fontFamily: { sans: ['"Inter"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'] },
+                boxShadow: { 'card': '0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03)', 'modal': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)' }
+            } }
+        }
+    </script>
+    <style>
+        body { background-color: theme('colors.background'); font-family: theme('fontFamily.sans'); }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+    <link rel="stylesheet" href="shared-ui.css">
+</head>
+<body class="ui-page text-text-main antialiased relative">
+
+    <div class="relative mx-auto w-full space-y-6">
+        <header class="ui-page-header">
+            <h1 class="ui-page-title">系統日誌</h1>
+        </header>
+
+        <section class="ui-card p-4 sm:p-6 space-y-4">
+            <!-- 工具列 -->
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 flex-1">
+                    <div class="ui-search w-full sm:w-72">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="log-search" oninput="renderLogs()" placeholder="搜尋操作人 / 模組 / 說明 / IP..." class="ui-input ui-search-input">
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <input type="date" id="log-date-from" onchange="renderLogs()" class="ui-input w-40">
+                        <span class="text-gray-400 text-sm">~</span>
+                        <input type="date" id="log-date-to" onchange="renderLogs()" class="ui-input w-40">
+                    </div>
+                    <select id="log-type" onchange="renderLogs()" class="ui-select w-full sm:w-32">
+                        <option value="">全部類型</option>
+                        <option>登入</option><option>登出</option><option>新增</option><option>修改</option><option>刪除</option><option>審核</option><option>匯出</option>
+                    </select>
+                </div>
+                <button onclick="exportLogs()" class="ui-btn ui-btn-secondary w-full lg:w-auto"><i class="fa-solid fa-file-export"></i> 匯出</button>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <h2 class="text-lg font-bold text-gray-900 whitespace-nowrap">操作紀錄</h2>
+                <span id="log-count-badge" class="bg-blue-50 text-primary text-xs px-2.5 py-1 rounded-md font-bold">0 筆</span>
+            </div>
+
+            <div class="overflow-x-auto rounded-lg border border-gray-100">
+                <table class="ui-table whitespace-nowrap">
+                    <thead>
+                        <tr>
+                            <th class="text-left w-44">操作時間</th>
+                            <th class="text-left w-40">操作人</th>
+                            <th class="text-left w-32">模組 / 頁面</th>
+                            <th class="text-center w-24">操作類型</th>
+                            <th class="text-left min-w-[240px]">操作說明</th>
+                            <th class="text-left w-36">IP 位址</th>
+                            <th class="text-center w-20">結果</th>
+                        </tr>
+                    </thead>
+                    <tbody id="log-tbody"></tbody>
+                </table>
+            </div>
+            <div id="log-no-data" class="hidden py-16 text-center space-y-3">
+                <div class="inline-flex p-4 bg-gray-50 text-gray-400 rounded-full"><i class="fa-solid fa-clock-rotate-left text-3xl"></i></div>
+                <p class="text-sm text-text-muted font-medium">查無符合條件的操作紀錄</p>
+            </div>
+        </section>
+    </div>
+
+    <div id="toast" class="fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+        <i id="toast-icon" class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
+        <span id="toast-text" class="text-sm font-medium">操作成功！</span>
+    </div>
+
+    <script>
+        const logs = [
+            { time: '2026-07-02 09:12:35', empId: 'EMP001', name: 'Logan',   mod: '打卡規則',     type: '修改', desc: '編輯打卡規則「打卡規則1」', ip: '10.20.1.15',  result: '成功' },
+            { time: '2026-07-02 09:05:02', empId: 'EMP042', name: 'Jackson', mod: '登入',         type: '登入', desc: '帳號登入系統',           ip: '10.20.3.88',  result: '成功' },
+            { time: '2026-07-02 08:58:41', empId: 'EMP089', name: 'Levi',    mod: '假期管理',     type: '新增', desc: '新增休假規則「MIS DEPT」', ip: '10.20.2.31',  result: '成功' },
+            { time: '2026-07-01 18:22:10', empId: 'EMP201', name: 'Luna',    mod: '員工管理',     type: '修改', desc: '設定 EMP156 之考勤屬性',   ip: '10.20.1.07',  result: '成功' },
+            { time: '2026-07-01 17:40:55', empId: 'EMP156', name: 'Mia',     mod: '申請',         type: '新增', desc: '提交差旅申請單 PTA-THQ-000021', ip: '10.20.5.44', result: '成功' },
+            { time: '2026-07-01 15:03:27', empId: 'EMP042', name: 'Jackson', mod: '文件庫管理',   type: '刪除', desc: '刪除資料夾「舊版合約」',    ip: '10.20.3.88',  result: '成功' },
+            { time: '2026-07-01 11:19:03', empId: 'EMP301', name: 'Ethan',   mod: '登入',         type: '登入', desc: '密碼錯誤，登入失敗',        ip: '203.0.113.9', result: '失敗' },
+            { time: '2026-07-01 10:47:18', empId: 'EMP001', name: 'Logan',   mod: '簽核',         type: '審核', desc: '核准請購單 PU-THQ-000018',  ip: '10.20.1.15',  result: '成功' },
+            { time: '2026-06-30 16:31:52', empId: 'EMP201', name: 'Luna',    mod: '月初匯率管理', type: '修改', desc: '更新 2026-07 匯率（15 種幣別）', ip: '10.20.1.07', result: '成功' },
+            { time: '2026-06-30 14:08:09', empId: 'EMP089', name: 'Levi',    mod: '系統日誌',     type: '匯出', desc: '匯出系統日誌（CSV）',       ip: '10.20.2.31',  result: '成功' }
+        ];
+
+        const typeBadge = (t) => {
+            const map = { '登入': 'ui-badge-info', '登出': 'ui-badge-gray', '新增': 'ui-badge-success', '修改': 'ui-badge-warning', '刪除': 'ui-badge-danger', '審核': 'ui-badge-purple', '匯出': 'ui-badge-info' };
+            return `<span class="ui-badge ${map[t] || 'ui-badge-gray'}">${t}</span>`;
+        };
+
+        function renderLogs() {
+            const kw = (document.getElementById('log-search').value || '').trim().toLowerCase();
+            const type = document.getElementById('log-type').value;
+            const df = document.getElementById('log-date-from').value;
+            const dt = document.getElementById('log-date-to').value;
+            const list = logs.filter(l => {
+                const d = l.time.slice(0, 10);
+                if (kw && !(`${l.empId} ${l.name} ${l.mod} ${l.desc} ${l.ip}`.toLowerCase().includes(kw))) return false;
+                if (type && l.type !== type) return false;
+                if (df && d < df) return false;
+                if (dt && d > dt) return false;
+                return true;
+            });
+            const tbody = document.getElementById('log-tbody');
+            tbody.innerHTML = list.map(l => {
+                const res = l.result === '成功'
+                    ? '<span class="ui-badge ui-badge-success">成功</span>'
+                    : '<span class="ui-badge ui-badge-danger">失敗</span>';
+                return '<tr class="hover:bg-gray-50/70 transition-colors">' +
+                    '<td class="text-left font-mono text-gray-600">' + l.time + '</td>' +
+                    '<td class="text-left"><span class="font-semibold text-gray-800">' + l.name + '</span> <span class="text-xs text-gray-400">' + l.empId + '</span></td>' +
+                    '<td class="text-left text-gray-600">' + l.mod + '</td>' +
+                    '<td class="text-center">' + typeBadge(l.type) + '</td>' +
+                    '<td class="text-left text-gray-600 whitespace-normal">' + l.desc + '</td>' +
+                    '<td class="text-left font-mono text-gray-500">' + l.ip + '</td>' +
+                    '<td class="text-center">' + res + '</td>' +
+                    '</tr>';
+            }).join('');
+            document.getElementById('log-count-badge').innerText = list.length + ' 筆';
+            document.getElementById('log-no-data').classList.toggle('hidden', list.length > 0);
+            tbody.parentElement.classList.toggle('hidden', list.length === 0);
+        }
+
+        function exportLogs() { showToast('success', '已匯出系統日誌（示範）'); }
+
+        function showToast(type, text) {
+            const toast = document.getElementById('toast');
+            const icon = document.getElementById('toast-icon');
+            document.getElementById('toast-text').innerText = text;
+            const base = 'fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform transition-all duration-300 border ';
+            if (type === 'error') { toast.className = base + 'border-rose-500/20'; icon.className = 'fa-solid fa-circle-xmark text-rose-400 text-base'; }
+            else if (type === 'info') { toast.className = base + 'border-blue-500/20'; icon.className = 'fa-solid fa-circle-info text-blue-400 text-base'; }
+            else { toast.className = base + 'border-emerald-500/20'; icon.className = 'fa-solid fa-circle-check text-emerald-400 text-base'; }
+            toast.style.transform = 'translateY(0)'; toast.style.opacity = '1';
+            clearTimeout(window.__t); window.__t = setTimeout(() => { toast.style.transform = 'translateY(5rem)'; toast.style.opacity = '0'; }, 2600);
+        }
+
+        renderLogs();
+    </script>
+</body>
+</html>

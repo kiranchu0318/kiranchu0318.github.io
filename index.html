@@ -136,27 +136,30 @@
         const MENU = [
             // 個人：員工日常自助（首頁 / 考勤 / 績效 / 資訊），以群組分隔不同子領域
             { title: '個人', icon: 'layout-dashboard', groups: [
-                [ { title: '首頁', href: '首頁.html' }, { title: '公告' } ],
-                [ { title: '考勤管理', dropdown: [ { title: '打卡' }, { title: '出勤紀錄' }, { title: '補卡申請' }, { title: '請假申請', href: '假期申請.html' }, { title: '加班申請' } ] } ],
+                [ { title: '首頁', href: '首頁.html' } ],
+                [ { title: '考勤', dropdown: [ { title: '打卡' }, { title: '出勤紀錄' }, { title: '補卡申請' }, { title: '假期申請' }, { title: '加班申請' } ] } ],
                 [ { title: '個人資訊' }, { title: '文件庫', href: '文件庫.html' } ]
             ] },
             // 申請 / 簽核：電子表單申請與審批
-            { title: '申請簽核', icon: 'clipboard-check', children: [
-                { title: '申請', href: '申請.html' }, { title: '我的申請' }, { title: '簽核', badge: '3' } ] },
+            { title: '電子表單', icon: 'clipboard-check', children: [
+                { title: '我的申請' }, { title: '臨時保存' }, { title: '模板保存' }, { title: '申請', href: '申請.html' } ] },
+            // 簽核中心
+            { title: '簽核中心', icon: 'clipboard-check', children: [
+                { title: '請假簽核' }, { title: '補卡簽核' }, { title: '銷假簽核' }, { title: '電子表單簽核' } ] },
             // 人事管理：HR 後台（員工 / 考勤 / 假勤 / 績效）
             { title: '人事管理', icon: 'user-cog', children: [
-                { title: '員工管理' }, { title: '出勤管理' }, { title: '假期管理' }, { title: '打卡規則' } ] },
+                { title: '員工管理' }, { title: '考勤管理' }, { title: '考勤設置' }, { title: '假期管理' }, { title: '員工假期查詢' } ] },
             // 財務管理
             { title: '財務管理', icon: 'wallet', children: [
-                { title: '付款管理' }, { title: '費用分攤' }, { title: '財務報表' }, { title: '月初匯率管理' } ] },
+                { title: '月初匯率管理' } ] },
             // 行政管理
             { title: '行政管理', icon: 'building', children: [
-                { title: '公告管理' }, { title: '文件庫管理', href: '文件庫管理.html' }, { title: '資產管理' }, { title: '行政工作單' }, { title: '工號創建管理', href: '工號創建管理.html' } ] },
+                { title: '公告管理' }, { title: '文件庫管理', href: '文件庫管理.html' }, { title: '資產管理' }, { title: '工號創建管理', href: '工號創建管理.html' } ] },
             // 系統設定：權限 / 表單與審批流 / 平台主檔
             { title: '系統設定', icon: 'settings', groups: [
-                [ { title: '帳號角色管理' }, { title: '帳號權限管理' }, { title: '分組設定' } ],
-                [ { title: '審批流設定' } ],
-                [ { title: '組織結構管理' }, { title: '平台設定', dropdown: [ { title: '組織架構管理' }, { title: 'OA資料來源' }, { title: '員工資料來源' } ] } ]
+                [ { title: '電子表單設定', dropdown: [ { title: '審批帳號' }, { title: '審批角色' }, { title: '審批角色權限' }, { title: '審批流管理' }, { title: '分組管理' } ] },
+                  { title: '系統權限設定', dropdown: [ { title: '帳號權限' }, { title: '權限設置' } ] } ],
+                [ { title: '組織設定', dropdown: [ { title: '組織圖設定' }, { title: '組織架構管理' } ] }, { title: '財務設定' }, { title: '行政設定' }, { title: '系統日誌' }, { title: '封鎖設定' } ]
             ] }
         ];
 

@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>組織圖設定</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: { extend: { colors: { primary: '#4A90E2', 'primary-light': '#EAF2FC' } } }
+        }
+    </script>
+    <link rel="stylesheet" href="shared-ui.css">
+    <style>
+        /* 組織圖：巢狀樹狀（節點方塊 + 連接線） */
+        .org-tree { display: inline-block; min-width: 100%; text-align: center; }
+        .org-tree ul { display: flex; justify-content: center; padding-top: 24px; position: relative; margin: 0; list-style: none; }
+        .org-tree > ul { padding-top: 0; }
+        .org-tree li { list-style: none; display: flex; flex-direction: column; align-items: center; position: relative; padding: 24px 14px 0; }
+        /* 子節點上方連接線 */
+        .org-tree li::before, .org-tree li::after { content: ''; position: absolute; top: 0; right: 50%; width: 50%; height: 24px; border-top: 2px solid #cbd5e1; }
+        .org-tree li::after { right: auto; left: 50%; border-left: 2px solid #cbd5e1; }
+        .org-tree li:only-child::after, .org-tree li:only-child::before { display: none; }
+        .org-tree li:only-child { padding-top: 24px; }
+        .org-tree li:first-child::before, .org-tree li:last-child::after { border: 0 none; }
+        .org-tree li:last-child::before { border-right: 2px solid #cbd5e1; border-radius: 0 8px 0 0; }
+        .org-tree li:first-child::after { border-radius: 8px 0 0 0; }
+        /* 由父節點往下的垂直線 */
+        .org-tree ul ul::before { content: ''; position: absolute; top: 0; left: 50%; border-left: 2px solid #cbd5e1; width: 0; height: 24px; }
+        /* 最上層節點不畫上方連接線 */
+        .org-tree > ul > li::before, .org-tree > ul > li::after { display: none; }
+    </style>
+</head>
+<body class="ui-page text-text-main antialiased relative">
+
+    <div class="relative mx-auto w-full space-y-6">
+
+        <!-- 頁面標題區塊 -->
+        <header class="ui-page-header">
+            <h1 class="ui-page-title">組織圖設定</h1>
+        </header>
+
+        <section class="ui-card flex flex-col p-4 sm:p-6 space-y-4">
+
+            <!-- 工具列：搜尋 + 展開/收合 + 新增頂層單位 -->
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                <div class="flex flex-wrap items-center gap-2">
+                    <div class="ui-search w-full sm:w-72">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="search" oninput="render()" placeholder="搜尋單位名稱 / 主管..." class="ui-input ui-search-input">
+                    </div>
+                    <button onclick="expandAll(true)" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-angles-down"></i> 全部展開</button>
+                    <button onclick="expandAll(false)" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-angles-up"></i> 全部收合</button>
+                </div>
+                <button onclick="openAddTop()" class="ui-btn ui-btn-primary w-full sm:w-auto"><i class="fa-solid fa-plus"></i> 新增頂層單位</button>
+            </div>
+
+            <div class="overflow-x-auto rounded-lg border border-gray-100 bg-gray-50/40 p-4 sm:p-8">
+                <div class="org-tree" id="org-tree"></div>
+            </div>
+
+            <div id="no-data" class="hidden py-16 text-center space-y-3">
+                <div class="inline-flex p-4 bg-gray-50 text-gray-400 rounded-full"><i class="fa-solid fa-sitemap text-3xl"></i></div>
+                <p class="text-sm text-gray-500 font-medium">查無符合條件的組織單位</p>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- ============ 新增 / 編輯 組織單位 彈窗 ============ -->
+    <div id="org-modal" class="fixed inset-0 bg-black/40 z-50 flex justify-center items-center hidden p-4">
+        <div class="bg-white rounded-2xl shadow-modal w-full max-w-md overflow-hidden">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                <h3 id="org-modal-title" class="text-base font-bold text-gray-900">新增組織單位</h3>
+                <button onclick="closeOrgModal()" class="text-gray-400 hover:text-gray-600 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="px-6 py-5 space-y-4">
+                <div id="parent-hint" class="hidden text-xs text-gray-500 bg-gray-50 rounded-lg px-3 py-2"></div>
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">單位名稱 <span class="text-rose-500">*</span></label>
+                    <input type="text" id="org-name" placeholder="例如：研發事業部" class="ui-input">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">單位類型 <span class="text-rose-500">*</span></label>
+                    <select id="org-type" class="ui-select">
+                        <option>公司</option>
+                        <option>事業部</option>
+                        <option>中心</option>
+                        <option>部門</option>
+                        <option>組</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">單位主管</label>
+                    <input type="text" id="org-head" placeholder="例如：Logan" class="ui-input">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">人數</label>
+                    <input type="text" id="org-count" inputmode="numeric" placeholder="0" class="ui-input">
+                </div>
+            </div>
+            <div class="flex justify-end gap-2.5 px-6 py-4 bg-gray-50 border-t border-gray-100">
+                <button onclick="closeOrgModal()" class="ui-btn ui-btn-secondary">取消</button>
+                <button onclick="saveOrg()" class="ui-btn ui-btn-primary">儲存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] flex items-center gap-2 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-2xl text-sm font-medium opacity-0 translate-y-3 transition-all duration-300 pointer-events-none">
+        <i class="fa-solid fa-circle-check text-emerald-400"></i><span id="toast-text"></span>
+    </div>
+
+    <script>
+        // 組織結構（樹狀；每個單位含類型 / 主管 / 人數 / 子單位）
+        let orgTree = [
+            { id: 1, name: '集團總公司', type: '公司', head: 'CEO', count: 860, children: [
+                { id: 2, name: '研發事業部', type: '事業部', head: 'Logan', count: 320, children: [
+                    { id: 3, name: '前端中心', type: '中心', head: 'Mia', count: 90, children: [
+                        { id: 4, name: '前端架構組', type: '組', head: 'Levi', count: 24, children: [] },
+                        { id: 5, name: '前端應用組', type: '組', head: 'Nora', count: 30, children: [] }
+                    ] },
+                    { id: 6, name: '後端中心', type: '中心', head: 'Jackson', count: 110, children: [] }
+                ] },
+                { id: 7, name: '營運中心', type: '中心', head: 'Luna', count: 140, children: [] },
+                { id: 8, name: '財務行政部', type: '部門', head: 'Zoey', count: 60, children: [] }
+            ] }
+        ];
+        let nextId = 100;
+        const expanded = new Set([1, 2, 3]);
+
+        let modalMode = 'add-top'; // add-top | add-child | edit
+        let modalRefId = null;     // add-child: 父單位 id；edit: 該單位 id
+
+        const TYPE_META = {
+            '公司':   { badge: 'ui-badge-info',    icon: 'fa-building' },
+            '事業部': { badge: 'ui-badge-success', icon: 'fa-sitemap' },
+            '中心':   { badge: 'ui-badge-warning', icon: 'fa-building-user' },
+            '部門':   { badge: 'ui-badge-gray',    icon: 'fa-users' },
+            '組':     { badge: 'ui-badge-gray',    icon: 'fa-user-group' }
+        };
+        const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+
+        function findNode(id, nodes = orgTree) {
+            for (const n of nodes) { if (n.id === id) return n; const f = findNode(id, n.children); if (f) return f; }
+            return null;
+        }
+        function removeNode(id, nodes = orgTree) {
+            const i = nodes.findIndex(n => n.id === id);
+            if (i >= 0) { nodes.splice(i, 1); return true; }
+            for (const n of nodes) { if (removeNode(id, n.children)) return true; }
+            return false;
+        }
+        function subtreeMatch(n, kw) {
+            if (!kw) return true;
+            if (n.name.toLowerCase().includes(kw) || (n.head || '').toLowerCase().includes(kw)) return true;
+            return n.children.some(c => subtreeMatch(c, kw));
+        }
+        function allIds(nodes = orgTree, acc = []) { nodes.forEach(n => { acc.push(n.id); allIds(n.children, acc); }); return acc; }
+
+        function nodeBox(n, kw) {
+            const meta = TYPE_META[n.type] || TYPE_META['組'];
+            const has = n.children.length > 0;
+            const open = kw ? true : expanded.has(n.id);
+            const toggle = has
+                ? `<button onclick="toggle(${n.id})" class="w-5 h-5 flex items-center justify-center rounded text-gray-400 hover:text-primary hover:bg-primary-light shrink-0" title="${open ? '收合' : '展開'}"><i class="fa-solid ${open ? 'fa-chevron-down' : 'fa-chevron-right'} text-[10px]"></i></button>`
+                : '';
+            const badge = has ? `<span class="ml-1 text-[10px] text-gray-400">(${n.children.length})</span>` : '';
+            return `
+                <div class="org-node group relative inline-block bg-white border border-gray-200 rounded-xl shadow-sm px-4 py-3 min-w-[180px] hover:border-primary/60 hover:shadow-md transition-all">
+                    <div class="flex items-center justify-center gap-2">
+                        ${toggle}
+                        <i class="fa-solid ${meta.icon} text-primary shrink-0"></i>
+                        <span class="font-bold text-gray-800 text-sm">${esc(n.name)}</span>${badge}
+                    </div>
+                    <div class="flex items-center justify-center gap-1.5 mt-1.5">
+                        <span class="ui-badge ${meta.badge} text-[10px]">${esc(n.type)}</span>
+                        <span class="text-xs text-gray-400">${esc(n.head || '—')} · ${n.count != null ? n.count + ' 人' : '—'}</span>
+                    </div>
+                    <div class="flex items-center justify-center gap-1 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button onclick="openAddChild(${n.id})" class="w-6 h-6 rounded flex items-center justify-center text-gray-400 hover:text-primary hover:bg-primary-light" title="新增子單位"><i class="fa-solid fa-plus text-xs"></i></button>
+                        <button onclick="openEdit(${n.id})" class="w-6 h-6 rounded flex items-center justify-center text-gray-400 hover:text-primary hover:bg-primary-light" title="編輯"><i class="fa-solid fa-pen text-xs"></i></button>
+                        <button onclick="delNode(${n.id})" class="w-6 h-6 rounded flex items-center justify-center text-gray-400 hover:text-rose-600 hover:bg-rose-50" title="刪除"><i class="fa-solid fa-trash-can text-xs"></i></button>
+                    </div>
+                </div>`;
+        }
+
+        function render() {
+            const kw = (document.getElementById('search').value || '').trim().toLowerCase();
+            const li = (n) => {
+                if (kw && !subtreeMatch(n, kw)) return '';
+                const has = n.children.length > 0;
+                const open = kw ? true : expanded.has(n.id);
+                const childrenHtml = (has && open) ? '<ul>' + n.children.map(li).join('') + '</ul>' : '';
+                return `<li>${nodeBox(n, kw)}${childrenHtml}</li>`;
+            };
+            const inner = orgTree.map(li).join('');
+            document.getElementById('org-tree').innerHTML = inner ? '<ul>' + inner + '</ul>' : '';
+            const empty = inner === '';
+            document.getElementById('no-data').classList.toggle('hidden', !empty);
+            document.getElementById('org-tree').parentElement.classList.toggle('hidden', empty);
+        }
+
+        function toggle(id) { expanded.has(id) ? expanded.delete(id) : expanded.add(id); render(); }
+        function expandAll(open) {
+            expanded.clear();
+            if (open) allIds().forEach(id => expanded.add(id));
+            render();
+        }
+
+        /* ============ 新增 / 編輯 ============ */
+        function fillForm(name, type, head, count) {
+            document.getElementById('org-name').value = name || '';
+            document.getElementById('org-type').value = type || '公司';
+            document.getElementById('org-head').value = head || '';
+            document.getElementById('org-count').value = count != null ? count : '';
+        }
+        function setHint(text) {
+            const h = document.getElementById('parent-hint');
+            if (text) { h.innerText = text; h.classList.remove('hidden'); } else { h.classList.add('hidden'); }
+        }
+        function openAddTop() {
+            modalMode = 'add-top'; modalRefId = null;
+            document.getElementById('org-modal-title').innerText = '新增頂層單位';
+            setHint('');
+            fillForm('', '公司', '', '');
+            document.getElementById('org-modal').classList.remove('hidden');
+        }
+        function openAddChild(parentId) {
+            modalMode = 'add-child'; modalRefId = parentId;
+            const p = findNode(parentId);
+            document.getElementById('org-modal-title').innerText = '新增子單位';
+            setHint('上層單位：' + (p ? p.name : ''));
+            fillForm('', '部門', '', '');
+            document.getElementById('org-modal').classList.remove('hidden');
+        }
+        function openEdit(id) {
+            modalMode = 'edit'; modalRefId = id;
+            const n = findNode(id);
+            if (!n) return;
+            document.getElementById('org-modal-title').innerText = '編輯組織單位';
+            setHint('');
+            fillForm(n.name, n.type, n.head, n.count);
+            document.getElementById('org-modal').classList.remove('hidden');
+        }
+        function closeOrgModal() { document.getElementById('org-modal').classList.add('hidden'); }
+
+        function saveOrg() {
+            const name = document.getElementById('org-name').value.trim();
+            const type = document.getElementById('org-type').value;
+            const head = document.getElementById('org-head').value.trim();
+            const countRaw = document.getElementById('org-count').value.trim();
+            const count = countRaw === '' ? 0 : (parseInt(countRaw, 10) || 0);
+            if (!name) { showToast('請輸入單位名稱'); return; }
+
+            if (modalMode === 'edit') {
+                const n = findNode(modalRefId);
+                if (n) { n.name = name; n.type = type; n.head = head; n.count = count; }
+                showToast('已更新組織單位');
+            } else {
+                const node = { id: ++nextId, name, type, head, count, children: [] };
+                if (modalMode === 'add-child') {
+                    const p = findNode(modalRefId);
+                    if (p) { p.children.push(node); expanded.add(p.id); }
+                    showToast('已新增子單位');
+                } else {
+                    orgTree.push(node);
+                    showToast('已新增頂層單位');
+                }
+            }
+            closeOrgModal();
+            render();
+        }
+
+        function delNode(id) {
+            const n = findNode(id);
+            if (!n) return;
+            const cnt = n.children.length;
+            const msg = cnt ? `確定要刪除「${n.name}」及其 ${cnt} 個子單位嗎？` : `確定要刪除「${n.name}」嗎？`;
+            if (!confirm(msg)) return;
+            removeNode(id);
+            render();
+            showToast('已刪除組織單位');
+        }
+
+        /* ============ Toast ============ */
+        let toastTimer = null;
+        function showToast(text) {
+            const t = document.getElementById('toast');
+            document.getElementById('toast-text').innerText = text;
+            t.style.opacity = '1'; t.style.transform = 'translate(-50%, 0)';
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translate(-50%, 12px)'; }, 2200);
+        }
+
+        document.getElementById('org-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeOrgModal(); });
+        render();
+    </script>
+
+</body>
+</html>

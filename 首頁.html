@@ -86,29 +86,22 @@
       <!-- 快捷入口 (2x2 四宮格) -->
       <div>
         <h5 class="text-xs font-bold text-slate-400 mb-3 px-1 tracking-wider uppercase">快捷入口</h5>
-        <div class="bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-sm">
-          <div class="grid grid-cols-2 divide-x divide-y divide-slate-50 text-[12px] font-semibold text-center">
-            <button onclick="openNotificationModal()" class="relative flex flex-col items-center justify-center py-6 text-slate-500 hover:bg-slate-50/80 hover:text-blue-600 transition-colors focus:outline-none focus:bg-slate-50 group">
-              <!-- 未讀通知紅點徽章 -->
-              <span id="nav-notif-badge" class="absolute top-4 right-1/4 translate-x-1/2 -translate-y-1/2 flex items-center justify-center w-6 h-6 bg-rose-500 text-white text-[12px] font-bold rounded-full border-2 border-white z-10 hidden">0</span>
-              <svg class="w-6 h-6 mb-2.5 opacity-80 group-hover:animate-bounce" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-              通知
-            </button>
-            <button onclick="openAllApprovalsModal()" class="relative flex flex-col items-center justify-center py-6 text-slate-500 hover:bg-slate-50/80 hover:text-blue-600 transition-colors focus:outline-none focus:bg-slate-50 group">
-              <!-- 待簽核紅點徽章 -->
-              <span id="nav-approval-badge" class="absolute top-4 right-1/4 translate-x-1/2 -translate-y-1/2 flex items-center justify-center w-6 h-6 bg-rose-500 text-white text-[12px] font-bold rounded-full border-2 border-white z-10 hidden">0</span>
-              <svg class="w-6 h-6 mb-2.5 opacity-80 group-hover:animate-bounce" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
-              簽核
-            </button>
-            <button class="flex flex-col items-center justify-center py-6 text-slate-500 hover:bg-slate-50/80 hover:text-blue-600 transition-colors border-t border-slate-50 focus:outline-none focus:bg-slate-50">
-              <svg class="w-6 h-6 mb-2.5 opacity-80" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"></path></svg>
-              公告
-            </button>
-            <button class="flex flex-col items-center justify-center py-6 text-slate-500 hover:bg-slate-50/80 hover:text-blue-600 transition-colors border-t border-slate-50 focus:outline-none focus:bg-slate-50">
-              <svg class="w-6 h-6 mb-2.5 opacity-80" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-              請假
-            </button>
-          </div>
+        <div class="space-y-2.5">
+          <button onclick="openNotificationModal()" class="w-full flex items-center gap-3 px-4 py-3.5 bg-white border border-slate-100 rounded-xl shadow-sm text-sm font-semibold text-slate-600 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50/40 transition-colors focus:outline-none">
+            <svg class="w-5 h-5 opacity-80 shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+            <span>通知</span>
+            <span id="nav-notif-badge" class="ml-auto flex items-center justify-center min-w-6 h-6 px-1.5 bg-rose-500 text-white text-xs font-bold rounded-full hidden">0</span>
+          </button>
+          <button onclick="openAllApprovalsModal()" class="w-full flex items-center gap-3 px-4 py-3.5 bg-white border border-slate-100 rounded-xl shadow-sm text-sm font-semibold text-slate-600 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50/40 transition-colors focus:outline-none">
+            <svg class="w-5 h-5 opacity-80 shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
+            <span>簽核</span>
+            <span id="nav-approval-badge" class="ml-auto flex items-center justify-center min-w-6 h-6 px-1.5 bg-rose-500 text-white text-xs font-bold rounded-full hidden">0</span>
+          </button>
+          <button onclick="location.href='假期申請.html'" class="w-full flex items-center gap-3 px-4 py-3.5 bg-white border border-slate-100 rounded-xl shadow-sm text-sm font-semibold text-slate-600 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50/40 transition-colors focus:outline-none">
+            <svg class="w-5 h-5 opacity-80 shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+            <span>請假</span>
+            <svg class="w-4 h-4 ml-auto text-slate-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path></svg>
+          </button>
         </div>
       </div>
 
@@ -122,8 +115,7 @@
     <header class="bg-white border-b border-slate-200/80 px-8 pt-5 flex-shrink-0 shadow-[0_4px_24px_rgba(0,0,0,0.01)] relative z-10">
       <nav class="flex gap-10 text-base font-bold" id="main-tabs">
         <button data-target="personal" onclick="switchTab('personal')" class="tab-btn pb-3.5 text-blue-600 border-b-2 border-blue-600 -mb-px transition-all focus:outline-none">個人</button>
-        <button data-target="info" onclick="switchTab('info')" class="tab-btn pb-3.5 text-slate-500 hover:text-slate-800 transition-all focus:outline-none border-b-2 border-transparent hover:border-slate-300">資訊中心</button>
-        <button data-target="team" onclick="switchTab('team')" class="tab-btn pb-3.5 text-slate-500 hover:text-slate-800 transition-all focus:outline-none border-b-2 border-transparent hover:border-slate-300">團隊成員</button>
+        <button data-target="info" onclick="switchTab('info')" class="tab-btn pb-3.5 text-slate-500 hover:text-slate-800 transition-all focus:outline-none border-b-2 border-transparent hover:border-slate-300">公告</button>
       </nav>
     </header>
 
@@ -141,30 +133,9 @@
 
       <!-- Tab: 資訊中心 -->
       <div id="tab-info" class="tab-content hidden animate-slide-up">
-        <div class="max-w-4xl mx-auto">
+        <div class="w-full">
           <div class="ui-card overflow-hidden" id="announcements-container">
             <!-- 由 JS 動態生成 -->
-          </div>
-        </div>
-      </div>
-
-      <!-- Tab: 團隊成員 -->
-      <div id="tab-team" class="tab-content hidden animate-slide-up">
-        <div class="max-w-4xl mx-auto">
-          <div class="ui-card overflow-hidden">
-            <div class="overflow-x-auto">
-              <table class="ui-table text-center">
-                <thead>
-                  <tr>
-                    <th class="w-2/3">分部</th>
-                    <th class="w-1/3">姓名</th>
-                  </tr>
-                </thead>
-                <tbody id="team-members-tbody">
-                   <!-- 由 JS 動態生成 -->
-                </tbody>
-              </table>
-            </div>
           </div>
         </div>
       </div>
@@ -240,7 +211,7 @@
   
   <!-- 通知中心彈窗 -->
   <div id="notification-modal" class="fixed inset-0 z-[90] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm hidden transition-opacity">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-zoom-in flex flex-col max-h-[80vh]">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-[39rem] overflow-hidden animate-zoom-in flex flex-col max-h-[80vh]">
       <div class="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50 shrink-0">
         <div class="flex items-center gap-2">
           <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
@@ -265,7 +236,7 @@
 
   <!-- 公告詳細 -->
   <div id="announcement-modal" class="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm hidden transition-opacity">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-zoom-in">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-[54rem] overflow-hidden animate-zoom-in">
       <div class="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
         <span id="anno-modal-tag" class="px-3 py-1 text-xs font-bold rounded-md border text-blue-700 border-blue-200 bg-blue-50 tracking-wide">系統公告</span>
         <button onclick="closeAnnouncementModal()" class="text-slate-400 hover:text-slate-700 p-2 hover:bg-slate-200/50 rounded-full transition-colors focus:outline-none">
@@ -276,6 +247,13 @@
         <h4 id="anno-modal-title" class="text-xl font-bold text-slate-800 leading-tight"></h4>
         <p id="anno-modal-meta" class="text-xs text-slate-400 font-medium"></p>
         <div id="anno-modal-content" class="bg-slate-50 p-5 rounded-xl text-[14px] text-slate-600 leading-relaxed whitespace-pre-wrap border border-slate-100"></div>
+        <div id="anno-modal-attachments-wrap" class="hidden pt-1">
+          <div class="text-sm font-bold text-slate-700 mb-2.5 flex items-center gap-2">
+            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.372L8.552 18.32m.009-.01l-.01.01m5.699-9.941l-7.81 7.81a1.5 1.5 0 002.112 2.13"></path></svg>
+            附件
+          </div>
+          <ul id="anno-modal-attachments" class="space-y-2"></ul>
+        </div>
       </div>
       <div class="px-6 py-5 bg-slate-50/80 flex justify-end border-t border-slate-100">
         <button onclick="closeAnnouncementModal(); showToast('已確認讀取公告資訊')" class="ui-btn ui-btn-primary">我已知悉</button>
@@ -541,9 +519,18 @@
         { id: 'ct', name: '補休', total: 12, used: 4, pendingLeave: 0, pendingOT: 6, color: 'bg-rose-500' }
       ],
       announcements: [
-        { id: 1, title: '【重要】2026年端午節連假出勤與值班排班調整通知', date: '2026-06-01', author: 'Arlo', content: '各位同仁好，2026年端午節假期將至，本公司調整放假及補班規則如下：6月15日至6月17日為放假日。' },
-        { id: 2, title: '【公告】ERP 系統預計於本週六 (06/06) 凌晨進行例行性維護', date: '2026-05-28', author: '系統組', content: '本週六凌晨 01:00 至 05:00 將進行系統底層資料庫升級與安全維護。' },
-        { id: 3, title: '【活動】第三季度員工大會暨慶生會報名開跑', date: '2026-05-25', author: '福委會', content: '大會將於 7 月 10 日下午召開。本次將於 W 飯店舉辦精緻下午茶餐會。' }
+        { id: 1003, category: '全體', title: '端午節連續假期連線維護與伺服器暫停服務通知', author: 'dev', date: '2026-06-02', views: 1245,
+          content: '親愛的同仁您好：\n\n配合端午節連續假期，資訊部門將於 2026/06/08 22:00 至 2026/06/09 06:00 進行伺服器與網路設備例行維護。\n\n維護期間，內部 OA 系統、差勤系統及檔案伺服器將暫停服務，造成不便敬請見諒。如有緊急需求，請聯繫資訊部值班人員（分機 5168）。\n\n資訊部 敬上',
+          attachments: [ { name: '伺服器維護時程表.pdf', size: '320 KB' } ] },
+        { id: 1002, category: '地區', title: '2026 年度員工健康檢查填報與預約事宜', author: 'HR_Admin', date: '2026-05-28', views: 842,
+          content: '2026 年度員工健康檢查即日起開放預約，請所有正職同仁於 2026/06/20 前完成線上填報與時段預約。\n\n本次健檢與「康健診所」合作，提供基礎與進階兩種方案，費用由公司全額補助。詳細項目與院所地址請參閱附件。\n\n如有疑問請洽人資部 HR_Admin。',
+          attachments: [ { name: '健檢方案說明.pdf', size: '1.2 MB' }, { name: '合作院所地址清單.xlsx', size: '88 KB' } ] },
+        { id: 1001, category: '全體', title: '第三季核心技術分享會（福爾摩沙會議室）', author: 'dev', date: '2026-05-15', views: 2108,
+          content: '第三季核心技術分享會將於 2026/07/05（五）下午 14:00 在福爾摩沙會議室舉行。\n\n本次主題涵蓋微服務架構實戰、前端效能優化與 AI 輔助開發工具導入經驗。歡迎各部門同仁踴躍報名參加，現場備有茶點。\n\n名額有限，報名從速。',
+          attachments: [ { name: '技術分享會議程.pdf', size: '540 KB' } ] },
+        { id: 1000, category: '地區', title: '辦公室冷氣設備定期保養通知', author: 'Admin', date: '2026-05-01', views: 3052,
+          content: '為維持辦公環境品質，總務將於 2026/05/10（六）對全棟冷氣設備進行定期保養與濾網清潔。\n\n保養期間部分樓層冷氣將輪流暫停，預計每區段約 1 小時。造成不便敬請見諒，感謝配合。\n\n總務組 敬上',
+          attachments: [] }
       ],
       selectedDate: '2026-06-02',
       calendarEvents: {
@@ -729,6 +716,8 @@
     function renderAnnouncements() {
       const container = document.getElementById('announcements-container');
       if (container) {
+        const catClass = (c) => c === '全體' ? 'bg-blue-50 text-blue-700 border-blue-200'
+          : (c === '地區' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-600 border-slate-200');
         container.innerHTML = state.announcements.map(anno => `
           <div onclick="openAnnouncementModal(${anno.id})" class="flex items-start gap-4 p-6 hover:bg-slate-50 cursor-pointer transition-colors border-b border-slate-100 last:border-0 group">
             <div class="flex-shrink-0 mt-1.5">
@@ -736,10 +725,18 @@
             </div>
             <div class="flex-1 overflow-hidden">
                <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mb-2">
-                  <h5 class="text-base font-bold text-slate-800 truncate pr-4 group-hover:text-blue-600 transition-colors">${anno.title}</h5>
+                  <div class="flex items-center gap-2 min-w-0 pr-4">
+                    <span class="shrink-0 px-2 py-0.5 text-[11px] font-bold rounded-md border ${catClass(anno.category)}">${anno.category}</span>
+                    <h5 class="text-base font-bold text-slate-800 truncate group-hover:text-blue-600 transition-colors">${anno.title}</h5>
+                    ${anno.attachments && anno.attachments.length ? '<svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.372L8.552 18.32m.009-.01l-.01.01m5.699-9.941l-7.81 7.81a1.5 1.5 0 002.112 2.13"></path></svg>' : ''}
+                  </div>
                   <span class="text-xs text-slate-400 font-mono font-medium whitespace-nowrap bg-slate-50 px-2 py-1 rounded-md">${anno.date}</span>
                </div>
                <p class="text-sm text-slate-500 truncate">${anno.content}</p>
+               <div class="flex items-center gap-4 mt-2 text-xs text-slate-400">
+                  <span>發布單位：<span class="font-medium text-slate-500">${anno.author}</span></span>
+                  <span>${(anno.views || 0).toLocaleString()} 次瀏覽</span>
+               </div>
             </div>
           </div>
         `).join('');
@@ -913,13 +910,45 @@
     function openAnnouncementModal(id) {
       const anno = state.announcements.find(a => a.id === id);
       if (anno) {
+        const tag = document.getElementById('anno-modal-tag');
+        if (tag) tag.innerText = anno.category || '公告';
         document.getElementById('anno-modal-title').innerText = anno.title;
-        document.getElementById('anno-modal-meta').innerText = `發佈：${anno.date} | ${anno.author}`;
+        document.getElementById('anno-modal-meta').innerText = `發布單位：${anno.author} ｜ 時間：${anno.date} ｜ ${(anno.views || 0).toLocaleString()} 次瀏覽`;
         document.getElementById('anno-modal-content').innerText = anno.content;
+        // 附件（檢視者可下載）
+        const wrap = document.getElementById('anno-modal-attachments-wrap');
+        const ul = document.getElementById('anno-modal-attachments');
+        const atts = anno.attachments || [];
+        if (atts.length) {
+          ul.innerHTML = atts.map(f => `
+            <li class="flex items-center justify-between gap-3 px-3 py-2 bg-slate-50 border border-slate-100 rounded-lg">
+              <span class="flex items-center gap-2 min-w-0 text-sm text-slate-700">
+                <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"></path></svg>
+                <span class="truncate font-medium">${f.name}</span>
+                <span class="text-xs text-slate-400 shrink-0">${f.size}</span>
+              </span>
+              <button onclick="downloadAnnoAttachment('${f.name.replace(/'/g, "\\'")}')" class="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-blue-600 border border-blue-200 rounded-md hover:bg-blue-50 transition-colors">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"></path></svg>
+                下載
+              </button>
+            </li>`).join('');
+          wrap.classList.remove('hidden');
+        } else {
+          ul.innerHTML = '';
+          wrap.classList.add('hidden');
+        }
         document.getElementById('announcement-modal').classList.remove('hidden');
       }
     }
     function closeAnnouncementModal() { document.getElementById('announcement-modal').classList.add('hidden'); }
+    function downloadAnnoAttachment(name) {
+      const blob = new Blob(['這是附件「' + name + '」的示意內容（範例下載）。'], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = name; document.body.appendChild(a); a.click();
+      document.body.removeChild(a); URL.revokeObjectURL(url);
+      if (typeof showToast === 'function') showToast('附件「' + name + '」下載中…');
+    }
 
     let currentApprovalId = null;
 

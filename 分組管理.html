@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>分組管理</title>
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 Font Awesome 用於圖標 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4A90E2',
+                        'primary-light': '#EAF2FC',
+                        background: '#F8F9FB',
+                        card: '#FFFFFF',
+                        text: { main: '#1F2937', muted: '#6B7280', light: '#9CA3AF' }
+                    },
+                    fontFamily: {
+                        sans: ['"Inter"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'card': '0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03)',
+                        'modal': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: theme('colors.background');
+            font-family: theme('fontFamily.sans');
+        }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+
+        /* Modal 動畫過渡 */
+        .modal-enter { opacity: 0; transform: scale(0.95) translateY(10px); }
+        .modal-enter-active {
+            opacity: 1; transform: scale(1) translateY(0);
+            transition: opacity 200ms ease-out, transform 200ms ease-out;
+        }
+    </style>
+    <link rel="stylesheet" href="shared-ui.css">
+</head>
+<body class="ui-page text-text-main antialiased relative">
+
+    <div class="relative mx-auto w-full max-w-[1400px] space-y-6">
+
+        <!-- 頁面標題區塊 -->
+        <header class="ui-page-header">
+            <h1 class="ui-page-title">分組管理</h1>
+            <div class="flex items-center gap-2.5 w-full sm:w-auto">
+                <button onclick="openCreateModal()" class="ui-btn ui-btn-primary flex-1 sm:flex-none">
+                    <i class="fa-solid fa-plus"></i> 建立分組
+                </button>
+            </div>
+        </header>
+
+        <!-- 列表 -->
+        <section class="ui-card p-4 sm:p-6">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
+                <div class="flex items-center gap-2">
+                    <h2 class="text-lg font-bold text-gray-900 whitespace-nowrap">分組列表</h2>
+                    <span id="group-count-badge" class="bg-blue-50 text-primary text-xs px-2.5 py-1 rounded-md font-bold">0 筆資料</span>
+                </div>
+                <div class="ui-search w-full sm:w-72">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="group-search" oninput="renderGroups()" placeholder="搜尋分組編號、名稱或成員..." class="ui-input ui-search-input">
+                </div>
+            </div>
+
+            <div class="overflow-x-auto rounded-lg border border-gray-100 custom-scrollbar">
+                <table class="ui-table text-center whitespace-nowrap">
+                    <thead>
+                        <tr>
+                            <th scope="col" class="text-left w-48">分組名稱</th>
+                            <th scope="col" class="text-left">組內成員名單</th>
+                            <th scope="col" class="w-40">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="group-tbody"><!-- 動態由 JavaScript 渲染 --></tbody>
+                </table>
+            </div>
+
+            <div id="group-no-data-view" class="hidden py-16 text-center space-y-3">
+                <div class="inline-flex p-4 bg-gray-50 text-gray-400 rounded-full"><i class="fa-solid fa-users-rectangle text-3xl"></i></div>
+                <p class="text-sm text-text-muted font-medium">目前尚無分組，點擊右上角「建立分組」新增。</p>
+            </div>
+
+            <div class="flex items-center justify-between mt-6 pt-4 border-t border-gray-100">
+                <span id="group-pagination-info" class="text-sm text-gray-500">顯示第 0 到 0 筆，共 0 筆記錄</span>
+                <div class="flex gap-1">
+                    <button class="ui-page-btn"><i class="fa-solid fa-chevron-left text-xs"></i></button>
+                    <button class="ui-page-btn is-active">1</button>
+                    <button class="ui-page-btn"><i class="fa-solid fa-chevron-right text-xs"></i></button>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 彈出視窗：建立 / 編輯分組 -->
+    <!-- ========================================== -->
+    <div id="group-modal" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true">
+        <div class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm transition-opacity" onclick="closeGroupModal()"></div>
+
+        <div class="fixed inset-0 z-10 overflow-y-auto flex items-center justify-center p-4">
+            <div class="relative bg-white rounded-lg shadow-modal w-full max-w-[720px] transform transition-all modal-enter flex flex-col my-8">
+
+                <!-- 標頭 -->
+                <div class="px-6 py-4 flex justify-between items-center border-b border-gray-100">
+                    <h3 id="group-modal-title" class="font-bold text-lg text-[#3245B1] tracking-wide">建立分組</h3>
+                    <button onclick="closeGroupModal()" class="w-8 h-8 flex items-center justify-center bg-[#4A90E2] text-white rounded-md hover:bg-opacity-95 transition-colors shadow-sm">
+                        <i class="fa-solid fa-xmark text-sm"></i>
+                    </button>
+                </div>
+
+                <!-- 內容 -->
+                <div class="p-6 space-y-6 max-h-[75vh] overflow-y-auto custom-scrollbar">
+
+                    <!-- 分組名稱 -->
+                    <div class="space-y-1.5">
+                        <label class="block text-sm font-semibold text-gray-700">分組名稱 <span class="text-red-500">*</span></label>
+                        <input type="text" id="group-name" placeholder="請輸入分組名稱..." class="ui-input">
+                        <p id="group-name-error" class="hidden text-xs text-rose-500">請輸入分組名稱</p>
+                    </div>
+
+                    <!-- 加入成員 -->
+                    <div class="space-y-2">
+                        <label class="block text-sm font-semibold text-gray-700">加入成員（查找工號 / 姓名）</label>
+                        <div class="ui-search">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="text" id="member-search" oninput="renderMemberResults()" placeholder="輸入工號或姓名查找人員..." class="ui-input ui-search-input">
+                        </div>
+                        <!-- 查找結果 -->
+                        <div id="member-results" class="border border-gray-200 rounded-lg divide-y divide-gray-50 max-h-52 overflow-y-auto custom-scrollbar hidden"></div>
+                    </div>
+
+                    <!-- 已加入成員 -->
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between">
+                            <label class="block text-sm font-semibold text-gray-700">已加入成員</label>
+                            <span id="selected-count" class="text-xs font-bold text-primary">0 人</span>
+                        </div>
+                        <div id="selected-members" class="min-h-[64px] flex flex-wrap gap-2 p-3 bg-gray-50 border border-gray-100 rounded-lg">
+                            <!-- chips 動態注入 -->
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- 底部按鈕 -->
+                <div class="px-6 py-4 flex justify-end gap-3 border-t border-gray-100 bg-gray-50/50 rounded-b-lg">
+                    <button onclick="closeGroupModal()" class="ui-btn ui-btn-secondary">取消</button>
+                    <button onclick="saveGroup()" class="ui-btn ui-btn-primary">
+                        <i class="fa-solid fa-check"></i> 儲存
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 彈出視窗：檢視分組成員 (僅檢視) -->
+    <!-- ========================================== -->
+    <div id="view-modal" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true">
+        <div class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm transition-opacity" onclick="closeViewModal()"></div>
+
+        <div class="fixed inset-0 z-10 overflow-y-auto flex items-center justify-center p-4">
+            <div class="relative bg-white rounded-lg shadow-modal w-full max-w-[600px] transform transition-all modal-enter flex flex-col my-8">
+
+                <!-- 標頭 -->
+                <div class="px-6 py-4 flex justify-between items-center border-b border-gray-100">
+                    <h3 class="font-bold text-lg text-[#3245B1] tracking-wide">檢視分組成員</h3>
+                    <button onclick="closeViewModal()" class="w-8 h-8 flex items-center justify-center bg-[#4A90E2] text-white rounded-md hover:bg-opacity-95 transition-colors shadow-sm">
+                        <i class="fa-solid fa-xmark text-sm"></i>
+                    </button>
+                </div>
+
+                <!-- 內容 -->
+                <div class="p-6 space-y-5 max-h-[75vh] overflow-y-auto custom-scrollbar">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
+                        <div class="space-y-1">
+                            <span class="text-xs font-semibold text-gray-500">分組編號</span>
+                            <div id="view-id" class="text-sm font-mono font-semibold text-gray-800">—</div>
+                        </div>
+                        <div class="space-y-1">
+                            <span class="text-xs font-semibold text-gray-500">分組名稱</span>
+                            <div id="view-name" class="text-sm font-bold text-gray-800">—</div>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between border-b border-gray-100 pb-2">
+                            <h4 class="font-bold text-sm text-gray-800">組內成員名單</h4>
+                            <span id="view-member-count" class="text-xs font-bold text-primary">0 人</span>
+                        </div>
+                        <div id="view-members" class="overflow-x-auto">
+                            <!-- 成員表格動態注入 -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 底部按鈕 -->
+                <div class="px-6 py-4 flex justify-end border-t border-gray-100 bg-gray-50/50 rounded-b-lg">
+                    <button onclick="closeViewModal()" class="ui-btn ui-btn-secondary">關閉</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 提示消息 (Toast) -->
+    <div id="toast" class="fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+        <i id="toast-icon" class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
+        <span id="toast-text" class="text-sm font-medium">操作成功！</span>
+    </div>
+
+    <script>
+        // 員工通訊錄 (工號、姓名、部門)
+        const employees = [
+            { id: "100344", name: "James", dept: "RD" },
+            { id: "100423", name: "Henry", dept: "HR" },
+            { id: "101383", name: "Matthew", dept: "RD" },
+            { id: "101334", name: "Alexander", dept: "RD" },
+            { id: "101122", name: "Daniel", dept: "HR" },
+            { id: "100645", name: "William", dept: "HR" },
+            { id: "101312", name: "Samuel", dept: "IA1" },
+            { id: "101002", name: "Emma", dept: "IA1" },
+            { id: "101363", name: "Thomas", dept: "HR" },
+            { id: "101023", name: "Arthur", dept: "IA1" },
+            { id: "101455", name: "Audrey", dept: "FIN" },
+            { id: "101478", name: "Isabella", dept: "MKT" },
+            { id: "101501", name: "Elizabeth", dept: "MKT" },
+            { id: "101522", name: "Sophia", dept: "FIN" },
+            { id: "101544", name: "Charlotte", dept: "RD" },
+            { id: "101566", name: "Ava", dept: "HR" },
+            { id: "101588", name: "Abigail", dept: "IA1" },
+            { id: "101601", name: "Amelia", dept: "MKT" },
+            { id: "101623", name: "Olivia", dept: "FIN" }
+        ];
+        const empMap = {};
+        employees.forEach(e => empMap[e.id] = e);
+
+        // 分組資料庫 (分組編號、分組名稱、組內成員工號清單)
+        let groups = [
+            { id: "G001", name: "研發專案 A 組", members: ["101383", "101334", "101544", "100344"] },
+            { id: "G002", name: "人資行政小組", members: ["100423", "101122", "100645", "101363"] },
+            { id: "G003", name: "內稽查核小組", members: ["101312", "101002", "101023", "101588"] },
+            { id: "G004", name: "財務結算組", members: ["101455", "101522", "101623"] }
+        ];
+
+        let editingId = null;          // 目前編輯中的分組編號；null = 建立模式
+        let selectedMembers = [];      // 建立 / 編輯彈窗暫存的成員工號
+
+        // 產生下一個分組編號
+        function nextGroupId() {
+            const nums = groups.map(g => parseInt(g.id.replace(/\D/g, ''), 10)).filter(n => !isNaN(n));
+            const max = nums.length ? Math.max(...nums) : 0;
+            return 'G' + String(max + 1).padStart(3, '0');
+        }
+
+        function empLabel(id) {
+            const e = empMap[id];
+            return e ? `${e.name}（${e.id}）` : id;
+        }
+
+        /* ============ 列表渲染 ============ */
+        function renderGroups() {
+            const tbody = document.getElementById('group-tbody');
+            const noData = document.getElementById('group-no-data-view');
+            const kw = document.getElementById('group-search').value.trim().toLowerCase();
+            tbody.innerHTML = '';
+
+            const filtered = groups.filter(g => {
+                if (!kw) return true;
+                if (g.id.toLowerCase().includes(kw) || g.name.toLowerCase().includes(kw)) return true;
+                // 比對成員姓名 / 工號
+                return g.members.some(m => m.toLowerCase().includes(kw) || (empMap[m] && empMap[m].name.toLowerCase().includes(kw)));
+            });
+
+            if (filtered.length === 0) {
+                tbody.parentElement.classList.add('hidden');
+                noData.classList.remove('hidden');
+                noData.querySelector('p').innerText = groups.length === 0
+                    ? '目前尚無分組，點擊右上角「建立分組」新增。'
+                    : '查無符合條件的分組。';
+                document.getElementById('group-count-badge').innerText = `0 筆資料`;
+                document.getElementById('group-pagination-info').innerText = `顯示第 0 到 0 筆，共 0 筆記錄`;
+                return;
+            }
+
+            tbody.parentElement.classList.remove('hidden');
+            noData.classList.add('hidden');
+
+            filtered.forEach(g => {
+                const chips = g.members.length
+                    ? g.members.map(m => `<span class="inline-flex items-center px-2 py-0.5 bg-blue-50 text-primary rounded text-xs font-medium">${empMap[m] ? empMap[m].name : m}</span>`).join('')
+                    : '<span class="text-gray-300">尚無成員</span>';
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-gray-50/70 transition-colors";
+                tr.innerHTML = `
+                    <td class="text-left font-bold text-gray-800">${g.name}</td>
+                    <td class="text-left">
+                        <div class="flex flex-wrap items-center gap-1.5">
+                            <span class="text-xs text-gray-400 mr-0.5">${g.members.length} 人</span>
+                            ${chips}
+                        </div>
+                    </td>
+                    <td>
+                        <div class="flex items-center justify-center gap-2">
+                            <button onclick="openViewModal('${g.id}')" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-eye"></i> 檢視</button>
+                            <button onclick="openEditModal('${g.id}')" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-pen"></i> 編輯</button>
+                            <button onclick="deleteGroup('${g.id}')" class="ui-btn ui-btn-sm text-rose-600 border border-rose-200 hover:bg-rose-50"><i class="fa-solid fa-trash-can"></i> 刪除</button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('group-count-badge').innerText = `${filtered.length} 筆資料`;
+            document.getElementById('group-pagination-info').innerText = `顯示第 1 到 ${filtered.length} 筆，共 ${filtered.length} 筆記錄`;
+        }
+
+        /* ============ 建立 / 編輯彈窗 ============ */
+        function openCreateModal() {
+            editingId = null;
+            selectedMembers = [];
+            document.getElementById('group-modal-title').innerText = '建立分組';
+            document.getElementById('group-name').value = '';
+            document.getElementById('group-name-error').classList.add('hidden');
+            document.getElementById('member-search').value = '';
+            document.getElementById('member-results').classList.add('hidden');
+            renderSelectedMembers();
+            showGroupModal();
+        }
+
+        function openEditModal(id) {
+            const g = groups.find(x => x.id === id);
+            if (!g) return;
+            editingId = id;
+            selectedMembers = [...g.members];
+            document.getElementById('group-modal-title').innerText = `編輯分組（${g.id}）`;
+            document.getElementById('group-name').value = g.name;
+            document.getElementById('group-name-error').classList.add('hidden');
+            document.getElementById('member-search').value = '';
+            document.getElementById('member-results').classList.add('hidden');
+            renderSelectedMembers();
+            showGroupModal();
+        }
+
+        // 查找結果（依工號 / 姓名，排除已加入者）
+        function renderMemberResults() {
+            const box = document.getElementById('member-results');
+            const kw = document.getElementById('member-search').value.trim().toLowerCase();
+            if (!kw) { box.classList.add('hidden'); box.innerHTML = ''; return; }
+
+            const matches = employees.filter(e =>
+                !selectedMembers.includes(e.id) &&
+                (e.id.toLowerCase().includes(kw) || e.name.toLowerCase().includes(kw)));
+
+            box.classList.remove('hidden');
+            if (matches.length === 0) {
+                box.innerHTML = `<div class="px-3 py-3 text-sm text-gray-400 text-center">查無符合的人員（或已加入）</div>`;
+                return;
+            }
+            box.innerHTML = matches.map(e => `
+                <button type="button" onclick="addMember('${e.id}')" class="w-full flex items-center justify-between gap-3 px-3 py-2.5 hover:bg-blue-50/60 transition-colors text-left">
+                    <span class="flex items-center gap-2.5 min-w-0">
+                        <span class="font-mono font-semibold text-gray-500 text-sm">${e.id}</span>
+                        <span class="font-medium text-gray-800">${e.name}</span>
+                        <span class="px-2 py-0.5 bg-gray-100 rounded text-xs text-gray-600">${e.dept}</span>
+                    </span>
+                    <span class="text-primary text-sm font-semibold shrink-0"><i class="fa-solid fa-plus mr-1"></i>加入</span>
+                </button>
+            `).join('');
+        }
+
+        function addMember(id) {
+            if (!selectedMembers.includes(id)) selectedMembers.push(id);
+            renderSelectedMembers();
+            renderMemberResults();   // 重新整理結果，移除剛加入者
+        }
+
+        function removeMember(id) {
+            selectedMembers = selectedMembers.filter(m => m !== id);
+            renderSelectedMembers();
+            renderMemberResults();
+        }
+
+        function renderSelectedMembers() {
+            const wrap = document.getElementById('selected-members');
+            document.getElementById('selected-count').innerText = `${selectedMembers.length} 人`;
+            if (selectedMembers.length === 0) {
+                wrap.innerHTML = `<span class="text-sm text-gray-400 self-center">尚未加入任何成員</span>`;
+                return;
+            }
+            wrap.innerHTML = selectedMembers.map(id => {
+                const e = empMap[id];
+                const label = e ? `${e.name}` : id;
+                return `<span class="inline-flex items-center gap-1.5 pl-2.5 pr-1.5 py-1 bg-white border border-gray-200 rounded-full text-sm text-gray-700 shadow-sm">
+                    <span class="font-medium">${label}</span>
+                    <span class="text-xs text-gray-400 font-mono">${id}</span>
+                    <button type="button" onclick="removeMember('${id}')" class="w-4 h-4 flex items-center justify-center text-gray-400 hover:text-rose-500 hover:bg-rose-50 rounded-full transition-colors"><i class="fa-solid fa-xmark text-[10px]"></i></button>
+                </span>`;
+            }).join('');
+        }
+
+        function saveGroup() {
+            const name = document.getElementById('group-name').value.trim();
+            if (!name) {
+                document.getElementById('group-name-error').classList.remove('hidden');
+                document.getElementById('group-name').focus();
+                return;
+            }
+            if (editingId) {
+                const g = groups.find(x => x.id === editingId);
+                if (g) { g.name = name; g.members = [...selectedMembers]; }
+                showToast('success', `分組「${name}」已更新`);
+            } else {
+                groups.push({ id: nextGroupId(), name, members: [...selectedMembers] });
+                showToast('success', `分組「${name}」已建立`);
+            }
+            closeGroupModal();
+            renderGroups();
+        }
+
+        function deleteGroup(id) {
+            const g = groups.find(x => x.id === id);
+            if (!g) return;
+            if (!confirm(`確定要刪除分組「${g.name}」（${g.id}）嗎？此動作無法復原。`)) return;
+            groups = groups.filter(x => x.id !== id);
+            showToast('error', `分組「${g.name}」已刪除`);
+            renderGroups();
+        }
+
+        /* ============ 檢視彈窗 ============ */
+        function openViewModal(id) {
+            const g = groups.find(x => x.id === id);
+            if (!g) return;
+            document.getElementById('view-id').innerText = g.id;
+            document.getElementById('view-name').innerText = g.name;
+            document.getElementById('view-member-count').innerText = `${g.members.length} 人`;
+
+            const box = document.getElementById('view-members');
+            if (g.members.length === 0) {
+                box.innerHTML = `<div class="py-6 text-center text-sm text-gray-400">此分組尚無成員</div>`;
+            } else {
+                const rows = g.members.map((m, i) => {
+                    const e = empMap[m];
+                    return `<tr class="hover:bg-gray-50/70 transition-colors">
+                        <td class="text-center text-gray-400">${i + 1}</td>
+                        <td class="text-left font-mono font-semibold text-gray-500">${m}</td>
+                        <td class="text-left font-medium text-gray-800">${e ? e.name : '—'}</td>
+                        <td class="text-center">${e ? `<span class="px-2 py-0.5 bg-gray-100 rounded text-xs text-gray-600">${e.dept}</span>` : '—'}</td>
+                    </tr>`;
+                }).join('');
+                box.innerHTML = `
+                    <table class="ui-table text-center whitespace-nowrap">
+                        <thead>
+                            <tr>
+                                <th scope="col" class="w-12">#</th>
+                                <th scope="col" class="text-left">工號</th>
+                                <th scope="col" class="text-left">姓名</th>
+                                <th scope="col">部門</th>
+                            </tr>
+                        </thead>
+                        <tbody>${rows}</tbody>
+                    </table>`;
+            }
+            showModal('view-modal');
+        }
+        function closeViewModal() { hideModal('view-modal'); }
+
+        /* ============ 彈窗顯示 / 隱藏 ============ */
+        function showGroupModal() { showModal('group-modal'); }
+        function closeGroupModal() { hideModal('group-modal'); }
+
+        function showModal(modalId) {
+            const modal = document.getElementById(modalId);
+            const panel = modal.querySelector('.transform');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                panel.classList.add('modal-enter-active');
+                panel.classList.remove('modal-enter');
+            }, 10);
+        }
+        function hideModal(modalId) {
+            const modal = document.getElementById(modalId);
+            const panel = modal.querySelector('.transform');
+            panel.classList.remove('modal-enter-active');
+            panel.classList.add('modal-enter');
+            setTimeout(() => modal.classList.add('hidden'), 200);
+        }
+
+        /* ============ Toast ============ */
+        function showToast(type, text) {
+            const toast = document.getElementById('toast');
+            const toastIcon = document.getElementById('toast-icon');
+            const toastText = document.getElementById('toast-text');
+            toastText.innerText = text;
+            if (type === 'success') {
+                toast.className = "fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform transition-all duration-300 border border-emerald-500/20";
+                toastIcon.className = "fa-solid fa-circle-check text-emerald-400 text-base";
+            } else if (type === 'error') {
+                toast.className = "fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform transition-all duration-300 border border-rose-500/20";
+                toastIcon.className = "fa-solid fa-circle-xmark text-rose-400 text-base";
+            } else {
+                toast.className = "fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform transition-all duration-300 border border-blue-500/20";
+                toastIcon.className = "fa-solid fa-circle-info text-blue-400 text-base";
+            }
+            toast.style.transform = 'translateY(0)';
+            toast.style.opacity = '1';
+            clearTimeout(window.__toastTimer);
+            window.__toastTimer = setTimeout(() => {
+                toast.style.transform = 'translateY(5rem)';
+                toast.style.opacity = '0';
+            }, 2600);
+        }
+
+        window.onload = renderGroups;
+    </script>
+</body>
+</html>

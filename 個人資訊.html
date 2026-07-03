@@ -151,6 +151,21 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- 區塊：其他項目（條目備註）-->
+                    <div class="bg-slate-50/60 border border-slate-100 rounded-xl p-5 md:p-6">
+                        <h3 class="text-sm font-bold text-slate-400 tracking-wider mb-4 border-b border-slate-100 pb-2">其他項目</h3>
+                        <div class="space-y-3">
+                            <div class="grid grid-cols-1 sm:grid-cols-[1fr_4fr] gap-3 sm:items-center">
+                                <p class="text-xs text-slate-500">制服尺寸</p>
+                                <p class="text-sm font-medium text-slate-800">上衣 M、外套 L；已於報到日發放。</p>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-[1fr_4fr] gap-3 sm:items-center border-t border-slate-100 pt-3">
+                                <p class="text-xs text-slate-500">飲食禁忌</p>
+                                <p class="text-sm font-medium text-slate-800">素食；公司聚餐請預留素食餐點。</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- 分頁 2：職位信息 -->
@@ -172,10 +187,6 @@
                             <div>
                                 <p class="text-xs text-slate-500 mb-1">部門</p>
                                 <p class="text-sm font-medium text-slate-800">options3</p>
-                            </div>
-                            <div>
-                                <p class="text-xs text-slate-500 mb-1">職位</p>
-                                <p class="text-sm font-medium text-slate-800">options1</p>
                             </div>
                         </div>
                     </div>
@@ -312,6 +323,21 @@
                             <div>
                                 <p class="text-xs text-slate-500 mb-1">節日福利</p>
                                 <p class="text-sm font-medium text-slate-800">三節禮金 / 禮品</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 區塊：其他項目（條目備註）-->
+                    <div class="bg-slate-50/60 border border-slate-100 rounded-xl p-5 md:p-6">
+                        <h3 class="text-sm font-bold text-slate-400 tracking-wider mb-4 border-b border-slate-100 pb-2">其他項目</h3>
+                        <div class="space-y-3">
+                            <div class="grid grid-cols-1 sm:grid-cols-[1fr_4fr] gap-3 sm:items-center">
+                                <p class="text-xs text-slate-500">兼任職務</p>
+                                <p class="text-sm font-medium text-slate-800">兼任資安推動小組成員，每月參與例會一次。</p>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-[1fr_4fr] gap-3 sm:items-center border-t border-slate-100 pt-3">
+                                <p class="text-xs text-slate-500">輪調紀錄</p>
+                                <p class="text-sm font-medium text-slate-800">2023 年由客戶成功部輪調至研發中心。</p>
                             </div>
                         </div>
                     </div>
@@ -495,14 +521,18 @@
                         </table>
                     </div>
 
-                    <!-- 閱讀條款 + 確認領用 -->
+                    <!-- 領用狀態 / 領用入口 -->
                     <div class="flex flex-col items-center gap-3 pt-2">
-                        <button type="button" onclick="openTermsModal()" class="text-sm text-blue-600 font-medium hover:underline inline-flex items-center gap-1.5">
+                        <!-- 尚未領用：開啟條款彈窗辦理領用 -->
+                        <button type="button" id="open-terms-btn" onclick="openTermsModal()" class="ui-btn ui-btn-primary inline-flex items-center gap-1.5">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" /></svg>
-                            閱讀資產使用條款
+                            閱讀資產使用條款並領用
                         </button>
-                        <button type="button" id="confirm-asset-btn" onclick="confirmAsset()" disabled class="ui-btn ui-btn-primary">確認領用</button>
-                        <p id="terms-hint" class="text-xs text-slate-500">請先閱讀資產使用條款後，方可確認領用</p>
+                        <!-- 已領用：以文字顯示 -->
+                        <p id="asset-claimed-text" class="hidden inline-flex items-center gap-1.5 text-sm font-semibold text-emerald-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4"><path fill-rule="evenodd" d="M16.704 5.29a.75.75 0 0 1 .006 1.06l-7.5 7.5a.75.75 0 0 1-1.06 0l-3.5-3.5a.75.75 0 1 1 1.06-1.06l2.97 2.97 6.97-6.97a.75.75 0 0 1 1.054.006Z" clip-rule="evenodd" /></svg>
+                            已領用
+                        </p>
                     </div>
                 </div>
 
@@ -532,8 +562,9 @@
                 <p>八、領用人點擊「確認領用」即視為已詳閱、理解並同意本條款之全部內容，並願意遵守上述各項規範。</p>
                 <p class="text-slate-400">— 條款結束，感謝您的閱讀 —</p>
             </div>
-            <div class="px-6 py-3 border-t border-slate-100 bg-slate-50 text-center shrink-0">
-                <p id="terms-progress" class="text-xs text-slate-500">請將條款滑動至最底部以完成閱讀</p>
+            <div class="px-6 py-3 border-t border-slate-100 bg-slate-50 flex items-center justify-between gap-3 shrink-0">
+                <p id="terms-progress" class="text-xs text-slate-500">請將條款滑動至最底部以啟用領用</p>
+                <button type="button" id="confirm-asset-btn" onclick="confirmAsset()" disabled class="ui-btn ui-btn-primary disabled:opacity-40 disabled:cursor-not-allowed">確認領用</button>
             </div>
         </div>
     </div>
@@ -610,30 +641,25 @@
             document.body.style.overflow = '';
         }
 
-        // 滑動到底部即視為已讀：啟用「確認領用」並自動關閉彈窗
+        // 滑動到底部即視為已讀：啟用彈窗內「確認領用」按鈕
         function onTermsScroll(el) {
             if (termsRead) return;
             if (el.scrollHeight - el.scrollTop - el.clientHeight < 8) {
                 termsRead = true;
                 document.getElementById('confirm-asset-btn').disabled = false;
-                document.getElementById('terms-progress').textContent = '✓ 已閱讀完畢';
-                const hint = document.getElementById('terms-hint');
-                if (hint) hint.textContent = '已完成閱讀，請點擊「確認領用」';
-                setTimeout(closeTermsModal, 500);
+                document.getElementById('terms-progress').textContent = '✓ 已閱讀完畢，可點擊「確認領用」';
             }
         }
 
-        // 確認領用：頁籤文字左側顯示綠色 check
+        // 確認領用：關閉彈窗，下方改以「已領用」文字顯示
         function confirmAsset() {
             if (assetConfirmed) return;
             assetConfirmed = true;
-            const btn = document.getElementById('confirm-asset-btn');
-            btn.disabled = true;
-            btn.textContent = '已確認領用';
-            const hint = document.getElementById('terms-hint');
-            if (hint) hint.textContent = '您已完成資產領用確認';
+            document.getElementById('open-terms-btn').classList.add('hidden');
+            document.getElementById('asset-claimed-text').classList.remove('hidden');
             const tab = document.getElementById('tab-btn-asset');
             tab.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="inline-block w-4 h-4 mr-1 align-middle text-emerald-500"><path fill-rule="evenodd" d="M16.704 5.29a.75.75 0 0 1 .006 1.06l-7.5 7.5a.75.75 0 0 1-1.06 0l-3.5-3.5a.75.75 0 1 1 1.06-1.06l2.97 2.97 6.97-6.97a.75.75 0 0 1 1.054.006Z" clip-rule="evenodd" /></svg>資產';
+            closeTermsModal();
         }
 
         // 點擊彈窗外圍背景關閉

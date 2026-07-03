@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>員工假期查詢</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: { extend: {
+                colors: { primary: '#4A90E2', 'primary-light': '#EAF2FC', background: '#F8F9FB', card: '#FFFFFF',
+                    text: { main: '#1F2937', muted: '#6B7280', light: '#9CA3AF' } },
+                fontFamily: { sans: ['"Inter"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'] },
+                boxShadow: { 'card': '0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03)', 'modal': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)' }
+            } }
+        }
+    </script>
+    <style>
+        body { background-color: theme('colors.background'); font-family: theme('fontFamily.sans'); }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+    <link rel="stylesheet" href="shared-ui.css">
+</head>
+<body class="ui-page text-text-main antialiased relative">
+
+    <div class="relative mx-auto w-full space-y-6">
+        <header class="ui-page-header">
+            <h1 class="ui-page-title">員工假期查詢</h1>
+        </header>
+
+        <section class="ui-card p-4 sm:p-6 space-y-4">
+            <!-- 篩選台 -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">員工搜尋 (姓名/工號)</label>
+                    <div class="ui-search">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="f-search" oninput="renderTable()" placeholder="輸入姓名或工號..." class="ui-input ui-search-input">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">地區</label>
+                    <select id="f-region" onchange="renderTable()" class="ui-select">
+                        <option value="all">全部地區</option>
+                        <option value="TW">台灣 (TW)</option>
+                        <option value="US">美國 (US)</option>
+                        <option value="JP">日本 (JP)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">事業部</label>
+                    <select id="f-bu" onchange="renderTable()" class="ui-select">
+                        <option value="all">全部事業部</option>
+                        <option>研發事業部 (RD BU)</option>
+                        <option>營運中心 (Ops)</option>
+                        <option>業務行銷部 (Sales)</option>
+                        <option>財務行政部 (Finance)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">部門</label>
+                    <select id="f-dept" onchange="renderTable()" class="ui-select">
+                        <option value="all">全部部門</option>
+                        <option>前端架構組</option>
+                        <option>後端開發組</option>
+                        <option>客戶成功部</option>
+                        <option>華南區銷售</option>
+                        <option>會計組</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">假別</label>
+                    <select id="f-type" onchange="renderTable()" class="ui-select">
+                        <option value="all">全部假別</option>
+                        <option>特休</option><option>病假</option><option>事假</option><option>婚假</option><option>喪假</option><option>補休</option>
+                    </select>
+                </div>
+                <div class="sm:col-span-2">
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">到期日範圍</label>
+                    <div class="flex items-center gap-1.5">
+                        <input type="date" id="f-date-start" onchange="renderTable()" class="ui-input flex-1 min-w-0">
+                        <span class="text-gray-400 text-xs font-medium shrink-0">至</span>
+                        <input type="date" id="f-date-end" onchange="renderTable()" class="ui-input flex-1 min-w-0">
+                    </div>
+                </div>
+            </div>
+            <div class="flex justify-end gap-2">
+                <button onclick="resetFilters()" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-arrows-rotate"></i> 重置</button>
+                <button onclick="mockExport()" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-download"></i> 匯出報表</button>
+            </div>
+
+            <!-- 列表 -->
+            <div class="flex items-center gap-2">
+                <h2 class="text-lg font-bold text-gray-900 whitespace-nowrap">假期額度</h2>
+                <span id="count-badge" class="bg-blue-50 text-primary text-xs px-2.5 py-1 rounded-md font-bold">0 筆</span>
+            </div>
+            <div class="overflow-x-auto rounded-lg border border-gray-100">
+                <table class="ui-table whitespace-nowrap text-center">
+                    <thead>
+                        <tr>
+                            <th class="text-left">工號</th>
+                            <th class="text-left">姓名</th>
+                            <th>地區</th>
+                            <th>事業部</th>
+                            <th>部門</th>
+                            <th>假別</th>
+                            <th class="text-right">給假時數</th>
+                            <th class="text-right">已用時數</th>
+                            <th class="text-right">剩餘時數</th>
+                            <th>到期日</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody"></tbody>
+                </table>
+            </div>
+            <div id="no-data" class="hidden py-16 text-center space-y-3">
+                <div class="inline-flex p-4 bg-gray-50 text-gray-400 rounded-full"><i class="fa-solid fa-calendar-days text-3xl"></i></div>
+                <p class="text-sm text-text-muted font-medium">查無符合條件的假期資料</p>
+            </div>
+        </section>
+    </div>
+
+    <div id="toast" class="fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+        <i id="toast-icon" class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
+        <span id="toast-text" class="text-sm font-medium">操作成功！</span>
+    </div>
+
+    <script>
+        // 員工假期額度（工號 / 姓名 / 事業部 / 部門 / 假別 / 給假 / 已用 / 到期日）
+        const rows = [
+            { id: 'EMP001', region: 'TW', name: 'Logan',   bu: '研發事業部 (RD BU)',   dept: '前端架構組', type: '特休', grant: 120, used: 40, due: '2026-12-31' },
+            { id: 'EMP001', region: 'TW', name: 'Logan',   bu: '研發事業部 (RD BU)',   dept: '前端架構組', type: '病假', grant: 240, used: 16, due: '2026-12-31' },
+            { id: 'EMP001', region: 'TW', name: 'Logan',   bu: '研發事業部 (RD BU)',   dept: '前端架構組', type: '補休', grant: 24,  used: 8,  due: '2026-09-30' },
+            { id: 'EMP042', region: 'US', name: 'Jackson', bu: '營運中心 (Ops)',       dept: '客戶成功部', type: '特休', grant: 96,  used: 88, due: '2026-12-31' },
+            { id: 'EMP042', region: 'US', name: 'Jackson', bu: '營運中心 (Ops)',       dept: '客戶成功部', type: '事假', grant: 56,  used: 0,  due: '2026-12-31' },
+            { id: 'EMP089', region: 'JP', name: 'Levi',    bu: '業務行銷部 (Sales)',   dept: '華南區銷售', type: '特休', grant: 80,  used: 24, due: '2026-12-31' },
+            { id: 'EMP089', region: 'JP', name: 'Levi',    bu: '業務行銷部 (Sales)',   dept: '華南區銷售', type: '婚假', grant: 64,  used: 64, due: '2026-08-15' },
+            { id: 'EMP156', region: 'TW', name: 'Mia',     bu: '研發事業部 (RD BU)',   dept: '後端開發組', type: '特休', grant: 112, used: 12, due: '2026-12-31' },
+            { id: 'EMP156', region: 'TW', name: 'Mia',     bu: '研發事業部 (RD BU)',   dept: '後端開發組', type: '喪假', grant: 24,  used: 0,  due: '2026-12-31' },
+            { id: 'EMP201', region: 'TW', name: 'Luna',    bu: '財務行政部 (Finance)', dept: '會計組',     type: '特休', grant: 144, used: 96, due: '2026-12-31' },
+            { id: 'EMP201', region: 'TW', name: 'Luna',    bu: '財務行政部 (Finance)', dept: '會計組',     type: '補休', grant: 16,  used: 4,  due: '2026-10-31' }
+        ];
+
+        const typeBadge = (t) => {
+            const map = { '特休': 'ui-badge-info', '病假': 'ui-badge-warning', '事假': 'ui-badge-gray', '婚假': 'ui-badge-purple', '喪假': 'ui-badge-gray', '補休': 'ui-badge-success' };
+            return `<span class="ui-badge ${map[t] || 'ui-badge-gray'}">${t}</span>`;
+        };
+        const hrs = (h) => `${h} 小時`;
+
+        function renderTable() {
+            const kw = (document.getElementById('f-search').value || '').trim().toLowerCase();
+            const region = document.getElementById('f-region').value;
+            const bu = document.getElementById('f-bu').value;
+            const dept = document.getElementById('f-dept').value;
+            const type = document.getElementById('f-type').value;
+            const dStart = document.getElementById('f-date-start').value;
+            const dEnd = document.getElementById('f-date-end').value;
+            const list = rows.filter(r =>
+                (!kw || r.name.toLowerCase().includes(kw) || r.id.toLowerCase().includes(kw)) &&
+                (region === 'all' || r.region === region) &&
+                (bu === 'all' || r.bu === bu) &&
+                (dept === 'all' || r.dept === dept) &&
+                (type === 'all' || r.type === type) &&
+                (!dStart || r.due >= dStart) &&
+                (!dEnd || r.due <= dEnd));
+            const tbody = document.getElementById('tbody');
+            tbody.innerHTML = list.map(r => {
+                const remain = r.grant - r.used;
+                const remainCls = remain <= 0 ? 'text-rose-600 font-bold' : (remain <= 16 ? 'text-amber-600 font-semibold' : 'text-emerald-600 font-semibold');
+                return '<tr class="hover:bg-gray-50/70 transition-colors">' +
+                    '<td class="text-left font-mono font-semibold text-gray-500">' + r.id + '</td>' +
+                    '<td class="text-left font-bold text-gray-800">' + r.name + '</td>' +
+                    '<td><span class="px-2 py-0.5 bg-orange-50 text-orange-600 rounded text-xs font-semibold">' + r.region + '</span></td>' +
+                    '<td class="text-gray-600">' + r.bu + '</td>' +
+                    '<td class="text-gray-600">' + r.dept + '</td>' +
+                    '<td>' + typeBadge(r.type) + '</td>' +
+                    '<td class="text-right text-gray-600">' + hrs(r.grant) + '</td>' +
+                    '<td class="text-right text-gray-600">' + hrs(r.used) + '</td>' +
+                    '<td class="text-right ' + remainCls + '">' + hrs(remain) + '</td>' +
+                    '<td class="text-gray-500">' + r.due + '</td>' +
+                    '</tr>';
+            }).join('');
+            document.getElementById('count-badge').innerText = list.length + ' 筆';
+            document.getElementById('no-data').classList.toggle('hidden', list.length > 0);
+            tbody.parentElement.classList.toggle('hidden', list.length === 0);
+        }
+
+        function resetFilters() {
+            document.getElementById('f-search').value = '';
+            document.getElementById('f-region').value = 'all';
+            document.getElementById('f-bu').value = 'all';
+            document.getElementById('f-dept').value = 'all';
+            document.getElementById('f-type').value = 'all';
+            document.getElementById('f-date-start').value = '';
+            document.getElementById('f-date-end').value = '';
+            renderTable();
+            showToast('info', '已重置查詢條件');
+        }
+        function mockExport() { showToast('success', '已匯出員工假期報表（示範）'); }
+
+        function showToast(type, text) {
+            const toast = document.getElementById('toast');
+            const icon = document.getElementById('toast-icon');
+            document.getElementById('toast-text').innerText = text;
+            const base = 'fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform transition-all duration-300 border ';
+            if (type === 'error') { toast.className = base + 'border-rose-500/20'; icon.className = 'fa-solid fa-circle-xmark text-rose-400 text-base'; }
+            else if (type === 'info') { toast.className = base + 'border-blue-500/20'; icon.className = 'fa-solid fa-circle-info text-blue-400 text-base'; }
+            else { toast.className = base + 'border-emerald-500/20'; icon.className = 'fa-solid fa-circle-check text-emerald-400 text-base'; }
+            toast.style.transform = 'translateY(0)'; toast.style.opacity = '1';
+            clearTimeout(window.__t); window.__t = setTimeout(() => { toast.style.transform = 'translateY(5rem)'; toast.style.opacity = '0'; }, 2600);
+        }
+
+        renderTable();
+    </script>
+</body>
+</html>

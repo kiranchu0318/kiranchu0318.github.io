@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>考勤設置</title>
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 Font Awesome 用於圖標 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4A90E2',
+                        'primary-light': '#EAF2FC',
+                        background: '#F8F9FB',
+                        card: '#FFFFFF',
+                        text: { main: '#1F2937', muted: '#6B7280', light: '#9CA3AF' }
+                    },
+                    fontFamily: {
+                        sans: ['"Inter"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'card': '0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03)',
+                        'modal': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: theme('colors.background');
+            font-family: theme('fontFamily.sans');
+        }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+    </style>
+    <link rel="stylesheet" href="shared-ui.css">
+</head>
+<body class="ui-page text-text-main antialiased relative">
+
+    <div class="relative mx-auto w-full space-y-6">
+
+        <!-- 頁面標題區塊 -->
+        <header class="ui-page-header">
+            <h1 class="ui-page-title">考勤設置</h1>
+        </header>
+
+        <!-- 考勤設置列表 -->
+        <section class="ui-card flex flex-col p-4 sm:p-6 space-y-4">
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                <div class="ui-search w-full sm:w-80">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="rule-search" oninput="renderRules()" placeholder="搜尋規則模板名稱..." class="ui-input ui-search-input">
+                </div>
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                    <button onclick="openMakeupLimit()" class="ui-btn ui-btn-secondary flex-1 sm:flex-none"><i class="fa-solid fa-rotate-left"></i> 補卡次數限制</button>
+                    <button onclick="openRuleCreate()" class="ui-btn ui-btn-primary flex-1 sm:flex-none"><i class="fa-solid fa-plus"></i> 新增考勤設置</button>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <h2 class="text-lg font-bold text-gray-900 whitespace-nowrap">考勤設置列表</h2>
+                <span id="rule-count-badge" class="bg-blue-50 text-primary text-xs px-2.5 py-1 rounded-md font-bold">0 筆</span>
+            </div>
+            <div class="overflow-x-auto rounded-lg border border-gray-100">
+                <table class="ui-table whitespace-nowrap">
+                    <thead>
+                        <tr>
+                            <th class="text-left">規則模板名稱</th>
+                            <th class="text-center w-36">固定上班時間</th>
+                            <th class="text-center w-24">工時</th>
+                            <th class="text-center w-28">休息時間打卡</th>
+                            <th class="text-center w-24">狀態</th>
+                            <th class="text-center w-44">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rule-tbody"></tbody>
+                </table>
+            </div>
+            <div id="rule-no-data" class="hidden py-16 text-center space-y-3">
+                <div class="inline-flex p-4 bg-gray-50 text-gray-400 rounded-full"><i class="fa-solid fa-clipboard-check text-3xl"></i></div>
+                <p class="text-sm text-text-muted font-medium">查無符合條件的考勤設置</p>
+            </div>
+        </section>
+    </div>
+
+    <!-- 考勤設置 新增 / 編輯 彈窗 -->
+    <div id="rule-modal" class="fixed inset-0 bg-black/40 z-50 flex justify-center items-center hidden p-4">
+        <div class="bg-white rounded-2xl shadow-modal w-full max-w-[72rem] max-h-[92vh] flex flex-col overflow-hidden">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 flex-shrink-0">
+                <h3 id="rule-modal-title" class="text-base font-bold text-gray-900">新增考勤設置</h3>
+                <button onclick="closeRuleModal()" class="text-gray-400 hover:text-gray-600 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="rule-form" onsubmit="return false" class="px-6 py-5 overflow-y-auto space-y-6">
+
+                <!-- ===== 基本設定 ===== -->
+                <div class="space-y-4">
+                    <h4 class="text-sm font-bold text-primary flex items-center gap-2"><span class="w-1 h-4 bg-primary rounded-full"></span>基本設定</h4>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-[140px_1fr] gap-2 sm:gap-4 sm:items-center">
+                        <label class="text-xs font-semibold text-gray-600">規則模板名稱 <span class="text-rose-500">*</span></label>
+                        <input type="text" id="rule-name" value="考勤設置1" class="ui-input">
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-[140px_1fr] gap-2 sm:gap-4 sm:items-center">
+                        <label class="text-xs font-semibold text-gray-600">固定上班時間</label>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <input type="time" id="rule-work-start" value="09:00" class="border border-gray-300 rounded px-2 py-1 text-sm" onchange="calcWorkHours()">
+                            <span class="text-gray-400 text-sm">~</span>
+                            <input type="time" id="rule-work-end" value="18:00" class="border border-gray-300 rounded px-2 py-1 text-sm" onchange="calcWorkHours()">
+                            <label class="inline-flex items-center gap-1.5 text-sm text-gray-700 cursor-pointer ml-2"><input type="checkbox" id="rule-overnight" class="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary" onchange="calcWorkHours()"> 跨日打卡</label>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-[140px_1fr] gap-2 sm:gap-4 sm:items-center">
+                        <label class="text-xs font-semibold text-gray-600">休息時間</label>
+                        <div class="flex items-center gap-2">
+                            <input type="time" id="rule-rest-start" value="12:00" class="border border-gray-300 rounded px-2 py-1 text-sm" onchange="calcWorkHours()">
+                            <span class="text-gray-400 text-sm">~</span>
+                            <input type="time" id="rule-rest-end" value="13:00" class="border border-gray-300 rounded px-2 py-1 text-sm" onchange="calcWorkHours()">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-[140px_1fr] gap-2 sm:gap-4">
+                        <label class="text-xs font-semibold text-gray-600 sm:pt-1">休息時間打卡</label>
+                        <div class="flex flex-col gap-2">
+                            <label class="inline-flex items-start gap-2 text-sm text-gray-700 cursor-pointer"><input type="radio" name="rest-clock" data-label="需打卡" class="w-4 h-4 mt-0.5 text-primary focus:ring-primary" checked> <span>需打卡<span class="block text-xs text-primary">勾選需打卡，系統將判斷在休息時間未滿足兩次打卡即為缺卡異常</span></span></label>
+                            <label class="inline-flex items-center gap-2 text-sm text-gray-700 cursor-pointer"><input type="radio" name="rest-clock" data-label="免打卡" class="w-4 h-4 text-primary focus:ring-primary"> 免打卡</label>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-[140px_1fr] gap-2 sm:gap-4 sm:items-center">
+                        <label class="text-xs font-semibold text-gray-600">工時</label>
+                        <input type="text" id="rule-work-hours" readonly class="ui-input bg-gray-50 text-gray-600 max-w-[200px]">
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-[140px_1fr] gap-2 sm:gap-4">
+                        <label class="text-xs font-semibold text-gray-600 sm:pt-1">彈性上班時間</label>
+                        <div class="flex flex-col gap-2">
+                            <label class="inline-flex items-center gap-2 text-sm text-gray-700 cursor-pointer"><input type="radio" name="flex-start" class="w-4 h-4 text-primary focus:ring-primary" checked> 無</label>
+                            <label class="inline-flex items-center gap-2 text-sm text-gray-700 cursor-pointer flex-wrap"><input type="radio" name="flex-start" class="w-4 h-4 text-primary focus:ring-primary"> 有，可提前 <input type="text" inputmode="numeric" value="30" class="w-14 border border-gray-300 rounded px-2 py-1 text-sm text-center"> 分鐘，或延後 <input type="text" inputmode="numeric" value="30" class="w-14 border border-gray-300 rounded px-2 py-1 text-sm text-center"> 分鐘上班。</label>
+                            <p class="text-xs text-amber-600 pl-6">注意：彈性上班時間與休息時間交集時失效。</p>
+                        </div>
+                    </div>
+                </div>
+            </form>
+            <div class="flex justify-end gap-2.5 px-6 py-4 bg-gray-50 border-t border-gray-100 flex-shrink-0">
+                <button onclick="closeRuleModal()" class="ui-btn ui-btn-secondary">取消</button>
+                <button onclick="saveRule()" class="ui-btn ui-btn-primary">儲存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 補卡次數限制（全域套用）彈窗 -->
+    <div id="mk-modal" class="fixed inset-0 bg-black/40 z-50 flex justify-center items-center hidden p-4">
+        <div class="bg-white rounded-2xl shadow-modal w-full max-w-2xl flex flex-col overflow-hidden">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                <h3 class="text-base font-bold text-gray-900">補卡次數限制</h3>
+                <button onclick="closeMakeupLimit()" class="text-gray-400 hover:text-gray-600 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="px-6 py-5 space-y-3">
+                <p class="text-xs text-gray-400">此設定為全域套用，適用於所有員工的補卡申請。</p>
+                <label class="inline-flex items-center gap-2 text-sm text-gray-700 cursor-pointer"><input type="radio" name="mk-count" data-label="無限制" class="w-4 h-4 text-primary focus:ring-primary" checked onchange="toggleMkCount()"> 無限制</label>
+                <label class="inline-flex items-center gap-2 text-sm text-gray-700 cursor-pointer flex-wrap"><input type="radio" name="mk-count" data-label="限制" class="w-4 h-4 text-primary focus:ring-primary" onchange="toggleMkCount()"> 每月不得超過 <input type="text" inputmode="numeric" id="mk-count-value" value="3" class="w-14 border border-gray-300 rounded px-2 py-1 text-sm text-center"> 次（超過者僅能由主管 / 人資代為申請）</label>
+            </div>
+            <div class="flex justify-end gap-2.5 px-6 py-4 bg-gray-50 border-t border-gray-100">
+                <button onclick="closeMakeupLimit()" class="ui-btn ui-btn-secondary">取消</button>
+                <button onclick="saveMakeupLimit()" class="ui-btn ui-btn-primary">儲存</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+        <i id="toast-icon" class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
+        <span id="toast-text" class="text-sm font-medium">操作成功！</span>
+    </div>
+
+    <script>
+        /* ============ 考勤設置資料 ============ */
+        let ruleTemplates = [
+            { id: 1, name: '考勤設置1', workStart: '09:00', workEnd: '18:00', restClock: '需打卡', hours: '8 小時 0 分', active: true },
+            { id: 2, name: '總部標準班', workStart: '09:00', workEnd: '18:00', restClock: '需打卡', hours: '8 小時 0 分', active: true },
+            { id: 3, name: '免午休打卡班', workStart: '08:30', workEnd: '17:30', restClock: '免打卡', hours: '8 小時 0 分', active: false }
+        ];
+        let editRuleId = null;
+
+        function renderRules() {
+            const kw = (document.getElementById('rule-search').value || '').trim().toLowerCase();
+            const list = ruleTemplates.filter(r => !kw || r.name.toLowerCase().includes(kw));
+            const tbody = document.getElementById('rule-tbody');
+            tbody.innerHTML = list.map(r => {
+                const badge = r.active
+                    ? '<span class="ui-badge ui-badge-success">啟用</span>'
+                    : '<span class="ui-badge bg-gray-100 text-gray-500">停用</span>';
+                const clockBadge = r.restClock === '免打卡'
+                    ? '<span class="ui-badge bg-gray-100 text-gray-500">免打卡</span>'
+                    : '<span class="ui-badge ui-badge-info">需打卡</span>';
+                const toggle = r.active
+                    ? `<button onclick="toggleRule(${r.id})" class="ui-btn ui-btn-sm text-amber-600 border border-amber-200 hover:bg-amber-50"><i class="fa-solid fa-ban"></i> 停用</button>`
+                    : `<button onclick="toggleRule(${r.id})" class="ui-btn ui-btn-sm text-emerald-600 border border-emerald-200 hover:bg-emerald-50"><i class="fa-solid fa-circle-check"></i> 啟用</button>`;
+                return '<tr class="hover:bg-gray-50/70 transition-colors">' +
+                    '<td class="text-left font-medium text-gray-800">' + r.name + '</td>' +
+                    '<td class="text-center text-gray-600">' + (r.workStart || '') + ' ~ ' + (r.workEnd || '') + '</td>' +
+                    '<td class="text-center text-gray-600">' + (r.hours || '') + '</td>' +
+                    '<td class="text-center">' + clockBadge + '</td>' +
+                    '<td class="text-center">' + badge + '</td>' +
+                    '<td class="text-center"><div class="flex items-center justify-center gap-2">' +
+                        '<button onclick="openRuleEdit(' + r.id + ')" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-pen-to-square"></i> 編輯</button>' + toggle +
+                    '</div></td>' +
+                    '</tr>';
+            }).join('');
+            document.getElementById('rule-count-badge').innerText = list.length + ' 筆';
+            document.getElementById('rule-no-data').classList.toggle('hidden', list.length > 0);
+            tbody.parentElement.classList.toggle('hidden', list.length === 0);
+        }
+
+        /* ---- 工時自動計算（固定上班時間 - 單段休息時間）---- */
+        function toMin(v) {
+            if (!v || v.indexOf(':') < 0) return null;
+            const p = v.split(':'); const h = parseInt(p[0], 10); const m = parseInt(p[1], 10);
+            if (isNaN(h) || isNaN(m)) return null;
+            return h * 60 + m;
+        }
+        function calcWorkHours() {
+            const ws = toMin(document.getElementById('rule-work-start').value);
+            const we = toMin(document.getElementById('rule-work-end').value);
+            const overnight = document.getElementById('rule-overnight').checked;
+            let total = (ws !== null && we !== null) ? (we - ws) : 0;
+            if (total < 0 || (overnight && total <= 0)) total += 24 * 60;
+            const rs = toMin(document.getElementById('rule-rest-start').value);
+            const re = toMin(document.getElementById('rule-rest-end').value);
+            let rest = 0;
+            if (rs !== null && re !== null) { rest = re - rs; if (rest < 0) rest += 24 * 60; }
+            const net = Math.max(0, total - rest);
+            const h = Math.floor(net / 60), m = net % 60;
+            document.getElementById('rule-work-hours').value = total ? `${h} 小時 ${m} 分` : '';
+        }
+
+        /* ===== 補卡次數限制（全域）===== */
+        let makeupLimit = { unlimited: true, perMonth: 3 };
+        function toggleMkCount() {
+            const sel = document.querySelector('input[name="mk-count"]:checked');
+            const limited = sel && sel.dataset.label === '限制';
+            document.getElementById('mk-count-value').disabled = !limited;
+        }
+        function openMakeupLimit() {
+            const opts = document.querySelectorAll('input[name="mk-count"]');
+            opts.forEach(o => o.checked = (o.dataset.label === (makeupLimit.unlimited ? '無限制' : '限制')));
+            document.getElementById('mk-count-value').value = makeupLimit.perMonth;
+            toggleMkCount();
+            document.getElementById('mk-modal').classList.remove('hidden');
+        }
+        function closeMakeupLimit() { document.getElementById('mk-modal').classList.add('hidden'); }
+        function saveMakeupLimit() {
+            const sel = document.querySelector('input[name="mk-count"]:checked');
+            makeupLimit.unlimited = !(sel && sel.dataset.label === '限制');
+            makeupLimit.perMonth = document.getElementById('mk-count-value').value || '3';
+            closeMakeupLimit();
+            showToast('success', makeupLimit.unlimited ? '已設定補卡次數：無限制' : `已設定補卡次數：每月上限 ${makeupLimit.perMonth} 次`);
+        }
+        document.getElementById('mk-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeMakeupLimit(); });
+
+        function openRuleCreate() {
+            editRuleId = null;
+            document.getElementById('rule-modal-title').innerText = '新增考勤設置';
+            document.getElementById('rule-form').reset();
+            document.getElementById('rule-name').value = '考勤設置1';
+            calcWorkHours();
+            document.getElementById('rule-modal').classList.remove('hidden');
+        }
+        function openRuleEdit(id) {
+            const r = ruleTemplates.find(x => x.id === id);
+            if (!r) return;
+            editRuleId = id;
+            document.getElementById('rule-modal-title').innerText = '編輯考勤設置';
+            document.getElementById('rule-form').reset();
+            document.getElementById('rule-name').value = r.name;
+            document.getElementById('rule-work-start').value = r.workStart || '';
+            document.getElementById('rule-work-end').value = r.workEnd || '';
+            document.getElementById('rule-overnight').checked = !!r.overnight;
+            document.getElementById('rule-rest-start').value = r.restStart || '12:00';
+            document.getElementById('rule-rest-end').value = r.restEnd || '13:00';
+            const ck = document.querySelector(`input[name="rest-clock"][data-label="${r.restClock}"]`);
+            if (ck) ck.checked = true;
+            calcWorkHours();
+            document.getElementById('rule-modal').classList.remove('hidden');
+        }
+        function closeRuleModal() { document.getElementById('rule-modal').classList.add('hidden'); }
+
+        function saveRule() {
+            const name = document.getElementById('rule-name').value.trim();
+            if (!name) { showToast('error', '請填寫規則模板名稱'); return; }
+            const ck = document.querySelector('input[name="rest-clock"]:checked');
+            const data = {
+                name,
+                workStart: document.getElementById('rule-work-start').value,
+                workEnd: document.getElementById('rule-work-end').value,
+                overnight: document.getElementById('rule-overnight').checked,
+                restStart: document.getElementById('rule-rest-start').value,
+                restEnd: document.getElementById('rule-rest-end').value,
+                restClock: ck ? ck.dataset.label : '需打卡',
+                hours: document.getElementById('rule-work-hours').value
+            };
+            if (editRuleId === null) {
+                const nextId = ruleTemplates.length ? Math.max(...ruleTemplates.map(r => r.id)) + 1 : 1;
+                ruleTemplates.push({ id: nextId, active: true, ...data });
+                showToast('success', `已新增「${name}」`);
+            } else {
+                const r = ruleTemplates.find(x => x.id === editRuleId);
+                if (r) Object.assign(r, data);
+                showToast('success', `已更新「${name}」`);
+            }
+            closeRuleModal();
+            renderRules();
+        }
+        function toggleRule(id) {
+            const r = ruleTemplates.find(x => x.id === id);
+            if (!r) return;
+            r.active = !r.active;
+            renderRules();
+            showToast(r.active ? 'success' : 'info', `已${r.active ? '啟用' : '停用'}「${r.name}」`);
+        }
+
+        /* ============ Toast 提示控制 ============ */
+        function showToast(type, text) {
+            const toast = document.getElementById('toast');
+            const toastIcon = document.getElementById('toast-icon');
+            const toastText = document.getElementById('toast-text');
+            toastText.innerText = text;
+            if (type === 'success') {
+                toast.className = "fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform transition-all duration-300 border border-emerald-500/20";
+                toastIcon.className = "fa-solid fa-circle-check text-emerald-400 text-base";
+            } else if (type === 'error') {
+                toast.className = "fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform transition-all duration-300 border border-rose-500/20";
+                toastIcon.className = "fa-solid fa-circle-xmark text-rose-400 text-base";
+            } else {
+                toast.className = "fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform transition-all duration-300 border border-blue-500/20";
+                toastIcon.className = "fa-solid fa-circle-info text-blue-400 text-base";
+            }
+            toast.style.transform = 'translateY(0)';
+            toast.style.opacity = '1';
+            clearTimeout(window.__toastTimer);
+            window.__toastTimer = setTimeout(() => {
+                toast.style.transform = 'translateY(5rem)';
+                toast.style.opacity = '0';
+            }, 2600);
+        }
+
+        // 點擊彈窗外圍關閉
+        document.getElementById('rule-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeRuleModal(); });
+
+        // 初始化
+        renderRules();
+        calcWorkHours();
+    </script>
+</body>
+</html>

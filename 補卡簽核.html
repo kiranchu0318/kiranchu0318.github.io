@@ -1,0 +1,2069 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>補卡簽核 - 簽核管理系統</title>
+  
+  <!-- 載入 Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- 載入 React 核心庫 -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  
+  <!-- 載入 Babel 供瀏覽器即時編譯 JSX -->
+  <script src="https://unpkg.com/@babel/standalone@7.29.7/babel.min.js"></script>
+    <link rel="stylesheet" href="shared-ui.css">
+    <style>
+      /* 審批意見內嵌編輯器 placeholder */
+      .approve-editor:empty:before {
+        content: attr(data-placeholder);
+        color: #9CA3AF;
+        pointer-events: none;
+      }
+    </style>
+</head>
+<body class="">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    // --- 圖示 SVG 元件 ---
+    const IconBase = ({ size = 24, strokeWidth = 2, children, className = '', ...props }) => (
+      <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+        {children}
+      </svg>
+    );
+
+    const Calendar = (props) => <IconBase {...props}><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></IconBase>;
+    const PenLine = (props) => <IconBase {...props}><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></IconBase>;
+    const Search = (props) => <IconBase {...props}><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></IconBase>;
+    const ChevronDown = (props) => <IconBase {...props}><polyline points="6 9 12 15 18 9"></polyline></IconBase>;
+    const X = (props) => <IconBase {...props}><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></IconBase>;
+
+    // --- 自訂日期選取器 (DatePicker) 元件 ---
+    const DatePickerDropdown = ({ isOpen, onToggle, value, onChange, placeholder }) => {
+      const [viewDate, setViewDate] = useState(value ? new Date(value) : new Date());
+
+      useEffect(() => {
+        if (isOpen && value) {
+          setViewDate(new Date(value));
+        }
+      }, [isOpen, value]);
+
+      const formatDate = (date) => {
+        const y = date.getFullYear();
+        const m = String(date.getMonth() + 1).padStart(2, '0');
+        const d = String(date.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+      };
+
+      const getDaysInMonth = (year, month) => new Date(year, month + 1, 0).getDate();
+      const getFirstDayOfMonth = (year, month) => new Date(year, month, 1).getDay();
+
+      const year = viewDate.getFullYear();
+      const month = viewDate.getMonth();
+      const days = [];
+      const daysInMonth = getDaysInMonth(year, month);
+      const firstDay = getFirstDayOfMonth(year, month);
+
+      for (let i = 0; i < firstDay; i++) days.push(null);
+      for (let i = 1; i <= daysInMonth; i++) days.push(new Date(year, month, i));
+
+      return (
+        <div className="relative">
+          <div
+            onClick={onToggle}
+            className={`flex items-center bg-white border rounded px-3 py-1.5 shadow-sm cursor-pointer transition-colors ${
+              isOpen ? 'border-[#4A90E2] ring-1 ring-[#4A90E2]' : 'border-gray-300 hover:border-[#4A90E2]'
+            }`}
+          >
+            <Calendar size={15} className="text-gray-400 mr-2 flex-shrink-0" />
+            <input
+              type="text"
+              className="w-24 outline-none text-sm text-gray-700 cursor-pointer bg-transparent pointer-events-none"
+              placeholder={placeholder}
+              value={value}
+              readOnly
+            />
+          </div>
+          
+          {isOpen && (
+            <div className="absolute top-full mt-1 left-0 bg-white border border-gray-200 rounded shadow-lg z-50 p-4 w-[280px]" onClick={e => e.stopPropagation()}>
+              <div className="flex justify-between items-center mb-4">
+                <button onClick={() => setViewDate(new Date(year, month - 1, 1))} className="p-1 hover:bg-gray-100 rounded text-gray-500 transition-colors">
+                  <ChevronDown size={18} className="rotate-90" />
+                </button>
+                <span className="text-[15px] font-semibold text-gray-800">{year}年 {month + 1}月</span>
+                <button onClick={() => setViewDate(new Date(year, month + 1, 1))} className="p-1 hover:bg-gray-100 rounded text-gray-500 transition-colors">
+                  <ChevronDown size={18} className="-rotate-90" />
+                </button>
+              </div>
+              <div className="grid grid-cols-7 gap-1 text-center text-xs text-gray-400 mb-2 font-medium">
+                {['日', '一', '二', '三', '四', '五', '六'].map(d => <div key={d}>{d}</div>)}
+              </div>
+              <div className="grid grid-cols-7 gap-1 text-center text-sm">
+                {days.map((d, i) => {
+                  const dateStr = d ? formatDate(d) : '';
+                  const isSelected = value === dateStr;
+                  const isToday = d && formatDate(d) === formatDate(new Date());
+                  
+                  return (
+                    <div
+                      key={i}
+                      onClick={() => {
+                        if (d) {
+                          onChange(isSelected ? '' : dateStr);
+                          if (!isSelected) onToggle();
+                        }
+                      }}
+                      className={`
+                        py-1 rounded transition-colors
+                        ${!d ? 'pointer-events-none' : 'cursor-pointer'}
+                        ${isSelected ? 'bg-[#4A90E2] text-white font-medium shadow-sm' : 
+                          d ? 'hover:bg-gray-100 text-gray-700' : ''}
+                        ${!isSelected && isToday ? 'text-[#4A90E2] font-bold' : ''}
+                      `}
+                    >
+                      {d ? d.getDate() : ''}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    };
+
+    // --- 主程式元件 ---
+    const App = () => {
+      // 頁籤狀態
+      const tabs = ['補卡簽核'];
+      const [activeTab, setActiveTab] = useState('補卡簽核');
+
+      // 費用詳情彈窗控制狀態
+      const [isModalOpen, setIsModalOpen] = useState(false);
+      // 關聯單號導覽堆疊：在彈窗內開啟關聯單時記住來源，關閉時可返回原本的單
+      const [modalStack, setModalStack] = useState([]);
+      // 從列表開啟（全新）詳情彈窗：清空導覽堆疊
+      const openDocModal = (row) => { setModalStack([]); setModalRow(row); setIsModalOpen(true); };
+      // 在彈窗內開啟關聯單：把目前的單推入堆疊
+      const openRelatedDoc = (target) => { setModalStack(prev => [...prev, modalRow]); setModalRow(target); };
+      // 關閉 / 返回：堆疊有來源則返回上一張，否則整個關閉
+      const closeOrBackModal = () => {
+        setModalStack(prev => {
+          if (prev.length > 0) { setModalRow(prev[prev.length - 1]); return prev.slice(0, -1); }
+          setIsModalOpen(false);
+          return [];
+        });
+      };
+      // 請假 / 補卡「檢視」詳情彈窗（依電子表單簽核彈窗樣式製作）
+      const [viewItem, setViewItem] = useState(null); // { kind: 'leave' | 'timesheet', data: row }
+      // 電子表單簽核：點擊編號開啟詳情彈窗時，記住該列資料以帶入彈窗內容
+      const [modalRow, setModalRow] = useState(null);
+      const [showOpinions, setShowOpinions] = useState(false);
+      // 審批動作彈窗（審批 / 駁回 / 補件 + 意見 + 附件）
+      const [approveActionOpen, setApproveActionOpen] = useState(false);
+      const [approveDecision, setApproveDecision] = useState('審批');
+      // 指派工作單彈窗（C-THQ-000002 審批通過後）
+      const [assignModalOpen, setAssignModalOpen] = useState(false);
+      const [assignee, setAssignee] = useState('');
+      // 單據覆寫（指派後更新簽核/工作狀態）：{ [docNo]: { status, workStatus } }
+      const [docOverrides, setDocOverrides] = useState({});
+      const [approveFiles, setApproveFiles] = useState([]); // [{ name, size }]
+      const approveEditorRef = React.useRef(null);
+      // 費用報銷明細下方「說明」附件（預設帶入兩張發票示意）
+      const [noteFiles, setNoteFiles] = useState([
+        { name: 'A4紙發票.pdf', size: 245 * 1024 },
+        { name: '洗碗精發票.pdf', size: 180 * 1024 },
+      ]);
+      const noteFileInputRef = React.useRef(null);
+      const approveFileInputRef = React.useRef(null);
+      const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
+      const formatFileSize = (bytes) => {
+        if (bytes >= 1024 * 1024) return (bytes / 1024 / 1024).toFixed(1) + ' MB';
+        if (bytes >= 1024) return (bytes / 1024).toFixed(0) + ' KB';
+        return bytes + ' B';
+      };
+      const handleApproveFiles = (fileList) => {
+        const incoming = Array.from(fileList || []);
+        const accepted = [];
+        const rejected = [];
+        incoming.forEach(f => {
+          if (f.size > MAX_FILE_SIZE) rejected.push(f.name);
+          else accepted.push({ name: f.name, size: f.size });
+        });
+        if (rejected.length) {
+          window.alert('以下附件超過 20MB 上限，已略過：\n' + rejected.join('\n'));
+        }
+        if (accepted.length) setApproveFiles(prev => [...prev, ...accepted]);
+      };
+      const handleNoteFiles = (fileList) => {
+        const incoming = Array.from(fileList || []);
+        const accepted = [];
+        const rejected = [];
+        incoming.forEach(f => {
+          if (f.size > MAX_FILE_SIZE) rejected.push(f.name);
+          else accepted.push({ name: f.name, size: f.size });
+        });
+        if (rejected.length) window.alert('以下附件超過 20MB 上限，已略過：\n' + rejected.join('\n'));
+        if (accepted.length) setNoteFiles(prev => [...prev, ...accepted]);
+      };
+      const openApproveAction = () => {
+        setApproveDecision('審批');
+        setApproveFiles([]);
+        setApproveActionOpen(true);
+      };
+      const submitApproveAction = () => {
+        setApproveActionOpen(false);
+        // C-THQ-000002 審批通過 → 開啟「指派工作單」彈窗
+        if (modalRow?.docNo === 'C-THQ-000002' && approveDecision === '審批') {
+          setAssignee('');
+          setAssignModalOpen(true);
+          return;
+        }
+        setIsModalOpen(false);
+        setModalStack([]);
+      };
+      const submitAssign = () => {
+        const dn = modalRow?.docNo;
+        if (dn) setDocOverrides(prev => ({ ...prev, [dn]: { status: '簽核完成', workStatus: '已派工' } }));
+        setAssignModalOpen(false);
+        setIsModalOpen(false);
+        setModalStack([]);
+      };
+      const [activeExportModal, setActiveExportModal] = useState(null);
+      const [selectedBookkeeping, setSelectedBookkeeping] = useState([]);
+      const [pendingApprovalOnly, setPendingApprovalOnly] = useState(false);
+      const [withdrawConfirmItem, setWithdrawConfirmItem] = useState(null);
+
+      // 批量審批相關狀態與假資料
+      const [selectedLeave, setSelectedLeave] = useState([]);
+      const [selectedTimesheet, setSelectedTimesheet] = useState([]);
+      const [selectedCancel, setSelectedCancel] = useState([]);
+      const [batchApproveModal, setBatchApproveModal] = useState(null); // 'leave' | 'timesheet' | 'cancel' | null
+
+      const mockLeaveData = [
+        { id: 'L1', project: 'GT', dept: 'RD', empNo: '101372', applyTime: '2026-05-28 10:00:00', name: 'Nick', startDate: '2026-06-01', endDate: '2026-06-02', leaveType: '年假', hours: '16', status: '待我簽核' },
+        { id: 'L2', project: 'GT', dept: 'RD', empNo: '100962', applyTime: '2026-05-29 09:30:00', name: 'Miles', startDate: '2026-06-05', endDate: '2026-06-05', leaveType: '事假', hours: '8', status: '未簽核' },
+        { id: 'L3', project: 'GT', dept: 'RD', empNo: '101436', applyTime: '2026-05-30 11:00:00', name: 'Stella', startDate: '2026-06-10', endDate: '2026-06-10', leaveType: '病假', hours: '4', status: '簽核完成' },
+        { id: 'L4', project: 'GT', dept: 'RD', empNo: '100123', applyTime: '2026-05-31 14:20:00', name: 'Hazel', startDate: '2026-06-15', endDate: '2026-06-16', leaveType: '年假', hours: '16', status: 'CC' },
+        { id: 'L5', project: 'GT', dept: 'RD', empNo: '101372', applyTime: '2026-06-03 16:45:00', name: 'Nick', startDate: '2026-06-01', endDate: '2026-06-01', leaveType: '年假(銷假)', hours: '8', status: '待我簽核' },
+      ];
+
+      const mockTimesheetData = [
+        { id: 'T1', project: 'GT', dept: 'RD', empNo: '100344', submitDate: '2026-05-28', clockTime: '2026-05-27 08:55:00', period: '上班', type: '忘記打卡', status: '待我簽核' },
+        { id: 'T2', project: 'GT', dept: 'RD', empNo: '101436', submitDate: '2026-05-29', clockTime: '2026-05-28 18:05:00', period: '下班', type: '忘記打卡', status: '未簽核' },
+        { id: 'T3', project: 'GT', dept: 'RD', empNo: '100960', submitDate: '2026-05-30', clockTime: '2026-05-29 09:00:00', period: '上班', type: '公出', status: '簽核完成' },
+        { id: 'T4', project: 'GT', dept: 'RD', empNo: '100570', submitDate: '2026-05-31', clockTime: '2026-05-30 18:30:00', period: '下班', type: '公出', status: 'CC' },
+      ];
+
+      // 銷假簽核：假單已完成後申請銷假，需主管簽核
+      const mockCancelData = [
+        { id: 'CL1', project: 'GT', dept: 'RD', empNo: '101372', applyTime: '2026-06-05 09:10:00', name: 'Nick', leaveType: '年假', startDate: '2026-06-01', endDate: '2026-06-02', hours: '16', reason: '行程取消，原假期不需請', status: '待我簽核' },
+        { id: 'CL2', project: 'GT', dept: 'RD', empNo: '101436', applyTime: '2026-06-06 14:00:00', name: 'Stella', leaveType: '病假', startDate: '2026-06-10', endDate: '2026-06-10', hours: '4', reason: '已康復，提前返崗', status: '未簽核' },
+        { id: 'CL3', project: 'GT', dept: 'RD', empNo: '100962', applyTime: '2026-06-02 11:30:00', name: 'Miles', leaveType: '事假', startDate: '2026-05-28', endDate: '2026-05-28', hours: '8', reason: '私事已處理完畢', status: '簽核完成' },
+      ];
+
+      // 過濾出「需要審批」的資料，供全選功能使用（請假以篩選後的清單為準，定義於 selectedFilters 之後）
+      const approvableTimesheets = mockTimesheetData.filter(d => d.status === '待我簽核');
+
+      // --- 輔助：取得格式化日期 (yyyy-MM-dd) ---
+      const getFormattedDate = (daysOffset = 0) => {
+        const d = new Date();
+        d.setDate(d.getDate() + daysOffset);
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${y}-${m}-${day}`;
+      };
+
+      // --- 發起申請資料 ---
+      const [startDate, setStartDate] = useState('');
+      const [endDate, setEndDate] = useState('');
+
+      // 請假與補卡簽核專用預設日期區間 (今日往前推 31 天到今日)
+      const [ltStartDate, setLtStartDate] = useState(getFormattedDate(-31));
+      const [ltEndDate, setLtEndDate] = useState(getFormattedDate(0));
+
+      // 共用：控制篩選下拉選單開啟
+      const [openDropdown, setOpenDropdown] = useState(null);
+
+      // 電子表單簽核：篩選器設定
+      const filterConfigs = [
+        { id: 'status', label: '狀態', type: 'multi', options: ['未簽核', '待我簽核', '簽核中(7)', '簽核完成', '撤回', '駁回', 'CC', '待補件'] },
+        { id: 'oa', label: 'OA 類型', type: 'multi', options: ['商務', '合同', '財務', '行政', 'PMO'] },
+        { id: 'project', label: '項目', type: 'multi', options: ['GT'] },
+        { id: 'location', label: '地點', type: 'multi', options: ['T1', 'T2', 'THQ', 'T3', 'T4'] },
+        { id: 'title', label: '職稱', type: 'multi', options: ['行政負責代表', '人力資源中心', '記帳', '財務總監', '費用會計'] },
+        { id: 'docType', label: '單據類型', type: 'multi', options: ['新增資產申請 (ASSETS)', '費用申請單 (B)', '商務公告(BU)', '費用報銷單 (C)', '內部合同審批單 (IC)'] },
+      ];
+
+      // 請假/補卡簽核：專屬篩選器設定
+      const ltFilterConfigs = [
+        { id: 'ltStatus', label: '狀態', type: 'multi', options: ['未簽核', '待我簽核', '簽核中(7)', '簽核完成', '撤回', '駁回', 'CC', '待補件'] },
+        { id: 'ltProject', label: '項目', type: 'multi', options: ['GT'] },
+        { id: 'ltDept', label: '部門', type: 'multi', options: ['API', 'RD'] },
+      ];
+
+      // 統一狀態管理
+      const [selectedFilters, setSelectedFilters] = useState({
+        status: ['未簽核', '待我簽核', '簽核中(7)'], // 預設選中
+        oa: [], project: [], location: [], title: [], docType: [],
+        ltStatus: ['未簽核', '待我簽核', '簽核中(7)'], ltProject: [], ltDept: []
+      });
+
+      // 請假簽核：依篩選器（狀態 / 項目 / 部門，多選；未選代表全部）過濾列表
+      const filteredLeaveData = mockLeaveData.filter(d =>
+        (selectedFilters.ltStatus.length === 0 || selectedFilters.ltStatus.includes(d.status)) &&
+        (selectedFilters.ltProject.length === 0 || selectedFilters.ltProject.includes(d.project)) &&
+        (selectedFilters.ltDept.length === 0 || selectedFilters.ltDept.includes(d.dept))
+      );
+      // 全選 / 批量審批以「篩選後可審批」的資料為準
+      const approvableLeaves = filteredLeaveData.filter(d => d.status === '待我簽核');
+
+      // 銷假簽核：依篩選器（狀態 / 項目 / 部門）過濾列表
+      const filteredCancelData = mockCancelData.filter(d =>
+        (selectedFilters.ltStatus.length === 0 || selectedFilters.ltStatus.includes(d.status)) &&
+        (selectedFilters.ltProject.length === 0 || selectedFilters.ltProject.includes(d.project)) &&
+        (selectedFilters.ltDept.length === 0 || selectedFilters.ltDept.includes(d.dept))
+      );
+      const approvableCancels = filteredCancelData.filter(d => d.status === '待我簽核');
+
+      const toggleFilterOption = (filterId, option) => {
+        setSelectedFilters(prev => {
+          const currentSelected = prev[filterId];
+          if (Array.isArray(currentSelected)) {
+            if (currentSelected.includes(option)) {
+              return { ...prev, [filterId]: currentSelected.filter(item => item !== option) };
+            } else {
+              return { ...prev, [filterId]: [...currentSelected, option] };
+            }
+          } else {
+            return { ...prev, [filterId]: option };
+          }
+        });
+      };
+
+      const toggleSelectAll = (filterId, options) => {
+        setSelectedFilters(prev => {
+          const currentSelected = prev[filterId];
+          if (currentSelected.length === options.length) {
+            return { ...prev, [filterId]: [] }; 
+          } else {
+            return { ...prev, [filterId]: [...options] }; 
+          }
+        });
+      };
+
+      const removeFilterOption = (filterId, option, e) => {
+        e.stopPropagation();
+        toggleFilterOption(filterId, option);
+      };
+
+      // 提取共用的篩選列渲染函數
+      const renderFilterBar = (configs) => (
+        <div className="bg-[#F8F9FB] p-3 rounded border border-gray-200 flex flex-wrap gap-4 items-center">
+          {configs.map((filter) => (
+            <div key={filter.id} className={`flex items-center gap-2 flex-1 min-w-[180px] ${filter.id === 'docType' || filter.id === 'status' || filter.id === 'ltStatus' ? 'md:col-span-2 lg:min-w-[280px]' : ''}`}>
+              <span className="whitespace-nowrap text-xs text-gray-600 font-medium w-16 text-right">{filter.label}</span>
+              <div className="relative flex-1">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setOpenDropdown(openDropdown === filter.id ? null : filter.id);
+                  }}
+                  className={`w-full flex items-center justify-between bg-white border rounded px-2.5 py-1.5 text-[13px] transition-colors shadow-sm min-h-[32px] ${
+                    openDropdown === filter.id ? 'border-[#4A90E2] ring-1 ring-[#4A90E2]' : 'border-gray-300 hover:border-[#4A90E2]'
+                  }`}
+                >
+                  <div className="flex-1 flex flex-wrap gap-1 items-center overflow-hidden">
+                    {filter.type === 'single' ? (
+                      <span className="text-gray-700 truncate">{selectedFilters[filter.id]}</span>
+                    ) : selectedFilters[filter.id].length > 0 ? (
+                      selectedFilters[filter.id].map(opt => (
+                        <span key={opt} className="inline-flex items-center gap-1 bg-[#F0F2F5] text-gray-700 px-1.5 py-0.5 rounded-sm text-[11px] border border-gray-200 max-w-full">
+                          <span className="truncate">{opt}</span>
+                          <div 
+                            onClick={(e) => removeFilterOption(filter.id, opt, e)} 
+                            className="hover:text-red-500 hover:bg-gray-200 rounded-full p-0.5 transition-colors cursor-pointer flex-shrink-0"
+                          >
+                            <X size={10} strokeWidth={2} />
+                          </div>
+                        </span>
+                      ))
+                    ) : (
+                      <span className="text-gray-700">全部</span>
+                    )}
+                  </div>
+                  <ChevronDown size={14} className={`text-gray-400 transition-transform flex-shrink-0 ml-1.5 ${openDropdown === filter.id ? 'rotate-180' : ''}`} />
+                </button>
+
+                {/* 下拉選單內容 */}
+                {openDropdown === filter.id && (
+                  <div 
+                    className={`absolute top-full mt-1 left-0 w-full min-w-[200px] bg-white border border-gray-200 rounded shadow-lg z-50 py-1 ${filter.id === 'docType' || filter.id === 'status' || filter.id === 'ltStatus' ? 'md:w-[350px]' : ''}`}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {filter.type === 'single' ? (
+                      <div className="max-h-60 overflow-y-auto">
+                        {filter.options.map(opt => (
+                          <div 
+                            key={opt} 
+                            onClick={() => {
+                              toggleFilterOption(filter.id, opt);
+                              setOpenDropdown(null);
+                            }}
+                            className={`px-3 py-1.5 hover:bg-gray-50 cursor-pointer text-[13px] transition-colors ${selectedFilters[filter.id] === opt ? 'text-[#4A90E2] bg-[#F5F7FA] font-medium' : 'text-gray-700'}`}
+                          >
+                            {opt}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="flex flex-col">
+                        <div 
+                          onClick={() => toggleSelectAll(filter.id, filter.options)}
+                          className="px-3 py-1.5 text-[13px] text-[#4CAF50] font-medium cursor-pointer hover:bg-gray-50 transition-colors"
+                        >
+                          Select All
+                        </div>
+                        <div className="h-px bg-gray-100 my-1"></div>
+                        <div className="max-h-48 overflow-y-auto">
+                          {filter.options.map(opt => (
+                            <label key={opt} className="flex items-center px-3 py-1.5 hover:bg-gray-50 cursor-pointer gap-2.5">
+                              <input 
+                                type="checkbox" 
+                                checked={selectedFilters[filter.id].includes(opt)}
+                                onChange={() => toggleFilterOption(filter.id, opt)}
+                                className="w-3.5 h-3.5 rounded border-gray-300 text-[#4A90E2] focus:ring-[#4A90E2]" 
+                              />
+                              <span className="text-[13px] text-gray-700">{opt}</span>
+                            </label>
+                          ))}
+                        </div>
+                        <div className="p-1.5 border-t border-gray-100 mt-1">
+                          <input type="text" placeholder="請輸入關鍵字" className="w-full border border-gray-300 rounded p-1 text-[13px] focus:outline-none focus:border-[#4A90E2] focus:ring-1 focus:ring-[#4A90E2]" />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      );
+
+      // 提取共用的搜尋與日期列渲染函數
+      const renderSearchBar = (showEmpNo, sDate, setSDate, eDate, setEDate, onReset) => (
+        <div className="flex flex-wrap items-center justify-between gap-4 pb-2">
+          <div className="flex flex-1 min-w-[200px] max-w-md gap-3">
+            <div className="ui-search flex-1">
+              <Search size={14} className="text-gray-400" />
+              <input
+                type="text"
+                placeholder="請輸入關鍵字"
+                className="ui-input ui-search-input"
+              />
+            </div>
+            {showEmpNo && (
+              <div className="w-[120px]">
+                <input
+                  type="text"
+                  placeholder="搜尋工號"
+                  className="ui-input"
+                />
+              </div>
+            )}
+          </div>
+          
+          <div className="flex flex-wrap items-center gap-1.5">
+            <DatePickerDropdown 
+              isOpen={openDropdown === 'startDate'}
+              onToggle={(e) => {
+                if(e) e.stopPropagation();
+                setOpenDropdown(openDropdown === 'startDate' ? null : 'startDate');
+              }}
+              value={sDate}
+              onChange={setSDate}
+              placeholder="開始日期"
+            />
+            <span className="text-gray-400 text-sm">~</span>
+            <DatePickerDropdown 
+              isOpen={openDropdown === 'endDate'}
+              onToggle={(e) => {
+                if(e) e.stopPropagation();
+                setOpenDropdown(openDropdown === 'endDate' ? null : 'endDate');
+              }}
+              value={eDate}
+              onChange={setEDate}
+              placeholder="結束日期"
+            />
+
+            <button className="ui-btn ui-btn-primary ml-2">
+              搜尋
+            </button>
+            <button
+              onClick={onReset}
+              className="ui-btn ui-btn-secondary"
+            >
+              重設
+            </button>
+          </div>
+        </div>
+      );
+
+      // 由「申請.html」送出、暫存於 localStorage 的單據（預設簽核完成）
+      const storedApps = (() => {
+        try {
+          return (JSON.parse(localStorage.getItem('hroa_apps') || '[]')).map(r => ({
+            oa: r.oa, location: r.location, type: r.type, docNo: r.docNo,
+            applicant: r.applicant, signature: r.signature || r.applicant, amounts: r.amounts || ['—'],
+            date: r.date, approver: r.approver || '-', refNo: r.refNo || '-',
+            status: r.status || '簽核完成', isGreen: r.isGreen !== false, workStatus: r.workStatus || '未派工', urgent: !!r.urgent
+          }));
+        } catch (e) { return []; }
+      })();
+
+      const mockData = [
+        ...storedApps,
+        { oa: '財務', location: 'THQ', type: 'B',  docNo: 'B-THQ-000003',  applicant: 'Oliver', signature: 'Oliver', amounts: ['TWD 8,000', 'CNY 2137.09'],        date: '2026-05-30 15:36:45', approver: 'James', refNo: '-', status: '待我簽核', isGreen: false, workStatus: '未派工' },
+        { oa: '合同', location: 'THQ', type: 'IC', docNo: 'IC-THQ-000002', applicant: 'Oliver', signature: 'Oliver', amounts: ['TWD 2,000,000', 'CNY 427407.40'], date: '2026-05-20 15:36:45', approver: 'James', refNo: '-', status: '簽核完成', isGreen: true, workStatus: '已完成' },
+        { oa: '行政', location: 'THQ', type: 'PU', docNo: 'PU-THQ-000003', applicant: 'Oliver', signature: 'Oliver', amounts: ['TWD 8,000', 'CNY 2137.09'],        date: '2026-05-12 15:36:45', approver: 'James', refNo: '-', status: '未簽核', isGreen: false, workStatus: '未派工', urgent: true },
+        { oa: '行政', location: 'THQ', type: 'PU', docNo: 'PU-THQ-000002', applicant: 'Oliver', signature: 'Oliver', amounts: ['TWD 2,000,000', 'CNY 427407.40'], date: '2026-04-30 12:36:10', approver: 'James', refNo: '-', status: '簽核完成', isGreen: true, workStatus: '處理中' },
+        { oa: '財務', location: 'THQ', type: 'C',  docNo: 'C-THQ-000001',  applicant: 'Oliver', signature: 'Oliver', amounts: ['TWD 2,000', 'CNY 451.47'],          date: '2026-04-26 19:00:45', approver: 'James', refNo: '-', status: '待我簽核', isGreen: false, workStatus: '未派工' },
+        { oa: '財務', location: 'THQ', type: 'C',  docNo: 'C-THQ-000002',  applicant: 'Dev', signature: 'Dev', amounts: ['TWD 3,500', 'CNY 789.25'],          date: '2026-05-18 10:22:30', approver: 'James', refNo: '-', status: '待我簽核', isGreen: false, workStatus: '處理中' },
+        { oa: '行政', location: 'THQ', type: 'PU', docNo: 'PU-THQ-000001', applicant: 'Oliver', signature: 'Oliver', amounts: ['TWD 2,000', 'CNY 451.47'],          date: '2026-04-25 19:00:45', approver: 'James', refNo: '-', status: '簽核完成', isGreen: true, workStatus: '已完成' },
+      ];
+
+      // 關聯單號對應（PU 與 IC / B / C 互相關聯，依單號末碼配對）
+      const relatedDocMap = {
+        'PU-THQ-000001': 'C-THQ-000001',  'C-THQ-000001': 'PU-THQ-000001',
+        'PU-THQ-000002': 'IC-THQ-000002', 'IC-THQ-000002': 'PU-THQ-000002',
+        'PU-THQ-000003': 'B-THQ-000003',  'B-THQ-000003': 'PU-THQ-000003',
+        'C-THQ-000002': 'PU-THQ-000002',
+      };
+
+      // C-THQ-000001 進度追蹤（依「進度追蹤C」文件）：審批節點 + 抄送
+      const progressCSteps = [
+        { seq: '1', status: '已審批', cond: '—',  level: '—',       title: '提交申請',   sign: 'Oliver', id: 'aaa123', time: '2026-04-15 18:30:00' },
+        { seq: '2', status: '已審批', cond: '串聯', level: 'project',  title: '項目負責人', sign: 'AAA',    id: '100962', time: '2026-04-16 15:00:07' },
+        { seq: '3', status: '已審批', cond: '串聯', level: 'project',  title: '費用會計',   sign: 'BBB',    id: '101517', time: '2026-04-16 15:01:01' },
+        { seq: '4', status: '已審批', cond: '串聯', level: 'special',  title: '財務負責人', sign: 'CCC',    id: '100064', time: '2026-04-20 13:05:17' },
+        { seq: '5', status: '已審批', cond: '串聯', level: 'location', title: '內審',       sign: 'DDD',    id: '101366', time: '2026-04-20 16:56:00' },
+        { seq: '6', status: '審批中', cond: '串聯', level: 'special',  title: '資金主管',   sign: 'EEE',    id: '100120', time: '' },
+      ];
+      // C-THQ-000001（費用會計範例）：費用會計「審批中」，其後皆「待審批」
+      const progressC1Steps = [
+        { seq: '1', status: '已審批', cond: '—',  level: '—',       title: '提交申請',   sign: 'Oliver', id: 'aaa123', time: '2026-04-15 18:30:00' },
+        { seq: '2', status: '已審批', cond: '串聯', level: 'project',  title: '項目負責人', sign: 'AAA',    id: '100962', time: '2026-04-16 15:00:07' },
+        { seq: '3', status: '審批中', cond: '串聯', level: 'project',  title: '費用會計',   sign: 'BBB',    id: '101517', time: '' },
+        { seq: '4', status: '待審批', cond: '串聯', level: 'special',  title: '財務負責人', sign: 'CCC',    id: '100064', time: '' },
+        { seq: '5', status: '待審批', cond: '串聯', level: 'location', title: '內審',       sign: 'DDD',    id: '101366', time: '' },
+        { seq: '6', status: '待審批', cond: '串聯', level: 'special',  title: '資金主管',   sign: 'EEE',    id: '100120', time: '' },
+      ];
+      // 依單號取得對應的審批節點清單
+      const getProgressSteps = (docNo) => docNo === 'C-THQ-000001' ? progressC1Steps : progressCSteps;
+      const progressCCc = [
+        { level: 'special',  title: '資金主管', sign: 'FFF', id: '100120' },
+        { level: 'special',  title: '記帳',     sign: 'GGG', id: '101081' },
+        { level: 'special',  title: '稽核',     sign: 'HHH', id: '100016' },
+        { level: 'location', title: '抄送內審', sign: 'III', id: '100324' },
+        { level: 'location', title: '抄送內審', sign: 'JJJ', id: '101023' },
+        { level: 'special',  title: '財務總監', sign: 'KKK', id: '100052' },
+      ];
+
+      // 計算各頁籤未處理數量
+      const formPendingCount = mockData.filter(d => d.status === '未簽核' || d.status === '待我簽核').length;
+
+      // 電子表單簽核：依篩選器（狀態 / OA 類型 / 地點，多選；未選代表全部）過濾列表
+      const filteredFormData = mockData.filter(d =>
+        (selectedFilters.status.length === 0 || selectedFilters.status.includes(d.status)) &&
+        (selectedFilters.oa.length === 0 || selectedFilters.oa.includes(d.oa)) &&
+        (selectedFilters.location.length === 0 || selectedFilters.location.includes(d.location))
+      );
+      const leavePendingCount = mockLeaveData.filter(d => d.status === '待我簽核').length;
+      const timesheetPendingCount = mockTimesheetData.filter(d => d.status === '待我簽核').length;
+      const cancelPendingCount = mockCancelData.filter(d => d.status === '待我簽核').length;
+
+      const getTabPendingCount = (tabName) => {
+        if (tabName === '電子表單簽核') return formPendingCount;
+        if (tabName === '請假簽核') return leavePendingCount;
+        if (tabName === '補卡簽核') return timesheetPendingCount;
+        if (tabName === '銷假簽核') return cancelPendingCount;
+        return 0;
+      };
+
+      const getStatusBadge = (status) => {
+        if (status === '未簽核') {
+          return <span className="ui-badge ui-badge-warning">未簽核</span>;
+        }
+        if (status === '待我簽核') {
+          return <span className="ui-badge ui-badge-info">待我簽核</span>;
+        }
+        if (status === '簽核中') {
+          return <span className="ui-badge ui-badge-info">簽核中</span>;
+        }
+        if (status === '簽核完成') {
+          return <span className="ui-badge ui-badge-success">簽核完成</span>;
+        }
+        if (status === '駁回') {
+          return <span className="ui-badge ui-badge-danger">駁回</span>;
+        }
+        if (status === 'CC') {
+          return <span className="ui-badge ui-badge-gray">CC</span>;
+        }
+        return <span className="ui-badge ui-badge-gray">{status}</span>;
+      };
+
+      return (
+        <div className="min-h-screen bg-[#F5F6F8] font-sans text-gray-800 flex flex-col p-6" onClick={() => setOpenDropdown(null)}>
+          
+          {/* 大標題 */}
+          <h1 className="ui-page-title mb-6">補卡簽核</h1>
+
+          {/* 白色主卡片 */}
+          <main className="ui-card overflow-hidden w-full max-w-full">
+            
+            {/* 內容區塊 */}
+            <div className="p-6 space-y-5">
+              {activeTab === '電子表單簽核' ? (
+                <>
+                  {/* 1. 下拉選單區塊 */}
+                  {renderFilterBar(filterConfigs)}
+
+                  {/* 2. 搜尋與日期操作列 */}
+                  {renderSearchBar(false, startDate, setStartDate, endDate, setEndDate, () => {
+                    setStartDate('');
+                    setEndDate('');
+                  })}
+
+                  {/* 3. 資料表格 */}
+                  <div className="border border-gray-200 rounded overflow-x-auto">
+                    <table className="ui-table text-center whitespace-nowrap">
+                      <thead>
+                        <tr>
+                          <th>OA</th>
+                          <th>地點</th>
+                          <th>類型</th>
+                          <th className="text-left">編號</th>
+                          <th>申請人</th>
+                          <th>簽名</th>
+                          <th>總金額</th>
+                          <th>申請日期</th>
+                          <th>當前審批人</th>
+                          <th>關聯單號</th>
+                          <th>簽核狀態</th>
+                          <th>工作狀態</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filteredFormData.length === 0 && (
+                          <tr><td colSpan="12" className="py-8 text-center text-gray-400">目前沒有符合條件的資料</td></tr>
+                        )}
+                        {filteredFormData.map((row, idx) => (
+                          <tr
+                            key={idx}
+                            className={row.urgent ? 'bg-red-50' : (row.isGreen ? 'bg-[#F2FBF5]' : '')}
+                          >
+                            <td>{row.oa}</td>
+                            <td>{row.location}</td>
+                            <td>{row.type}</td>
+                            <td className="text-left">
+                              <button
+                                onClick={() => openDocModal(row)}
+                                className="text-[#4A90E2] hover:underline font-medium text-left"
+                              >
+                                {row.urgent && <span className="text-red-600 font-bold">【緊急】</span>}
+                                {row.docNo === 'C-THQ-000001' ? `${row.docNo}_辦公室用品費用報銷(費用會計範例)` : row.docNo === 'C-THQ-000002' ? `${row.docNo}_辦公室用品費用報銷(資金支付範例)` : `${row.docNo}_${({ B: '一般費用', C: '費用報銷', IC: '內部合同', PU: '請購', HR: '人員帳號異動', SA: '用印申請' })[row.type] || '申請'}`}
+                              </button>
+                            </td>
+                            <td>{row.applicant}</td>
+                            <td>{row.signature}</td>
+                            <td>
+                              <div className="flex flex-col items-center text-xs gap-0.5">
+                                {row.amounts.map((amt, i) => (
+                                  <span key={i}>{amt}</span>
+                                ))}
+                              </div>
+                            </td>
+                            <td className="text-gray-500">
+                              <div className="flex flex-col items-center leading-tight">
+                                <span>{row.date.slice(0,10)}</span>
+                                <span className="text-xs text-gray-400">{row.date.slice(11)}</span>
+                              </div>
+                            </td>
+                            <td>{row.approver}</td>
+                            <td className="text-gray-400">
+                              {relatedDocMap[row.docNo] ? (
+                                <button
+                                  onClick={() => { const t = mockData.find(r => r.docNo === relatedDocMap[row.docNo]); if (t) openDocModal(t); }}
+                                  className="text-[#4A90E2] hover:underline font-medium"
+                                >
+                                  {relatedDocMap[row.docNo]}
+                                </button>
+                              ) : '-'}
+                            </td>
+                            <td>
+                              <div className="flex items-center justify-center gap-3">
+                                {getStatusBadge(docOverrides[row.docNo]?.status || row.status)}
+                                {row.canWithdraw && (
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setWithdrawConfirmItem(row);
+                                    }}
+                                    className="ui-btn ui-btn-secondary ui-btn-sm"
+                                  >
+                                    撤回
+                                  </button>
+                                )}
+                              </div>
+                            </td>
+                            <td className="text-center">
+                              {(() => {
+                                const ov = docOverrides[row.docNo] || {};
+                                const effStatus = ov.status || row.status;
+                                const ws = effStatus === '簽核完成' ? (ov.workStatus || row.workStatus || '未派工') : '未派工';
+                                const cls = { '已完成': 'ui-badge-success', '已派工': 'ui-badge-info', '處理中': 'ui-badge-info', '未派工': 'ui-badge-gray' }[ws] || 'ui-badge-gray';
+                                return <span className={`ui-badge ${cls}`}>{ws}</span>;
+                              })()}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* 4. 底部按鈕區與分頁 */}
+                  <div className="flex flex-col md:flex-row justify-between items-center gap-4 pt-2">
+                    <div className="hidden md:block w-[150px]"></div> {/* 佔位 */}
+                    
+                    {/* 分頁 */}
+                    <div className="flex items-center gap-1.5">
+                      <button className="ui-page-btn">&laquo;</button>
+                      <button className="ui-page-btn">&lt;</button>
+                      <button className="ui-page-btn is-active">1</button>
+                      <button className="ui-page-btn">&gt;</button>
+                      <button className="ui-page-btn">&raquo;</button>
+                    </div>
+
+                    {/* 匯出按鈕 */}
+                    <div className="flex flex-wrap gap-2 justify-end">
+                      {['記帳匯出', '資金支付匯出', '費用會計匯出', '匯出 Excel', '匯出資料'].map((btn, i) => (
+                        <button 
+                          key={i} 
+                          onClick={() => {
+                            if (btn === '記帳匯出') setActiveExportModal('bookkeeping');
+                            if (btn === '資金支付匯出') setActiveExportModal('payment');
+                            if (btn === '費用會計匯出') setActiveExportModal('accounting');
+                            if (btn === '匯出 Excel') setActiveExportModal('excel');
+                            if (btn === '匯出資料') setActiveExportModal('data');
+                          }}
+                          className="ui-btn ui-btn-secondary"
+                        >
+                          {btn}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              ) : activeTab === '請假簽核' ? (
+                /* 請假簽核 的專屬排版與批量審批 */
+                <>
+                  {renderFilterBar(ltFilterConfigs)}
+                  {/* 新增：搜尋與日期列 (包含工號搜尋) */}
+                  {renderSearchBar(true, ltStartDate, setLtStartDate, ltEndDate, setLtEndDate, () => {
+                    setLtStartDate(getFormattedDate(-31));
+                    setLtEndDate(getFormattedDate(0));
+                  })}
+                  <div className="space-y-4">
+                    <div className="flex justify-start">
+                      <button
+                        onClick={() => setBatchApproveModal('leave')}
+                        disabled={selectedLeave.length === 0}
+                        className="ui-btn ui-btn-success"
+                      >
+                        一鍵審批
+                      </button>
+                    </div>
+                    <div className="border border-gray-200 rounded overflow-x-auto">
+                      <table className="ui-table text-center whitespace-nowrap">
+                        <thead>
+                          <tr>
+                            <th className="w-12 text-center">
+                              <input
+                                type="checkbox"
+                                disabled={approvableLeaves.length === 0}
+                                checked={selectedLeave.length === approvableLeaves.length && approvableLeaves.length > 0}
+                                onChange={(e) => setSelectedLeave(e.target.checked ? approvableLeaves.map(d => d.id) : [])}
+                                className="w-4 h-4 rounded border-gray-300 text-[#4A90E2] focus:ring-[#4A90E2] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                              />
+                            </th>
+                            <th className="text-left">項目</th>
+                            <th className="text-left">部門</th>
+                            <th className="text-left">工號</th>
+                            <th className="text-left">申請時間</th>
+                            <th className="text-left">名稱</th>
+                            <th className="text-left">開始日</th>
+                            <th className="text-left">結束日</th>
+                            <th className="text-left">假期種類</th>
+                            <th className="text-left">小時</th>
+                            <th className="text-left">狀態</th>
+                            <th className="text-left">操作</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {filteredLeaveData.length > 0 ? filteredLeaveData.map((row) => (
+                            <tr key={row.id}>
+                              <td className="text-center">
+                                {row.status === '待我簽核' && (
+                                  <input 
+                                    type="checkbox"
+                                    checked={selectedLeave.includes(row.id)}
+                                    onChange={(e) => {
+                                      if (e.target.checked) setSelectedLeave([...selectedLeave, row.id]);
+                                      else setSelectedLeave(selectedLeave.filter(id => id !== row.id));
+                                    }}
+                                    className="w-4 h-4 rounded border-gray-300 text-[#4A90E2] focus:ring-[#4A90E2] cursor-pointer"
+                                  />
+                                )}
+                              </td>
+                              <td className="text-left">{row.project}</td>
+                              <td className="text-left">{row.dept}</td>
+                              <td className="text-left">{row.empNo}</td>
+                              <td className="text-left">{row.applyTime}</td>
+                              <td className="text-left">{row.name}</td>
+                              <td className="text-left">{row.startDate}</td>
+                              <td className="text-left">{row.endDate}</td>
+                              <td className="text-left">{row.leaveType}</td>
+                              <td className="text-left">{row.hours}</td>
+                              <td className="text-left">
+                                {getStatusBadge(row.status)}
+                              </td>
+                              <td className="text-left">
+                                <div className="flex items-center justify-start gap-2">
+                                  <button
+                                    onClick={() => setViewItem({ kind: row.leaveType ? 'leave' : 'timesheet', data: row })}
+                                    className="ui-btn ui-btn-secondary ui-btn-sm"
+                                  >
+                                    檢視
+                                  </button>
+                                  {row.status === '待我簽核' && (
+                                    <button
+                                      onClick={() => {/* 處理單筆審批邏輯 */}}
+                                      className="ui-btn ui-btn-secondary ui-btn-sm"
+                                    >
+                                      審批
+                                    </button>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          )) : (
+                            <tr>
+                              <td colSpan="12" className="py-8 text-center text-gray-400 bg-white">
+                                目前沒有待簽核項目
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </>
+              ) : activeTab === '補卡簽核' ? (
+                /* 補卡簽核 的專屬排版與批量審批 */
+                <>
+                  {renderFilterBar(ltFilterConfigs)}
+                  {/* 新增：搜尋與日期列 (包含工號搜尋) */}
+                  {renderSearchBar(true, ltStartDate, setLtStartDate, ltEndDate, setLtEndDate, () => {
+                    setLtStartDate(getFormattedDate(-31));
+                    setLtEndDate(getFormattedDate(0));
+                  })}
+                  <div className="space-y-4">
+                    <div className="flex justify-start">
+                      <button
+                        onClick={() => setBatchApproveModal('timesheet')}
+                        disabled={selectedTimesheet.length === 0}
+                        className="ui-btn ui-btn-success"
+                      >
+                        一鍵審批
+                      </button>
+                    </div>
+                    <div className="border border-gray-200 rounded overflow-x-auto">
+                      <table className="ui-table text-center whitespace-nowrap">
+                        <thead>
+                          <tr>
+                            <th className="w-12 text-center">
+                              <input
+                                type="checkbox"
+                                disabled={approvableTimesheets.length === 0}
+                                checked={selectedTimesheet.length === approvableTimesheets.length && approvableTimesheets.length > 0}
+                                onChange={(e) => setSelectedTimesheet(e.target.checked ? approvableTimesheets.map(d => d.id) : [])}
+                                className="w-4 h-4 rounded border-gray-300 text-[#4A90E2] focus:ring-[#4A90E2] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                              />
+                            </th>
+                            <th className="text-left">項目</th>
+                            <th className="text-left">部門</th>
+                            <th className="text-left">工號</th>
+                            <th className="text-left">提交日期</th>
+                            <th className="text-left">補打卡時間</th>
+                            <th className="text-left">時段</th>
+                            <th className="text-left">種類</th>
+                            <th className="text-left">狀態</th>
+                            <th className="text-left">操作</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {mockTimesheetData.length > 0 ? mockTimesheetData.map((row) => (
+                            <tr key={row.id}>
+                              <td className="text-center">
+                                {row.status === '待我簽核' && (
+                                  <input 
+                                    type="checkbox"
+                                    checked={selectedTimesheet.includes(row.id)}
+                                    onChange={(e) => {
+                                      if (e.target.checked) setSelectedTimesheet([...selectedTimesheet, row.id]);
+                                      else setSelectedTimesheet(selectedTimesheet.filter(id => id !== row.id));
+                                    }}
+                                    className="w-4 h-4 rounded border-gray-300 text-[#4A90E2] focus:ring-[#4A90E2] cursor-pointer"
+                                  />
+                                )}
+                              </td>
+                              <td className="text-left">{row.project}</td>
+                              <td className="text-left">{row.dept}</td>
+                              <td className="text-left">{row.empNo}</td>
+                              <td className="text-left">{row.submitDate}</td>
+                              <td className="text-left">{row.clockTime}</td>
+                              <td className="text-left">{row.period}</td>
+                              <td className="text-left">{row.type}</td>
+                              <td className="text-left">
+                                {getStatusBadge(row.status)}
+                              </td>
+                              <td className="text-left">
+                                <div className="flex items-center justify-start gap-2">
+                                  <button
+                                    onClick={() => setViewItem({ kind: row.leaveType ? 'leave' : 'timesheet', data: row })}
+                                    className="ui-btn ui-btn-secondary ui-btn-sm"
+                                  >
+                                    檢視
+                                  </button>
+                                  {row.status === '待我簽核' && (
+                                    <button
+                                      onClick={() => {/* 處理單筆審批邏輯 */}}
+                                      className="ui-btn ui-btn-secondary ui-btn-sm"
+                                    >
+                                      審批
+                                    </button>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          )) : (
+                            <tr>
+                              <td colSpan="10" className="py-8 text-center text-gray-400 bg-white">
+                                目前沒有待簽核項目
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </>
+              ) : activeTab === '銷假簽核' ? (
+                /* 銷假簽核 的專屬排版與批量審批 */
+                <>
+                  {renderFilterBar(ltFilterConfigs)}
+                  {renderSearchBar(true, ltStartDate, setLtStartDate, ltEndDate, setLtEndDate, () => {
+                    setLtStartDate(getFormattedDate(-31));
+                    setLtEndDate(getFormattedDate(0));
+                  })}
+                  <div className="space-y-4">
+                    <div className="flex justify-start">
+                      <button
+                        onClick={() => setBatchApproveModal('cancel')}
+                        disabled={selectedCancel.length === 0}
+                        className="ui-btn ui-btn-success"
+                      >
+                        一鍵審批
+                      </button>
+                    </div>
+                    <div className="border border-gray-200 rounded overflow-x-auto">
+                      <table className="ui-table text-center whitespace-nowrap">
+                        <thead>
+                          <tr>
+                            <th className="w-12 text-center">
+                              <input
+                                type="checkbox"
+                                disabled={approvableCancels.length === 0}
+                                checked={selectedCancel.length === approvableCancels.length && approvableCancels.length > 0}
+                                onChange={(e) => setSelectedCancel(e.target.checked ? approvableCancels.map(d => d.id) : [])}
+                                className="w-4 h-4 rounded border-gray-300 text-[#4A90E2] focus:ring-[#4A90E2] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                              />
+                            </th>
+                            <th className="text-left">項目</th>
+                            <th className="text-left">部門</th>
+                            <th className="text-left">工號</th>
+                            <th className="text-left">申請時間</th>
+                            <th className="text-left">名稱</th>
+                            <th className="text-left">原假別</th>
+                            <th className="text-left">原請假期間</th>
+                            <th className="text-left">銷假事由</th>
+                            <th className="text-left">小時</th>
+                            <th className="text-left">狀態</th>
+                            <th className="text-left">操作</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {filteredCancelData.length > 0 ? filteredCancelData.map((row) => (
+                            <tr key={row.id}>
+                              <td className="text-center">
+                                {row.status === '待我簽核' && (
+                                  <input
+                                    type="checkbox"
+                                    checked={selectedCancel.includes(row.id)}
+                                    onChange={(e) => {
+                                      if (e.target.checked) setSelectedCancel([...selectedCancel, row.id]);
+                                      else setSelectedCancel(selectedCancel.filter(id => id !== row.id));
+                                    }}
+                                    className="w-4 h-4 rounded border-gray-300 text-[#4A90E2] focus:ring-[#4A90E2] cursor-pointer"
+                                  />
+                                )}
+                              </td>
+                              <td className="text-left">{row.project}</td>
+                              <td className="text-left">{row.dept}</td>
+                              <td className="text-left">{row.empNo}</td>
+                              <td className="text-left">{row.applyTime}</td>
+                              <td className="text-left">{row.name}</td>
+                              <td className="text-left">{row.leaveType}</td>
+                              <td className="text-left">{row.startDate} ~ {row.endDate}</td>
+                              <td className="text-left">{row.reason}</td>
+                              <td className="text-left">{row.hours}</td>
+                              <td className="text-left">
+                                {getStatusBadge(row.status)}
+                              </td>
+                              <td className="text-left">
+                                <div className="flex items-center justify-start gap-2">
+                                  <button
+                                    onClick={() => setViewItem({ kind: 'leave', data: row })}
+                                    className="ui-btn ui-btn-secondary ui-btn-sm"
+                                  >
+                                    檢視
+                                  </button>
+                                  {row.status === '待我簽核' && (
+                                    <button
+                                      onClick={() => {/* 處理單筆審批邏輯 */}}
+                                      className="ui-btn ui-btn-secondary ui-btn-sm"
+                                    >
+                                      審批
+                                    </button>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          )) : (
+                            <tr>
+                              <td colSpan="12" className="py-8 text-center text-gray-400 bg-white">
+                                目前沒有待簽核項目
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                /* 其他空頁籤的排版 */
+                <div className="border border-gray-200 rounded overflow-x-auto">
+                  <table className="ui-table text-center whitespace-nowrap">
+                    <thead>
+                      <tr>
+                        <th className="text-left w-1/2">ID</th>
+                        <th className="text-left">類型</th>
+                        <th className="text-left">狀態</th>
+                        <th className="text-left">送出時間</th>
+                        <th className="text-left">操作</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td colSpan="5" className="py-8 text-center text-gray-400 bg-white">
+                          目前沒有待簽核項目
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+
+          </main>
+
+          {/* ================= 申請單詳情彈窗 ================= */}
+          {isModalOpen && (
+            <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-center justify-center p-4 overflow-y-auto" onClick={closeOrBackModal}>
+              <div
+                className="bg-[#F0F2F5] rounded-xl shadow-2xl w-full max-w-[1450px] h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200 text-left"
+                onClick={e => e.stopPropagation()}
+              >
+
+                {/* 彈窗標題與關閉按鈕 */}
+                <div className="bg-[#EEF2F6] px-6 py-3.5 flex items-center justify-between border-b border-gray-200 flex-shrink-0">
+                  <span className="font-bold text-gray-800 text-base">{`${({ B: '費用申請單', C: '費用報銷單', IC: '內部合同審批單', PU: '請購申請單' })[modalRow?.type] || '費用申請單'}(${modalRow?.type || 'B'})`}</span>
+                  <button
+                    onClick={closeOrBackModal}
+                    className="bg-[#3F51B5] hover:bg-blue-800 text-white p-1 rounded transition-colors"
+                  >
+                    <X size={18} strokeWidth={2.5} />
+                  </button>
+                </div>
+
+                <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
+
+                  {/* 左側：表單卡片內容 */}
+                  <div className="flex-1 flex flex-col overflow-hidden">
+                    <div className="flex-1 overflow-y-auto p-6 space-y-6">
+
+                      {/* 基本資訊卡片 */}
+                      <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-5">
+                        <div className="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2">基本資訊</div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                          <div>
+                            <label className="block text-gray-700 text-xs mb-1.5 font-medium">文件編號</label>
+                            <input type="text" disabled value={modalRow?.docNo || ''} className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed font-mono" />
+                          </div>
+                          <div>
+                            <label className="block text-gray-700 text-xs mb-1.5 font-medium">申請日期</label>
+                            <div className="flex items-center bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700">
+                              <Calendar size={14} className="mr-2 text-gray-500" />
+                              <span>{(modalRow?.date || '').slice(0, 10) || '—'}</span>
+                            </div>
+                          </div>
+                          <div>
+                            <label className="block text-gray-700 text-xs mb-1.5 font-medium">申請人</label>
+                            <input type="text" disabled value={modalRow?.applicant || ''} className="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-sm text-gray-800" />
+                          </div>
+                          <div>
+                            <label className="block text-gray-700 text-xs mb-1.5 font-medium">{['C-THQ-000001', 'C-THQ-000002'].includes(modalRow?.docNo) ? '目的' : '標題'}</label>
+                            <input type="text" disabled value={modalRow ? (['C-THQ-000001', 'C-THQ-000002'].includes(modalRow.docNo) ? '辦公室用品費用報銷' : `${modalRow.oa || ''}申請單`) : ''} className="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-sm text-gray-800 font-medium" />
+                          </div>
+                          <div>
+                            <label className="block text-gray-700 text-xs mb-1.5 font-medium">服務類型</label>
+                            <input type="text" disabled value="一般費用" className="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-sm text-gray-800" />
+                          </div>
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <label className="block text-gray-700 text-xs mb-1.5 font-medium">項目</label>
+                              <input type="text" disabled value={modalRow?.project || 'GT'} className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed" />
+                            </div>
+                            <div>
+                              <label className="block text-gray-700 text-xs mb-1.5 font-medium">{['C-THQ-000001', 'C-THQ-000002'].includes(modalRow?.docNo) ? '地區' : '區域'}</label>
+                              <input type="text" disabled value={modalRow?.location || ''} className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed" />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* 費用報銷卡片（C-THQ-000001 專用） */}
+                      {['C-THQ-000001', 'C-THQ-000002'].includes(modalRow?.docNo) && (
+                      <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-5">
+                        <div className="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2">費用報銷</div>
+                        {/* 關聯單號 */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                          {[
+                            { label: '關聯單號（B單）', val: '-' },
+                            { label: '關聯單號（IC單）', val: '-' },
+                            { label: '關聯單號（PU單）', val: relatedDocMap[modalRow?.docNo] || '-' },
+                          ].map((f, i) => {
+                            const target = (f.val && f.val !== '-') ? mockData.find(r => r.docNo === f.val) : null;
+                            return (
+                              <div key={i}>
+                                <label className="block text-gray-700 text-xs mb-1.5 font-medium">{f.label}</label>
+                                <div className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm">
+                                  {target ? (
+                                    <button onClick={() => openRelatedDoc(target)} className="text-[#4A90E2] hover:underline font-mono font-medium">{f.val}</button>
+                                  ) : (
+                                    <span className="text-gray-700 font-mono">{f.val}</span>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                        {/* 公司別 / 貨幣 */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                          <div>
+                            <label className="block text-gray-700 text-xs mb-1.5 font-medium">公司別</label>
+                            <input type="text" disabled value="台灣總部" className="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-sm text-gray-800" />
+                          </div>
+                          <div>
+                            <label className="block text-gray-700 text-xs mb-1.5 font-medium">貨幣</label>
+                            <input type="text" disabled value="TWD" className="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-sm text-gray-800" />
+                          </div>
+                        </div>
+                        {/* 開戶資訊（獨立一行）*/}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                          <div>
+                            <label className="block text-gray-700 text-xs mb-1.5 font-medium">開戶行姓名</label>
+                            <input type="text" disabled value={modalRow?.applicant || ''} className="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-sm text-gray-800" />
+                          </div>
+                          <div>
+                            <label className="block text-gray-700 text-xs mb-1.5 font-medium">開戶銀行</label>
+                            <input type="text" disabled value="台北富邦銀行" className="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-sm text-gray-800" />
+                          </div>
+                          <div>
+                            <label className="block text-gray-700 text-xs mb-1.5 font-medium">銀行帳號</label>
+                            <input type="text" disabled value="012-3456789012" className="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-sm text-gray-800 font-mono" />
+                          </div>
+                        </div>
+                        {/* 特批 */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                          <div>
+                            <label className="block text-gray-700 text-xs mb-1.5 font-medium">此單是否為特批</label>
+                            <input type="text" disabled value="否" className="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-sm text-gray-800" />
+                          </div>
+                          <div>
+                            <label className="block text-gray-700 text-xs mb-1.5 font-medium">特批原因</label>
+                            <input type="text" disabled value="—" className="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-sm text-gray-800" />
+                          </div>
+                          <div>
+                            <label className="block text-gray-700 text-xs mb-1.5 font-medium">特批金額</label>
+                            <input type="text" disabled value="—" className="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-sm text-gray-800 font-mono" />
+                          </div>
+                        </div>
+                      </div>
+                      )}
+
+                      {/* 費用申請明細 / 費用報銷明細卡片 */}
+                      <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-5">
+                        <div className="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2">{['C-THQ-000001', 'C-THQ-000002'].includes(modalRow?.docNo) ? '費用報銷明細' : '費用申請明細'}</div>
+                        {['C-THQ-000001', 'C-THQ-000002'].includes(modalRow?.docNo) ? (
+                          <div className="overflow-x-auto border border-gray-100 rounded-lg">
+                            <table className="w-full text-left text-sm border-collapse whitespace-nowrap">
+                              <thead>
+                                <tr className="border-b border-gray-200 bg-gray-50 text-gray-700 font-bold text-xs">
+                                  <th className="px-3 py-2 w-28">項目</th>
+                                  <th className="px-3 py-2 w-28">部門</th>
+                                  <th className="px-3 py-2 w-48">目的</th>
+                                  <th className="px-3 py-2 w-48">金額</th>
+                                  <th className="px-3 py-2">其他備註</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-gray-100">
+                                {[
+                                  { dept: 'RD', purpose: '辦公室文具採購', amount: '1,200', note: '—' },
+                                  { dept: 'HR', purpose: '茶水間用品補充', amount: '800', note: '—' },
+                                ].map((r, i) => (
+                                  <tr key={i}>
+                                    <td className="px-3 py-1.5">
+                                      <select className="w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2]"><option>GT</option></select>
+                                    </td>
+                                    <td className="px-3 py-1.5">
+                                      <select defaultValue={r.dept} className="w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2]"><option>RD</option><option>HR</option><option>MKT</option><option>IA1</option></select>
+                                    </td>
+                                    <td className="px-3 py-1.5"><input type="text" defaultValue={r.purpose} className="w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2]" /></td>
+                                    <td className="px-3 py-1.5">
+                                      <div className="flex items-center border border-gray-300 rounded overflow-hidden">
+                                        <span className="bg-gray-50 border-r border-gray-300 px-2 py-1 text-xs text-gray-500 select-none">TWD</span>
+                                        <input type="text" defaultValue={r.amount} className="w-full px-2 py-1 text-sm text-right outline-none" />
+                                      </div>
+                                    </td>
+                                    <td className="px-3 py-1.5"><input type="text" defaultValue={r.note} className="w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2]" /></td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        ) : (
+                          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                            <div className="lg:col-span-8">
+                              <label className="block text-gray-700 text-xs mb-1.5 font-semibold">內容</label>
+                              <input type="text" disabled value="客戶業務餐敘 / 出差住宿 / 文具耗材採購" className="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-sm text-gray-800 font-medium" />
+                            </div>
+                            <div className="lg:col-span-4">
+                              <label className="block text-gray-700 text-xs mb-1.5 font-semibold">金額</label>
+                              <div className="flex items-center border border-gray-200 rounded overflow-hidden">
+                                <span className="bg-gray-50 border-r border-gray-200 px-3 py-1.5 text-sm text-gray-500 font-medium select-none">TWD</span>
+                                <input type="text" disabled value={(modalRow?.amounts && modalRow.amounts[0]) ? modalRow.amounts[0].replace(/^[A-Z]+ /, '') : ''} className="w-full bg-white px-3 py-1.5 text-sm text-gray-800 font-medium focus:outline-none" />
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* 說明卡片（C-THQ-000001 專用：內嵌文字編輯器 + 上傳附件） */}
+                      {['C-THQ-000001', 'C-THQ-000002'].includes(modalRow?.docNo) && (
+                      <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-4">
+                        <div className="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2">說明</div>
+                        {/* 說明文字（檢視，直接顯示） */}
+                        <div className="text-sm text-gray-700 bg-gray-50 border border-gray-200 rounded-lg p-3 leading-relaxed whitespace-pre-line min-h-[80px]">本次為辦公室用品費用報銷，採購項目包含 A4 紙與洗碗精，發票共兩張（如附件），請審核核銷。</div>
+                        {/* 附件（檢視，唯讀） */}
+                        <div>
+                          <div className="text-xs font-semibold text-gray-500 mb-2">附件</div>
+                          {noteFiles.length > 0 ? (
+                            <ul className="space-y-1">
+                              {noteFiles.map((f, i) => (
+                                <li key={i} className="flex items-center gap-2 bg-gray-50 border border-gray-100 rounded px-3 py-1.5 text-xs text-gray-700">
+                                  <span className="text-gray-400">📎</span>
+                                  <span className="truncate">{f.name}</span>
+                                  <span className="text-gray-400 flex-shrink-0">{formatFileSize(f.size)}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          ) : (
+                            <div className="text-xs text-gray-400">無附件</div>
+                          )}
+                        </div>
+                      </div>
+                      )}
+
+                      {/* 進度追蹤卡片 */}
+                      <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+                        <div className="bg-[#EEF2F6] px-6 py-3.5 flex items-center justify-between border-b border-gray-200">
+                          <span className="font-bold text-[#1A237E] text-[15px]">審批進度追蹤</span>
+                          <div className="flex items-center gap-3">
+                            <span className="text-xs font-semibold text-[#1A237E]">顯示審批意見與附件</span>
+                            <button
+                              onClick={() => setShowOpinions(!showOpinions)}
+                              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${showOpinions ? 'bg-[#3F51B5]' : 'bg-gray-300'}`}
+                            >
+                              <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${showOpinions ? 'translate-x-6' : 'translate-x-1'}`} />
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="p-6 space-y-6">
+                          {['C-THQ-000001', 'C-THQ-000002'].includes(modalRow?.docNo) ? (
+                            /* C-THQ-000001：依「進度追蹤C」文件呈現審批節點表格 */
+                            <div className="overflow-x-auto border border-gray-100 rounded-lg">
+                              <table className="w-full text-left text-xs border-collapse whitespace-nowrap">
+                                <thead>
+                                  <tr className="border-b border-gray-200 bg-gray-50 text-gray-700 font-bold">
+                                    <th className="px-3 py-1.5 text-center w-12">序號</th>
+                                    <th className="px-3 py-1.5 text-center w-20">審批狀態</th>
+                                    <th className="px-3 py-1.5 text-center w-14">條件</th>
+                                    <th className="px-3 py-1.5 w-20">級別</th>
+                                    <th className="px-3 py-1.5">職稱</th>
+                                    <th className="px-3 py-1.5">簽名</th>
+                                    <th className="px-3 py-1.5">ID</th>
+                                    <th className="px-3 py-1.5 w-40">審批時間</th>
+                                  </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-100 font-medium">
+                                  {getProgressSteps(modalRow?.docNo).map((s) => (
+                                    <tr key={s.seq}>
+                                      <td className="px-3 py-1.5 text-center font-bold text-gray-800">{s.seq}</td>
+                                      <td className="px-3 py-1.5 text-center">
+                                        <span className={`ui-badge ${s.status === '審批中' ? 'ui-badge-info' : s.status === '待審批' ? 'ui-badge-gray' : 'ui-badge-success'}`}>{s.status}</span>
+                                      </td>
+                                      <td className="px-3 py-1.5 text-center text-gray-500">{s.cond}</td>
+                                      <td className="px-3 py-1.5 text-gray-500">{s.level}</td>
+                                      <td className="px-3 py-1.5 text-gray-800">{s.title}</td>
+                                      <td className="px-3 py-1.5 text-gray-800">{s.sign}</td>
+                                      <td className="px-3 py-1.5 text-gray-600 font-mono">{s.id}</td>
+                                      <td className="px-3 py-1.5 text-gray-400">{s.time || '-'}</td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          ) : (
+                          /* 橫向審批進度條 */
+                          <div className="flex items-start">
+                            <div className="flex flex-col items-center text-center w-28">
+                              <div className="w-9 h-9 rounded-full bg-emerald-500 text-white flex items-center justify-center text-sm font-bold">✓</div>
+                              <div className="mt-2 text-xs font-bold text-gray-800 whitespace-nowrap">提交申請</div>
+                              <div className="text-[11px] text-gray-400 whitespace-nowrap">{modalRow?.applicant || 'Oliver'}</div>
+                            </div>
+                            <div className="flex-1 h-0.5 bg-emerald-500 mt-[18px] mx-1"></div>
+                            <div className="flex flex-col items-center text-center w-28">
+                              <div className="w-9 h-9 rounded-full bg-[#4A90E2] text-white flex items-center justify-center text-sm font-bold ring-4 ring-blue-100">2</div>
+                              <div className="mt-2 text-xs font-bold text-[#4A90E2] whitespace-nowrap">部門主管</div>
+                              <div className="text-[11px] text-gray-400 whitespace-nowrap">James · 審批中</div>
+                            </div>
+                            <div className="flex-1 h-0.5 bg-gray-200 mt-[18px] mx-1"></div>
+                            <div className="flex flex-col items-center text-center w-28">
+                              <div className="w-9 h-9 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center text-sm font-bold">3</div>
+                              <div className="mt-2 text-xs font-medium text-gray-500 whitespace-nowrap">項目負責人</div>
+                              <div className="text-[11px] text-gray-400 whitespace-nowrap">Felix · 待審批</div>
+                            </div>
+                          </div>
+                          )}
+
+                          {/* 審批意見與附件（toggle 控制） */}
+                          {showOpinions && (
+                            <div className="space-y-2.5 border-t border-gray-100 pt-4">
+                              <div className="text-xs font-semibold text-gray-500">審批意見與附件</div>
+                              <div className="flex items-start gap-3">
+                                <div className="w-20 shrink-0 text-xs font-bold text-gray-700">提交申請<div className="font-normal text-gray-400 mt-0.5">{modalRow?.applicant || 'Oliver'}</div></div>
+                                <div className="flex-1 text-sm text-gray-700 bg-gray-50 border border-gray-100 rounded-lg p-3">
+                                  依費用申請需求提出申請。
+                                  <div className="mt-2"><span className="inline-flex items-center gap-1 px-2 py-1 text-xs text-gray-600 bg-white border border-gray-200 rounded">📎 費用申請單.pdf</span></div>
+                                </div>
+                              </div>
+                              <div className="flex items-start gap-3">
+                                <div className="w-20 shrink-0 text-xs font-bold text-gray-700">部門主管<div className="font-normal text-gray-400 mt-0.5">James</div></div>
+                                <div className="flex-1 text-sm text-gray-700 bg-gray-50 border border-gray-100 rounded-lg p-3">已確認費用明細，待後續審批。</div>
+                              </div>
+                              <div className="flex items-start gap-3">
+                                <div className="w-20 shrink-0 text-xs font-bold text-gray-700">項目負責人<div className="font-normal text-gray-400 mt-0.5">Felix</div></div>
+                                <div className="flex-1 text-sm text-gray-400 italic bg-gray-50 border border-gray-100 rounded-lg p-3">尚未審批</div>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* 抄送表格 */}
+                          <div>
+                            <div className="text-xs font-semibold text-gray-500 mb-2">抄送</div>
+                            <div className="overflow-x-auto border border-gray-100 rounded-lg">
+                              {['C-THQ-000001', 'C-THQ-000002'].includes(modalRow?.docNo) ? (
+                                <table className="w-full text-left text-xs border-collapse whitespace-nowrap">
+                                  <thead>
+                                    <tr className="border-b border-gray-200 bg-gray-50 text-gray-700 font-bold">
+                                      <th className="px-3 py-1.5 w-20">級別</th>
+                                      <th className="px-3 py-1.5">職稱</th>
+                                      <th className="px-3 py-1.5">簽名</th>
+                                      <th className="px-3 py-1.5">ID</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody className="divide-y divide-gray-100 font-medium">
+                                    {progressCCc.map((c, i) => (
+                                      <tr key={i}>
+                                        <td className="px-3 py-1.5 text-gray-500">{c.level}</td>
+                                        <td className="px-3 py-1.5 text-gray-800">{c.title}</td>
+                                        <td className="px-3 py-1.5 text-gray-800">{c.sign}</td>
+                                        <td className="px-3 py-1.5 text-gray-600 font-mono">{c.id}</td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              ) : (
+                                <table className="w-full text-left text-xs border-collapse">
+                                  <thead>
+                                    <tr className="border-b border-gray-200 bg-gray-50 text-gray-700 font-bold">
+                                      <th className="px-4 py-1.5">職稱</th>
+                                      <th className="px-4 py-1.5">簽名</th>
+                                      <th className="px-4 py-1.5 w-40">時間</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody className="divide-y divide-gray-100 font-medium">
+                                    <tr>
+                                      <td className="px-4 py-1.5 text-gray-800">財務</td>
+                                      <td className="px-4 py-1.5 text-gray-800">Stella</td>
+                                      <td className="px-4 py-1.5 text-gray-400">-</td>
+                                    </tr>
+                                    <tr>
+                                      <td className="px-4 py-1.5 text-gray-800">內審</td>
+                                      <td className="px-4 py-1.5 text-gray-800">Cora</td>
+                                      <td className="px-4 py-1.5 text-gray-400">-</td>
+                                    </tr>
+                                  </tbody>
+                                </table>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                    </div>
+
+                    {/* 底部總額與審批按鈕 */}
+                    <div className="bg-[#F8F9FA] border-t border-gray-200 px-6 py-4 flex flex-col items-end gap-3 flex-shrink-0 shadow-[0_-2px_8px_rgba(0,0,0,0.04)]">
+                      <div className="flex items-center justify-end gap-3 w-full text-sm">
+                        <span className="text-gray-500 font-semibold text-xs tracking-wide">合計</span>
+                        <span className="text-right font-bold text-gray-800">
+                          {(modalRow?.amounts && modalRow.amounts[0]) || '-'}
+                          {modalRow?.amounts && modalRow.amounts[1] ? ` / ${modalRow.amounts[1]}` : ''}
+                        </span>
+                      </div>
+                      <div className="w-full flex justify-center items-center gap-3 mt-2">
+                        {modalRow?.docNo === 'C-THQ-000001' && (
+                          <button className="ui-btn ui-btn-secondary ui-btn-lg">費用會計</button>
+                        )}
+                        <button
+                          onClick={openApproveAction}
+                          className="ui-btn ui-btn-primary ui-btn-lg"
+                        >
+                          審批
+                        </button>
+                      </div>
+                    </div>
+
+                  </div>
+
+                  {/* 右側：審批流程預覽 */}
+                  <div className="w-full lg:w-[350px] bg-white border-t lg:border-t-0 lg:border-l border-gray-200 overflow-y-auto flex flex-col flex-shrink-0">
+                    <div className="bg-[#0097A7] text-white px-4 py-3.5 font-bold text-sm tracking-wide">
+                      審批流程
+                    </div>
+                    <div className="p-4 flex-1 overflow-y-auto">
+                      {(['C-THQ-000001', 'C-THQ-000002'].includes(modalRow?.docNo)
+                        ? getProgressSteps(modalRow?.docNo)
+                        : [{ seq: '1', title: '部門主管' }, { seq: '2', title: '項目負責人' }, { seq: '3', title: '費用會計' }, { seq: '4', title: '財務負責人' }, { seq: '5', title: '資金專員' }]
+                      ).map((s, i, arr) => {
+                        const done = s.status === '已審批';
+                        const active = s.status === '審批中';
+                        return (
+                          <div key={i} className="relative flex gap-3 pb-6 last:pb-0">
+                            {i < arr.length - 1 && (
+                              <span className={`absolute left-[15px] top-8 -bottom-0 w-0.5 ${done ? 'bg-emerald-300' : 'bg-gray-200'}`}></span>
+                            )}
+                            <div className={`relative z-10 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${done ? 'bg-emerald-500 text-white' : active ? 'bg-[#4A90E2] text-white ring-4 ring-blue-100' : 'bg-gray-200 text-gray-500'}`}>
+                              {done ? '✓' : s.seq}
+                            </div>
+                            <div className="pt-1 min-w-0">
+                              <div className="text-sm font-bold text-gray-800 whitespace-nowrap">{s.title}</div>
+                              <div className="text-xs text-gray-400 mt-0.5 whitespace-nowrap">
+                                {(s.sign && s.sign !== '-') ? s.sign : '—'}
+                                {done && <span className="ml-1 text-emerald-600 font-medium">· 已審批</span>}
+                                {active && <span className="ml-1 text-[#4A90E2] font-medium">· 審批中</span>}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                </div>
+
+              </div>
+            </div>
+          )}
+
+          {/* ========== 審批動作彈窗（審批 / 駁回 / 補件 + 意見 + 附件） ========== */}
+          {approveActionOpen && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 z-[70] flex items-center justify-center p-4" onClick={() => setApproveActionOpen(false)}>
+              <div
+                className="bg-white rounded-lg shadow-xl w-full max-w-[560px] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+                onClick={e => e.stopPropagation()}
+              >
+                {/* 標題列 */}
+                <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+                  <span className="font-bold text-gray-800 text-base">審批處理</span>
+                  <button onClick={() => setApproveActionOpen(false)} className="text-gray-400 hover:text-gray-600 text-xl leading-none">
+                    <i className="fas fa-times"></i>
+                  </button>
+                </div>
+
+                <div className="px-6 py-5 space-y-5 max-h-[70vh] overflow-y-auto">
+                  {/* 審批結果 */}
+                  <div>
+                    <div className="text-sm font-semibold text-gray-700 mb-2">審批結果 <span className="text-red-500">*</span></div>
+                    <div className="flex gap-3">
+                      {[
+                        { key: '審批', icon: 'fa-check', active: 'bg-green-500 border-green-500 text-white', hover: 'hover:border-green-400 hover:text-green-500' },
+                        { key: '駁回', icon: 'fa-times', active: 'bg-red-500 border-red-500 text-white', hover: 'hover:border-red-400 hover:text-red-500' },
+                        { key: '補件', icon: 'fa-folder-open', active: 'bg-amber-500 border-amber-500 text-white', hover: 'hover:border-amber-400 hover:text-amber-500' },
+                      ].map(opt => (
+                        <button
+                          key={opt.key}
+                          onClick={() => setApproveDecision(opt.key)}
+                          className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border text-sm font-semibold transition-colors ${approveDecision === opt.key ? opt.active : `bg-white border-gray-300 text-gray-600 ${opt.hover}`}`}
+                        >
+                          <i className={`fas ${opt.icon}`}></i>{opt.key}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* 審批意見（內嵌編輯器） */}
+                  <div>
+                    <div className="text-sm font-semibold text-gray-700 mb-2">審批意見</div>
+                    <div className="border border-gray-300 rounded-lg overflow-hidden focus-within:border-[#4A90E2]">
+                      {/* 工具列（示意用，部分按鈕僅供呈現） */}
+                      <div className="flex items-center gap-0.5 flex-wrap bg-gray-50 border-b border-gray-200 px-2 py-1.5">
+                        {/* 字體大小（示意） */}
+                        <select className="h-8 text-xs text-gray-600 bg-white border border-gray-200 rounded px-1 mr-1 focus:outline-none">
+                          <option>正文</option>
+                          <option>標題 1</option>
+                          <option>標題 2</option>
+                        </select>
+                        {[
+                          { type: 'cmd', cmd: 'bold', icon: 'fa-bold', title: '粗體' },
+                          { type: 'cmd', cmd: 'italic', icon: 'fa-italic', title: '斜體' },
+                          { type: 'cmd', cmd: 'underline', icon: 'fa-underline', title: '底線' },
+                          { type: 'cmd', cmd: 'strikeThrough', icon: 'fa-strikethrough', title: '刪除線' },
+                          { type: 'divider' },
+                          { type: 'cmd', cmd: 'insertUnorderedList', icon: 'fa-list-ul', title: '項目符號' },
+                          { type: 'cmd', cmd: 'insertOrderedList', icon: 'fa-list-ol', title: '編號清單' },
+                          { type: 'divider' },
+                          { type: 'mock', icon: 'fa-image', title: '插入圖片（示意）' },
+                          { type: 'mock', icon: 'fa-link', title: '插入連結（示意）' },
+                          { type: 'mock', icon: 'fa-table', title: '插入表格（示意）' },
+                          { type: 'mock', icon: 'fa-code', title: '程式碼（示意）' },
+                        ].map((t, i) => (
+                          t.type === 'divider'
+                            ? <span key={`d${i}`} className="w-px h-5 bg-gray-300 mx-1"></span>
+                            : (
+                              <button
+                                key={t.icon}
+                                type="button"
+                                title={t.title}
+                                onMouseDown={(e) => { e.preventDefault(); if (t.type === 'cmd') document.execCommand(t.cmd, false, null); }}
+                                className="w-8 h-8 flex items-center justify-center rounded text-gray-500 hover:bg-gray-200 hover:text-gray-700 text-sm"
+                              >
+                                <i className={`fas ${t.icon}`}></i>
+                              </button>
+                            )
+                        ))}
+                      </div>
+                      <div
+                        ref={approveEditorRef}
+                        contentEditable
+                        suppressContentEditableWarning
+                        data-placeholder="請輸入審批意見…"
+                        className="approve-editor min-h-[120px] px-3 py-2 text-sm text-gray-800 focus:outline-none"
+                      ></div>
+                    </div>
+                  </div>
+
+                  {/* 上傳附件 */}
+                  <div>
+                    <div className="text-sm font-semibold text-gray-700 mb-2">附件 <span className="text-xs font-normal text-gray-400">（單檔上限 20MB）</span></div>
+                    <input
+                      ref={approveFileInputRef}
+                      type="file"
+                      multiple
+                      className="hidden"
+                      onChange={(e) => { handleApproveFiles(e.target.files); e.target.value = ''; }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => approveFileInputRef.current && approveFileInputRef.current.click()}
+                      className="w-full border-2 border-dashed border-gray-300 rounded-lg py-4 flex flex-col items-center justify-center gap-1 text-gray-400 hover:border-[#4A90E2] hover:text-[#4A90E2] transition-colors"
+                    >
+                      <i className="fas fa-cloud-upload-alt text-xl"></i>
+                      <span className="text-xs font-medium">點擊上傳附件</span>
+                    </button>
+                    {approveFiles.length > 0 && (
+                      <ul className="mt-2 space-y-1">
+                        {approveFiles.map((f, i) => (
+                          <li key={i} className="flex items-center justify-between bg-gray-50 border border-gray-100 rounded px-3 py-1.5 text-xs text-gray-700">
+                            <span className="flex items-center gap-2 min-w-0">
+                              <i className="fas fa-paperclip text-gray-400"></i>
+                              <span className="truncate">{f.name}</span>
+                              <span className="text-gray-400 flex-shrink-0">{formatFileSize(f.size)}</span>
+                            </span>
+                            <button
+                              onClick={() => setApproveFiles(prev => prev.filter((_, idx) => idx !== i))}
+                              className="text-gray-400 hover:text-red-500 flex-shrink-0 ml-2"
+                            >
+                              <i className="fas fa-times"></i>
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                </div>
+
+                {/* 底部按鈕 */}
+                <div className="flex justify-end gap-3 px-6 py-4 border-t border-gray-200 bg-gray-50">
+                  <button onClick={() => setApproveActionOpen(false)} className="ui-btn ui-btn-secondary">取消</button>
+                  <button onClick={submitApproveAction} className="ui-btn ui-btn-primary">確認送出</button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ========== 指派工作單彈窗（C-THQ-000002 審批通過後） ========== */}
+          {assignModalOpen && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 z-[80] flex items-center justify-center p-4" onClick={() => setAssignModalOpen(false)}>
+              <div
+                className="bg-white rounded-lg shadow-xl w-full max-w-[460px] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+                onClick={e => e.stopPropagation()}
+              >
+                <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+                  <span className="font-bold text-gray-800 text-base">指派工作單</span>
+                  <button onClick={() => setAssignModalOpen(false)} className="text-gray-400 hover:text-gray-600 text-xl leading-none">
+                    <i className="fas fa-times"></i>
+                  </button>
+                </div>
+                <div className="px-6 py-5 space-y-4">
+                  <p className="text-sm text-gray-600">審批已通過，請指派後續工作單的處理人員：</p>
+                  <div>
+                    <div className="text-sm font-semibold text-gray-700 mb-1.5">指派人員 <span className="text-red-500">*</span></div>
+                    <select
+                      value={assignee}
+                      onChange={(e) => setAssignee(e.target.value)}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#4A90E2]"
+                    >
+                      <option value="" disabled>請選擇人員</option>
+                      <option>Oliver（資金專員）</option>
+                      <option>James（資金主管）</option>
+                      <option>Stella（出納）</option>
+                      <option>Cora（記帳）</option>
+                      <option>Dev（費用會計）</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="flex justify-end gap-3 px-6 py-4 border-t border-gray-200 bg-gray-50">
+                  <button onClick={() => setAssignModalOpen(false)} className="ui-btn ui-btn-secondary">取消</button>
+                  <button onClick={submitAssign} disabled={!assignee} className="ui-btn ui-btn-primary disabled:opacity-50 disabled:cursor-not-allowed">確認指派</button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ========== 請假 / 補卡「檢視」詳情彈窗（比照電子表單簽核彈窗） ========== */}
+          {viewItem && (() => {
+            const d = viewItem.data || {};
+            const isLeave = viewItem.kind === 'leave';
+            const docNo = isLeave
+              ? `A-${d.dept || ''}-${d.empNo || ''}-${(d.startDate || '').replace(/-/g, '')}`
+              : `T-${d.dept || ''}-${d.empNo || ''}-${(d.submitDate || '').replace(/-/g, '')}`;
+            const title = isLeave ? `${d.leaveType || '請假'}申請` : `補卡-${d.period || ''}`;
+            const applyDate = isLeave ? (d.applyTime || '').slice(0, 10) : (d.submitDate || '');
+            const baseFields = [
+              { label: '文件編號', value: docNo, muted: true, mono: true },
+              { label: '申請日期', value: applyDate, muted: true },
+              ...(isLeave ? [] : [{ label: '標題', value: title }]),
+              { label: '申請人', value: d.name || d.empNo },
+              { label: '工號', value: d.empNo, muted: true },
+              { label: '項目', value: d.project, muted: true },
+              { label: '部門', value: d.dept, muted: true },
+            ];
+            const detailFields = isLeave
+              ? [
+                  { label: '假期種類', value: d.leaveType },
+                  { label: '開始時間', value: d.startDate ? `${d.startDate} 09:00` : '' },
+                  { label: '結束時間', value: d.endDate ? `${d.endDate} 18:00` : '' },
+                  { label: '請假時數（小時／最小單位 0.5）', value: d.hours ? `${parseFloat(d.hours).toFixed(1)} 小時` : '' },
+                ]
+              : [
+                  { label: '種類', value: d.type },
+                  { label: '時段', value: d.period },
+                  { label: '補打卡時間', value: d.clockTime },
+                  { label: '提交日期', value: d.submitDate },
+                ];
+            const fieldInput = (f, i) => (
+              <div key={i}>
+                <label className="block text-gray-700 text-xs mb-1.5 font-medium">{f.label}</label>
+                <input
+                  type="text"
+                  disabled
+                  value={(f.value === undefined || f.value === null || f.value === '') ? '-' : f.value}
+                  className={`w-full border rounded px-3 py-2 text-sm cursor-not-allowed ${f.muted ? 'bg-[#EAECEF] border-gray-300 text-gray-700' : 'bg-white border-gray-200 text-gray-800'} ${f.mono ? 'font-mono' : ''}`}
+                />
+              </div>
+            );
+            return (
+              <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-center justify-center p-4 overflow-y-auto" onClick={() => setViewItem(null)}>
+                <div
+                  className="bg-[#F0F2F5] rounded-xl shadow-2xl w-full max-w-[1100px] h-[90vh] flex flex-col overflow-hidden text-left"
+                  onClick={e => e.stopPropagation()}
+                >
+                  {/* 標題列 */}
+                  <div className="bg-[#EEF2F6] px-6 py-3.5 flex items-center justify-between border-b border-gray-200 flex-shrink-0">
+                    <span className="font-bold text-gray-800 text-base">{isLeave ? '請假申請單 (A)' : '補卡申請單 (T)'}</span>
+                    <button onClick={() => setViewItem(null)} className="bg-[#3F51B5] hover:bg-blue-800 text-white p-1 rounded transition-colors">
+                      <X size={18} strokeWidth={2.5} />
+                    </button>
+                  </div>
+
+                  <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
+                    {/* 左側：表單內容 + 固定底部 */}
+                    <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
+                      <div className="flex-1 overflow-y-auto p-6 space-y-6">
+
+                        {/* 基本資訊 */}
+                        <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-5">
+                          <div className="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2">基本資訊</div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {baseFields.map(fieldInput)}
+                          </div>
+                        </div>
+
+                        {/* 申請資訊 */}
+                        <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-5">
+                          <div className="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2">{isLeave ? '請假資訊' : '補卡資訊'}</div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {detailFields.map(fieldInput)}
+                          </div>
+                          <div>
+                            <label className="block text-gray-700 text-xs mb-1.5 font-medium">{isLeave ? '申請事由' : '補卡原因'}</label>
+                            <textarea
+                              disabled
+                              value={isLeave ? '依個人需求提出請假申請，相關證明文件如附件。' : '因故漏打卡，檢附說明提出補卡申請。'}
+                              className="w-full bg-white border border-gray-200 rounded px-3 py-2 text-sm text-gray-800 h-20 resize-none cursor-not-allowed"
+                            />
+                          </div>
+                        </div>
+
+                        {/* 審批信息（歷程） */}
+                        <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+                          <div className="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 px-6 py-3">審批信息</div>
+                          <div className="overflow-x-auto">
+                            <table className="w-full text-sm whitespace-nowrap">
+                              <thead className="bg-[#F8F9FA] text-gray-500 text-xs">
+                                <tr>
+                                  <th className="px-4 py-3 text-center">序號</th>
+                                  <th className="px-4 py-3 text-center">狀態</th>
+                                  <th className="px-4 py-3 text-center">條件</th>
+                                  <th className="px-4 py-3 text-left">職稱</th>
+                                  <th className="px-4 py-3 text-left">姓名</th>
+                                  <th className="px-4 py-3 text-left">工號</th>
+                                  <th className="px-4 py-3 text-left">審批日期</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-gray-100">
+                                <tr>
+                                  <td className="px-4 py-3 text-center font-bold text-gray-800">1</td>
+                                  <td className="px-4 py-3 text-center"><span className="ui-badge ui-badge-success">已通過</span></td>
+                                  <td className="px-4 py-3 text-center text-gray-500">串聯</td>
+                                  <td className="px-4 py-3 text-gray-800">直屬主管</td>
+                                  <td className="px-4 py-3 text-gray-800">-</td>
+                                  <td className="px-4 py-3 text-gray-600 font-mono">-</td>
+                                  <td className="px-4 py-3 text-gray-400">-</td>
+                                </tr>
+                                <tr>
+                                  <td className="px-4 py-3 text-center font-bold text-gray-800">2</td>
+                                  <td className="px-4 py-3 text-center"><span className="ui-badge ui-badge-warning">待審批</span></td>
+                                  <td className="px-4 py-3 text-center text-gray-500">串聯</td>
+                                  <td className="px-4 py-3 text-gray-800">人資審核</td>
+                                  <td className="px-4 py-3 text-gray-800">-</td>
+                                  <td className="px-4 py-3 text-gray-600 font-mono">-</td>
+                                  <td className="px-4 py-3 text-gray-400">-</td>
+                                </tr>
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+
+                        {/* 備註（供審批人填寫） */}
+                        <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-3">
+                          <div className="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2">備註</div>
+                          <textarea
+                            placeholder="請輸入審批備註..."
+                            className="w-full bg-white border border-gray-200 rounded px-3 py-2 text-sm text-gray-800 h-24 resize-none focus:outline-none focus:ring-2 focus:ring-[#4A90E2]/40 focus:border-[#4A90E2]"
+                          />
+                        </div>
+
+                      </div>
+
+                      {/* 固定底部按鈕 */}
+                      <div className="bg-[#F8F9FA] border-t border-gray-200 px-6 py-4 flex justify-center gap-3 flex-shrink-0 shadow-[0_-2px_8px_rgba(0,0,0,0.04)]">
+                        <button onClick={() => setViewItem(null)} className="ui-btn ui-btn-secondary">關閉</button>
+                        <button onClick={() => setViewItem(null)} className="ui-btn ui-btn-success ui-btn-lg">審批</button>
+                      </div>
+                    </div>
+
+                    {/* 右側：審批線預覽 */}
+                    <div className="w-full lg:w-[320px] bg-white border-t lg:border-t-0 lg:border-l border-gray-200 overflow-y-auto flex flex-col flex-shrink-0">
+                      <div className="bg-[#0097A7] text-white px-4 py-3.5 font-bold text-sm tracking-wide">審批線預覽</div>
+                      <div className="p-1 flex-1 overflow-y-auto">
+                        <table className="w-full table-fixed text-xs text-center border-collapse">
+                          <thead>
+                            <tr className="border-b border-gray-200 bg-gray-50 text-gray-500 font-bold">
+                              <th className="px-2 py-2 w-10 border-r border-gray-200">序號</th>
+                              <th className="px-2 py-2 w-14 border-r border-gray-200">條件</th>
+                              <th className="px-2 py-2 border-r border-gray-200">職稱</th>
+                              <th className="px-2 py-2 w-12">簽名</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-100 font-semibold text-gray-700">
+                            <tr className="border-b border-gray-200">
+                              <td className="px-3 py-3 border-r border-gray-200 font-bold text-center text-gray-800">1</td>
+                              <td className="px-3 py-3 border-r border-gray-200 text-gray-500">直屬主管</td>
+                              <td className="px-3 py-3 border-r border-gray-200 text-gray-500">-</td>
+                              <td className="px-3 py-3 text-center text-gray-400">-</td>
+                            </tr>
+                            <tr className="border-b border-gray-200">
+                              <td className="px-3 py-3 border-r border-gray-200 font-bold text-center text-gray-800">2</td>
+                              <td className="px-3 py-3 border-r border-gray-200 text-gray-500">人資審核</td>
+                              <td className="px-3 py-3 border-r border-gray-200 text-gray-500">-</td>
+                              <td className="px-3 py-3 text-center text-gray-400">-</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* ================= 匯出設定彈窗群 ================= */}
+          {activeExportModal && (
+            <div className="fixed inset-0 bg-black bg-opacity-45 z-50 flex items-center justify-center p-4" onClick={() => setActiveExportModal(null)}>
+              <div 
+                className="bg-white rounded-md shadow-2xl w-full max-w-[520px] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200 text-left"
+                onClick={e => e.stopPropagation()}
+              >
+                {/* 標頭 */}
+                <div className="px-6 py-4 flex items-center justify-between border-b border-gray-200 bg-white">
+                  <span className="font-bold text-gray-800 text-[15px]">
+                    {activeExportModal === 'bookkeeping' && '記帳匯出'}
+                    {activeExportModal === 'payment' && '資金支付匯出'}
+                    {activeExportModal === 'accounting' && '費用會計匯出'}
+                    {activeExportModal === 'excel' && '匯出 Excel'}
+                    {activeExportModal === 'data' && '匯出資料'}
+                  </span>
+                  <button 
+                    onClick={() => setActiveExportModal(null)}
+                    className="text-gray-400 hover:text-gray-600 transition-colors"
+                  >
+                    <X size={20} strokeWidth={2} />
+                  </button>
+                </div>
+
+                {/* 內容區 */}
+                <div className="p-6 bg-white">
+                  {activeExportModal === 'bookkeeping' ? (
+                    <div className="space-y-3">
+                      <label className="block text-gray-700 text-sm font-medium mb-2">地區</label>
+                      <div className="border border-red-500 rounded p-4 max-h-[350px] overflow-y-auto">
+                        <div 
+                          onClick={() => {
+                            const bookkeepingList = ['D', 'F', 'IM', 'J', 'K', 'M', 'S', 'T1', 'T2', 'T3', 'T4'];
+                            if (selectedBookkeeping.length === bookkeepingList.length) {
+                              setSelectedBookkeeping([]);
+                            } else {
+                              setSelectedBookkeeping([...bookkeepingList]);
+                            }
+                          }}
+                          className="text-[#4CAF50] text-[13px] font-bold cursor-pointer hover:underline mb-2.5 inline-block"
+                        >
+                          Select All
+                        </div>
+                        <div className="h-px bg-gray-100 mb-2"></div>
+                        <div className="space-y-1">
+                          {['D', 'F', 'IM', 'J', 'K', 'M', 'S', 'T1', 'T2', 'T3', 'T4'].map(opt => (
+                            <label key={opt} className="flex items-center gap-3 py-1.5 px-2 hover:bg-gray-50 rounded cursor-pointer transition-colors">
+                              <input 
+                                type="checkbox"
+                                checked={selectedBookkeeping.includes(opt)}
+                                onChange={() => {
+                                  if (selectedBookkeeping.includes(opt)) {
+                                    setSelectedBookkeeping(selectedBookkeeping.filter(x => x !== opt));
+                                  } else {
+                                    setSelectedBookkeeping([...selectedBookkeeping, opt]);
+                                  }
+                                }}
+                                className="w-4 h-4 rounded border-gray-300 text-[#4A90E2] focus:ring-[#4A90E2] cursor-pointer" 
+                              />
+                              <span className="text-[13px] text-gray-700">{opt}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="py-4">
+                      <label className="flex items-center gap-3 py-2 px-1 hover:bg-gray-50 rounded cursor-pointer transition-colors">
+                        <input 
+                          type="checkbox"
+                          checked={pendingApprovalOnly}
+                          onChange={(e) => setPendingApprovalOnly(e.target.checked)}
+                          className="w-4 h-4 rounded border-gray-300 text-[#4A90E2] focus:ring-[#4A90E2] cursor-pointer" 
+                        />
+                        <span className="text-[13px] text-gray-700">待我審核</span>
+                      </label>
+                    </div>
+                  )}
+                </div>
+
+                {/* 底部按鈕區 */}
+                <div className="border-t border-gray-200 px-6 py-4 flex justify-end bg-white">
+                  <button 
+                    onClick={() => {
+                      // 模擬匯出完成，關閉彈窗
+                      setActiveExportModal(null);
+                    }}
+                    className="ui-btn ui-btn-primary"
+                  >
+                    匯出
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ================= 撤回確認彈窗 ================= */}
+          {withdrawConfirmItem && (
+            <div className="fixed inset-0 bg-black bg-opacity-45 z-[60] flex items-center justify-center p-4" onClick={() => setWithdrawConfirmItem(null)}>
+              <div 
+                className="bg-white rounded-md shadow-xl w-full max-w-[400px] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200 text-center"
+                onClick={e => e.stopPropagation()}
+              >
+                <div className="p-8">
+                  <div className="text-gray-800 text-sm font-medium mb-8">
+                    确定要撤回此申请单吗？
+                  </div>
+                  <div className="flex justify-center gap-4">
+                    <button
+                      onClick={() => setWithdrawConfirmItem(null)}
+                      className="ui-btn ui-btn-secondary"
+                    >
+                      取消
+                    </button>
+                    <button
+                      onClick={() => {
+                        // 模擬撤回邏輯
+                        setWithdrawConfirmItem(null);
+                      }}
+                      className="ui-btn ui-btn-primary"
+                    >
+                      確定
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ================= 批量審批確認彈窗 ================= */}
+          {batchApproveModal && (
+            <div className="fixed inset-0 bg-black bg-opacity-45 z-[60] flex items-center justify-center p-4" onClick={() => setBatchApproveModal(null)}>
+              <div 
+                className="bg-white rounded-md shadow-xl w-full max-w-[400px] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200 text-center"
+                onClick={e => e.stopPropagation()}
+              >
+                <div className="p-8">
+                  <div className="text-gray-800 text-base font-medium mb-8">
+                    確定要批量審批已選取的 {batchApproveModal === 'leave' ? selectedLeave.length : batchApproveModal === 'cancel' ? selectedCancel.length : selectedTimesheet.length} 筆項目嗎？
+                  </div>
+                  <div className="flex justify-center gap-4">
+                    <button
+                      onClick={() => setBatchApproveModal(null)}
+                      className="ui-btn ui-btn-secondary"
+                    >
+                      取消
+                    </button>
+                    <button
+                      onClick={() => {
+                        // 模擬審批邏輯：清空已選項
+                        if (batchApproveModal === 'leave') setSelectedLeave([]);
+                        if (batchApproveModal === 'timesheet') setSelectedTimesheet([]);
+                        if (batchApproveModal === 'cancel') setSelectedCancel([]);
+                        setBatchApproveModal(null);
+                      }}
+                      className="ui-btn ui-btn-success"
+                    >
+                      確定審批
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+        </div>
+      );
+    };
+
+    // 將 React 元件渲染到 DOM 中
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
