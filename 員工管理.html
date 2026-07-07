@@ -141,8 +141,9 @@
             max-width: none;
         }
 
-        /* 員工詳細資料：各大項以卡片樣式明顯區隔 */
-        #editModalPanel .tab-content > div {
+        /* 員工詳細資料 / 添加新員工：各大項以卡片樣式明顯區隔 */
+        #editModalPanel .tab-content > div,
+        #addEmployeeModalPanel .tab-add-content > div {
             background-color: #F9FAFB;
             border: 1px solid #EDF0F2;
             border-radius: 0.75rem;
@@ -187,6 +188,28 @@
         #editModalPanel.edit-mode .fa-caret-down { color: #4A90E2 !important; }
         /* 系統唯讀欄位在檢視模式統一為淺灰 */
         #editModalPanel .bg-\[\#e8ecf1\] { background-color: #f1f3f5 !important; border-color: transparent !important; }
+
+        /* 添加新員工：不使用深色輸入框，所有可編輯欄位統一為淺藍（唯讀欄位維持淺灰） */
+        #addEmployeeModalPanel .tab-add-content input:not([readonly]):not([disabled]),
+        #addEmployeeModalPanel .tab-add-content textarea:not([readonly]):not([disabled]) {
+            background-color: #EAF2FC !important;
+            border-color: #BBD6F5 !important;
+            color: #1F2937 !important;
+        }
+        #addEmployeeModalPanel .tab-add-content select {
+            background-color: #EAF2FC !important;
+            color: #1F2937 !important;
+            border: 1px solid #BBD6F5 !important;
+            -webkit-appearance: none !important;
+            -moz-appearance: none !important;
+            appearance: none !important;
+            background-image: none !important;
+            padding-right: 1.75rem !important;
+            cursor: pointer;
+        }
+        #addEmployeeModalPanel .tab-add-content select option { color: #1F2937; background-color: #FFFFFF; }
+        /* 下拉箭頭改為藍色（原深色底的白色箭頭不再適用） */
+        #addEmployeeModalPanel .tab-add-content .fa-caret-down { color: #4A90E2 !important; }
     </style>
 </head>
 <body class="ui-page text-text-main antialiased">
@@ -678,6 +701,11 @@
                             </a>
                         </li>
                         <li>
+                            <a href="#" id="btn-tab-salary" onclick="switchTab('tab-salary')" class="inline-block pb-2 text-gray-700 hover:text-gray-900 hover:border-b-[3px] hover:border-gray-300 border-b-[3px] border-transparent transition-colors">
+                                薪資單
+                            </a>
+                        </li>
+                        <li>
                             <a href="#" id="btn-tab-asset" onclick="switchTab('tab-asset')" class="inline-block pb-2 text-gray-700 hover:text-gray-900 hover:border-b-[3px] hover:border-gray-300 border-b-[3px] border-transparent transition-colors">
                                 資產
                             </a>
@@ -780,21 +808,6 @@
                                     <label class="block text-xs font-semibold text-gray-500 mb-1.5">出生年月日</label>
                                     <input type="text" value="1900/01/01" readonly class="w-full sm:max-w-xs px-3 py-2 bg-[#f1f3f5] border border-transparent rounded-md text-sm text-gray-800 outline-none cursor-default mb-1.5">
                                     <p class="text-[13px] text-red-500 font-medium">為使人事流程與相關福利順利進行，原則上建議填寫正確的出生日期資訊。</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 公司聯繫方式 -->
-                        <div>
-                            <h4 class="text-[15px] font-bold text-gray-900 mb-4">公司聯繫方式</h4>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-5">
-                                <div>
-                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">公司郵箱</label>
-                                    <input type="text" readonly class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded-md text-sm text-gray-800 outline-none cursor-default">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">公司聯繫方式</label>
-                                    <input type="text" readonly class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded-md text-sm text-gray-800 outline-none cursor-default">
                                 </div>
                             </div>
                         </div>
@@ -1294,6 +1307,70 @@
                     </div>
 
                     <!-- ========================================== -->
+                    <!-- 頁籤內容：薪資單 -->
+                    <!-- ========================================== -->
+                    <div id="tab-salary" class="tab-content hidden max-w-6xl mx-auto space-y-6">
+
+                        <!-- 查詢條件：年份 / 月份 -->
+                        <div>
+                            <h4 class="text-base font-bold text-gray-800 mb-4">薪資單查詢</h4>
+                            <div class="flex flex-wrap items-end gap-3">
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">年份</label>
+                                    <div class="relative">
+                                        <select id="salary-year" onchange="resetSalaryQuery()" class="appearance-none pl-3 pr-8 py-2 bg-white border border-gray-200 rounded-md text-sm text-gray-800 outline-none">
+                                            <option value="2026">2026</option>
+                                            <option value="2025">2025</option>
+                                            <option value="2024">2024</option>
+                                        </select>
+                                        <i class="fa-solid fa-caret-down absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 pointer-events-none"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">月份</label>
+                                    <div class="relative">
+                                        <select id="salary-month" onchange="resetSalaryQuery()" class="appearance-none pl-3 pr-8 py-2 bg-white border border-gray-200 rounded-md text-sm text-gray-800 outline-none">
+                                            <option value="1">1 月</option><option value="2">2 月</option><option value="3">3 月</option>
+                                            <option value="4">4 月</option><option value="5">5 月</option><option value="6">6 月</option>
+                                            <option value="7">7 月</option><option value="8">8 月</option><option value="9">9 月</option>
+                                            <option value="10">10 月</option><option value="11">11 月</option><option value="12">12 月</option>
+                                        </select>
+                                        <i class="fa-solid fa-caret-down absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 pointer-events-none"></i>
+                                    </div>
+                                </div>
+                                <button onclick="querySalary()" class="ui-btn ui-btn-primary ui-btn-sm"><i class="fa-solid fa-magnifying-glass"></i> 查詢</button>
+                            </div>
+                        </div>
+
+                        <!-- 尚未查詢提示 -->
+                        <div id="salary-hint" class="py-12 text-center text-sm text-text-muted">
+                            <div class="inline-flex p-4 bg-gray-50 text-gray-400 rounded-full mb-3"><i class="fa-solid fa-money-check-dollar text-2xl"></i></div>
+                            <p>請先選擇年份與月份並點擊「查詢」。</p>
+                        </div>
+
+                        <!-- 密碼驗證：查詢後、檢視前需輸入登入密碼 -->
+                        <div id="salary-auth" class="hidden max-w-md mx-auto p-5 rounded-lg border border-amber-200 bg-amber-50/50 text-center space-y-3">
+                            <div class="inline-flex p-3 bg-amber-100 text-amber-600 rounded-full"><i class="fa-solid fa-lock"></i></div>
+                            <p class="text-sm font-semibold text-gray-700">薪資資料受保護</p>
+                            <p class="text-xs text-text-muted">請輸入您的登入密碼以檢視 <span id="salary-auth-period" class="font-semibold text-gray-700"></span> 薪資單</p>
+                            <div class="flex items-center gap-2 justify-center">
+                                <input type="password" id="salary-password" placeholder="登入密碼" onkeydown="if(event.key==='Enter')unlockSalary()" class="px-3 py-2 border border-gray-200 rounded-md text-sm outline-none w-48">
+                                <button onclick="unlockSalary()" class="ui-btn ui-btn-primary ui-btn-sm"><i class="fa-solid fa-unlock"></i> 確認</button>
+                            </div>
+                            <p id="salary-auth-error" class="hidden text-xs text-rose-600">密碼錯誤，請重新輸入。</p>
+                        </div>
+
+                        <!-- 薪資單內容：驗證通過後顯示 -->
+                        <div id="salary-result" class="hidden">
+                            <div class="mb-3">
+                                <h4 class="text-base font-bold text-gray-800"><span id="salary-result-period"></span> 薪資單</h4>
+                            </div>
+                            <div id="salary-body" class="space-y-4"><!-- 動態渲染 --></div>
+                        </div>
+
+                    </div>
+
+                    <!-- ========================================== -->
                     <!-- 頁籤內容：資產領用 -->
                     <!-- ========================================== -->
                     <div id="tab-asset" class="tab-content max-w-5xl mx-auto space-y-8">
@@ -1444,8 +1521,8 @@
                                 <div>
                                     <label class="block text-xs font-semibold text-gray-500 mb-1.5">工號 <span class="text-red-500">*</span></label>
                                     <div class="flex gap-2">
-                                        <input type="text" placeholder="工號申請後自動帶入" class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded-md text-sm text-gray-800 outline-none focus:bg-white focus:border-gray-300 transition-colors">
-                                        <button class="px-3 py-2 bg-primary text-white text-sm rounded-md hover:bg-opacity-90 transition-colors shadow-sm whitespace-nowrap shrink-0">工號申請</button>
+                                        <input type="text" id="add-empno-input" placeholder="工號申請後自動帶入" readonly class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded-md text-sm text-gray-800 outline-none cursor-default">
+                                        <button type="button" onclick="openQFlow()" class="px-3 py-2 bg-primary text-white text-sm rounded-md hover:bg-opacity-90 transition-colors shadow-sm whitespace-nowrap shrink-0">工號申請</button>
                                     </div>
                                 </div>
                                 <div>
@@ -1525,21 +1602,6 @@
                                     <label class="block text-xs font-semibold text-gray-500 mb-1.5">出生年月日</label>
                                     <input type="text" placeholder="年/月/日" class="w-full sm:max-w-xs px-3 py-2 bg-[#f1f3f5] border border-transparent rounded-md text-sm text-gray-800 outline-none focus:bg-white focus:border-gray-300 transition-colors mb-1.5">
                                     <p class="text-[13px] text-red-500 font-medium">為使人事流程與相關福利順利進行，原則上建議填寫正確的出生日期資訊。</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 公司聯繫方式 -->
-                        <div>
-                            <h4 class="text-[15px] font-bold text-gray-900 mb-4">公司聯繫方式</h4>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-5">
-                                <div>
-                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">公司郵箱</label>
-                                    <input type="text" class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded-md text-sm text-gray-800 outline-none focus:bg-white focus:border-gray-300 transition-colors">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">公司聯繫方式</label>
-                                    <input type="text" class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded-md text-sm text-gray-800 outline-none focus:bg-white focus:border-gray-300 transition-colors">
                                 </div>
                             </div>
                         </div>
@@ -1890,6 +1952,57 @@
     </div>
 
     <!-- ========================================== -->
+    <!-- 工號申請：問題流程（回答問題自動核發工號，題庫同「工號創建管理」）-->
+    <!-- ========================================== -->
+    <div id="qflow-modal" class="fixed inset-0 z-[70] hidden" role="dialog" aria-modal="true">
+        <div class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm" onclick="closeQFlow()"></div>
+        <div class="fixed inset-0 z-10 flex items-center justify-center p-4">
+            <div class="relative bg-white rounded-xl shadow-modal w-full max-w-lg flex flex-col">
+                <!-- 標頭 -->
+                <div class="px-6 py-4 flex items-center justify-between border-b border-gray-100">
+                    <h3 class="font-bold text-lg text-gray-900"><i class="fa-solid fa-id-card-clip text-primary mr-2"></i>工號申請</h3>
+                    <button onclick="closeQFlow()" class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100 transition-colors"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+
+                <div class="p-6">
+                    <!-- 問題步驟 -->
+                    <div id="qflow-question">
+                        <div class="flex items-center gap-2 mb-3">
+                            <span id="qflow-step-badge" class="inline-flex items-center justify-center px-2.5 py-1 rounded-md bg-primary text-white text-xs font-bold">No.1</span>
+                            <span class="text-xs text-text-muted">依序回答問題，系統將自動判定並核發工號</span>
+                        </div>
+                        <p id="qflow-question-text" class="text-base text-gray-800 leading-relaxed whitespace-pre-line min-h-[72px]"></p>
+                        <div class="grid grid-cols-2 gap-3 mt-5">
+                            <button type="button" onclick="qflowAnswer('yes')" class="py-3 rounded-lg border-2 border-emerald-200 bg-emerald-50 text-emerald-700 font-bold hover:bg-emerald-100 transition-colors"><i class="fa-solid fa-check mr-1.5"></i>是</button>
+                            <button type="button" onclick="qflowAnswer('no')" class="py-3 rounded-lg border-2 border-rose-200 bg-rose-50 text-rose-700 font-bold hover:bg-rose-100 transition-colors"><i class="fa-solid fa-xmark mr-1.5"></i>否</button>
+                        </div>
+                    </div>
+
+                    <!-- 完成：核發工號 -->
+                    <div id="qflow-done" class="hidden text-center py-2">
+                        <div class="inline-flex p-4 bg-emerald-50 text-emerald-500 rounded-full mb-3"><i class="fa-solid fa-circle-check text-3xl"></i></div>
+                        <p class="text-sm text-text-muted">已依回答自動核發工號</p>
+                        <div id="qflow-issued" class="text-3xl font-bold text-gray-900 font-mono mt-2 tracking-wider"></div>
+                        <button type="button" onclick="applyQFlow()" class="mt-5 px-5 py-2.5 bg-primary text-white text-sm font-medium rounded-lg shadow-sm hover:bg-opacity-90 transition-colors"><i class="fa-solid fa-arrow-right-to-bracket mr-1.5"></i>套用並帶入工號</button>
+                    </div>
+
+                    <!-- 無法判定（跳轉題目不存在） -->
+                    <div id="qflow-error" class="hidden text-center py-2">
+                        <div class="inline-flex p-4 bg-amber-50 text-amber-500 rounded-full mb-3"><i class="fa-solid fa-triangle-exclamation text-3xl"></i></div>
+                        <p class="text-sm text-text-muted">依目前題庫設定無法判定工號，請至「工號創建管理」補齊問題流程。</p>
+                    </div>
+                </div>
+
+                <!-- 底部 -->
+                <div class="px-6 py-3 flex items-center justify-between border-t border-gray-100 bg-gray-50/50 rounded-b-xl">
+                    <button type="button" onclick="restartQFlow()" class="text-xs text-gray-500 hover:text-gray-700"><i class="fa-solid fa-rotate-left mr-1"></i>重新開始</button>
+                    <span id="qflow-progress" class="text-xs text-text-muted"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
     <!-- 帳號異動申請彈窗（針對人員帳號 8 欄位 增 / 改 / 刪 + 備註 + 附件） -->
     <!-- ========================================== -->
     <div id="accChangeModal" class="fixed inset-0 z-[60] hidden">
@@ -1926,6 +2039,8 @@
         </div>
     </div>
 
+    <!-- 共用題庫（單一來源，與「工號創建管理」共用；供工號申請流程使用） -->
+    <script src="工號問卷.js"></script>
     <script>
         // DOM 元素宣告 (確保兩組彈窗相互獨立)
         const editModal = document.getElementById('editModal');
@@ -2314,6 +2429,7 @@
         function switchTab(tabId) {
             currentDetailTab = tabId;
             if (tabId === 'tab-attendance') onAttModeChange();
+            if (tabId === 'tab-salary') resetSalaryQuery();
             // 隱藏所有內容
             document.querySelectorAll('.tab-content').forEach(content => {
                 content.classList.remove('active');
@@ -2341,6 +2457,142 @@
         }
 
         /* -----------------------
+           薪資單 (Salary Slip)：先選年月查詢 → 輸入登入密碼 → 顯示薪資單
+           ----------------------- */
+        function salaryPeriodLabel() {
+            const y = document.getElementById('salary-year').value;
+            const m = document.getElementById('salary-month').value;
+            return `${y} 年 ${m} 月`;
+        }
+
+        // 切到薪資單分頁 / 變更年月時，回到未查詢狀態
+        function resetSalaryQuery() {
+            document.getElementById('salary-hint').classList.remove('hidden');
+            document.getElementById('salary-auth').classList.add('hidden');
+            document.getElementById('salary-result').classList.add('hidden');
+        }
+
+        // 查詢：進入密碼驗證步驟
+        function querySalary() {
+            document.getElementById('salary-hint').classList.add('hidden');
+            document.getElementById('salary-result').classList.add('hidden');
+            document.getElementById('salary-auth').classList.remove('hidden');
+            document.getElementById('salary-auth-period').textContent = salaryPeriodLabel();
+            document.getElementById('salary-password').value = '';
+            document.getElementById('salary-auth-error').classList.add('hidden');
+            setTimeout(() => document.getElementById('salary-password').focus(), 50);
+        }
+
+        // 驗證登入密碼後顯示薪資單（示意：接受任何非空密碼，實際系統應驗證登入密碼）
+        function unlockSalary() {
+            const pwd = document.getElementById('salary-password').value.trim();
+            if (!pwd) { document.getElementById('salary-auth-error').classList.remove('hidden'); return; }
+            const y = document.getElementById('salary-year').value;
+            const m = parseInt(document.getElementById('salary-month').value, 10);
+            renderSalarySlip(parseInt(y, 10), m);
+            document.getElementById('salary-result-period').textContent = salaryPeriodLabel();
+            document.getElementById('salary-auth').classList.add('hidden');
+            document.getElementById('salary-result').classList.remove('hidden');
+        }
+
+        // 重新鎖定：回到密碼驗證步驟
+        function lockSalary() {
+            document.getElementById('salary-result').classList.add('hidden');
+            document.getElementById('salary-auth').classList.remove('hidden');
+            document.getElementById('salary-password').value = '';
+            document.getElementById('salary-auth-error').classList.add('hidden');
+        }
+
+        // 產生該年月薪資資料（示意）
+        function salaryRecord(y, m) {
+            const dueMap = { 1: 22, 2: 20, 3: 21, 4: 22, 5: 21, 6: 22, 7: 23, 8: 21, 9: 21, 10: 22, 11: 21, 12: 22 };
+            const due = dueMap[m] || 22;
+            const attend = Math.max(due - (m % 3), due - 2);
+            const base = 18000;
+            const attendSalary = Math.round(base * attend / due);
+            const annualLeave = m === 12 ? 150 : 0;   // GBP
+            const housing = 8000;                      // TWD
+            const fullBonus = attend >= due ? 500 : 0; // 對應貨幣
+            const meal = 600;                          // 對應貨幣
+            const birthday = m === 5 ? 200 : 0;        // 對應貨幣
+            const totalBenefit = fullBonus + meal + birthday;
+            const otherAdjust = (m % 2 === 0) ? 300 : -150; // CNY
+            const actualDue = attendSalary + otherAdjust;   // CNY
+            const actualPayUSDT = Math.round(actualDue / 7.2 * 100) / 100;
+            return { base, y, m, attend, due, attendSalary, annualLeave, housing, fullBonus, meal, birthday, totalBenefit, otherAdjust, actualDue, payCur: 'USDT', actualPayUSDT, rateSymbol: 'USD', rateNote: `CNY→USDT 匯率 7.20，${m} 月依實際結算` };
+        }
+
+        function renderSalarySlip(y, m) {
+            const r = salaryRecord(y, m);
+            const n = v => Number(v).toLocaleString('en-US');
+
+            // 單一欄位（label 上、value 下）
+            const field = (label, val, cls) => `
+                <div class="bg-white px-4 py-3">
+                    <div class="text-xs text-gray-500">${label}</div>
+                    <div class="text-sm font-semibold mt-0.5 ${cls || 'text-gray-800'}">${val}</div>
+                </div>`;
+            // 區塊卡片
+            const section = (title, fields) => `
+                <div class="border border-gray-200 rounded-lg overflow-hidden">
+                    <div class="px-4 py-2 bg-gray-50 text-sm font-bold text-gray-700">${title}</div>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-px bg-gray-100">${fields.join('')}</div>
+                </div>`;
+
+            document.getElementById('salary-body').innerHTML = `
+                <!-- 重點摘要 -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div class="p-4 rounded-lg border border-gray-200 bg-gray-50">
+                        <div class="text-xs text-gray-500">實際應發（CNY）</div>
+                        <div class="text-xl font-bold text-gray-900 mt-1 font-mono">¥ ${n(r.actualDue)}</div>
+                    </div>
+                    <div class="p-4 rounded-lg border border-blue-200 bg-blue-50">
+                        <div class="text-xs text-gray-500">實際發放（USDT）</div>
+                        <div class="text-xl font-bold text-primary mt-1 font-mono">${n(r.actualPayUSDT)}</div>
+                    </div>
+                    <div class="p-4 rounded-lg border border-gray-200 bg-gray-50">
+                        <div class="text-xs text-gray-500">發放幣種 / 匯率符號</div>
+                        <div class="text-xl font-bold text-gray-900 mt-1">${r.payCur} <span class="text-gray-400 font-normal text-base">/ ${r.rateSymbol}</span></div>
+                    </div>
+                </div>
+
+                ${section('出勤資訊', [
+                    field('年', r.y),
+                    field('月', r.m),
+                    field('出勤天數', `${r.attend} 天`),
+                    field('應上天數', `${r.due} 天`)
+                ])}
+
+                ${section('薪資', [
+                    field('基本底薪（CNY）', `¥ ${n(r.base)}`),
+                    field('考勤薪資（CNY）', `¥ ${n(r.attendSalary)}`)
+                ])}
+
+                ${section('補貼與福利', [
+                    field('放棄年假補貼（GBP）', `£ ${n(r.annualLeave)}`),
+                    field('房補（TWD）', `NT$ ${n(r.housing)}`),
+                    field('全勤獎（對應貨幣）', n(r.fullBonus)),
+                    field('餐補（對應貨幣）', n(r.meal)),
+                    field('生日補貼（對應貨幣）', n(r.birthday)),
+                    field('總福利/津貼（對應貨幣）', n(r.totalBenefit), 'text-gray-900')
+                ])}
+
+                ${section('加減與結算', [
+                    field('合計其他加減（CNY）', `¥ ${n(r.otherAdjust)}`, r.otherAdjust < 0 ? 'text-rose-600' : 'text-emerald-600'),
+                    field('實際應發（CNY）', `¥ ${n(r.actualDue)}`, 'text-gray-900'),
+                    field('實際發放幣種', r.payCur),
+                    field('實際發放（USDT）', n(r.actualPayUSDT), 'text-primary'),
+                    field('發放匯率符號', r.rateSymbol)
+                ])}
+
+                <!-- 匯率和其他備註 -->
+                <div class="border border-gray-200 rounded-lg px-4 py-3">
+                    <div class="text-xs text-gray-500 mb-1">匯率和其他備註</div>
+                    <div class="text-sm text-gray-700">${r.rateNote}</div>
+                </div>`;
+        }
+
+        /* -----------------------
            添加新員工彈窗 (Add Employee Modal)
            ----------------------- */
         function openAddEmployeeModal() {
@@ -2361,6 +2613,83 @@
                     addEmployeeModal.classList.add('hidden');
                 }, 200);
             }
+        }
+
+        /* -----------------------
+           工號申請：問題流程（題庫比照「工號創建管理」，回答是/否自動核發工號）
+           ----------------------- */
+        // 題庫來源：共用檔 工號問卷.js 的 ID_QUESTIONS（與「工號創建管理」同一份）
+        let QFLOW = [];          // 目前使用的題庫（{ no, text, yes, no }）
+        let qflowCurrent = 0;    // 目前題目 index
+        let qflowIssued = '';    // 核發的工號
+
+        // 將共用題庫轉為流程用格式（label=題號 No.X 由順序決定；yes/no=回答行為；顯示採繁中）
+        function loadQflowQuestions() {
+            const src = (typeof ID_QUESTIONS !== 'undefined' && Array.isArray(ID_QUESTIONS)) ? ID_QUESTIONS : [];
+            return src.map((q, i) => ({ label: `No.${i + 1}`, text: q.zhTW || q.zhCN || q.en || '', yes: q.yes, no: q.no }));
+        }
+
+        function qflowIndexByNo(label) {
+            return QFLOW.findIndex(q => q.label === label);
+        }
+
+        function openQFlow() {
+            QFLOW = loadQflowQuestions();
+            qflowCurrent = 0;
+            qflowIssued = '';
+            document.getElementById('qflow-modal').classList.remove('hidden');
+            if (!QFLOW.length) { qflowShowError(); return; }
+            showQFlowQuestion();
+        }
+        function closeQFlow() { document.getElementById('qflow-modal').classList.add('hidden'); }
+        function restartQFlow() { qflowCurrent = 0; qflowIssued = ''; showQFlowQuestion(); }
+
+        function showQFlowQuestion() {
+            document.getElementById('qflow-done').classList.add('hidden');
+            document.getElementById('qflow-error').classList.add('hidden');
+            document.getElementById('qflow-question').classList.remove('hidden');
+            const q = QFLOW[qflowCurrent];
+            document.getElementById('qflow-step-badge').innerText = q.label;
+            document.getElementById('qflow-question-text').innerText = q.text;
+            document.getElementById('qflow-progress').innerText = `目前：${q.label}`;
+        }
+
+        function qflowAnswer(ans) {
+            const q = QFLOW[qflowCurrent];
+            const behavior = ans === 'yes' ? q.yes : q.no;
+            if (behavior && behavior.startsWith('工號')) {
+                qflowFinish(behavior);
+                return;
+            }
+            const idx = qflowIndexByNo(behavior);
+            if (idx < 0) { qflowShowError(); return; }   // 跳轉題目不存在
+            qflowCurrent = idx;
+            showQFlowQuestion();
+        }
+
+        function qflowFinish(behavior) {
+            // 將「工號10XXXXX」的 X 佔位以隨機數字替換，產生實際工號
+            const code = behavior.replace('工號', '')
+                .replace(/X+/g, m => Array.from({ length: m.length }, () => Math.floor(Math.random() * 10)).join(''));
+            qflowIssued = code;
+            document.getElementById('qflow-question').classList.add('hidden');
+            document.getElementById('qflow-error').classList.add('hidden');
+            document.getElementById('qflow-issued').innerText = code;
+            document.getElementById('qflow-done').classList.remove('hidden');
+            document.getElementById('qflow-progress').innerText = '已完成';
+        }
+
+        function qflowShowError() {
+            document.getElementById('qflow-question').classList.add('hidden');
+            document.getElementById('qflow-done').classList.add('hidden');
+            document.getElementById('qflow-error').classList.remove('hidden');
+        }
+
+        // 套用：帶入新增員工表單的工號欄位
+        function applyQFlow() {
+            const input = document.getElementById('add-empno-input');
+            if (input) input.value = qflowIssued;
+            closeQFlow();
         }
 
         /* -----------------------

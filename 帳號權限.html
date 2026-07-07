@@ -62,22 +62,31 @@
                 <!-- 工具列 -->
                 <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
                     <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full sm:w-auto">
+                        <div class="w-full sm:w-[130px]">
+                            <select id="filter-project" onchange="applyAccountFilter()" class="ui-select">
+                                <option value="all" selected>全部項目</option>
+                                <option value="GT">GT</option>
+                            </select>
+                        </div>
+                        <div class="w-full sm:w-[150px]">
+                            <select id="filter-dept" onchange="applyAccountFilter()" class="ui-select">
+                                <option value="all" selected>全部部門</option>
+                                <option value="RD">研發部 (RD)</option>
+                                <option value="HR">人資部 (HR)</option>
+                                <option value="IA1">內稽部 (IA1)</option>
+                                <option value="FIN">財務部 (FIN)</option>
+                                <option value="MKT">行銷部 (MKT)</option>
+                            </select>
+                        </div>
                         <div class="flex items-center gap-2 w-full sm:w-auto">
                             <div class="ui-search w-full sm:w-[280px]">
                                 <i class="fa-solid fa-magnifying-glass"></i>
-                                <input type="text" placeholder="搜尋員工編號、姓名或 Email" class="ui-input ui-search-input">
+                                <input type="text" id="acct-search" oninput="applyAccountFilter()" placeholder="搜尋工號、姓名或 Email" class="ui-input ui-search-input">
                             </div>
-                            <button class="ui-btn ui-btn-primary ui-btn-sm"><i class="fa-solid fa-magnifying-glass"></i> 查詢</button>
-                        </div>
-                        <div class="w-full sm:w-[150px]">
-                            <select class="ui-select">
-                                <option value="all" selected>全部</option>
-                                <option value="active">啟用</option>
-                                <option value="inactive">停用</option>
-                            </select>
+                            <button onclick="applyAccountFilter()" class="ui-btn ui-btn-primary ui-btn-sm"><i class="fa-solid fa-magnifying-glass"></i> 查詢</button>
                         </div>
                     </div>
-                    <button type="button" onclick="location.href='權限設置.html'" class="ui-btn ui-btn-primary w-full sm:w-auto">
+                    <button type="button" onclick="openAccountModal()" class="ui-btn ui-btn-primary w-full sm:w-auto">
                         <i class="fa-solid fa-plus"></i> 新增帳號
                     </button>
                 </div>
@@ -87,47 +96,52 @@
                     <table class="ui-table whitespace-nowrap">
                         <thead>
                             <tr>
-                                <th scope="col" class="w-28">員工編號</th>
-                                <th scope="col">顯示名稱</th>
+                                <th scope="col">項目</th>
+                                <th scope="col">部門</th>
+                                <th scope="col" class="w-28">工號</th>
+                                <th scope="col">姓名</th>
                                 <th scope="col">套用權限</th>
-                                <th scope="col" class="w-24">狀態</th>
+                                <th scope="col">區域</th>
                                 <th scope="col" class="min-w-[150px] text-center">操作</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <tr>
+                        <tbody id="account-tbody">
+                            <tr data-region="T1">
+                                <td><span class="px-2 py-0.5 bg-violet-50 text-violet-600 rounded text-xs font-semibold">GT</span></td>
+                                <td><span class="px-2 py-0.5 bg-gray-100 rounded text-xs font-semibold text-gray-700">HR</span></td>
                                 <td>50030</td>
                                 <td>Ellie Nelson</td>
                                 <td class="acct-perm"></td>
-                                <td><span class="ui-badge ui-badge-success">啟用</span></td>
+                                <td class="acct-region"><span class="px-2 py-0.5 bg-teal-50 text-teal-600 rounded text-xs font-semibold">T1</span></td>
                                 <td>
                                     <div class="flex items-center justify-center gap-2">
-                                        <button onclick="location.href='權限設置.html'" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-pen"></i> 編輯權限</button>
-                                        <button onclick="showToast('info', '已停用帳號 Ellie Nelson')" class="ui-btn ui-btn-sm text-amber-600 border border-amber-200 hover:bg-amber-50"><i class="fa-solid fa-ban"></i> 停用</button>
+                                        <button onclick="openEditPermModal(this)" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-pen"></i> 編輯權限</button>
                                     </div>
                                 </td>
                             </tr>
-                            <tr>
+                            <tr data-region="T2">
+                                <td><span class="px-2 py-0.5 bg-violet-50 text-violet-600 rounded text-xs font-semibold">GT</span></td>
+                                <td><span class="px-2 py-0.5 bg-gray-100 rounded text-xs font-semibold text-gray-700">RD</span></td>
                                 <td>50029</td>
                                 <td>Logan Adams</td>
                                 <td class="acct-perm"></td>
-                                <td><span class="ui-badge ui-badge-success">啟用</span></td>
+                                <td class="acct-region"><span class="px-2 py-0.5 bg-teal-50 text-teal-600 rounded text-xs font-semibold">T2</span></td>
                                 <td>
                                     <div class="flex items-center justify-center gap-2">
-                                        <button onclick="location.href='權限設置.html'" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-pen"></i> 編輯權限</button>
-                                        <button onclick="showToast('info', '已停用帳號 Logan Adams')" class="ui-btn ui-btn-sm text-amber-600 border border-amber-200 hover:bg-amber-50"><i class="fa-solid fa-ban"></i> 停用</button>
+                                        <button onclick="openEditPermModal(this)" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-pen"></i> 編輯權限</button>
                                     </div>
                                 </td>
                             </tr>
-                            <tr>
+                            <tr data-region="U">
+                                <td><span class="px-2 py-0.5 bg-violet-50 text-violet-600 rounded text-xs font-semibold">GT</span></td>
+                                <td><span class="px-2 py-0.5 bg-gray-100 rounded text-xs font-semibold text-gray-700">FIN</span></td>
                                 <td>50028</td>
                                 <td>Poppy Baker</td>
                                 <td class="acct-perm"></td>
-                                <td><span class="ui-badge bg-gray-100 text-gray-500">停用</span></td>
+                                <td class="acct-region"><span class="px-2 py-0.5 bg-teal-50 text-teal-600 rounded text-xs font-semibold">U</span></td>
                                 <td>
                                     <div class="flex items-center justify-center gap-2">
-                                        <button onclick="location.href='權限設置.html'" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-pen"></i> 編輯權限</button>
-                                        <button onclick="showToast('success', '已啟用帳號 Poppy Baker')" class="ui-btn ui-btn-sm text-emerald-600 border border-emerald-200 hover:bg-emerald-50"><i class="fa-solid fa-circle-check"></i> 啟用</button>
+                                        <button onclick="openEditPermModal(this)" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-pen"></i> 編輯權限</button>
                                     </div>
                                 </td>
                             </tr>
@@ -288,6 +302,90 @@
             <div class="flex justify-end gap-2.5 px-6 py-4 bg-gray-50 border-t border-gray-100">
                 <button onclick="closeRoleModal()" class="ui-btn ui-btn-secondary">取消</button>
                 <button onclick="saveRole()" class="ui-btn ui-btn-primary">儲存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ 新增帳號 彈窗（輸入工號、選擇套用權限角色）============ -->
+    <div id="account-modal" class="fixed inset-0 bg-black/40 z-50 flex justify-center items-center hidden p-4">
+        <div class="bg-white rounded-2xl shadow-modal w-full max-w-md overflow-hidden">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                <h3 class="text-base font-bold text-gray-900">新增帳號</h3>
+                <button onclick="closeAccountModal()" class="text-gray-400 hover:text-gray-600 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="px-6 py-5 space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">工號 <span class="text-rose-500">*</span></label>
+                    <div class="flex items-center gap-2">
+                        <input type="text" id="account-empno" placeholder="請輸入工號" class="ui-input flex-1" oninput="clearEmployeeResult()" onkeydown="if(event.key==='Enter'){event.preventDefault();queryEmployee();}">
+                        <button onclick="queryEmployee()" class="ui-btn ui-btn-secondary ui-btn-sm shrink-0"><i class="fa-solid fa-magnifying-glass"></i> 查詢</button>
+                    </div>
+                    <!-- 查詢到的姓名顯示於工號下方 -->
+                    <div id="account-emp-result" class="hidden mt-2 text-sm">
+                        <span class="text-xs text-text-muted">姓名</span>
+                        <span class="font-semibold text-gray-800 ml-1" id="account-emp-name"></span>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">套用權限角色 <span class="text-rose-500">*</span></label>
+                    <select id="account-role" class="ui-select"><!-- 動態帶入權限角色 --></select>
+                    <p class="text-xs text-text-light mt-1.5">帳號將直接套用所選角色的頁面資料權限與可提交申請單。</p>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">負責區域 <span class="text-rose-500">*</span><span class="font-normal text-text-light">（可複選）</span></label>
+                    <div id="account-region" class="ms relative">
+                        <button type="button" onclick="msToggle('account-region')" class="ui-select w-full text-left flex items-center justify-between">
+                            <span class="ms-text text-gray-400">請選擇</span>
+                            <i class="fa-solid fa-chevron-down text-gray-400 text-xs ml-2 shrink-0"></i>
+                        </button>
+                        <div class="ms-panel hidden mt-1.5 border border-gray-200 rounded-lg p-1.5 grid grid-cols-3 gap-1 bg-white"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="flex justify-end gap-2.5 px-6 py-4 bg-gray-50 border-t border-gray-100">
+                <button onclick="closeAccountModal()" class="ui-btn ui-btn-secondary">取消</button>
+                <button onclick="saveAccount()" class="ui-btn ui-btn-primary"><i class="fa-solid fa-check"></i> 確認新增</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ 編輯權限 彈窗（變更帳號套用的權限角色）============ -->
+    <div id="editperm-modal" class="fixed inset-0 bg-black/40 z-50 flex justify-center items-center hidden p-4">
+        <div class="bg-white rounded-2xl shadow-modal w-full max-w-md overflow-hidden">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                <h3 class="text-base font-bold text-gray-900">編輯權限</h3>
+                <button onclick="closeEditPermModal()" class="text-gray-400 hover:text-gray-600 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="px-6 py-5 space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">工號</label>
+                    <div id="editperm-empno" class="ui-input bg-gray-50 text-gray-500 flex items-center"></div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">套用權限角色 <span class="text-rose-500">*</span></label>
+                    <select id="editperm-role" class="ui-select"><!-- 動態帶入權限角色 --></select>
+                    <p class="text-xs text-text-light mt-1.5">變更後帳號將改為套用所選角色的頁面資料權限與可提交申請單。</p>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">負責區域 <span class="text-rose-500">*</span><span class="font-normal text-text-light">（可複選）</span></label>
+                    <div id="editperm-region" class="ms relative">
+                        <button type="button" onclick="msToggle('editperm-region')" class="ui-select w-full text-left flex items-center justify-between">
+                            <span class="ms-text text-gray-400">請選擇</span>
+                            <i class="fa-solid fa-chevron-down text-gray-400 text-xs ml-2 shrink-0"></i>
+                        </button>
+                        <div class="ms-panel hidden mt-1.5 border border-gray-200 rounded-lg p-1.5 grid grid-cols-3 gap-1 bg-white"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="flex justify-end gap-2.5 px-6 py-4 bg-gray-50 border-t border-gray-100">
+                <button onclick="closeEditPermModal()" class="ui-btn ui-btn-secondary">取消</button>
+                <button onclick="saveEditPerm()" class="ui-btn ui-btn-primary"><i class="fa-solid fa-check"></i> 儲存變更</button>
             </div>
         </div>
     </div>
@@ -596,6 +694,206 @@
             renderRoleList();
             renderRightPanel();
         }
+
+        /* ============ 帳號清單篩選（項目 / 部門 / 關鍵字）============ */
+        function applyAccountFilter() {
+            const kw = document.getElementById('acct-search').value.trim().toLowerCase();
+            const projVal = document.getElementById('filter-project').value;
+            const deptVal = document.getElementById('filter-dept').value;
+            const tbody = document.getElementById('account-tbody');
+            let shown = 0;
+
+            Array.from(tbody.querySelectorAll('tr')).forEach(tr => {
+                if (tr.dataset.empty) return; // 略過「查無資料」提示列
+                const project = tr.children[0].innerText.trim();
+                const dept = tr.children[1].innerText.trim();
+                const empno = tr.children[2].innerText.trim().toLowerCase();
+                const name = tr.children[3].innerText.trim().toLowerCase();
+                const match =
+                    (!kw || empno.includes(kw) || name.includes(kw)) &&
+                    (projVal === 'all' || project === projVal) &&
+                    (deptVal === 'all' || dept === deptVal);
+                tr.classList.toggle('hidden', !match);
+                if (match) shown++;
+            });
+
+            // 查無資料提示
+            let emptyRow = tbody.querySelector('tr[data-empty]');
+            if (shown === 0) {
+                if (!emptyRow) {
+                    emptyRow = document.createElement('tr');
+                    emptyRow.dataset.empty = '1';
+                    emptyRow.innerHTML = '<td colspan="7" class="text-center text-sm text-text-muted py-10">查無符合條件的帳號</td>';
+                    tbody.appendChild(emptyRow);
+                }
+                emptyRow.classList.remove('hidden');
+            } else if (emptyRow) {
+                emptyRow.classList.add('hidden');
+            }
+        }
+
+        /* ============ 新增帳號 彈窗（工號查詢 + 套用權限角色）============ */
+        // 員工主檔（示意）：以工號帶出姓名、項目、部門，實際串接後端後改為查詢 API
+        const EMPLOYEE_DIRECTORY = {
+            '100001': { name: 'Tony',          project: 'GT', dept: 'RD' },
+            '50027': { name: 'Oscar Wright',  project: 'GT', dept: 'RD' },
+            '50026': { name: 'Grace Hall',    project: 'GT', dept: 'MKT' },
+            '50025': { name: 'Leo Turner',    project: 'GT', dept: 'IA1' },
+            '50024': { name: 'Mia Scott',     project: 'GT', dept: 'HR' },
+            '50023': { name: 'Jack Morris',   project: 'GT', dept: 'FIN' },
+            '50022': { name: 'Ava Bennett',   project: 'GT', dept: 'RD' }
+        };
+
+        let queriedEmployee = null;   // 查詢到的員工資料（含 empno / name / project / dept）
+
+        /* ============ 負責區域：多選下拉 ============ */
+        const REGION_VALUES = ['T1', 'T2', 'U', 'J', 'S', 'T1-T2'];
+        // 初始化多選下拉（渲染選項、設定已選、收合面板）
+        function msInit(id, selected) {
+            const sel = new Set(selected || []);
+            const panel = document.querySelector(`#${id} .ms-panel`);
+            panel.innerHTML = REGION_VALUES.map(v => `
+                <label class="flex items-center gap-1.5 px-2 py-1.5 rounded hover:bg-gray-50 cursor-pointer">
+                    <input type="checkbox" class="perm-check" value="${v}" ${sel.has(v) ? 'checked' : ''} onchange="msSync('${id}')">
+                    <span class="text-sm text-gray-700">${v}</span>
+                </label>`).join('');
+            panel.classList.add('hidden');
+            msSync(id);
+        }
+        function msToggle(id) { document.querySelector(`#${id} .ms-panel`).classList.toggle('hidden'); }
+        function msGet(id) { return Array.from(document.querySelectorAll(`#${id} .ms-panel input:checked`)).map(c => c.value); }
+        // 更新顯示文字
+        function msSync(id) {
+            const vals = msGet(id);
+            const txt = document.querySelector(`#${id} .ms-text`);
+            if (vals.length) { txt.textContent = vals.join('、'); txt.classList.remove('text-gray-400'); txt.classList.add('text-gray-800'); }
+            else { txt.textContent = '請選擇'; txt.classList.add('text-gray-400'); txt.classList.remove('text-gray-800'); }
+        }
+        // 區域徽章（列表用）
+        function regionCell(regions) {
+            return `<div class="flex flex-wrap gap-1 justify-center">`
+                + regions.map(r => `<span class="px-2 py-0.5 bg-teal-50 text-teal-600 rounded text-xs font-semibold">${r}</span>`).join('')
+                + `</div>`;
+        }
+        // 點擊多選下拉以外處自動收合面板
+        document.addEventListener('click', e => {
+            if (!e.target.closest('.ms')) document.querySelectorAll('.ms-panel').forEach(p => p.classList.add('hidden'));
+        });
+
+        function openAccountModal() {
+            // 以現有權限角色填入下拉選單
+            const sel = document.getElementById('account-role');
+            sel.innerHTML = roles.map((r, i) =>
+                `<option value="${i}"${r.active ? '' : ' disabled'}>${r.name}${r.active ? '' : '（停用）'}</option>`
+            ).join('');
+            document.getElementById('account-empno').value = '';
+            msInit('account-region', []);
+            clearEmployeeResult();
+            document.getElementById('account-modal').classList.remove('hidden');
+            setTimeout(() => document.getElementById('account-empno').focus(), 50);
+        }
+
+        function closeAccountModal() { document.getElementById('account-modal').classList.add('hidden'); }
+
+        // 隱藏查詢結果並清除已查詢的員工（工號一經修改即需重新查詢）
+        function clearEmployeeResult() {
+            queriedEmployee = null;
+            document.getElementById('account-emp-result').classList.add('hidden');
+        }
+
+        // 依工號查詢員工姓名、項目、部門
+        function queryEmployee() {
+            const empno = document.getElementById('account-empno').value.trim();
+            if (!empno) { showToast('error', '請輸入工號'); return; }
+
+            // 已存在於帳號清單則提醒（工號為第 3 欄）
+            const tbody = document.getElementById('account-tbody');
+            const exists = Array.from(tbody.querySelectorAll('tr'))
+                .some(tr => tr.children[2] && tr.children[2].innerText.trim() === empno);
+            if (exists) { clearEmployeeResult(); showToast('error', `工號「${empno}」已存在於帳號清單`); return; }
+
+            const emp = EMPLOYEE_DIRECTORY[empno];
+            if (!emp) { clearEmployeeResult(); showToast('error', `查無工號「${empno}」`); return; }
+
+            queriedEmployee = { empno, ...emp };
+            document.getElementById('account-emp-name').innerText = emp.name;
+            document.getElementById('account-emp-result').classList.remove('hidden');
+        }
+
+        function saveAccount() {
+            if (!queriedEmployee) { showToast('error', '請先輸入工號並查詢員工'); return; }
+            const roleIdx = parseInt(document.getElementById('account-role').value, 10);
+            if (isNaN(roleIdx) || !roles[roleIdx]) { showToast('error', '請選擇要套用的權限角色'); return; }
+            const regions = msGet('account-region');
+            if (!regions.length) { showToast('error', '請至少選擇一個負責區域'); return; }
+
+            const { empno, name, project, dept } = queriedEmployee;
+            const roleName = roles[roleIdx].name;
+            // 新增一列至帳號清單（項目/部門/姓名由工號帶出，套用所選權限角色；負責區域存於該列資料屬性）
+            const tbody = document.getElementById('account-tbody');
+            const tr = document.createElement('tr');
+            tr.dataset.region = regions.join(',');
+            tr.innerHTML = `
+                <td><span class="px-2 py-0.5 bg-violet-50 text-violet-600 rounded text-xs font-semibold">${project}</span></td>
+                <td><span class="px-2 py-0.5 bg-gray-100 rounded text-xs font-semibold text-gray-700">${dept}</span></td>
+                <td>${empno}</td>
+                <td>${name}</td>
+                <td class="acct-perm"><span class="ui-badge ui-badge-info">${roleName}</span></td>
+                <td class="acct-region">${regionCell(regions)}</td>
+                <td>
+                    <div class="flex items-center justify-center gap-2">
+                        <button onclick="openEditPermModal(this)" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-pen"></i> 編輯權限</button>
+                    </div>
+                </td>`;
+            tbody.insertBefore(tr, tbody.firstElementChild);
+            applyAccountFilter();
+            closeAccountModal();
+            showToast('success', `已新增帳號「${name}（${empno}）」，套用權限角色「${roleName}」，負責區域：${regions.join('、')}`);
+        }
+
+        // 點背景關閉新增帳號彈窗
+        document.getElementById('account-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeAccountModal(); });
+
+        /* ============ 編輯權限 彈窗（變更帳號套用的權限角色）============ */
+        let editPermRow = null;    // 目前正在編輯權限的帳號列
+
+        function openEditPermModal(btn) {
+            editPermRow = btn.closest('tr');
+            const empno = editPermRow.children[2].innerText.trim();
+            const currentRole = (editPermRow.querySelector('.acct-perm') || {}).innerText;
+            const current = currentRole ? currentRole.trim() : '';
+
+            const sel = document.getElementById('editperm-role');
+            sel.innerHTML = roles.map((r, i) =>
+                `<option value="${i}"${r.active ? '' : ' disabled'}${r.name === current ? ' selected' : ''}>${r.name}${r.active ? '' : '（停用）'}</option>`
+            ).join('');
+            document.getElementById('editperm-empno').innerText = empno;
+            // 帶入該帳號目前的負責區域（可複選）
+            msInit('editperm-region', (editPermRow.dataset.region || '').split(',').filter(Boolean));
+            document.getElementById('editperm-modal').classList.remove('hidden');
+        }
+
+        function closeEditPermModal() { editPermRow = null; document.getElementById('editperm-modal').classList.add('hidden'); }
+
+        function saveEditPerm() {
+            if (!editPermRow) return;
+            const roleIdx = parseInt(document.getElementById('editperm-role').value, 10);
+            if (isNaN(roleIdx) || !roles[roleIdx]) { showToast('error', '請選擇要套用的權限角色'); return; }
+            const regions = msGet('editperm-region');
+            if (!regions.length) { showToast('error', '請至少選擇一個負責區域'); return; }
+            const empno = editPermRow.children[2].innerText.trim();
+            const roleName = roles[roleIdx].name;
+            const cell = editPermRow.querySelector('.acct-perm');
+            if (cell) cell.innerHTML = `<span class="ui-badge ui-badge-info">${roleName}</span>`;
+            const regionCellEl = editPermRow.querySelector('.acct-region');
+            if (regionCellEl) regionCellEl.innerHTML = regionCell(regions);
+            editPermRow.dataset.region = regions.join(',');
+            closeEditPermModal();
+            showToast('success', `已更新帳號「${empno}」：權限角色「${roleName}」，負責區域：${regions.join('、')}`);
+        }
+
+        // 點背景關閉編輯權限彈窗
+        document.getElementById('editperm-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeEditPermModal(); });
 
         /* ============ Toast 提示控制 ============ */
         function showToast(type, text) {

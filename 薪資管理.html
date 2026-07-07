@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>薪資管理</title>
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 Font Awesome 用於圖標 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4A90E2',
+                        'primary-light': '#EAF2FC',
+                        background: '#F8F9FB',
+                        card: '#FFFFFF',
+                        text: {
+                            main: '#1F2937',
+                            muted: '#6B7280',
+                            light: '#9CA3AF'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['"Inter"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'card': '0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03)',
+                        'modal': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: theme('colors.background');
+            font-family: theme('fontFamily.sans');
+        }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .dropzone.is-dragover { border-color: #4A90E2; background-color: #EAF2FC; }
+    </style>
+    <link rel="stylesheet" href="shared-ui.css">
+</head>
+<body class="ui-page text-text-main antialiased relative">
+
+    <div class="relative mx-auto w-full space-y-6">
+
+        <!-- 頁面標題區塊 -->
+        <header class="ui-page-header">
+            <h1 class="ui-page-title">薪資管理</h1>
+        </header>
+
+        <!-- 格式提醒 -->
+        <div class="ui-card p-4 flex items-start gap-3 border-l-4 border-amber-400 bg-amber-50/40">
+            <i class="fa-solid fa-triangle-exclamation text-amber-500 text-lg mt-0.5 shrink-0"></i>
+            <div>
+                <div class="text-sm font-bold text-amber-700">各地区数据格式不同，请仔细确认。</div>
+                <div class="text-xs text-text-muted mt-1">月份、地區、幣別等欄位將直接讀取自上傳的檔案內容，上傳前請確認欄位對應與所屬地區的薪資範本一致。</div>
+            </div>
+        </div>
+
+        <!-- 上傳薪資資料 -->
+        <section class="ui-card p-4 sm:p-6 space-y-5">
+            <div class="flex items-center gap-2">
+                <h2 class="text-lg font-bold text-gray-900">上傳薪資資料</h2>
+                <span class="bg-blue-50 text-primary text-xs px-2.5 py-1 rounded-md font-bold">僅限 .xlsx</span>
+            </div>
+
+            <!-- 拖放上傳區 -->
+            <div id="dropzone" class="dropzone border-2 border-dashed border-gray-300 rounded-xl px-6 py-5 text-center transition-colors cursor-pointer hover:border-primary hover:bg-primary-light/40"
+                 onclick="document.getElementById('file-input').click()">
+                <div class="flex items-center justify-center gap-3">
+                    <div class="inline-flex p-2.5 bg-blue-50 text-primary rounded-full shrink-0"><i class="fa-solid fa-file-arrow-up text-lg"></i></div>
+                    <div class="text-left">
+                        <p class="text-sm font-semibold text-gray-700">點擊選擇檔案，或將檔案拖曳至此</p>
+                        <p class="text-xs text-text-muted mt-0.5">僅接受 Excel 檔案（.xlsx）</p>
+                    </div>
+                </div>
+                <input type="file" id="file-input" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" class="hidden" onchange="handleFileSelect(event)">
+            </div>
+
+            <!-- 已選檔案 -->
+            <div id="file-preview" class="hidden items-center justify-between gap-3 p-3.5 rounded-lg border border-gray-200 bg-gray-50/60">
+                <div class="flex items-center gap-3 min-w-0">
+                    <div class="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0"><i class="fa-solid fa-file-excel text-lg"></i></div>
+                    <div class="min-w-0">
+                        <div id="file-name" class="text-sm font-semibold text-gray-800 truncate"></div>
+                        <div id="file-size" class="text-xs text-text-muted"></div>
+                    </div>
+                </div>
+                <button onclick="clearFile()" class="text-gray-400 hover:text-rose-500 transition-colors shrink-0 px-2 py-1"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div class="flex flex-wrap items-center justify-end gap-2 pt-1">
+                <a href="#" onclick="downloadTemplate(event)" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-download"></i> 下載範本</a>
+                <button id="upload-btn" onclick="submitUpload()" class="ui-btn ui-btn-primary ui-btn-sm" disabled><i class="fa-solid fa-cloud-arrow-up"></i> 上傳</button>
+            </div>
+
+            <!-- 上傳結果狀態（維持在畫面可見，直到下次上傳） -->
+            <div id="upload-status" class="hidden items-start gap-3 p-3.5 rounded-lg border">
+                <i id="status-icon" class="text-lg mt-0.5 shrink-0"></i>
+                <div class="min-w-0">
+                    <div id="status-title" class="text-sm font-bold"></div>
+                    <div id="status-detail" class="text-xs mt-0.5 break-words"></div>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- 提示消息 (Toast) -->
+    <div id="toast" class="fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+        <i id="toast-icon" class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
+        <span id="toast-text" class="text-sm font-medium">操作成功！</span>
+    </div>
+
+    <script>
+        let selectedFile = null;
+
+        function fmtSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / 1024 / 1024).toFixed(2) + ' MB';
+        }
+
+        /* ============ 檔案上傳 ============ */
+        const MAX_SIZE = 10 * 1024 * 1024; // 10 MB
+
+        // 僅接受副檔名為 .xlsx 的檔案
+        function isXlsx(file) {
+            return /\.xlsx$/i.test(file.name);
+        }
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) validateAndSet(file);
+            event.target.value = ''; // 允許重複選同一檔
+        }
+
+        function validateAndSet(file) {
+            if (!isXlsx(file)) {
+                showToast('error', '僅能上傳 .xlsx 檔案，請重新選擇。');
+                return;
+            }
+            if (file.size > MAX_SIZE) {
+                showToast('error', '檔案超過 10 MB 上限，請重新選擇。');
+                return;
+            }
+            selectedFile = file;
+            document.getElementById('file-name').innerText = file.name;
+            document.getElementById('file-size').innerText = fmtSize(file.size);
+            const preview = document.getElementById('file-preview');
+            preview.classList.remove('hidden');
+            preview.classList.add('flex');
+            document.getElementById('upload-btn').disabled = false;
+        }
+
+        function clearFile() {
+            selectedFile = null;
+            const preview = document.getElementById('file-preview');
+            preview.classList.add('hidden');
+            preview.classList.remove('flex');
+            document.getElementById('upload-btn').disabled = true;
+        }
+
+        function submitUpload() {
+            if (!selectedFile) { showToast('error', '請先選擇要上傳的 .xlsx 檔案。'); return; }
+            const name = selectedFile.name;
+            // 示意：月份、地區、幣別等欄位由後端解析檔案內容取得，實際串接後端後改為 API 上傳
+            // 上傳結果（成功/失敗）會固定顯示在畫面上，直到下一次上傳
+            showStatus('success', '上傳成功', `檔案「${name}」已上傳，系統已解析檔案內容並匯入薪資資料。`);
+            clearFile();
+        }
+
+        // 上傳結果狀態列（持續顯示於畫面）
+        function showStatus(type, title, detail) {
+            const box = document.getElementById('upload-status');
+            const icon = document.getElementById('status-icon');
+            const titleEl = document.getElementById('status-title');
+            const detailEl = document.getElementById('status-detail');
+            const isOk = type === 'success';
+            box.className = 'flex items-start gap-3 p-3.5 rounded-lg border ' +
+                (isOk ? 'border-emerald-200 bg-emerald-50/60' : 'border-rose-200 bg-rose-50/60');
+            icon.className = (isOk ? 'fa-solid fa-circle-check text-emerald-500' : 'fa-solid fa-circle-xmark text-rose-500') + ' text-lg mt-0.5 shrink-0';
+            titleEl.className = 'text-sm font-bold ' + (isOk ? 'text-emerald-700' : 'text-rose-700');
+            detailEl.className = 'text-xs mt-0.5 break-words ' + (isOk ? 'text-emerald-600' : 'text-rose-600');
+            titleEl.innerText = title;
+            detailEl.innerText = detail;
+            box.classList.remove('hidden');
+        }
+
+        function downloadTemplate(e) {
+            e.preventDefault();
+            showToast('info', '已開始下載薪資範本，請依範本格式填寫。');
+        }
+
+        /* ============ 拖放上傳 ============ */
+        const dropzone = document.getElementById('dropzone');
+        ['dragenter', 'dragover'].forEach(evt =>
+            dropzone.addEventListener(evt, e => { e.preventDefault(); dropzone.classList.add('is-dragover'); }));
+        ['dragleave', 'drop'].forEach(evt =>
+            dropzone.addEventListener(evt, e => { e.preventDefault(); dropzone.classList.remove('is-dragover'); }));
+        dropzone.addEventListener('drop', e => {
+            const file = e.dataTransfer.files[0];
+            if (file) validateAndSet(file);
+        });
+
+        /* ============ Toast 提示控制 ============ */
+        function showToast(type, text) {
+            const toast = document.getElementById('toast');
+            const toastIcon = document.getElementById('toast-icon');
+            const toastText = document.getElementById('toast-text');
+            toastText.innerText = text;
+
+            if (type === 'success') {
+                toast.className = "fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform transition-all duration-300 border border-emerald-500/20";
+                toastIcon.className = "fa-solid fa-circle-check text-emerald-400 text-base";
+            } else if (type === 'error') {
+                toast.className = "fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform transition-all duration-300 border border-rose-500/20";
+                toastIcon.className = "fa-solid fa-circle-xmark text-rose-400 text-base";
+            } else {
+                toast.className = "fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform transition-all duration-300 border border-blue-500/20";
+                toastIcon.className = "fa-solid fa-circle-info text-blue-400 text-base";
+            }
+
+            toast.style.transform = 'translateY(0)';
+            toast.style.opacity = '1';
+            clearTimeout(window.__toastTimer);
+            window.__toastTimer = setTimeout(() => {
+                toast.style.transform = 'translateY(5rem)';
+                toast.style.opacity = '0';
+            }, 2600);
+        }
+    </script>
+</body>
+</html>

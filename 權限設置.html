@@ -69,16 +69,9 @@
                             </div>
                             <button class="ui-btn ui-btn-primary ui-btn-sm"><i class="fa-solid fa-magnifying-glass"></i> 查詢</button>
                         </div>
-                        <div class="w-full sm:w-[150px]">
-                            <select class="ui-select">
-                                <option value="all" selected>全部</option>
-                                <option value="active">啟用</option>
-                                <option value="inactive">停用</option>
-                            </select>
-                        </div>
                     </div>
                     <button type="button" onclick="showToast('info', '請於「權限設置」分頁建立並指派權限')" class="ui-btn ui-btn-primary w-full sm:w-auto">
-                        <i class="fa-solid fa-plus"></i> 新增帳號
+                        <i class="fa-solid fa-plus"></i> 新增帳號角色
                     </button>
                 </div>
 
@@ -90,7 +83,6 @@
                                 <th scope="col" class="w-28">員工編號</th>
                                 <th scope="col">顯示名稱</th>
                                 <th scope="col">套用權限</th>
-                                <th scope="col" class="w-24">狀態</th>
                                 <th scope="col" class="min-w-[150px] text-center">操作</th>
                             </tr>
                         </thead>
@@ -99,11 +91,9 @@
                                 <td>50030</td>
                                 <td>Ellie Nelson</td>
                                 <td class="acct-perm"></td>
-                                <td><span class="ui-badge ui-badge-success">啟用</span></td>
                                 <td>
                                     <div class="flex items-center justify-center gap-2">
                                         <button onclick="switchMainTab('perm')" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-pen"></i> 編輯權限</button>
-                                        <button onclick="showToast('info', '已停用帳號 Ellie Nelson')" class="ui-btn ui-btn-sm text-amber-600 border border-amber-200 hover:bg-amber-50"><i class="fa-solid fa-ban"></i> 停用</button>
                                     </div>
                                 </td>
                             </tr>
@@ -111,11 +101,9 @@
                                 <td>50029</td>
                                 <td>Logan Adams</td>
                                 <td class="acct-perm"></td>
-                                <td><span class="ui-badge ui-badge-success">啟用</span></td>
                                 <td>
                                     <div class="flex items-center justify-center gap-2">
                                         <button onclick="switchMainTab('perm')" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-pen"></i> 編輯權限</button>
-                                        <button onclick="showToast('info', '已停用帳號 Logan Adams')" class="ui-btn ui-btn-sm text-amber-600 border border-amber-200 hover:bg-amber-50"><i class="fa-solid fa-ban"></i> 停用</button>
                                     </div>
                                 </td>
                             </tr>
@@ -123,11 +111,9 @@
                                 <td>50028</td>
                                 <td>Poppy Baker</td>
                                 <td class="acct-perm"></td>
-                                <td><span class="ui-badge bg-gray-100 text-gray-500">停用</span></td>
                                 <td>
                                     <div class="flex items-center justify-center gap-2">
                                         <button onclick="switchMainTab('perm')" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-pen"></i> 編輯權限</button>
-                                        <button onclick="showToast('success', '已啟用帳號 Poppy Baker')" class="ui-btn ui-btn-sm text-emerald-600 border border-emerald-200 hover:bg-emerald-50"><i class="fa-solid fa-circle-check"></i> 啟用</button>
                                     </div>
                                 </td>
                             </tr>
@@ -151,13 +137,13 @@
 
         <!-- ============ 分頁 2：權限設置（帳號 ↔ 權限 編輯）============ -->
         <div id="main-tab-perm">
-        <!-- 主版面：左帳號選單 + 右權限編輯 -->
+        <!-- 主版面：左帳號角色選單 + 右權限編輯 -->
         <div class="ui-card overflow-hidden flex flex-col lg:flex-row min-h-[680px]">
 
-            <!-- 左側：帳號選單 -->
+            <!-- 左側：帳號角色選單 -->
             <aside class="lg:w-80 shrink-0 border-b lg:border-b-0 lg:border-r border-gray-100 flex flex-col">
                 <div class="p-4 border-b border-gray-100 flex items-center justify-between gap-2">
-                    <h2 class="font-bold text-gray-900">帳號</h2>
+                    <h2 class="font-bold text-gray-900">帳號角色</h2>
                     <button onclick="openRoleCreate()" class="ui-btn ui-btn-primary ui-btn-sm">
                         <i class="fa-solid fa-plus"></i> 新增
                     </button>
@@ -166,7 +152,7 @@
                     <div class="flex items-center gap-2">
                         <div class="ui-search flex-1">
                             <i class="fa-solid fa-magnifying-glass"></i>
-                            <input type="text" id="search-input" oninput="renderRoleList()" placeholder="搜尋帳號..." class="ui-input ui-search-input">
+                            <input type="text" id="search-input" oninput="renderRoleList()" placeholder="搜尋帳號角色..." class="ui-input ui-search-input">
                         </div>
                         <button onclick="renderRoleList()" class="ui-btn ui-btn-primary ui-btn-sm"><i class="fa-solid fa-magnifying-glass"></i> 查詢</button>
                     </div>
@@ -180,23 +166,22 @@
                 <!-- 未選取帳號時的空狀態 -->
                 <div id="perm-empty" class="flex-1 flex flex-col items-center justify-center text-center p-10 gap-3">
                     <div class="inline-flex p-4 bg-gray-50 text-gray-400 rounded-full"><i class="fa-solid fa-user-shield text-3xl"></i></div>
-                    <p class="text-sm text-text-muted font-medium">請從左側選擇帳號以設定權限</p>
+                    <p class="text-sm text-text-muted font-medium">請從左側選擇帳號角色以設定權限</p>
                 </div>
 
                 <!-- 帳號權限面板 -->
                 <div id="perm-panel" class="hidden flex-1 flex flex-col min-h-0">
-                    <!-- 帳號資訊與操作 -->
+                    <!-- 帳號角色資訊與操作 -->
                     <div class="p-5 border-b border-gray-100 flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                         <div class="min-w-0">
                             <div class="flex items-center gap-2 flex-wrap">
                                 <h3 id="rp-name" class="text-lg font-bold text-gray-900"></h3>
-                                <span id="rp-status"></span>
                             </div>
                             <p class="text-xs text-text-light mt-1"><span id="rp-members"></span> 位成員 · 已授權 <span id="rp-granted" class="font-semibold text-primary"></span> 項</p>
                         </div>
                         <div class="flex items-center gap-2 shrink-0">
+                            <button onclick="openMembersModal()" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-users"></i> 檢視成員</button>
                             <button onclick="openRoleEditCurrent()" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-pen-to-square"></i> 編輯</button>
-                            <button id="rp-toggle-btn" onclick="toggleStatusCurrent()" class="ui-btn ui-btn-sm"></button>
                             <button onclick="deleteCurrent()" class="ui-btn ui-btn-sm text-rose-600 border border-rose-200 hover:bg-rose-50"><i class="fa-solid fa-trash-can"></i> 刪除</button>
                         </div>
                     </div>
@@ -217,15 +202,14 @@
                                     <button onclick="setAllPerms(false)" class="text-xs text-gray-500 font-semibold hover:underline">清除</button>
                                 </div>
                             </div>
-                            <div class="overflow-x-auto rounded-lg border border-gray-100">
+                            <div class="overflow-auto rounded-lg border border-gray-100 max-h-[520px] custom-scrollbar">
                                 <table class="ui-table text-center">
                                     <thead>
                                         <tr>
-                                            <th scope="col" class="text-left">頁面 / 功能</th>
-                                            <th scope="col">檢視</th>
-                                            <th scope="col">檢視下屬資料</th>
-                                            <th scope="col">編輯</th>
-                                            <th scope="col">使用功能</th>
+                                            <th scope="col" class="text-left w-56 sticky top-0 z-20 bg-gray-100">功能</th>
+                                            <th scope="col" class="w-20 sticky top-0 z-20 bg-gray-100">檢視</th>
+                                            <th scope="col" class="w-20 sticky top-0 z-20 bg-gray-100">編輯</th>
+                                            <th scope="col" class="text-left sticky top-0 z-20 bg-gray-100">特殊操作</th>
                                         </tr>
                                     </thead>
                                     <tbody id="data-perm-tbody"><!-- 動態渲染 --></tbody>
@@ -267,27 +251,70 @@
     <div id="role-modal" class="fixed inset-0 bg-black/40 z-50 flex justify-center items-center hidden p-4">
         <div class="bg-white rounded-2xl shadow-modal w-full max-w-md overflow-hidden">
             <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-                <h3 id="role-modal-title" class="text-base font-bold text-gray-900">新增帳號</h3>
+                <h3 id="role-modal-title" class="text-base font-bold text-gray-900">新增帳號角色</h3>
                 <button onclick="closeRoleModal()" class="text-gray-400 hover:text-gray-600 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
             <div class="px-6 py-5 space-y-4">
                 <div>
-                    <label class="block text-xs font-semibold text-text-muted mb-1.5">帳號名稱 <span class="text-rose-500">*</span></label>
-                    <input type="text" id="role-name" placeholder="請輸入帳號名稱" class="ui-input">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-text-muted mb-1.5">狀態</label>
-                    <select id="role-status" class="ui-select">
-                        <option value="true">啟用</option>
-                        <option value="false">停用</option>
-                    </select>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">帳號角色名稱 <span class="text-rose-500">*</span></label>
+                    <input type="text" id="role-name" placeholder="請輸入帳號角色名稱" class="ui-input">
                 </div>
             </div>
             <div class="flex justify-end gap-2.5 px-6 py-4 bg-gray-50 border-t border-gray-100">
                 <button onclick="closeRoleModal()" class="ui-btn ui-btn-secondary">取消</button>
                 <button onclick="saveRole()" class="ui-btn ui-btn-primary">儲存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ 檢視成員 彈窗（綁定此帳號角色的員工名單）============ -->
+    <div id="members-modal" class="fixed inset-0 bg-black/40 z-50 flex justify-center items-center hidden p-4">
+        <div class="bg-white rounded-2xl shadow-modal w-full max-w-lg overflow-hidden flex flex-col max-h-[80vh]">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                <div class="flex items-center gap-2 min-w-0">
+                    <h3 class="text-base font-bold text-gray-900 shrink-0">綁定此帳號角色的員工</h3>
+                    <span id="members-role-name" class="px-2 py-0.5 bg-blue-50 text-primary rounded text-xs font-semibold truncate"></span>
+                    <span id="members-count" class="text-xs text-text-muted shrink-0"></span>
+                </div>
+                <button onclick="closeMembersModal()" class="text-gray-400 hover:text-gray-600 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors shrink-0">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="px-6 pt-5">
+                <div class="ui-search w-full">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="members-search" oninput="renderMembers(1)" placeholder="搜尋工號..." class="ui-input ui-search-input">
+                </div>
+            </div>
+            <div class="px-6 py-5 overflow-auto custom-scrollbar flex-1">
+                <div class="overflow-x-auto rounded-lg border border-gray-100">
+                    <table class="ui-table whitespace-nowrap">
+                        <thead>
+                            <tr>
+                                <th scope="col">部門</th>
+                                <th scope="col" class="text-left w-28">工號</th>
+                                <th scope="col" class="text-left">姓名</th>
+                                <th scope="col">區域</th>
+                            </tr>
+                        </thead>
+                        <tbody id="members-tbody"><!-- 動態渲染 --></tbody>
+                    </table>
+                </div>
+                <div id="members-empty" class="hidden py-12 text-center space-y-3">
+                    <div class="inline-flex p-4 bg-gray-50 text-gray-400 rounded-full"><i class="fa-solid fa-users-slash text-2xl"></i></div>
+                    <p id="members-empty-text" class="text-sm text-text-muted font-medium">目前沒有員工綁定此帳號角色</p>
+                </div>
+            </div>
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-3 px-6 py-4 bg-gray-50 border-t border-gray-100">
+                <span id="members-pg-info" class="text-xs text-gray-500">共 0 筆</span>
+                <div class="flex items-center gap-1.5">
+                    <button id="members-prev" type="button" onclick="membersPrev()" class="ui-page-btn">上一頁</button>
+                    <span id="members-pg-label" class="text-xs text-gray-600 font-medium px-2">第 1 / 1 頁</span>
+                    <button id="members-next" type="button" onclick="membersNext()" class="ui-page-btn">下一頁</button>
+                    <button onclick="closeMembersModal()" class="ui-btn ui-btn-secondary ui-btn-sm ml-2">關閉</button>
+                </div>
             </div>
         </div>
     </div>
@@ -300,54 +327,53 @@
 
     <script>
         /* ===== 權限定義 ===== */
-        // 頁面與資料權限：四個權限軸（檢視 / 檢視下屬資料 / 編輯 / 使用功能），涵蓋全系統頁面
-        const DATA_ACTIONS = ['檢視', '檢視下屬', '編輯', '使用功能'];
+        // 頁面資料權限軸：標準動作（檢視/編輯），另每頁可帶「特殊操作」(ops)；非單純檢視/編輯的權限置於 ops
+        const DATA_ACTIONS = ['檢視', '編輯'];
+        // 頁面清單依 index.html 選單；ops 為該頁的特殊操作（category_list 中非單純檢視/編輯的權限併入此欄）
         const DATA_PAGES = [
-            // 個人
-            { key: 'pg01', name: '首頁', group: '個人' },
-            { key: 'pg02', name: '打卡', group: '個人' },
-            { key: 'pg03', name: '出勤紀錄', group: '個人' },
-            { key: 'pg04', name: '補卡申請', group: '個人' },
-            { key: 'pg05', name: '假期申請', group: '個人' },
-            { key: 'pg06', name: '加班申請', group: '個人' },
-            { key: 'pg07', name: '個人資訊', group: '個人' },
-            { key: 'pg08', name: '文件庫', group: '個人' },
             // 電子表單
-            { key: 'pg09', name: '我的申請', group: '電子表單' },
-            { key: 'pg10', name: '臨時保存', group: '電子表單' },
-            { key: 'pg11', name: '模板保存', group: '電子表單' },
-            { key: 'pg12', name: '申請', group: '電子表單' },
+            { key: 'pg_myapply',  name: '我的申請', group: '電子表單', ops: ['撤回', '匯出'] },
+            { key: 'pg_tempsave', name: '臨時保存', group: '電子表單', ops: ['刪除'] },
+            { key: 'pg_tplsave',  name: '模板保存', group: '電子表單', ops: ['刪除'] },
+            { key: 'pg_apply',    name: '申請',     group: '電子表單', ops: ['人事異動', '到職核准書', '招募申請書', '薪資職級變更', '離職交接書', '帳號核准書'] },
             // 簽核中心
-            { key: 'pg13', name: '請假簽核', group: '簽核中心' },
-            { key: 'pg14', name: '補卡簽核', group: '簽核中心' },
-            { key: 'pg15', name: '銷假簽核', group: '簽核中心' },
-            { key: 'pg16', name: '電子表單簽核', group: '簽核中心' },
+            { key: 'pg_signleave',  name: '請假簽核',     group: '簽核中心', ops: ['簽核'] },
+            { key: 'pg_signmakeup', name: '補卡簽核',     group: '簽核中心', ops: ['簽核'] },
+            { key: 'pg_signcancel', name: '銷假簽核',     group: '簽核中心', ops: ['簽核'] },
+            { key: 'pg_signeform',  name: '電子表單簽核', group: '簽核中心', ops: ['簽核', 'HR簽核', '行政簽核'] },
             // 人事管理
-            { key: 'pg17', name: '員工管理', group: '人事管理' },
-            { key: 'pg18', name: '出勤管理', group: '人事管理' },
-            { key: 'pg19', name: '假期管理', group: '人事管理' },
-            { key: 'pg20', name: '打卡規則', group: '人事管理' },
+            { key: 'pg_employee',   name: '員工管理',     group: '人事管理', ops: ['新增員工', '匯入', '匯出', '離職', '停用員工', '所屬區域', '下屬', '個人資訊頁籤', '職位資訊頁籤', '個人資料庫頁籤', '員工帳號頁籤', '休假資訊頁籤', '休假記錄頁籤', '出勤校正記錄頁籤', '績效記錄頁籤', '薪資資訊頁籤', 'HR文件匣頁籤', '人事成本頁籤', '出勤資訊頁籤', '個人資訊', '公司聯絡方式', '個人聯絡方式', '緊急聯絡方式', '個人資訊其他', '職位-部門', '職位-職位', '職位-基本薪資', '職位-其他薪資福利', '職位-獎金', '職位-其他福利', '職位-業務資訊', '職位-事業部', '職位-職級', '職位-ETC', '績效範本', '績效現況'] },
+            { key: 'pg_attmgmt',    name: '考勤管理',     group: '人事管理', ops: ['匯出', '匯入排班', '出勤存取', '出勤修改'] },
+            { key: 'pg_attset',     name: '考勤設置',     group: '人事管理', ops: [] },
+            { key: 'pg_leavemgmt',  name: '假期管理',     group: '人事管理', ops: ['匯出', '休假資訊管理'] },
+            { key: 'pg_salary',     name: '薪資管理',     group: '人事管理', ops: ['上傳薪資', '匯出', '薪資資料存取', '人事成本'] },
+            { key: 'pg_leavequery', name: '員工假期查詢', group: '人事管理', ops: ['匯出'] },
             // 財務管理
-            { key: 'pg21', name: '月初匯率管理', group: '財務管理' },
+            { key: 'pg_fxrate',     name: '月初匯率管理', group: '財務管理', ops: ['匯出'] },
             // 行政管理
-            { key: 'pg22', name: '公告管理', group: '行政管理' },
-            { key: 'pg23', name: '文件庫管理', group: '行政管理' },
-            { key: 'pg24', name: '資產管理', group: '行政管理' },
-            { key: 'pg25', name: '工號創建管理', group: '行政管理' },
+            { key: 'pg_announce',   name: '公告管理',     group: '行政管理', ops: ['發布'] },
+            { key: 'pg_docmgmt',    name: '文件庫管理',   group: '行政管理', ops: ['上傳', '下載', '公開資料庫'] },
+            { key: 'pg_assetstat',  name: '資產數統計',   group: '行政管理', ops: ['匯出'] },
+            { key: 'pg_assetlist',  name: '資產清單',     group: '行政管理', ops: ['匯出'] },
+            { key: 'pg_assetorder', name: '資產單統計',   group: '行政管理', ops: ['匯出'] },
+            { key: 'pg_assetcheck', name: '資產盤點',     group: '行政管理', ops: ['建立盤點', '匯出'] },
+            { key: 'pg_assetspot',  name: '資產抽查',     group: '行政管理', ops: ['建立抽查', '匯出'] },
+            { key: 'pg_empno',      name: '工號創建管理', group: '行政管理', ops: ['匯入', '匯出', '申請問卷'] },
             // 系統設定
-            { key: 'pg26', name: '審批帳號', group: '系統設定' },
-            { key: 'pg27', name: '審批角色', group: '系統設定' },
-            { key: 'pg28', name: '審批角色權限', group: '系統設定' },
-            { key: 'pg29', name: '帳號權限', group: '系統設定' },
-            { key: 'pg30', name: '權限設置', group: '系統設定' },
-            { key: 'pg31', name: '分組管理', group: '系統設定' },
-            { key: 'pg32', name: '審批流管理', group: '系統設定' },
-            { key: 'pg33', name: '組織結構管理', group: '系統設定' },
-            { key: 'pg34', name: '組織架構管理', group: '系統設定' },
-            { key: 'pg35', name: 'OA資料來源', group: '系統設定' },
-            { key: 'pg36', name: '員工資料來源', group: '系統設定' },
-            { key: 'pg37', name: '封鎖設定', group: '系統設定' },
-            { key: 'pg38', name: '操作日誌', group: '系統設定' }
+            { key: 'pg_apprvacct',  name: '審批帳號',     group: '系統設定', ops: [] },
+            { key: 'pg_apprvrole',  name: '審批角色',     group: '系統設定', ops: [] },
+            { key: 'pg_apprvperm',  name: '審批角色權限', group: '系統設定', ops: [] },
+            { key: 'pg_apprvflow',  name: '審批流管理',   group: '系統設定', ops: ['編輯簽核流程', '變更簽核流程', '人事異動流程變更', '到職核准流程變更', '招募申請流程變更', '薪資職級變更流程變更'] },
+            { key: 'pg_group',      name: '分組管理',     group: '系統設定', ops: [] },
+            { key: 'pg_acctperm',   name: '帳號權限',     group: '系統設定', ops: ['新增帳號', '編輯權限'] },
+            { key: 'pg_permset',    name: '權限設置',     group: '系統設定', ops: ['新增角色', '檢視成員'] },
+            { key: 'pg_orgchart',   name: '組織圖設定',   group: '系統設定', ops: ['存取'] },
+            { key: 'pg_orgmgmt',    name: '組織架構管理', group: '系統設定', ops: ['部門存取'] },
+            { key: 'pg_finset',     name: '財務設定',     group: '系統設定', ops: [] },
+            { key: 'pg_adminset',   name: '行政設定',     group: '系統設定', ops: ['管理者設定', '設定存取'] },
+            { key: 'pg_salarypwd',  name: '薪資密碼設定', group: '系統設定', ops: [] },
+            { key: 'pg_syslog',     name: '系統日誌',     group: '系統設定', ops: ['匯出', 'Log存取'] },
+            { key: 'pg_block',      name: '封鎖設定',     group: '系統設定', ops: [] }
         ];
         // 可提交的申請單（依類別）
         const APPROVAL_FORMS = [
@@ -359,17 +385,24 @@
             { key: 'hr',       name: 'HR' }
         ];
         const ALL_FORM_KEYS = APPROVAL_FORMS.map(f => f.key);
-        const FULL = ['檢視', '檢視下屬', '編輯', '使用功能'];
+        const STD_ACTIONS = ['檢視', '編輯'];
 
-        // 依 spec（頁面key→動作）建立完整的頁面資料權限（未列出的頁面為空陣列）
+        // 依 spec（頁面key→已勾選項目）建立頁面資料權限（未列出的頁面為空陣列）
         function buildData(spec) {
             const d = {};
             DATA_PAGES.forEach(p => d[p.key] = (spec[p.key] || []).slice());
             return d;
         }
+        // 全部頁面套用相同的標準動作
         function buildDataAll(actions) {
             const d = {};
             DATA_PAGES.forEach(p => d[p.key] = actions.slice());
+            return d;
+        }
+        // 全部頁面：標準動作 + 各頁特殊操作（完整權限）
+        function buildDataFull() {
+            const d = {};
+            DATA_PAGES.forEach(p => d[p.key] = STD_ACTIONS.concat(p.ops || []));
             return d;
         }
         // 依分類（group→動作）批次建立；未列分類套用 def
@@ -379,25 +412,48 @@
             return d;
         }
 
-        // 帳號資料庫
+        // 帳號角色資料庫
         let roles = [
-            { name: '系統管理員', desc: '擁有系統所有頁面與功能權限', members: 2, active: true,
-              perms: { data: buildDataAll(FULL), approve: [] } },
-            { name: '人資主管', desc: '可檢視/編輯人事相關頁面與下屬資料，可審批人事類申請單', members: 5, active: true,
-              perms: { data: buildDataByGroup({ '人事管理': FULL, '工作台': ['檢視', '使用功能'] }, ['檢視']),
-                       approve: [] } },
-            { name: '財務主管', desc: '可檢視/編輯財務相關頁面與下屬資料，可審批財務類申請單', members: 4, active: true,
-              perms: { data: buildDataByGroup({ '財務管理': FULL, '工作台': ['檢視', '使用功能'] }, ['檢視']),
-                       approve: [] } },
-            { name: '一般員工', desc: '僅可使用個人自助功能，無下屬資料檢視權限', members: 120, active: true,
-              perms: { data: buildDataByGroup({ '工作台': ['檢視', '使用功能'] }, []),
-                       approve: [] } },
-            { name: '稽核人員', desc: '可檢視全系統頁面與下屬資料（唯讀，無編輯/使用功能）', members: 3, active: false,
-              perms: { data: buildDataAll(['檢視', '檢視下屬']), approve: [] } }
+            { name: '系統管理員', desc: '擁有系統所有頁面、操作與功能權限', members: 2,
+              perms: { data: buildDataFull(), approve: [] } },
+            { name: '人資主管', desc: '人事管理相關頁面具完整權限，其餘頁面僅可檢視', members: 5,
+              perms: { data: buildDataByGroup({ '人事管理': STD_ACTIONS }, ['檢視']), approve: [] } },
+            { name: '財務主管', desc: '財務管理相關頁面具完整權限，其餘頁面僅可檢視', members: 4,
+              perms: { data: buildDataByGroup({ '財務管理': STD_ACTIONS }, ['檢視']), approve: [] } },
+            { name: '稽核人員', desc: '可檢視全系統頁面（唯讀，不可編輯）', members: 3,
+              perms: { data: buildDataAll(['檢視']), approve: [] } }
         ];
 
-        let selectedIndex = -1;    // 目前選取的帳號
-        let editIndex = -1;        // 帳號彈窗模式：-1=新增；>=0=編輯
+        // 綁定各帳號角色的員工名單（示意）
+        const ROLE_MEMBERS = {
+            '系統管理員': [
+                { empno: '100001', name: 'Tony',         dept: 'RD', region: 'T1-T2' },
+                { empno: '50030',  name: 'Ellie Nelson', dept: 'HR', region: 'T1' }
+            ],
+            '人資主管': [
+                { empno: '50024', name: 'Mia Scott',   dept: 'HR', region: 'T1' },
+                { empno: '50018', name: 'Nora Evans',  dept: 'HR', region: 'T2' },
+                { empno: '50011', name: 'Liam Brooks', dept: 'HR', region: 'U' },
+                { empno: '50007', name: 'Zoe Parker',  dept: 'HR', region: 'T1-T2' },
+                { empno: '50003', name: 'Owen Reed',   dept: 'HR', region: 'J' }
+            ],
+            '財務主管': [
+                { empno: '50023', name: 'Jack Morris',  dept: 'FIN', region: 'T1' },
+                { empno: '50019', name: 'Ava Bennett',  dept: 'FIN', region: 'S' },
+                { empno: '50015', name: 'Ethan Ward',   dept: 'FIN', region: 'T2' },
+                { empno: '50009', name: 'Chloe Foster', dept: 'FIN', region: 'U' }
+            ],
+            '稽核人員': [
+                { empno: '50027', name: 'Oscar Wright', dept: 'RD',  region: 'T1-T2' },
+                { empno: '50012', name: 'Ivy Newton',   dept: 'IA1', region: 'J' },
+                { empno: '50005', name: 'Max Fisher',   dept: 'IA1', region: 'S' }
+            ]
+        };
+        // 取得綁定該帳號角色的員工名單（新建角色預設為空）
+        function roleMembers(name) { return ROLE_MEMBERS[name] || []; }
+
+        let selectedIndex = -1;    // 目前選取的帳號角色
+        let editIndex = -1;        // 帳號角色彈窗模式：-1=新增；>=0=編輯
         let permDraft = { data: {}, approve: new Set() };
 
         // 已授權項目總數 = 各頁面動作數 + 可審批申請單數
@@ -408,7 +464,7 @@
             return n;
         }
 
-        /* ============ 左側帳號選單 ============ */
+        /* ============ 左側帳號角色選單 ============ */
         function renderRoleList() {
             const wrap = document.getElementById('role-list');
             const kw = document.getElementById('search-input').value.trim().toLowerCase();
@@ -416,7 +472,7 @@
                 .filter(({ r }) => !kw || r.name.toLowerCase().includes(kw) || (r.desc || '').toLowerCase().includes(kw));
 
             if (rows.length === 0) {
-                wrap.innerHTML = '<p class="text-sm text-text-muted text-center py-10">查無符合的帳號</p>';
+                wrap.innerHTML = '<p class="text-sm text-text-muted text-center py-10">查無符合的帳號角色</p>';
                 return;
             }
 
@@ -424,14 +480,12 @@
             const offCls = 'w-full text-left px-3 py-2.5 rounded-lg border border-transparent hover:bg-gray-50 transition-colors';
             wrap.innerHTML = rows.map(({ r, i }) => {
                 const sel = i === selectedIndex;
-                const dot = `<span class="w-2 h-2 rounded-full shrink-0 ${r.active ? 'bg-emerald-500' : 'bg-gray-300'}" title="${r.active ? '啟用' : '停用'}"></span>`;
                 return `
                     <button onclick="selectRole(${i})" class="${sel ? onCls : offCls}">
                         <div class="flex items-center justify-between gap-2">
                             <span class="font-semibold truncate ${sel ? 'text-primary' : 'text-gray-800'}">${r.name}</span>
-                            ${dot}
                         </div>
-                        <div class="text-xs text-text-muted mt-0.5 truncate">${r.members} 位成員 · ${grantedCount(r)} 項權限</div>
+                        <div class="text-xs text-text-muted mt-0.5 truncate">${roleMembers(r.name).length} 位成員 · ${grantedCount(r)} 項權限</div>
                     </button>`;
             }).join('');
         }
@@ -463,16 +517,8 @@
 
             const r = roles[selectedIndex];
             document.getElementById('rp-name').innerText = r.name;
-            document.getElementById('rp-members').innerText = r.members;
+            document.getElementById('rp-members').innerText = roleMembers(r.name).length;
             document.getElementById('rp-granted').innerText = grantedCount(r);
-            document.getElementById('rp-status').innerHTML = r.active
-                ? '<span class="ui-badge ui-badge-success">啟用</span>'
-                : '<span class="ui-badge bg-gray-100 text-gray-500">停用</span>';
-            const toggle = document.getElementById('rp-toggle-btn');
-            toggle.className = r.active
-                ? 'ui-btn ui-btn-sm text-amber-600 border border-amber-200 hover:bg-amber-50'
-                : 'ui-btn ui-btn-sm text-emerald-600 border border-emerald-200 hover:bg-emerald-50';
-            toggle.innerHTML = r.active ? '<i class="fa-solid fa-ban"></i> 停用' : '<i class="fa-solid fa-circle-check"></i> 啟用';
 
             renderPermSections();
         }
@@ -485,12 +531,20 @@
             DATA_PAGES.forEach(p => {
                 if (p.group !== lastGroup) {
                     lastGroup = p.group;
-                    html += `<tr class="bg-gray-50/80"><td colspan="5" class="text-left text-xs font-bold text-gray-500 tracking-wide">${p.group}</td></tr>`;
+                    html += `<tr><td colspan="4" class="text-left bg-primary-light text-primary text-sm font-bold py-2.5 border-y border-primary/15"><i class="fa-solid fa-folder-open mr-2"></i>${p.group}</td></tr>`;
                 }
                 const cells = DATA_ACTIONS.map(a =>
                     `<td class="text-center"><input type="checkbox" class="perm-check" ${permDraft.data[p.key].has(a) ? 'checked' : ''} onchange="togglePerm('${p.key}','${a}',this.checked)"></td>`
                 ).join('');
-                html += `<tr class="hover:bg-gray-50/70 transition-colors"><td class="text-left font-medium text-gray-800">${p.name}</td>${cells}</tr>`;
+                // 特殊操作：勾選才會於該頁顯示並可使用
+                const ops = p.ops || [];
+                const opsCell = ops.length
+                    ? `<div class="flex flex-wrap gap-x-4 gap-y-1.5">` + ops.map(op =>
+                        `<label class="inline-flex items-center gap-1.5 cursor-pointer">`
+                        + `<input type="checkbox" class="perm-check" ${permDraft.data[p.key].has(op) ? 'checked' : ''} onchange="togglePerm('${p.key}','${op}',this.checked)">`
+                        + `<span class="text-xs text-gray-600">${op}</span></label>`).join('') + `</div>`
+                    : `<span class="text-gray-300 text-xs">—</span>`;
+                html += `<tr class="hover:bg-gray-50/70 transition-colors"><td class="text-left font-medium text-gray-700 pl-8"><i class="fa-regular fa-file-lines text-gray-300 text-xs mr-2"></i>${p.name}</td>${cells}<td class="text-left">${opsCell}</td></tr>`;
             });
             tbody.innerHTML = html;
 
@@ -511,7 +565,7 @@
         }
 
         function setAllPerms(on) {
-            DATA_PAGES.forEach(p => permDraft.data[p.key] = on ? new Set(DATA_ACTIONS) : new Set());
+            DATA_PAGES.forEach(p => permDraft.data[p.key] = on ? new Set(STD_ACTIONS.concat(p.ops || [])) : new Set());
             renderPermSections();
         }
         function setAllApprove(on) {
@@ -528,49 +582,99 @@
         function savePerms() {
             const role = roles[selectedIndex];
             const data = {};
-            DATA_PAGES.forEach(p => data[p.key] = DATA_ACTIONS.filter(a => permDraft.data[p.key].has(a)));
+            DATA_PAGES.forEach(p => data[p.key] = STD_ACTIONS.concat(p.ops || []).filter(a => permDraft.data[p.key].has(a)));
             role.perms = { data, approve: ALL_FORM_KEYS.filter(k => permDraft.approve.has(k)) };
             renderRoleList();
             renderRightPanel();
             showToast('success', `已更新「${role.name}」的權限設定`);
         }
 
-        /* ============ 帳號操作（右側） ============ */
-        function toggleStatusCurrent() {
+        /* ============ 檢視成員（綁定此帳號角色的員工名單，含工號搜尋與分頁）============ */
+        const MEMBERS_PAGE_SIZE = 10;
+        let membersFull = [];      // 目前角色的完整員工名單
+        let membersPage = 1;       // 目前頁碼
+
+        function openMembersModal() {
+            if (selectedIndex < 0 || !roles[selectedIndex]) return;
             const r = roles[selectedIndex];
-            r.active = !r.active;
-            renderRoleList();
-            renderRightPanel();
-            showToast(r.active ? 'success' : 'info', `已${r.active ? '啟用' : '停用'}帳號「${r.name}」`);
+            membersFull = roleMembers(r.name);
+            document.getElementById('members-role-name').innerText = r.name;
+            document.getElementById('members-search').value = '';
+            renderMembers(1);
+            document.getElementById('members-modal').classList.remove('hidden');
         }
 
+        // 依工號關鍵字篩選並分頁渲染
+        function renderMembers(page) {
+            const kw = document.getElementById('members-search').value.trim().toLowerCase();
+            const filtered = membersFull.filter(m => !kw || m.empno.toLowerCase().includes(kw));
+            const total = filtered.length;
+            const totalPages = Math.max(1, Math.ceil(total / MEMBERS_PAGE_SIZE));
+            membersPage = Math.min(Math.max(1, page || 1), totalPages);
+            const start = (membersPage - 1) * MEMBERS_PAGE_SIZE;
+            const rows = filtered.slice(start, start + MEMBERS_PAGE_SIZE);
+
+            document.getElementById('members-count').innerText = `共 ${total} 位`;
+
+            const tbody = document.getElementById('members-tbody');
+            const empty = document.getElementById('members-empty');
+            if (total === 0) {
+                tbody.innerHTML = '';
+                tbody.parentElement.classList.add('hidden');
+                empty.classList.remove('hidden');
+                document.getElementById('members-empty-text').innerText =
+                    kw ? `查無工號含「${document.getElementById('members-search').value.trim()}」的員工` : '目前沒有員工綁定此帳號角色';
+            } else {
+                tbody.parentElement.classList.remove('hidden');
+                empty.classList.add('hidden');
+                tbody.innerHTML = rows.map(m => `
+                    <tr class="hover:bg-gray-50/70 transition-colors">
+                        <td class="text-center"><span class="px-2 py-0.5 bg-gray-100 rounded text-xs font-semibold text-gray-700">${m.dept}</span></td>
+                        <td class="text-left font-mono text-gray-600">${m.empno}</td>
+                        <td class="text-left font-medium text-gray-800">${m.name}</td>
+                        <td class="text-center"><span class="px-2 py-0.5 bg-teal-50 text-teal-600 rounded text-xs font-semibold">${m.region || '—'}</span></td>
+                    </tr>`).join('');
+            }
+
+            document.getElementById('members-pg-info').innerText =
+                total ? `顯示第 ${start + 1} 到 ${start + rows.length} 筆，共 ${total} 筆` : '共 0 筆';
+            document.getElementById('members-pg-label').innerText = `第 ${membersPage} / ${totalPages} 頁`;
+            document.getElementById('members-prev').disabled = membersPage <= 1;
+            document.getElementById('members-next').disabled = membersPage >= totalPages;
+        }
+
+        function membersPrev() { renderMembers(membersPage - 1); }
+        function membersNext() { renderMembers(membersPage + 1); }
+        function closeMembersModal() { document.getElementById('members-modal').classList.add('hidden'); }
+        // 點背景關閉檢視成員彈窗
+        document.getElementById('members-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeMembersModal(); });
+
+        /* ============ 帳號角色操作（右側） ============ */
         function deleteCurrent() {
             const r = roles[selectedIndex];
-            if (!confirm(`確定要刪除帳號「${r.name}」嗎？此動作無法復原。`)) return;
+            if (!confirm(`確定要刪除帳號角色「${r.name}」嗎？此動作無法復原。`)) return;
             const name = r.name;
             roles.splice(selectedIndex, 1);
             selectedIndex = roles.length ? 0 : -1;
             if (selectedIndex >= 0) loadDraftFromRole();
             renderRoleList();
             renderRightPanel();
-            showToast('info', `已刪除帳號「${name}」`);
+            showToast('info', `已刪除帳號角色「${name}」`);
         }
 
         /* ============ 新增 / 編輯 帳號 彈窗 ============ */
         function openRoleCreate() {
             editIndex = -1;
-            document.getElementById('role-modal-title').innerText = '新增帳號';
+            document.getElementById('role-modal-title').innerText = '新增帳號角色';
             document.getElementById('role-name').value = '';
-            document.getElementById('role-status').value = 'true';
             document.getElementById('role-modal').classList.remove('hidden');
         }
 
         function openRoleEditCurrent() {
             editIndex = selectedIndex;
             const r = roles[selectedIndex];
-            document.getElementById('role-modal-title').innerText = '編輯帳號';
+            document.getElementById('role-modal-title').innerText = '編輯帳號角色';
             document.getElementById('role-name').value = r.name;
-            document.getElementById('role-status').value = String(r.active);
             document.getElementById('role-modal').classList.remove('hidden');
         }
 
@@ -578,19 +682,18 @@
 
         function saveRole() {
             const name = document.getElementById('role-name').value.trim();
-            const active = document.getElementById('role-status').value === 'true';
-            if (!name) { showToast('error', '請填寫帳號名稱'); return; }
+            if (!name) { showToast('error', '請填寫帳號角色名稱'); return; }
             const dup = roles.some((r, idx) => r.name === name && idx !== editIndex);
-            if (dup) { showToast('error', `帳號「${name}」已存在`); return; }
+            if (dup) { showToast('error', `帳號角色「${name}」已存在`); return; }
 
             if (editIndex === -1) {
-                roles.push({ name, desc: '', members: 0, active, perms: { data: buildData({}), approve: [] } });
+                roles.push({ name, desc: '', members: 0, perms: { data: buildData({}), approve: [] } });
                 selectedIndex = roles.length - 1;
                 loadDraftFromRole();
-                showToast('success', `已新增帳號「${name}」`);
+                showToast('success', `已新增帳號角色「${name}」`);
             } else {
-                roles[editIndex] = { ...roles[editIndex], name, active };
-                showToast('success', `已更新帳號「${name}」`);
+                roles[editIndex] = { ...roles[editIndex], name };
+                showToast('success', `已更新帳號角色「${name}」`);
             }
             closeRoleModal();
             document.getElementById('search-input').value = '';
@@ -623,7 +726,7 @@
             }, 2600);
         }
 
-        // 點背景關閉帳號彈窗
+        // 點背景關閉帳號角色彈窗
         document.getElementById('role-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeRoleModal(); });
 
         // 主分頁切換（帳號權限 / 權限設置）

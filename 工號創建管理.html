@@ -151,42 +151,12 @@
         <span id="toast-text" class="text-sm font-medium">操作成功！</span>
     </div>
 
+    <!-- 共用題庫（單一來源，與「員工管理 → 工號申請」共用） -->
+    <script src="工號問卷.js"></script>
     <script>
-        // 回答行為：固定下拉選單值（跳轉題目 No.1~No.5 / 核發工號開頭）
-        const JUMP_OPTIONS = ['No.1', 'No.2', 'No.3', 'No.4', 'No.5'];
-        const ID_OPTIONS = ['工號10XXXXX', '工號30XXXXX', '工號70XXXXX', '工號PWXXXXX'];
-
-        // 問題資料庫（簡中 / 繁中 / 英文，及「是」「否」回答行為）
-        let questions = [
-            {
-                zhCN: '人员是否享有带薪假期？\n（如：年假、带薪病假）',
-                zhTW: '人員是否享有帶薪假期？\n（如：年假、帶薪病假）',
-                en:   'Are employees entitled to paid leave?\n(e.g., annual leave, paid sick leave)',
-                yes: 'No.5',
-                no:  'No.3'
-            },
-            {
-                zhCN: '签署合同是否为集团主体？\n薪资核算是否经中心/内审监督？',
-                zhTW: '簽署合同是否為集團主體？\n薪資核算是否經中心/內審監督？',
-                en:   'Is the employment contract signed under the name of the group entity? And the payroll calculation supervised by HR center or internal audit?\n\nYes: Payroll is calculated by the group.\nNo: Payroll is calculated independently by the project team.',
-                yes: '工號10XXXXX',
-                no:  '工號70XXXXX'
-            },
-            {
-                zhCN: '签署合同是否为集团主体？\n薪资核算是否经中心/内审监督？\n\n是：由集团核算薪资\n否：由项目自行核算薪资',
-                zhTW: '簽署合同是否為集團主體？\n薪資核算是否經中心/內審監督？\n\n是：由集團核算薪資\n否：由項目自行核算薪資',
-                en:   'Is the employment contract signed under the name of the group entity? And the payroll calculation supervised by HR center or internal audit?\n\nYes: Payroll is calculated by the group.\nNo: Payroll is calculated independently by the project team.',
-                yes: 'No.5',
-                no:  '工號70XXXXX'
-            },
-            {
-                zhCN: '签署对象是否为员工本人？\n\n是：为员工本人\n否：为公司法人',
-                zhTW: '簽署對象是否為員工本人？\n\n是：為員工本人\n否：為公司法人',
-                en:   'Is the employment contract signed with the employee personally?\n\nYes: Signed with the employee personally.\nNo: Signed with the company\'s legal representative.',
-                yes: '工號PWXXXXX',
-                no:  '工號30XXXXX'
-            }
-        ];
+        // JUMP_OPTIONS / ID_OPTIONS / ID_QUESTIONS 由 工號問卷.js 提供
+        // 本頁為編輯介面：以共用題庫為初始值（深拷貝，避免直接改動共用來源）
+        let questions = JSON.parse(JSON.stringify(ID_QUESTIONS));
 
         let editingIndex = null;   // null = 新增模式
 
