@@ -159,7 +159,7 @@
             { title: '系統設定', icon: 'settings', groups: [
                 [ { title: '電子表單設定', dropdown: [ { title: '審批帳號' }, { title: '審批角色' }, { title: '審批角色權限' }, { title: '審批流管理' }, { title: '分組管理' } ] },
                   { title: '系統權限設定', dropdown: [ { title: '帳號權限' }, { title: '權限設置' } ] } ],
-                [ { title: '組織設定', dropdown: [ { title: '組織圖設定' }, { title: '組織架構管理' } ] }, { title: '財務設定' }, { title: '行政設定' }, { title: '系統日誌' }, { title: '封鎖設定' } ]
+                [ { title: '組織設定', dropdown: [ { title: '組織圖設定' }, { title: '組織架構管理' } ] }, { title: '財務設定' }, { title: '行政設定' }, { title: '薪資密碼設定' }, { title: '系統日誌' }, { title: '封鎖設定' } ]
             ] }
         ];
 
@@ -246,15 +246,12 @@
                 subnavBar.appendChild(sep);
             };
 
-            if (cat.groups) {
-                // 分組呈現：各組之間以垂直分隔線區隔
-                cat.groups.forEach((group, gi) => {
-                    if (gi > 0) appendDivider();
-                    group.forEach(appendItem);
-                });
-            } else {
-                (cat.children || []).forEach(appendItem);
-            }
+            // 第二層每個項目之間皆以垂直分隔線區隔
+            const items = cat.groups ? cat.groups.flat() : (cat.children || []);
+            items.forEach((item, idx) => {
+                if (idx > 0) appendDivider();
+                appendItem(item);
+            });
 
             // 無子項（例如首頁）→ 直接載入該分類頁面
             if (!cat.groups && (!cat.children || cat.children.length === 0)) {

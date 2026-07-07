@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>薪資密碼設定</title>
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 Font Awesome 用於圖標 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4A90E2',
+                        'primary-light': '#EAF2FC',
+                        background: '#F8F9FB',
+                        card: '#FFFFFF',
+                        text: { main: '#1F2937', muted: '#6B7280', light: '#9CA3AF' }
+                    },
+                    fontFamily: {
+                        sans: ['"Inter"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'card': '0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03)',
+                        'modal': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: theme('colors.background');
+            font-family: theme('fontFamily.sans');
+        }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+    <link rel="stylesheet" href="shared-ui.css">
+</head>
+<body class="ui-page text-text-main antialiased relative">
+
+    <div class="relative mx-auto w-full space-y-6">
+
+        <!-- 頁面標題區塊 -->
+        <header class="ui-page-header">
+            <h1 class="ui-page-title">薪資密碼設定</h1>
+            <p class="ui-page-subtitle">設定各地區薪資檔案的開啟密碼</p>
+        </header>
+
+        <!-- 主卡片 -->
+        <div class="ui-card p-4 sm:p-6 space-y-4">
+
+            <div class="flex items-center gap-2">
+                <h2 class="text-lg font-bold text-gray-900 whitespace-nowrap">地區密碼列表</h2>
+                <span id="count-badge" class="bg-blue-50 text-primary text-xs px-2.5 py-1 rounded-md font-bold">0 筆資料</span>
+            </div>
+
+            <div class="overflow-x-auto rounded-lg border border-gray-100">
+                <table class="ui-table text-center w-full">
+                    <thead>
+                        <tr>
+                            <th scope="col" class="text-left">地區</th>
+                            <th scope="col" class="text-center">狀態</th>
+                            <th scope="col" class="text-center" style="width:14rem;">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="region-tbody"><!-- 動態由 JavaScript 渲染 --></tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ============ 設定密碼 彈窗 ============ -->
+    <div id="pwd-modal" class="fixed inset-0 bg-black/40 z-50 flex justify-center items-center hidden p-4">
+        <div class="bg-white rounded-2xl shadow-modal w-full max-w-md overflow-hidden">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                <h3 id="modal-title" class="text-base font-bold text-gray-900">設定密碼</h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="px-6 py-5 space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">地區</label>
+                    <input type="text" id="field-region" class="ui-input bg-gray-50" readonly>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">新密碼 <span class="text-rose-500">*</span></label>
+                    <div class="relative">
+                        <input type="password" id="field-pwd" placeholder="請輸入密碼" class="ui-input pr-10">
+                        <button type="button" onclick="togglePwd('field-pwd', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                            <i class="fa-solid fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">確認密碼 <span class="text-rose-500">*</span></label>
+                    <div class="relative">
+                        <input type="password" id="field-pwd2" placeholder="請再次輸入密碼" class="ui-input pr-10">
+                        <button type="button" onclick="togglePwd('field-pwd2', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                            <i class="fa-solid fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="flex justify-end gap-2.5 px-6 py-4 bg-gray-50 border-t border-gray-100">
+                <button onclick="closeModal()" class="ui-btn ui-btn-secondary">取消</button>
+                <button onclick="savePassword()" class="ui-btn ui-btn-primary">儲存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 提示消息 (Toast) -->
+    <div id="toast" class="fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+        <i id="toast-icon" class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
+        <span id="toast-text" class="text-sm font-medium">操作成功！</span>
+    </div>
+
+    <script>
+        // 各地區密碼設定資料（password 為空字串代表未設定）
+        const regions = [
+            { key: 'T', label: 'T區', password: '' },
+            { key: 'J', label: 'J區', password: '' },
+            { key: 'U', label: 'U區', password: '' }
+        ];
+
+        let editKey = null;
+
+        // 渲染列表
+        function render() {
+            const tbody = document.getElementById('region-tbody');
+            tbody.innerHTML = '';
+            regions.forEach(r => {
+                const isSet = !!r.password;
+                const statusBadge = isSet
+                    ? '<span class="ui-badge ui-badge-success mx-auto">已設定</span>'
+                    : '<span class="ui-badge ui-badge-gray mx-auto">未設定</span>';
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-50/70 transition-colors';
+                tr.innerHTML = `
+                    <td class="text-left font-medium text-gray-800">${r.label}</td>
+                    <td class="text-center">${statusBadge}</td>
+                    <td class="text-center">
+                        <button onclick="openSet('${r.key}')" class="ui-btn ui-btn-primary ui-btn-sm">
+                            <i class="fa-solid fa-key"></i> 設定密碼
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+            document.getElementById('count-badge').innerText = `${regions.length} 筆資料`;
+        }
+
+        /* ============ 設定密碼 彈窗 ============ */
+        function openSet(key) {
+            editKey = key;
+            const r = regions.find(x => x.key === key);
+            document.getElementById('modal-title').innerText = `設定 ${r.label} 密碼`;
+            document.getElementById('field-region').value = r.label;
+            document.getElementById('field-pwd').value = '';
+            document.getElementById('field-pwd2').value = '';
+            resetPwdInputs();
+            document.getElementById('pwd-modal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('pwd-modal').classList.add('hidden');
+        }
+
+        function togglePwd(id, btn) {
+            const input = document.getElementById(id);
+            const icon = btn.querySelector('i');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.className = 'fa-solid fa-eye-slash';
+            } else {
+                input.type = 'password';
+                icon.className = 'fa-solid fa-eye';
+            }
+        }
+
+        function resetPwdInputs() {
+            ['field-pwd', 'field-pwd2'].forEach(id => {
+                const input = document.getElementById(id);
+                input.type = 'password';
+                const icon = input.parentElement.querySelector('button i');
+                if (icon) icon.className = 'fa-solid fa-eye';
+            });
+        }
+
+        function savePassword() {
+            const pwd = document.getElementById('field-pwd').value;
+            const pwd2 = document.getElementById('field-pwd2').value;
+
+            if (!pwd) {
+                showToast('error', '請輸入密碼');
+                return;
+            }
+            if (pwd !== pwd2) {
+                showToast('error', '兩次輸入的密碼不一致');
+                return;
+            }
+
+            const r = regions.find(x => x.key === editKey);
+            r.password = pwd;
+            showToast('success', `已設定 ${r.label} 密碼`);
+            closeModal();
+            render();
+        }
+
+        /* ============ Toast 提示控制 ============ */
+        function showToast(type, text) {
+            const toast = document.getElementById('toast');
+            const toastIcon = document.getElementById('toast-icon');
+            const toastText = document.getElementById('toast-text');
+            toastText.innerText = text;
+            if (type === 'success') {
+                toast.className = "fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform transition-all duration-300 border border-emerald-500/20";
+                toastIcon.className = "fa-solid fa-circle-check text-emerald-400 text-base";
+            } else if (type === 'error') {
+                toast.className = "fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform transition-all duration-300 border border-rose-500/20";
+                toastIcon.className = "fa-solid fa-circle-xmark text-rose-400 text-base";
+            } else {
+                toast.className = "fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform transition-all duration-300 border border-blue-500/20";
+                toastIcon.className = "fa-solid fa-circle-info text-blue-400 text-base";
+            }
+            toast.style.transform = 'translateY(0)';
+            toast.style.opacity = '1';
+            clearTimeout(window.__toastTimer);
+            window.__toastTimer = setTimeout(() => {
+                toast.style.transform = 'translateY(5rem)';
+                toast.style.opacity = '0';
+            }, 2600);
+        }
+
+        // 點擊彈窗外圍關閉
+        document.getElementById('pwd-modal').addEventListener('click', e => {
+            if (e.target === e.currentTarget) closeModal();
+        });
+
+        // 初始化
+        window.onload = render;
+    </script>
+</body>
+</html>
