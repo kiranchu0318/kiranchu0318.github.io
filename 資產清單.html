@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>資產清單</title>
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 Font Awesome 用於圖標 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4A90E2',
+                        'primary-light': '#EAF2FC',
+                        background: '#F8F9FB',
+                        card: '#FFFFFF',
+                        text: {
+                            main: '#1F2937',
+                            muted: '#6B7280',
+                            light: '#9CA3AF'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['"Inter"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'card': '0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03)',
+                        'modal': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: theme('colors.background');
+            font-family: theme('fontFamily.sans');
+        }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+    </style>
+    <link rel="stylesheet" href="shared-ui.css">
+</head>
+<body class="ui-page text-text-main antialiased relative">
+
+    <div class="relative mx-auto w-full space-y-6">
+
+        <!-- 頁面標題區塊 -->
+        <header class="ui-page-header">
+            <h1 class="ui-page-title">資產清單</h1>
+        </header>
+
+        <!-- 篩選台 (清單) -->
+        <div class="ui-card p-5 space-y-4">
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="relative">
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">搜尋 (編號/名稱/序列號/工號/使用人)</label>
+                    <div class="relative ui-search">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="list-search" oninput="applyListFilters()" placeholder="輸入資產編號、名稱、序列號或工號..." class="ui-input ui-search-input">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">類型</label>
+                    <select id="list-type" onchange="applyListFilters()" class="ui-select">
+                        <option value="all">全部類型</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">項目</label>
+                    <select id="list-project" onchange="applyListFilters()" class="ui-select">
+                        <option value="all">全部項目</option>
+                        <option value="GT">GT</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">部門</label>
+                    <select id="list-dept" onchange="applyListFilters()" class="ui-select">
+                        <option value="all">全部部門</option>
+                        <option value="RD">研發部 (RD)</option>
+                        <option value="HR">人資部 (HR)</option>
+                        <option value="IA1">內稽部 (IA1)</option>
+                        <option value="FIN">財務部 (FIN)</option>
+                        <option value="MKT">行銷部 (MKT)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="flex flex-wrap items-center justify-end pt-2 gap-2">
+                <button onclick="applyListFilters()" class="ui-btn ui-btn-primary ui-btn-sm"><i class="fa-solid fa-magnifying-glass"></i> 查詢</button>
+                <button onclick="resetListFilters()" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-arrows-rotate"></i> 重置</button>
+            </div>
+        </div>
+
+        <!-- 列表 (清單) -->
+        <section class="ui-card p-4 sm:p-6">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
+                <div class="flex items-center gap-2">
+                    <h2 class="text-lg font-bold text-gray-900 whitespace-nowrap">資產清單</h2>
+                    <span id="list-count-badge" class="bg-blue-50 text-primary text-xs px-2.5 py-1 rounded-md font-bold">0 筆資料</span>
+                </div>
+                <!-- 檢視維度切換：依設備 / 依人員 -->
+                <div class="inline-flex rounded-lg border border-gray-200 p-0.5 bg-gray-50">
+                    <button id="view-btn-device" onclick="switchListView('device')" class="px-3 py-1.5 text-xs font-semibold rounded-md transition-colors bg-white text-primary shadow-sm">
+                        <i class="fa-solid fa-boxes-stacked mr-1"></i> 依設備
+                    </button>
+                    <button id="view-btn-person" onclick="switchListView('person')" class="px-3 py-1.5 text-xs font-medium rounded-md transition-colors text-gray-500 hover:text-gray-700">
+                        <i class="fa-solid fa-user mr-1"></i> 依人員
+                    </button>
+                </div>
+            </div>
+
+            <!-- 檢視 A：依設備（每件資產由誰使用） -->
+            <div id="list-device-view" class="overflow-x-auto rounded-lg border border-gray-100 custom-scrollbar">
+                <table class="ui-table text-center whitespace-nowrap">
+                    <thead>
+                        <tr>
+                            <th scope="col" class="text-left">資產編號</th>
+                            <th scope="col">類型</th>
+                            <th scope="col" class="text-left">資產名稱</th>
+                            <th scope="col" class="text-left">序列號</th>
+                            <th scope="col">項目</th>
+                            <th scope="col">部門</th>
+                            <th scope="col">工號</th>
+                            <th scope="col">使用人</th>
+                            <th scope="col">負責人</th>
+                            <th scope="col" class="text-right">殘值</th>
+                        </tr>
+                    </thead>
+                    <tbody id="list-tbody"><!-- 動態由 JavaScript 渲染 --></tbody>
+                </table>
+            </div>
+
+            <!-- 檢視 B：依人員（每位人員身上掛載的資產） -->
+            <div id="list-person-view" class="hidden space-y-3"><!-- 動態由 JavaScript 渲染 --></div>
+
+            <div id="list-no-data-view" class="hidden py-16 text-center space-y-3">
+                <div class="inline-flex p-4 bg-gray-50 text-gray-400 rounded-full"><i class="fa-solid fa-box-open text-3xl"></i></div>
+                <p class="text-sm text-text-muted font-medium">查無符合條件的資產資料</p>
+                <button onclick="resetListFilters()" class="text-xs text-primary font-semibold hover:underline">清除篩選條件</button>
+            </div>
+
+            <div class="flex items-center justify-between mt-6 pt-4 border-t border-gray-100">
+                <span id="list-pagination-info" class="text-sm text-gray-500">顯示第 0 到 0 筆，共 0 筆記錄</span>
+                <div class="flex gap-1">
+                    <button class="ui-page-btn"><i class="fa-solid fa-chevron-left text-xs"></i></button>
+                    <button class="ui-page-btn is-active">1</button>
+                    <button class="ui-page-btn"><i class="fa-solid fa-chevron-right text-xs"></i></button>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- 提示消息 (Toast) -->
+    <div id="toast" class="fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+        <i id="toast-icon" class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
+        <span id="toast-text" class="text-sm font-medium">操作成功！</span>
+    </div>
+
+    <script>
+        // 資產類型清單（依規格固定順序）
+        const ASSET_TYPES = [
+            '主机-蘋果主機', '記憶體設備', '手机-蘋果手机', '笔电-蘋果笔电', '電器設備',
+            '電話卡', '其他電腦設備', '車輛', '主机-非蘋果主機', '雲端空間(伺服器)',
+            '顯示器', '辦公家具', '收納設備', '網路設備'
+        ];
+
+        // 資產清單資料庫
+        const listDb = [
+            { no: 'ZC-24-0001', type: '笔电-蘋果笔电',   name: 'MacBook Pro 14"',          serial: 'C02FK1ABCD01', project: 'GT', dept: 'RD',  userId: '101383', user: 'Matthew', owner: 'James', residual: 15000 },
+            { no: 'ZC-24-0002', type: '手机-蘋果手机',   name: 'iPhone 15 Pro',            serial: 'F2LXY2ZZ3456', project: 'GT', dept: 'RD',  userId: '100344', user: 'James', owner: 'James', residual: 3200 },
+            { no: 'ZC-24-0003', type: '顯示器',           name: 'Dell U2723QE 27"',         serial: 'CN0ABCD789',   project: 'GT', dept: 'HR',  userId: '100423', user: 'Henry', owner: 'William', residual: 300 },
+            { no: 'ZC-24-0004', type: '主机-非蘋果主機', name: 'Lenovo ThinkCentre M90',   serial: 'LN90X1Q88K',   project: 'GT', dept: 'FIN', userId: '101501', user: 'Audrey', owner: 'William', residual: 2800 },
+            { no: 'ZC-24-0005', type: '車輛',             name: 'Toyota Corolla Altis',     serial: 'RMVH-2026-07', project: 'GT', dept: 'HR',  userId: '100645', user: 'William', owner: 'Henry', residual: 110000 },
+            { no: 'ZC-24-0006', type: '主机-蘋果主機',   name: 'Mac mini M2',              serial: 'H2WMAC0099',   project: 'GT', dept: 'RD',  userId: '101334', user: 'Alexander', owner: 'James', residual: 6000 },
+            { no: 'ZC-24-0007', type: '網路設備',         name: 'Cisco Catalyst 9200',      serial: 'FOC2530NET',   project: 'GT', dept: 'IA1', userId: '101312', user: 'Samuel', owner: 'Emma', residual: 900 },
+            { no: 'ZC-24-0008', type: '電話卡',           name: '中華電信企業門號',          serial: 'SIM-0928-336', project: 'GT', dept: 'MKT', userId: '101502', user: 'Isabella', owner: 'Henry', residual: 0 },
+            { no: 'ZC-24-0009', type: '辦公家具',         name: '人體工學椅 Herman Miller', serial: 'HM-CHAIR-220', project: 'GT', dept: 'HR',  userId: '101122', user: 'Daniel', owner: 'William', residual: 200 },
+            { no: 'ZC-24-0010', type: '記憶體設備',       name: 'Kingston 32GB DDR5',       serial: 'KST32G5-7781', project: 'GT', dept: 'RD',  userId: '101383', user: 'Matthew', owner: 'Alexander', residual: 120 },
+            { no: 'ZC-24-0011', type: '雲端空間(伺服器)', name: 'AWS EC2 m6i.large',        serial: 'EC2-I-0AB12',  project: 'GT', dept: 'IA1', userId: '101503', user: 'Emma', owner: 'Arthur', residual: 20000 },
+            { no: 'ZC-24-0012', type: '收納設備',         name: '鋼製文件櫃',                serial: 'CAB-STEEL-45', project: 'GT', dept: 'FIN', userId: '101501', user: 'Audrey', owner: 'Henry', residual: 100 }
+        ];
+
+        // 千分位格式化
+        function fmt(n) { return Number(n).toLocaleString('en-US'); }
+
+        // 以固定的資產類型順序填入清單頁的「類型」下拉選單
+        function populateTypeFilter() {
+            const sel = document.getElementById('list-type');
+            ASSET_TYPES.forEach(t => {
+                const opt = document.createElement('option');
+                opt.value = t; opt.textContent = t;
+                sel.appendChild(opt);
+            });
+        }
+
+        window.onload = function () {
+            populateTypeFilter();
+            applyListFilters();
+        };
+
+        /* ============ 資產清單（兩種檢視維度：依設備 / 依人員） ============ */
+        let listView = 'device';   // 'device' = 從設備看誰在用；'person' = 從人看掛載哪些資產
+
+        // 切換檢視維度
+        function switchListView(view) {
+            listView = view;
+            const onCls = 'px-3 py-1.5 text-xs font-semibold rounded-md transition-colors bg-white text-primary shadow-sm';
+            const offCls = 'px-3 py-1.5 text-xs font-medium rounded-md transition-colors text-gray-500 hover:text-gray-700';
+            const isDevice = view === 'device';
+            document.getElementById('view-btn-device').className = isDevice ? onCls : offCls;
+            document.getElementById('view-btn-person').className = isDevice ? offCls : onCls;
+            // 重新加上各自的 icon
+            document.getElementById('view-btn-device').innerHTML = '<i class="fa-solid fa-boxes-stacked mr-1"></i> 依設備';
+            document.getElementById('view-btn-person').innerHTML = '<i class="fa-solid fa-user mr-1"></i> 依人員';
+            applyListFilters();
+        }
+
+        // 篩選（兩種檢視共用）
+        function applyListFilters() {
+            const kw = document.getElementById('list-search').value.trim().toLowerCase();
+            const typeVal = document.getElementById('list-type').value;
+            const projVal = document.getElementById('list-project').value;
+            const deptVal = document.getElementById('list-dept').value;
+
+            const filtered = listDb.filter(r =>
+                (!kw || r.no.toLowerCase().includes(kw) || r.name.toLowerCase().includes(kw)
+                    || r.serial.toLowerCase().includes(kw) || r.user.toLowerCase().includes(kw) || r.owner.toLowerCase().includes(kw)
+                    || (r.userId || '').toLowerCase().includes(kw)) &&
+                (typeVal === 'all' || r.type === typeVal) &&
+                (projVal === 'all' || r.project === projVal) &&
+                (deptVal === 'all' || r.dept === deptVal));
+            renderActiveList(filtered);
+        }
+
+        // 依當前檢視維度渲染，並處理顯示/隱藏與計數
+        function renderActiveList(filtered) {
+            const deviceView = document.getElementById('list-device-view');
+            const personView = document.getElementById('list-person-view');
+            const noData = document.getElementById('list-no-data-view');
+            const badge = document.getElementById('list-count-badge');
+            const pag = document.getElementById('list-pagination-info');
+
+            if (filtered.length === 0) {
+                deviceView.classList.add('hidden');
+                personView.classList.add('hidden');
+                noData.classList.remove('hidden');
+                badge.innerText = '0 筆資料';
+                pag.innerText = '顯示第 0 到 0 筆，共 0 筆記錄';
+                return;
+            }
+            noData.classList.add('hidden');
+
+            if (listView === 'device') {
+                personView.classList.add('hidden');
+                deviceView.classList.remove('hidden');
+                renderDeviceRows(filtered);
+                badge.innerText = `${filtered.length} 筆資料`;
+                pag.innerText = `顯示第 1 到 ${filtered.length} 筆，共 ${filtered.length} 筆記錄`;
+            } else {
+                deviceView.classList.add('hidden');
+                personView.classList.remove('hidden');
+                const groups = groupByUser(filtered);
+                renderPersonCards(groups);
+                badge.innerText = `${groups.length} 位人員`;
+                pag.innerText = `顯示第 1 到 ${groups.length} 位，共 ${groups.length} 位人員`;
+            }
+        }
+
+        // 檢視 A：依設備
+        function renderDeviceRows(data) {
+            const tbody = document.getElementById('list-tbody');
+            tbody.innerHTML = '';
+            data.forEach(r => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-50/70 transition-colors';
+                tr.innerHTML = `
+                    <td class="text-left font-mono font-semibold text-gray-500">${r.no}</td>
+                    <td><span class="px-2 py-0.5 bg-blue-50 text-primary rounded text-xs font-semibold">${r.type}</span></td>
+                    <td class="text-left font-medium text-gray-800">${r.name}</td>
+                    <td class="text-left font-mono text-gray-500 text-xs">${r.serial}</td>
+                    <td><span class="px-2 py-0.5 bg-violet-50 text-violet-600 rounded text-xs font-semibold">${r.project}</span></td>
+                    <td><span class="px-2 py-0.5 bg-gray-100 rounded text-xs font-semibold text-gray-700">${r.dept}</span></td>
+                    <td class="font-mono text-gray-500">${r.userId || '-'}</td>
+                    <td class="text-gray-700">${r.user}</td>
+                    <td class="text-gray-700">${r.owner}</td>
+                    <td class="text-right font-mono text-gray-700">¥ ${fmt(r.residual)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // 將資產依「使用人」分組（同一人身上掛載的所有資產）
+        function groupByUser(data) {
+            const map = {};
+            data.forEach(r => {
+                if (!map[r.user]) map[r.user] = { user: r.user, userId: r.userId, dept: r.dept, assets: [], total: 0 };
+                map[r.user].assets.push(r);
+                map[r.user].total += r.residual;
+            });
+            // 持有資產數多者排前
+            return Object.values(map).sort((a, b) => b.assets.length - a.assets.length);
+        }
+
+        // 檢視 B：依人員（可展開檢視每位人員身上的資產）
+        function renderPersonCards(groups) {
+            const wrap = document.getElementById('list-person-view');
+            wrap.innerHTML = '';
+            groups.forEach(g => {
+                const card = document.createElement('div');
+                card.className = 'border border-gray-200 rounded-xl overflow-hidden';
+                const rows = g.assets.map(a => `
+                    <tr class="hover:bg-gray-50/70 transition-colors">
+                        <td class="text-left font-mono font-semibold text-gray-500">${a.no}</td>
+                        <td><span class="px-2 py-0.5 bg-blue-50 text-primary rounded text-xs font-semibold">${a.type}</span></td>
+                        <td class="text-left font-medium text-gray-800">${a.name}</td>
+                        <td class="text-left font-mono text-gray-500 text-xs">${a.serial}</td>
+                        <td class="text-gray-700">${a.owner}</td>
+                        <td class="text-right font-mono text-gray-700">¥ ${fmt(a.residual)}</td>
+                    </tr>`).join('');
+                card.innerHTML = `
+                    <button type="button" onclick="togglePerson(this)" class="w-full flex items-center justify-between gap-3 px-4 py-3 bg-gray-50/60 hover:bg-gray-100 transition-colors text-left">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <span class="w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold shrink-0">${g.user.slice(0, 1)}</span>
+                            <div class="min-w-0">
+                                <div class="font-bold text-gray-800 truncate">${g.user} <span class="text-xs font-mono font-normal text-gray-400">(${g.userId || '-'})</span></div>
+                                <div class="mt-0.5"><span class="px-2 py-0.5 bg-gray-100 rounded text-xs font-semibold text-gray-700">${g.dept}</span></div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-5 shrink-0">
+                            <div class="text-right">
+                                <div class="text-[11px] text-gray-400">持有資產</div>
+                                <div class="font-bold text-primary">${g.assets.length} 件</div>
+                            </div>
+                            <div class="text-right hidden sm:block">
+                                <div class="text-[11px] text-gray-400">殘值合計</div>
+                                <div class="font-bold font-mono text-gray-700">¥ ${fmt(g.total)}</div>
+                            </div>
+                            <i class="fa-solid fa-chevron-up person-chevron text-gray-400 transition-transform"></i>
+                        </div>
+                    </button>
+                    <div class="person-body border-t border-gray-100 overflow-x-auto custom-scrollbar">
+                        <table class="ui-table text-center whitespace-nowrap">
+                            <thead>
+                                <tr>
+                                    <th scope="col" class="text-left">資產編號</th>
+                                    <th scope="col">類型</th>
+                                    <th scope="col" class="text-left">資產名稱</th>
+                                    <th scope="col" class="text-left">序列號</th>
+                                    <th scope="col">負責人</th>
+                                    <th scope="col" class="text-right">殘值</th>
+                                </tr>
+                            </thead>
+                            <tbody>${rows}</tbody>
+                        </table>
+                    </div>
+                `;
+                wrap.appendChild(card);
+            });
+        }
+
+        // 展開 / 收合 單一人員的資產明細
+        function togglePerson(btn) {
+            const body = btn.nextElementSibling;
+            const chevron = btn.querySelector('.person-chevron');
+            const collapsed = body.classList.toggle('hidden');
+            chevron.style.transform = collapsed ? 'rotate(180deg)' : 'rotate(0deg)';
+        }
+
+        function resetListFilters() {
+            document.getElementById('list-search').value = '';
+            document.getElementById('list-type').value = 'all';
+            document.getElementById('list-project').value = 'all';
+            document.getElementById('list-dept').value = 'all';
+            showToast('info', '已還原資產清單的篩選設定');
+            applyListFilters();
+        }
+
+        /* ============ Toast 提示控制 ============ */
+        function showToast(type, text) {
+            const toast = document.getElementById('toast');
+            const toastIcon = document.getElementById('toast-icon');
+            const toastText = document.getElementById('toast-text');
+            toastText.innerText = text;
+
+            if (type === 'success') {
+                toast.className = "fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform transition-all duration-300 border border-emerald-500/20";
+                toastIcon.className = "fa-solid fa-circle-check text-emerald-400 text-base";
+            } else if (type === 'error') {
+                toast.className = "fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform transition-all duration-300 border border-rose-500/20";
+                toastIcon.className = "fa-solid fa-circle-xmark text-rose-400 text-base";
+            } else {
+                toast.className = "fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform transition-all duration-300 border border-blue-500/20";
+                toastIcon.className = "fa-solid fa-circle-info text-blue-400 text-base";
+            }
+
+            toast.style.transform = 'translateY(0)';
+            toast.style.opacity = '1';
+            clearTimeout(window.__toastTimer);
+            window.__toastTimer = setTimeout(() => {
+                toast.style.transform = 'translateY(5rem)';
+                toast.style.opacity = '0';
+            }, 2600);
+        }
+    </script>
+</body>
+</html>

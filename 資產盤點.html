@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>資產盤點</title>
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 Font Awesome 用於圖標 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4A90E2',
+                        'primary-light': '#EAF2FC',
+                        background: '#F8F9FB',
+                        card: '#FFFFFF',
+                        text: {
+                            main: '#1F2937',
+                            muted: '#6B7280',
+                            light: '#9CA3AF'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['"Inter"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'card': '0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03)',
+                        'modal': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: theme('colors.background');
+            font-family: theme('fontFamily.sans');
+        }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+    </style>
+    <link rel="stylesheet" href="shared-ui.css">
+</head>
+<body class="ui-page text-text-main antialiased relative">
+
+    <div class="relative mx-auto w-full space-y-6">
+
+        <!-- 頁面標題區塊 -->
+        <header class="ui-page-header flex items-center justify-between">
+            <h1 class="ui-page-title">資產盤點</h1>
+            <button onclick="openNewTask()" class="ui-btn ui-btn-primary ui-btn-sm"><i class="fa-solid fa-plus"></i> 建立盤點任務</button>
+        </header>
+
+        <!-- 統計摘要卡 -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="ui-card p-4 flex items-center gap-3">
+                <div class="w-11 h-11 rounded-lg bg-blue-50 text-primary flex items-center justify-center shrink-0"><i class="fa-solid fa-clipboard-list text-lg"></i></div>
+                <div><div class="text-xs text-text-muted">盤點任務</div><div id="kpi-tasks" class="text-xl font-bold text-gray-900">0</div></div>
+            </div>
+            <div class="ui-card p-4 flex items-center gap-3">
+                <div class="w-11 h-11 rounded-lg bg-amber-50 text-amber-500 flex items-center justify-center shrink-0"><i class="fa-solid fa-hourglass-half text-lg"></i></div>
+                <div><div class="text-xs text-text-muted">待盤點資產</div><div id="kpi-pending" class="text-xl font-bold text-gray-900">0</div></div>
+            </div>
+            <div class="ui-card p-4 flex items-center gap-3">
+                <div class="w-11 h-11 rounded-lg bg-emerald-50 text-emerald-500 flex items-center justify-center shrink-0"><i class="fa-solid fa-circle-check text-lg"></i></div>
+                <div><div class="text-xs text-text-muted">已盤點資產</div><div id="kpi-done" class="text-xl font-bold text-gray-900">0</div></div>
+            </div>
+            <div class="ui-card p-4 flex items-center gap-3">
+                <div class="w-11 h-11 rounded-lg bg-rose-50 text-rose-500 flex items-center justify-center shrink-0"><i class="fa-solid fa-triangle-exclamation text-lg"></i></div>
+                <div><div class="text-xs text-text-muted">差異項目</div><div id="kpi-diff" class="text-xl font-bold text-gray-900">0</div></div>
+            </div>
+        </div>
+
+        <!-- 頁籤 -->
+        <div class="flex items-center gap-1 border-b border-gray-200">
+            <button id="tab-btn-task" onclick="switchTab('task')" class="px-4 py-2.5 text-sm font-semibold text-primary border-b-2 border-primary -mb-px transition-colors">盤點任務</button>
+            <button id="tab-btn-detail" onclick="switchTab('detail')" class="px-4 py-2.5 text-sm font-medium text-gray-500 border-b-2 border-transparent -mb-px hover:text-gray-700 transition-colors">盤點明細</button>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- 頁籤 1：盤點任務 -->
+        <!-- ============================================================ -->
+        <div id="panel-task" class="space-y-6">
+            <!-- 篩選台 -->
+            <div class="ui-card p-5 space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="relative">
+                        <label class="block text-xs font-semibold text-text-muted mb-1.5">搜尋 (單號/名稱/負責人)</label>
+                        <div class="relative ui-search">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="text" id="task-search" oninput="applyTaskFilters()" placeholder="輸入盤點單號、名稱或負責人..." class="ui-input ui-search-input">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-text-muted mb-1.5">狀態</label>
+                        <select id="task-status" onchange="applyTaskFilters()" class="ui-select">
+                            <option value="all">全部狀態</option>
+                            <option value="draft">草稿</option>
+                            <option value="ongoing">進行中</option>
+                            <option value="done">已完成</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-text-muted mb-1.5">盤點範圍</label>
+                        <select id="task-scope" onchange="applyTaskFilters()" class="ui-select">
+                            <option value="all">全部範圍</option>
+                            <option value="全公司">全公司</option>
+                            <option value="台北總部">台北總部</option>
+                            <option value="台中分公司">台中分公司</option>
+                            <option value="高雄營運處">高雄營運處</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-text-muted mb-1.5">盤點日期(起)</label>
+                        <input type="date" id="task-date" onchange="applyTaskFilters()" class="ui-input">
+                    </div>
+                </div>
+                <div class="flex flex-wrap items-center justify-end pt-2 gap-2">
+                    <button onclick="applyTaskFilters()" class="ui-btn ui-btn-primary ui-btn-sm"><i class="fa-solid fa-magnifying-glass"></i> 查詢</button>
+                    <button onclick="resetTaskFilters()" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-arrows-rotate"></i> 重置</button>
+                </div>
+            </div>
+
+            <!-- 列表 -->
+            <section class="ui-card p-4 sm:p-6">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
+                    <div class="flex items-center gap-2">
+                        <h2 class="text-lg font-bold text-gray-900 whitespace-nowrap">盤點任務列表</h2>
+                        <span id="task-count-badge" class="bg-blue-50 text-primary text-xs px-2.5 py-1 rounded-md font-bold">0 筆資料</span>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto rounded-lg border border-gray-100 custom-scrollbar">
+                    <table class="ui-table text-center whitespace-nowrap">
+                        <thead>
+                            <tr>
+                                <th scope="col" class="text-left">盤點單號</th>
+                                <th scope="col" class="text-left">盤點名稱</th>
+                                <th scope="col">盤點範圍</th>
+                                <th scope="col">盤點日期</th>
+                                <th scope="col">負責人</th>
+                                <th scope="col">總數</th>
+                                <th scope="col">已盤</th>
+                                <th scope="col">差異</th>
+                                <th scope="col">進度</th>
+                                <th scope="col">狀態</th>
+                                <th scope="col">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="task-tbody"><!-- 動態由 JavaScript 渲染 --></tbody>
+                    </table>
+                </div>
+
+                <div id="task-no-data-view" class="hidden py-16 text-center space-y-3">
+                    <div class="inline-flex p-4 bg-gray-50 text-gray-400 rounded-full"><i class="fa-solid fa-clipboard-list text-3xl"></i></div>
+                    <p class="text-sm text-text-muted font-medium">查無符合條件的盤點任務</p>
+                    <button onclick="resetTaskFilters()" class="text-xs text-primary font-semibold hover:underline">清除篩選條件</button>
+                </div>
+
+                <div class="flex items-center justify-between mt-6 pt-4 border-t border-gray-100">
+                    <span id="task-pagination-info" class="text-sm text-gray-500">顯示第 0 到 0 筆，共 0 筆記錄</span>
+                    <div class="flex gap-1">
+                        <button class="ui-page-btn"><i class="fa-solid fa-chevron-left text-xs"></i></button>
+                        <button class="ui-page-btn is-active">1</button>
+                        <button class="ui-page-btn"><i class="fa-solid fa-chevron-right text-xs"></i></button>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- 頁籤 2：盤點明細 -->
+        <!-- ============================================================ -->
+        <div id="panel-detail" class="space-y-6 hidden">
+            <!-- 篩選台 -->
+            <div class="ui-card p-5 space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="relative">
+                        <label class="block text-xs font-semibold text-text-muted mb-1.5">搜尋 (編號/名稱/使用人)</label>
+                        <div class="relative ui-search">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="text" id="detail-search" oninput="applyDetailFilters()" placeholder="輸入資產編號、名稱或使用人..." class="ui-input ui-search-input">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-text-muted mb-1.5">所屬盤點單</label>
+                        <select id="detail-task" onchange="applyDetailFilters()" class="ui-select">
+                            <option value="all">全部盤點單</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-text-muted mb-1.5">盤點結果</label>
+                        <select id="detail-result" onchange="applyDetailFilters()" class="ui-select">
+                            <option value="all">全部結果</option>
+                            <option value="pending">待盤點</option>
+                            <option value="normal">正常</option>
+                            <option value="surplus">盤盈</option>
+                            <option value="shortage">盤虧</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-text-muted mb-1.5">部門</label>
+                        <select id="detail-dept" onchange="applyDetailFilters()" class="ui-select">
+                            <option value="all">全部部門</option>
+                            <option value="RD">研發部 (RD)</option>
+                            <option value="HR">人資部 (HR)</option>
+                            <option value="IA1">內稽部 (IA1)</option>
+                            <option value="FIN">財務部 (FIN)</option>
+                            <option value="MKT">行銷部 (MKT)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="flex flex-wrap items-center justify-end pt-2 gap-2">
+                    <button onclick="applyDetailFilters()" class="ui-btn ui-btn-primary ui-btn-sm"><i class="fa-solid fa-magnifying-glass"></i> 查詢</button>
+                    <button onclick="resetDetailFilters()" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-arrows-rotate"></i> 重置</button>
+                </div>
+            </div>
+
+            <!-- 列表 -->
+            <section class="ui-card p-4 sm:p-6">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
+                    <div class="flex items-center gap-2">
+                        <h2 class="text-lg font-bold text-gray-900 whitespace-nowrap">盤點明細</h2>
+                        <span id="detail-count-badge" class="bg-blue-50 text-primary text-xs px-2.5 py-1 rounded-md font-bold">0 筆資料</span>
+                    </div>
+                    <button onclick="showToast('success', '盤點明細已開始匯出，請稍候下載。')" class="ui-btn ui-btn-secondary ui-btn-sm">
+                        <i class="fa-solid fa-download"></i> 匯出明細
+                    </button>
+                </div>
+
+                <div class="overflow-x-auto rounded-lg border border-gray-100 custom-scrollbar">
+                    <table class="ui-table text-center whitespace-nowrap">
+                        <thead>
+                            <tr>
+                                <th scope="col" class="text-left">資產編號</th>
+                                <th scope="col">類型</th>
+                                <th scope="col" class="text-left">資產名稱</th>
+                                <th scope="col">部門</th>
+                                <th scope="col">帳面使用人</th>
+                                <th scope="col">實盤使用人</th>
+                                <th scope="col">盤點結果</th>
+                                <th scope="col">盤點人</th>
+                                <th scope="col">盤點時間</th>
+                            </tr>
+                        </thead>
+                        <tbody id="detail-tbody"><!-- 動態由 JavaScript 渲染 --></tbody>
+                    </table>
+                </div>
+
+                <div id="detail-no-data-view" class="hidden py-16 text-center space-y-3">
+                    <div class="inline-flex p-4 bg-gray-50 text-gray-400 rounded-full"><i class="fa-solid fa-box-open text-3xl"></i></div>
+                    <p class="text-sm text-text-muted font-medium">查無符合條件的盤點明細</p>
+                    <button onclick="resetDetailFilters()" class="text-xs text-primary font-semibold hover:underline">清除篩選條件</button>
+                </div>
+
+                <div class="flex items-center justify-between mt-6 pt-4 border-t border-gray-100">
+                    <span id="detail-pagination-info" class="text-sm text-gray-500">顯示第 0 到 0 筆，共 0 筆記錄</span>
+                    <div class="flex gap-1">
+                        <button class="ui-page-btn"><i class="fa-solid fa-chevron-left text-xs"></i></button>
+                        <button class="ui-page-btn is-active">1</button>
+                        <button class="ui-page-btn"><i class="fa-solid fa-chevron-right text-xs"></i></button>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+    </div>
+
+    <!-- 提示消息 (Toast) -->
+    <div id="toast" class="fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+        <i id="toast-icon" class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
+        <span id="toast-text" class="text-sm font-medium">操作成功！</span>
+    </div>
+
+    <script>
+        // 盤點任務資料庫
+        const taskDb = [
+            { no: 'PD-2026-0001', name: '2026上半年全公司盤點', scope: '全公司',     date: '2026-06-15', owner: 'William', total: 320, done: 286, diff: 7, status: 'ongoing' },
+            { no: 'PD-2026-0002', name: '台北總部IT設備盤點',   scope: '台北總部',   date: '2026-06-10', owner: 'James',   total: 148, done: 148, diff: 3, status: 'done' },
+            { no: 'PD-2026-0003', name: '台中分公司季度盤點',   scope: '台中分公司', date: '2026-06-20', owner: 'Henry',   total: 73,  done: 40,  diff: 1, status: 'ongoing' },
+            { no: 'PD-2026-0004', name: '高雄營運處資產盤點',   scope: '高雄營運處', date: '2026-07-01', owner: 'Emma',    total: 45,  done: 0,   diff: 0, status: 'draft' },
+            { no: 'PD-2026-0005', name: '2025年終資產盤點',     scope: '全公司',     date: '2025-12-20', owner: 'William', total: 298, done: 298, diff: 5, status: 'done' }
+        ];
+
+        // 盤點明細資料庫
+        const detailDb = [
+            { taskNo: 'PD-2026-0001', no: 'ZC-24-0001', type: '笔电-蘋果笔电',   name: 'MacBook Pro 14"',        dept: 'RD',  bookUser: 'Matthew', realUser: 'Matthew', result: 'normal',   checker: 'William', time: '2026-06-15 10:22' },
+            { taskNo: 'PD-2026-0001', no: 'ZC-24-0002', type: '手机-蘋果手机',   name: 'iPhone 15 Pro',          dept: 'RD',  bookUser: 'James',   realUser: 'James',   result: 'normal',   checker: 'William', time: '2026-06-15 10:25' },
+            { taskNo: 'PD-2026-0001', no: 'ZC-24-0003', type: '顯示器',           name: 'Dell U2723QE 27"',       dept: 'HR',  bookUser: 'Henry',   realUser: 'Daniel',  result: 'surplus',  checker: 'William', time: '2026-06-15 11:03' },
+            { taskNo: 'PD-2026-0001', no: 'ZC-24-0004', type: '主机-非蘋果主機', name: 'Lenovo ThinkCentre M90', dept: 'FIN', bookUser: 'Audrey',  realUser: '',        result: 'shortage', checker: 'William', time: '2026-06-15 11:20' },
+            { taskNo: 'PD-2026-0001', no: 'ZC-24-0005', type: '車輛',             name: 'Toyota Corolla Altis',   dept: 'HR',  bookUser: 'William', realUser: 'William', result: 'normal',   checker: 'William', time: '2026-06-15 14:10' },
+            { taskNo: 'PD-2026-0002', no: 'ZC-24-0006', type: '主机-蘋果主機',   name: 'Mac mini M2',            dept: 'RD',  bookUser: 'Alexander', realUser: 'Alexander', result: 'normal', checker: 'James', time: '2026-06-10 09:40' },
+            { taskNo: 'PD-2026-0002', no: 'ZC-24-0007', type: '網路設備',         name: 'Cisco Catalyst 9200',    dept: 'IA1', bookUser: 'Samuel',  realUser: 'Samuel',  result: 'normal',   checker: 'James', time: '2026-06-10 09:55' },
+            { taskNo: 'PD-2026-0002', no: 'ZC-24-0009', type: '辦公家具',         name: '人體工學椅 Herman Miller', dept: 'HR', bookUser: 'Daniel',  realUser: '',        result: 'shortage', checker: 'James', time: '2026-06-10 10:30' },
+            { taskNo: 'PD-2026-0003', no: 'ZC-24-0008', type: '電話卡',           name: '中華電信企業門號',        dept: 'MKT', bookUser: 'Isabella', realUser: 'Isabella', result: 'normal',  checker: 'Henry', time: '2026-06-20 13:15' },
+            { taskNo: 'PD-2026-0003', no: 'ZC-24-0011', type: '雲端空間(伺服器)', name: 'AWS EC2 m6i.large',      dept: 'IA1', bookUser: 'Emma',    realUser: 'Emma',    result: 'pending',  checker: '',      time: '' },
+            { taskNo: 'PD-2026-0003', no: 'ZC-24-0012', type: '收納設備',         name: '鋼製文件櫃',              dept: 'FIN', bookUser: 'Audrey',  realUser: 'Audrey',  result: 'pending',  checker: '',      time: '' },
+            { taskNo: 'PD-2026-0004', no: 'ZC-24-0010', type: '記憶體設備',       name: 'Kingston 32GB DDR5',     dept: 'RD',  bookUser: 'Matthew', realUser: '',        result: 'pending',  checker: '',      time: '' }
+        ];
+
+        let activeTab = 'task';
+
+        const STATUS_MAP = {
+            draft:   { label: '草稿',   cls: 'bg-gray-100 text-gray-600' },
+            ongoing: { label: '進行中', cls: 'bg-amber-50 text-amber-600' },
+            done:    { label: '已完成', cls: 'bg-emerald-50 text-emerald-600' }
+        };
+        const RESULT_MAP = {
+            pending:  { label: '待盤點', cls: 'bg-gray-100 text-gray-500' },
+            normal:   { label: '正常',   cls: 'bg-emerald-50 text-emerald-600' },
+            surplus:  { label: '盤盈',   cls: 'bg-blue-50 text-primary' },
+            shortage: { label: '盤虧',   cls: 'bg-rose-50 text-rose-600' }
+        };
+
+        function badge(map, key) {
+            const m = map[key] || { label: key, cls: 'bg-gray-100 text-gray-600' };
+            return `<span class="px-2 py-0.5 ${m.cls} rounded text-xs font-semibold">${m.label}</span>`;
+        }
+
+        // 頁籤切換
+        function switchTab(tab) {
+            activeTab = tab;
+            document.getElementById('panel-task').classList.toggle('hidden', tab !== 'task');
+            document.getElementById('panel-detail').classList.toggle('hidden', tab !== 'detail');
+            const onCls = 'px-4 py-2.5 text-sm font-semibold text-primary border-b-2 border-primary -mb-px transition-colors';
+            const offCls = 'px-4 py-2.5 text-sm font-medium text-gray-500 border-b-2 border-transparent -mb-px hover:text-gray-700 transition-colors';
+            document.getElementById('tab-btn-task').className = tab === 'task' ? onCls : offCls;
+            document.getElementById('tab-btn-detail').className = tab === 'detail' ? onCls : offCls;
+        }
+
+        // 摘要卡計算
+        function renderKpis() {
+            const pending = detailDb.filter(d => d.result === 'pending').length;
+            const done = detailDb.filter(d => d.result !== 'pending').length;
+            const diff = detailDb.filter(d => d.result === 'surplus' || d.result === 'shortage').length;
+            document.getElementById('kpi-tasks').innerText = taskDb.length;
+            document.getElementById('kpi-pending').innerText = pending;
+            document.getElementById('kpi-done').innerText = done;
+            document.getElementById('kpi-diff').innerText = diff;
+        }
+
+        // 以盤點單填入明細頁的下拉選單
+        function populateTaskFilter() {
+            const sel = document.getElementById('detail-task');
+            taskDb.forEach(t => {
+                const opt = document.createElement('option');
+                opt.value = t.no; opt.textContent = `${t.no}（${t.name}）`;
+                sel.appendChild(opt);
+            });
+        }
+
+        window.onload = function () {
+            renderKpis();
+            populateTaskFilter();
+            applyTaskFilters();
+            applyDetailFilters();
+        };
+
+        /* ============ 盤點任務 ============ */
+        function progressBar(pct) {
+            const color = pct >= 100 ? 'bg-emerald-500' : (pct > 0 ? 'bg-primary' : 'bg-gray-300');
+            return `<div class="flex items-center gap-2 min-w-[110px]">
+                <div class="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden"><div class="h-full ${color} rounded-full" style="width:${pct}%"></div></div>
+                <span class="text-xs font-mono text-gray-500 w-9 text-right">${pct}%</span>
+            </div>`;
+        }
+
+        function renderTasks(data) {
+            const tbody = document.getElementById('task-tbody');
+            const noData = document.getElementById('task-no-data-view');
+            tbody.innerHTML = '';
+
+            if (data.length === 0) {
+                tbody.parentElement.classList.add('hidden');
+                noData.classList.remove('hidden');
+                document.getElementById('task-count-badge').innerText = `0 筆資料`;
+                document.getElementById('task-pagination-info').innerText = `顯示第 0 到 0 筆，共 0 筆記錄`;
+                return;
+            }
+            tbody.parentElement.classList.remove('hidden');
+            noData.classList.add('hidden');
+
+            data.forEach(r => {
+                const pct = r.total ? Math.round(r.done / r.total * 100) : 0;
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-50/70 transition-colors';
+                tr.innerHTML = `
+                    <td class="text-left font-mono font-semibold text-gray-500">${r.no}</td>
+                    <td class="text-left font-medium text-gray-800">${r.name}</td>
+                    <td><span class="px-2 py-0.5 bg-violet-50 text-violet-600 rounded text-xs font-semibold">${r.scope}</span></td>
+                    <td class="font-mono text-gray-500">${r.date}</td>
+                    <td class="text-gray-700">${r.owner}</td>
+                    <td class="font-mono text-gray-700">${r.total}</td>
+                    <td class="font-mono text-gray-700">${r.done}</td>
+                    <td class="font-mono ${r.diff > 0 ? 'text-rose-600 font-bold' : 'text-gray-300'}">${r.diff}</td>
+                    <td>${progressBar(pct)}</td>
+                    <td>${badge(STATUS_MAP, r.status)}</td>
+                    <td>
+                        <button onclick="viewDetail('${r.no}')" class="text-primary hover:underline text-xs font-semibold">明細</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('task-count-badge').innerText = `${data.length} 筆資料`;
+            document.getElementById('task-pagination-info').innerText = `顯示第 1 到 ${data.length} 筆，共 ${data.length} 筆記錄`;
+        }
+
+        function applyTaskFilters() {
+            const kw = document.getElementById('task-search').value.trim().toLowerCase();
+            const statusVal = document.getElementById('task-status').value;
+            const scopeVal = document.getElementById('task-scope').value;
+            const dateVal = document.getElementById('task-date').value;
+            const filtered = taskDb.filter(r =>
+                (!kw || r.no.toLowerCase().includes(kw) || r.name.toLowerCase().includes(kw) || r.owner.toLowerCase().includes(kw)) &&
+                (statusVal === 'all' || r.status === statusVal) &&
+                (scopeVal === 'all' || r.scope === scopeVal) &&
+                (!dateVal || r.date >= dateVal));
+            renderTasks(filtered);
+        }
+
+        function resetTaskFilters() {
+            document.getElementById('task-search').value = '';
+            document.getElementById('task-status').value = 'all';
+            document.getElementById('task-scope').value = 'all';
+            document.getElementById('task-date').value = '';
+            showToast('info', '已還原盤點任務的篩選設定');
+            applyTaskFilters();
+        }
+
+        // 由任務列跳至明細頁並帶入盤點單篩選
+        function viewDetail(taskNo) {
+            switchTab('detail');
+            document.getElementById('detail-task').value = taskNo;
+            applyDetailFilters();
+        }
+
+        function openNewTask() {
+            showToast('info', '建立盤點任務：此為示意頁面，實際串接後端後開啟表單。');
+        }
+
+        /* ============ 盤點明細 ============ */
+        function renderDetails(data) {
+            const tbody = document.getElementById('detail-tbody');
+            const noData = document.getElementById('detail-no-data-view');
+            tbody.innerHTML = '';
+
+            if (data.length === 0) {
+                tbody.parentElement.classList.add('hidden');
+                noData.classList.remove('hidden');
+                document.getElementById('detail-count-badge').innerText = `0 筆資料`;
+                document.getElementById('detail-pagination-info').innerText = `顯示第 0 到 0 筆，共 0 筆記錄`;
+                return;
+            }
+            tbody.parentElement.classList.remove('hidden');
+            noData.classList.add('hidden');
+
+            data.forEach(r => {
+                const realUserCell = r.realUser
+                    ? `<td class="text-gray-700">${r.realUser}</td>`
+                    : `<td class="text-rose-500 text-xs">未尋獲</td>`;
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-50/70 transition-colors';
+                tr.innerHTML = `
+                    <td class="text-left font-mono font-semibold text-gray-500">${r.no}</td>
+                    <td><span class="px-2 py-0.5 bg-blue-50 text-primary rounded text-xs font-semibold">${r.type}</span></td>
+                    <td class="text-left font-medium text-gray-800">${r.name}</td>
+                    <td><span class="px-2 py-0.5 bg-gray-100 rounded text-xs font-semibold text-gray-700">${r.dept}</span></td>
+                    <td class="text-gray-700">${r.bookUser}</td>
+                    ${realUserCell}
+                    <td>${badge(RESULT_MAP, r.result)}</td>
+                    <td class="text-gray-500">${r.checker || '—'}</td>
+                    <td class="font-mono text-gray-400 text-xs">${r.time || '—'}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('detail-count-badge').innerText = `${data.length} 筆資料`;
+            document.getElementById('detail-pagination-info').innerText = `顯示第 1 到 ${data.length} 筆，共 ${data.length} 筆記錄`;
+        }
+
+        function applyDetailFilters() {
+            const kw = document.getElementById('detail-search').value.trim().toLowerCase();
+            const taskVal = document.getElementById('detail-task').value;
+            const resultVal = document.getElementById('detail-result').value;
+            const deptVal = document.getElementById('detail-dept').value;
+            const filtered = detailDb.filter(r =>
+                (!kw || r.no.toLowerCase().includes(kw) || r.name.toLowerCase().includes(kw)
+                    || r.bookUser.toLowerCase().includes(kw) || (r.realUser || '').toLowerCase().includes(kw)) &&
+                (taskVal === 'all' || r.taskNo === taskVal) &&
+                (resultVal === 'all' || r.result === resultVal) &&
+                (deptVal === 'all' || r.dept === deptVal));
+            renderDetails(filtered);
+        }
+
+        function resetDetailFilters() {
+            document.getElementById('detail-search').value = '';
+            document.getElementById('detail-task').value = 'all';
+            document.getElementById('detail-result').value = 'all';
+            document.getElementById('detail-dept').value = 'all';
+            showToast('info', '已還原盤點明細的篩選設定');
+            applyDetailFilters();
+        }
+
+        /* ============ Toast 提示控制 ============ */
+        function showToast(type, text) {
+            const toast = document.getElementById('toast');
+            const toastIcon = document.getElementById('toast-icon');
+            const toastText = document.getElementById('toast-text');
+            toastText.innerText = text;
+
+            if (type === 'success') {
+                toast.className = "fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform transition-all duration-300 border border-emerald-500/20";
+                toastIcon.className = "fa-solid fa-circle-check text-emerald-400 text-base";
+            } else if (type === 'error') {
+                toast.className = "fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform transition-all duration-300 border border-rose-500/20";
+                toastIcon.className = "fa-solid fa-circle-xmark text-rose-400 text-base";
+            } else {
+                toast.className = "fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform transition-all duration-300 border border-blue-500/20";
+                toastIcon.className = "fa-solid fa-circle-info text-blue-400 text-base";
+            }
+
+            toast.style.transform = 'translateY(0)';
+            toast.style.opacity = '1';
+            clearTimeout(window.__toastTimer);
+            window.__toastTimer = setTimeout(() => {
+                toast.style.transform = 'translateY(5rem)';
+                toast.style.opacity = '0';
+            }, 2600);
+        }
+    </script>
+</body>
+</html>

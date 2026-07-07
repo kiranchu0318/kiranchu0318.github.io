@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>資產數統計</title>
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 Font Awesome 用於圖標 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4A90E2',
+                        'primary-light': '#EAF2FC',
+                        background: '#F8F9FB',
+                        card: '#FFFFFF',
+                        text: {
+                            main: '#1F2937',
+                            muted: '#6B7280',
+                            light: '#9CA3AF'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['"Inter"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'card': '0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03)',
+                        'modal': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: theme('colors.background');
+            font-family: theme('fontFamily.sans');
+        }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+    </style>
+    <link rel="stylesheet" href="shared-ui.css">
+</head>
+<body class="ui-page text-text-main antialiased relative">
+
+    <div class="relative mx-auto w-full space-y-6">
+
+        <!-- 頁面標題區塊 -->
+        <header class="ui-page-header">
+            <h1 class="ui-page-title">資產數統計</h1>
+        </header>
+
+        <!-- 列表 (統計) -->
+        <section class="ui-card p-4 sm:p-6">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
+                <div class="flex items-center gap-2">
+                    <h2 class="text-lg font-bold text-gray-900 whitespace-nowrap">資產數統計列表</h2>
+                    <span id="stats-count-badge" class="bg-blue-50 text-primary text-xs px-2.5 py-1 rounded-md font-bold">0 筆資料</span>
+                </div>
+                <div class="text-xs text-text-muted">金額單位：CNY（¥）</div>
+            </div>
+
+            <div class="overflow-x-auto rounded-lg border border-gray-100 custom-scrollbar">
+                <table class="ui-table text-center whitespace-nowrap">
+                    <thead>
+                        <tr>
+                            <th scope="col" class="text-left">資產類型</th>
+                            <th scope="col" class="text-right">價格(CNY)</th>
+                            <th scope="col" class="text-right">殘值(CNY)</th>
+                            <th scope="col">總數量</th>
+                            <th scope="col">使用中</th>
+                            <th scope="col">項目閒置</th>
+                            <th scope="col">行政閒置</th>
+                            <th scope="col">項目保管</th>
+                            <th scope="col">行政保管</th>
+                            <th scope="col">外借</th>
+                            <th scope="col">待出售</th>
+                            <th scope="col">已出售</th>
+                            <th scope="col">已賠付</th>
+                            <th scope="col">已銷毀</th>
+                        </tr>
+                    </thead>
+                    <tbody id="stats-tbody"><!-- 動態由 JavaScript 渲染 --></tbody>
+                </table>
+            </div>
+
+            <div id="stats-no-data-view" class="hidden py-16 text-center space-y-3">
+                <div class="inline-flex p-4 bg-gray-50 text-gray-400 rounded-full"><i class="fa-solid fa-chart-pie text-3xl"></i></div>
+                <p class="text-sm text-text-muted font-medium">尚無資產類型統計資料</p>
+            </div>
+
+            <div class="flex items-center justify-between mt-6 pt-4 border-t border-gray-100">
+                <span id="stats-pagination-info" class="text-sm text-gray-500">顯示第 0 到 0 筆，共 0 筆記錄</span>
+                <div class="flex gap-1">
+                    <button class="ui-page-btn"><i class="fa-solid fa-chevron-left text-xs"></i></button>
+                    <button class="ui-page-btn is-active">1</button>
+                    <button class="ui-page-btn"><i class="fa-solid fa-chevron-right text-xs"></i></button>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- 提示消息 (Toast) -->
+    <div id="toast" class="fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+        <i id="toast-icon" class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
+        <span id="toast-text" class="text-sm font-medium">操作成功！</span>
+    </div>
+
+    <script>
+        // 資產類型清單（依規格固定順序）
+        const ASSET_TYPES = [
+            '主机-蘋果主機', '記憶體設備', '手机-蘋果手机', '笔电-蘋果笔电', '電器設備',
+            '電話卡', '其他電腦設備', '車輛', '主机-非蘋果主機', '雲端空間(伺服器)',
+            '顯示器', '辦公家具', '收納設備', '網路設備'
+        ];
+
+        // 資產數統計資料庫（價格、殘值為單價 CNY；其餘為各狀態數量，總數量於渲染時加總）
+        // 狀態欄位：使用中 / 項目閒置 / 行政閒置 / 項目保管 / 行政保管 / 外借 / 待出售 / 已出售 / 已賠付 / 已銷毀
+        const statsDb = [
+            { type: '主机-蘋果主機',    price: 18000,  residual: 6000,   inUse: 24, projIdle: 3,  adminIdle: 2, projKeep: 1, adminKeep: 2, lent: 1, toSell: 1, sold: 4, paid: 0, destroyed: 2 },
+            { type: '記憶體設備',        price: 800,    residual: 120,    inUse: 60, projIdle: 8,  adminIdle: 5, projKeep: 4, adminKeep: 3, lent: 2, toSell: 2, sold: 6, paid: 1, destroyed: 9 },
+            { type: '手机-蘋果手机',    price: 9000,   residual: 3200,   inUse: 38, projIdle: 4,  adminIdle: 3, projKeep: 2, adminKeep: 2, lent: 3, toSell: 1, sold: 5, paid: 2, destroyed: 0 },
+            { type: '笔电-蘋果笔电',    price: 42000,  residual: 15000,  inUse: 52, projIdle: 5,  adminIdle: 4, projKeep: 3, adminKeep: 2, lent: 2, toSell: 1, sold: 6, paid: 0, destroyed: 5 },
+            { type: '電器設備',          price: 3500,   residual: 700,    inUse: 30, projIdle: 3,  adminIdle: 4, projKeep: 2, adminKeep: 3, lent: 1, toSell: 2, sold: 3, paid: 0, destroyed: 2 },
+            { type: '電話卡',            price: 200,    residual: 0,      inUse: 85, projIdle: 5,  adminIdle: 5, projKeep: 0, adminKeep: 2, lent: 0, toSell: 0, sold: 0, paid: 1, destroyed: 2 },
+            { type: '其他電腦設備',      price: 2200,   residual: 400,    inUse: 42, projIdle: 6,  adminIdle: 4, projKeep: 3, adminKeep: 2, lent: 1, toSell: 2, sold: 5, paid: 0, destroyed: 5 },
+            { type: '車輛',              price: 320000, residual: 110000, inUse: 6,  projIdle: 0,  adminIdle: 1, projKeep: 0, adminKeep: 1, lent: 0, toSell: 1, sold: 1, paid: 0, destroyed: 0 },
+            { type: '主机-非蘋果主機',  price: 9500,   residual: 2800,   inUse: 45, projIdle: 6,  adminIdle: 5, projKeep: 3, adminKeep: 4, lent: 2, toSell: 3, sold: 7, paid: 1, destroyed: 4 },
+            { type: '雲端空間(伺服器)',  price: 60000,  residual: 20000,  inUse: 14, projIdle: 1,  adminIdle: 0, projKeep: 1, adminKeep: 0, lent: 0, toSell: 0, sold: 2, paid: 0, destroyed: 2 },
+            { type: '顯示器',            price: 1800,   residual: 300,    inUse: 95, projIdle: 10, adminIdle: 8, projKeep: 5, adminKeep: 6, lent: 3, toSell: 4, sold: 9, paid: 0, destroyed: 10 },
+            { type: '辦公家具',          price: 1200,   residual: 200,    inUse: 78, projIdle: 6,  adminIdle: 5, projKeep: 4, adminKeep: 5, lent: 0, toSell: 3, sold: 4, paid: 0, destroyed: 15 },
+            { type: '收納設備',          price: 600,    residual: 100,    inUse: 55, projIdle: 5,  adminIdle: 4, projKeep: 3, adminKeep: 2, lent: 0, toSell: 1, sold: 2, paid: 0, destroyed: 8 },
+            { type: '網路設備',          price: 4500,   residual: 900,    inUse: 36, projIdle: 4,  adminIdle: 3, projKeep: 2, adminKeep: 2, lent: 1, toSell: 1, sold: 4, paid: 1, destroyed: 6 }
+        ];
+
+        // 千分位格式化
+        function fmt(n) { return Number(n).toLocaleString('en-US'); }
+        // 各狀態數量加總 = 總數量
+        function totalCount(r) {
+            return r.inUse + r.projIdle + r.adminIdle + r.projKeep + r.adminKeep + r.lent + r.toSell + r.sold + r.paid + r.destroyed;
+        }
+        // 數量格子：0 以淺灰顯示，降低視覺雜訊
+        function numCell(n) {
+            return `<td class="${n === 0 ? 'text-gray-300' : 'text-gray-700 font-medium'}">${n}</td>`;
+        }
+
+        window.onload = function () {
+            renderStats(statsDb);
+        };
+
+        /* ============ 資產數統計 ============ */
+        function renderStats(data) {
+            const tbody = document.getElementById('stats-tbody');
+            const noData = document.getElementById('stats-no-data-view');
+            tbody.innerHTML = '';
+
+            if (data.length === 0) {
+                tbody.parentElement.classList.add('hidden');
+                noData.classList.remove('hidden');
+                document.getElementById('stats-count-badge').innerText = `0 筆資料`;
+                document.getElementById('stats-pagination-info').innerText = `顯示第 0 到 0 筆，共 0 筆記錄`;
+                return;
+            }
+
+            tbody.parentElement.classList.remove('hidden');
+            noData.classList.add('hidden');
+
+            data.forEach(r => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-50/70 transition-colors';
+                tr.innerHTML = `
+                    <td class="text-left font-semibold text-gray-800">${r.type}</td>
+                    <td class="text-right font-mono text-gray-700">¥ ${fmt(r.price)}</td>
+                    <td class="text-right font-mono text-gray-500">¥ ${fmt(r.residual)}</td>
+                    <td class="font-bold text-primary">${totalCount(r)}</td>
+                    ${numCell(r.inUse)}
+                    ${numCell(r.projIdle)}
+                    ${numCell(r.adminIdle)}
+                    ${numCell(r.projKeep)}
+                    ${numCell(r.adminKeep)}
+                    ${numCell(r.lent)}
+                    ${numCell(r.toSell)}
+                    ${numCell(r.sold)}
+                    ${numCell(r.paid)}
+                    ${numCell(r.destroyed)}
+                `;
+                tbody.appendChild(tr);
+            });
+
+            // 合計列
+            const sum = (key) => data.reduce((acc, r) => acc + r[key], 0);
+            const totalQty = data.reduce((acc, r) => acc + totalCount(r), 0);
+            const totalRow = document.createElement('tr');
+            totalRow.className = 'bg-gray-50 font-bold text-gray-800 border-t-2 border-gray-200';
+            totalRow.innerHTML = `
+                <td class="text-left">合計</td>
+                <td class="text-right font-mono">¥ ${fmt(sum('price'))}</td>
+                <td class="text-right font-mono">¥ ${fmt(sum('residual'))}</td>
+                <td class="text-primary">${totalQty}</td>
+                <td>${sum('inUse')}</td>
+                <td>${sum('projIdle')}</td>
+                <td>${sum('adminIdle')}</td>
+                <td>${sum('projKeep')}</td>
+                <td>${sum('adminKeep')}</td>
+                <td>${sum('lent')}</td>
+                <td>${sum('toSell')}</td>
+                <td>${sum('sold')}</td>
+                <td>${sum('paid')}</td>
+                <td>${sum('destroyed')}</td>
+            `;
+            tbody.appendChild(totalRow);
+
+            document.getElementById('stats-count-badge').innerText = `${data.length} 筆資料`;
+            document.getElementById('stats-pagination-info').innerText = `顯示第 1 到 ${data.length} 筆，共 ${data.length} 筆記錄`;
+        }
+
+        /* ============ Toast 提示控制 ============ */
+        function showToast(type, text) {
+            const toast = document.getElementById('toast');
+            const toastIcon = document.getElementById('toast-icon');
+            const toastText = document.getElementById('toast-text');
+            toastText.innerText = text;
+
+            if (type === 'success') {
+                toast.className = "fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform transition-all duration-300 border border-emerald-500/20";
+                toastIcon.className = "fa-solid fa-circle-check text-emerald-400 text-base";
+            } else if (type === 'error') {
+                toast.className = "fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform transition-all duration-300 border border-rose-500/20";
+                toastIcon.className = "fa-solid fa-circle-xmark text-rose-400 text-base";
+            } else {
+                toast.className = "fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform transition-all duration-300 border border-blue-500/20";
+                toastIcon.className = "fa-solid fa-circle-info text-blue-400 text-base";
+            }
+
+            toast.style.transform = 'translateY(0)';
+            toast.style.opacity = '1';
+            clearTimeout(window.__toastTimer);
+            window.__toastTimer = setTimeout(() => {
+                toast.style.transform = 'translateY(5rem)';
+                toast.style.opacity = '0';
+            }, 2600);
+        }
+    </script>
+</body>
+</html>
