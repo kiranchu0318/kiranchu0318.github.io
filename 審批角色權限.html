@@ -31,46 +31,23 @@
             <h1 class="ui-page-title">審批角色權限</h1>
         </header>
 
-        <section class="ui-card p-4 sm:p-6 space-y-4">
-            <div class="flex items-start gap-2.5 p-3.5 rounded-lg bg-primary-light/60 border border-primary/20">
-                <i class="fa-solid fa-user-shield text-primary mt-0.5"></i>
-                <p class="text-sm text-gray-600 leading-relaxed">設定各「審批角色」於單據流程中可執行的操作權限。勾選後按「儲存」即套用。</p>
-            </div>
-
-            <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-                <div class="ui-search w-full sm:w-72">
-                    <i class="fa-solid fa-magnifying-glass"></i>
-                    <input type="text" id="role-search" oninput="renderMatrix()" placeholder="搜尋審批角色..." class="ui-input ui-search-input">
+        <div class="ui-card overflow-hidden flex flex-col lg:flex-row min-h-[640px]">
+            <!-- 左：審批角色清單 -->
+            <aside class="lg:w-64 shrink-0 border-b lg:border-b-0 lg:border-r border-gray-100 flex flex-col">
+                <div class="px-4 py-3 border-b border-gray-100">
+                    <div class="ui-search">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="role-search" oninput="renderRoleList()" placeholder="搜尋審批角色..." class="ui-input ui-search-input">
+                    </div>
                 </div>
-                <div class="flex items-center gap-2">
-                    <button onclick="resetAll()" class="ui-btn ui-btn-secondary"><i class="fa-solid fa-arrows-rotate"></i> 重設</button>
-                    <button onclick="savePerms()" class="ui-btn ui-btn-primary"><i class="fa-solid fa-floppy-disk"></i> 儲存</button>
-                </div>
-            </div>
+                <div id="role-list" class="flex-1 overflow-y-auto p-2 space-y-1 lg:max-h-[600px]"></div>
+            </aside>
 
-            <div class="overflow-x-auto rounded-lg border border-gray-100">
-                <table class="ui-table whitespace-nowrap text-center">
-                    <thead>
-                        <tr>
-                            <th class="text-left sticky left-0 bg-gray-50 z-10 min-w-[160px]">審批角色</th>
-                            <th class="w-24">檢視單據</th>
-                            <th class="w-24">核准</th>
-                            <th class="w-24">駁回</th>
-                            <th class="w-24">加簽</th>
-                            <th class="w-28">轉簽 / 改派</th>
-                            <th class="w-24">批次簽核</th>
-                            <th class="w-28">設定代理人</th>
-                            <th class="w-24">匯出報表</th>
-                        </tr>
-                    </thead>
-                    <tbody id="perm-tbody"></tbody>
-                </table>
-            </div>
-            <div id="perm-no-data" class="hidden py-16 text-center space-y-3">
-                <div class="inline-flex p-4 bg-gray-50 text-gray-400 rounded-full"><i class="fa-solid fa-user-shield text-3xl"></i></div>
-                <p class="text-sm text-text-muted font-medium">查無符合條件的審批角色</p>
-            </div>
-        </section>
+            <!-- 右：權限設定 -->
+            <section class="flex-1 min-w-0 flex flex-col">
+                <div id="perm-panel" class="flex-1 overflow-y-auto p-5 sm:p-6 space-y-5"></div>
+            </section>
+        </div>
     </div>
 
     <div id="toast" class="fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
@@ -79,47 +56,107 @@
     </div>
 
     <script>
-        // 權限鍵（對應表頭欄位順序）
-        const PERM_KEYS = ['view', 'approve', 'reject', 'countersign', 'transfer', 'batch', 'delegate', 'export'];
-        // 審批角色（同「審批角色」頁）與各自預設權限
-        let roles = [
-            { name: '申請人直屬主管', perms: { view: true, approve: true, reject: true, countersign: true, transfer: true, batch: true, delegate: true, export: false } },
-            { name: '部門主管',       perms: { view: true, approve: true, reject: true, countersign: true, transfer: true, batch: true, delegate: true, export: true } },
-            { name: '負責人',         perms: { view: true, approve: true, reject: true, countersign: true, transfer: false, batch: true, delegate: true, export: true } },
-            { name: '人事專員',       perms: { view: true, approve: true, reject: true, countersign: false, transfer: false, batch: false, delegate: false, export: true } },
-            { name: '人事主管',       perms: { view: true, approve: true, reject: true, countersign: true, transfer: true, batch: true, delegate: true, export: true } },
-            { name: '財務人員',       perms: { view: true, approve: true, reject: true, countersign: false, transfer: false, batch: false, delegate: false, export: true } },
-            { name: '財務主管',       perms: { view: true, approve: true, reject: true, countersign: true, transfer: true, batch: true, delegate: true, export: true } },
-            { name: '執行長',         perms: { view: true, approve: true, reject: true, countersign: true, transfer: true, batch: true, delegate: true, export: true } },
-            { name: '董事長',         perms: { view: true, approve: true, reject: true, countersign: true, transfer: true, batch: true, delegate: true, export: true } }
+        // 權限分組
+        const PERM_GROUPS = [
+            { group: '下載權限', icon: 'fa-download', items: [
+                { key: 'p01', label: '記賬下載' }, { key: 'p02', label: '費用會計下載' },
+                { key: 'p03', label: '文件下載' }, { key: 'p04', label: '資金專員下載' } ] },
+            { group: '付款權限', icon: 'fa-money-check-dollar', items: [
+                { key: 'p05', label: '確認付款權限' }, { key: 'p07', label: '付款監控' } ] },
+            { group: '審批流程', icon: 'fa-diagram-project', items: [
+                { key: 'p06', label: '實時編輯審批線' }, { key: 'p08', label: '提交申請' } ] },
+            { group: '資產管理', icon: 'fa-box-archive', items: [
+                { key: 'p09', label: '資產管理(檢視)' }, { key: 'p14', label: '資產管理(編輯)' },
+                { key: 'p10', label: '資產盤點內審' }, { key: 'p11', label: '資產盤點財務' },
+                { key: 'p12', label: '資產盤點管理員' }, { key: 'p13', label: '資產盤點行政' } ] },
+            { group: '職能角色', icon: 'fa-user-tag', items: [
+                { key: 'p15', label: '費用會計' }, { key: 'p16', label: '資金專員' },
+                { key: 'p17', label: '採購負責人' }, { key: 'p18', label: '查看費用會計' } ] }
         ];
+        const ALL_KEYS = PERM_GROUPS.flatMap(g => g.items.map(i => i.key));
+        const LABEL_OF = {}; PERM_GROUPS.forEach(g => g.items.forEach(i => LABEL_OF[i.key] = i.label));
 
-        function renderMatrix() {
+        // 審批角色
+        let roles = [
+            { name: '申請人直屬主管', perms: {} }, { name: '部門主管', perms: {} },
+            { name: '負責人', perms: {} }, { name: '人事專員', perms: {} },
+            { name: '人事主管', perms: {} }, { name: '財務人員', perms: {} },
+            { name: '財務主管', perms: {} }, { name: '執行長', perms: {} },
+            { name: '董事長', perms: {} }
+        ];
+        // 預設權限（示範）：首列全開，其餘依規律
+        roles.forEach((r, ri) => { ALL_KEYS.forEach((k, pi) => { r.perms[k] = (ri === 0) ? true : ((pi + ri) % 3 !== 0); }); });
+
+        let selectedIndex = 0;
+
+        function grantedCount(r) { return ALL_KEYS.filter(k => r.perms[k]).length; }
+
+        function renderRoleList() {
             const kw = (document.getElementById('role-search').value || '').trim().toLowerCase();
-            const list = roles.filter(r => !kw || r.name.toLowerCase().includes(kw));
-            const tbody = document.getElementById('perm-tbody');
-            tbody.innerHTML = list.map(r => {
-                const idx = roles.indexOf(r);
-                const cells = PERM_KEYS.map(k =>
-                    `<td><input type="checkbox" ${r.perms[k] ? 'checked' : ''} onchange="togglePerm(${idx},'${k}',this.checked)" class="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"></td>`
-                ).join('');
-                return '<tr class="hover:bg-gray-50/70 transition-colors">' +
-                    '<td class="text-left font-medium text-gray-800 sticky left-0 bg-white z-10">' + r.name + '</td>' +
-                    cells + '</tr>';
+            const box = document.getElementById('role-list');
+            box.innerHTML = roles.map((r, i) => {
+                if (kw && !r.name.toLowerCase().includes(kw)) return '';
+                const on = i === selectedIndex;
+                return `<button onclick="selectRole(${i})" class="w-full text-left px-3 py-2.5 rounded-lg transition-colors ${on ? 'bg-primary-light border border-primary/30' : 'hover:bg-gray-50 border border-transparent'}">
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm font-semibold ${on ? 'text-primary' : 'text-gray-800'}">${r.name}</span>
+                        <span class="text-[11px] ${on ? 'text-primary' : 'text-gray-400'}">${grantedCount(r)}/${ALL_KEYS.length}</span>
+                    </div>
+                </button>`;
             }).join('');
-            document.getElementById('perm-no-data').classList.toggle('hidden', list.length > 0);
-            tbody.parentElement.classList.toggle('hidden', list.length === 0);
         }
 
-        function togglePerm(idx, key, val) { if (roles[idx]) roles[idx].perms[key] = val; }
+        function selectRole(i) { selectedIndex = i; renderRoleList(); renderPanel(); }
 
-        function resetAll() {
-            roles.forEach(r => PERM_KEYS.forEach(k => { r.perms[k] = (k !== 'export'); }));
-            renderMatrix();
-            showToast('info', '已重設為預設權限');
+        function toggleHtml(item, r) {
+            return `<label class="flex items-center gap-2.5 px-3 py-2 rounded-lg border border-gray-100 hover:border-gray-200 cursor-pointer">
+                <input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer" ${r.perms[item.key] ? 'checked' : ''} onchange="togglePerm('${item.key}', this.checked)">
+                <span class="text-sm text-gray-700">${item.label}</span>
+            </label>`;
         }
 
-        function savePerms() { showToast('success', '已儲存審批角色權限設定'); }
+        function renderPanel() {
+            const r = roles[selectedIndex];
+            const granted = grantedCount(r);
+            let html = `
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-gray-100">
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-900">${r.name}</h3>
+                        <p class="text-sm text-gray-500 mt-0.5">已授權 <span class="font-semibold text-primary">${granted}</span> / ${ALL_KEYS.length} 項</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="setAll(true)" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-check-double"></i> 全選</button>
+                        <button onclick="setAll(false)" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-xmark"></i> 清除</button>
+                        <button onclick="savePerms()" class="ui-btn ui-btn-primary ui-btn-sm"><i class="fa-solid fa-floppy-disk"></i> 儲存</button>
+                    </div>
+                </div>`;
+            html += PERM_GROUPS.map(g => {
+                const gkeys = g.items.map(i => i.key);
+                const gGranted = gkeys.filter(k => r.perms[k]).length;
+                const allOn = gGranted === gkeys.length;
+                return `<div class="border border-gray-100 rounded-xl p-4">
+                    <div class="flex items-center justify-between mb-3">
+                        <h4 class="text-sm font-bold text-gray-800 flex items-center gap-2">${g.group}<span class="text-xs font-medium text-gray-400">${gGranted}/${gkeys.length}</span></h4>
+                        <label class="inline-flex items-center gap-1.5 cursor-pointer text-xs font-medium text-gray-500">
+                            <input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer" ${allOn ? 'checked' : ''} onchange="toggleGroup('${g.group}', this.checked)"> 全選
+                        </label>
+                    </div>
+                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
+                        ${g.items.map(it => toggleHtml(it, r)).join('')}
+                    </div>
+                </div>`;
+            }).join('');
+            document.getElementById('perm-panel').innerHTML = html;
+        }
+
+        function togglePerm(key, val) { roles[selectedIndex].perms[key] = val; renderPanel(); renderRoleList(); }
+        function toggleGroup(groupName, val) {
+            const g = PERM_GROUPS.find(x => x.group === groupName);
+            g.items.forEach(i => roles[selectedIndex].perms[i.key] = val);
+            renderPanel(); renderRoleList();
+        }
+        function setAll(val) { ALL_KEYS.forEach(k => roles[selectedIndex].perms[k] = val); renderPanel(); renderRoleList(); }
+        function savePerms() { showToast('success', `已儲存「${roles[selectedIndex].name}」的權限設定`); }
 
         function showToast(type, text) {
             const toast = document.getElementById('toast');
@@ -133,7 +170,8 @@
             clearTimeout(window.__t); window.__t = setTimeout(() => { toast.style.transform = 'translateY(5rem)'; toast.style.opacity = '0'; }, 2600);
         }
 
-        renderMatrix();
+        renderRoleList();
+        renderPanel();
     </script>
 </body>
 </html>

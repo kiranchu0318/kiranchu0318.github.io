@@ -532,7 +532,6 @@
                         <th>當前審批人</th>
                         <th>關聯單號</th>
                         <th>簽核狀態</th>
-                        <th>工作狀態</th>
                         <th>操作</th>
                       </tr>
                     </thead>
@@ -545,9 +544,9 @@
                           <td className="text-left">
                             <button
                               onClick={() => { setModalRow(row); setIsModalOpen(true); }}
-                              className="text-[#4A90E2] hover:underline font-medium text-left"
+                              className={`${row.urgent ? 'text-[#CE0000]' : 'text-[#4A90E2]'} hover:underline font-medium text-left`}
                             >
-                              {row.urgent && <span className="text-red-600 font-bold">【緊急】</span>}
+                              {row.urgent && <span className="text-[#CE0000]">緊急_</span>}
                               {row.docNo ? (row.docNo === 'C-THQ-000001' ? `${row.docNo}_辦公室用品費用報銷` : `${row.docNo}_${({ B: '一般費用', C: '費用報銷', IC: '內部合同', PU: '請購', HR: '人員帳號異動', SA: '用印申請' })[row.type] || '申請'}`) : `${row.type}-GT-GT-${row.location}-AAA H-${row.date.slice(0,10).replace(/-/g,'')}-${String(idx+1).padStart(2,'0')}`}
                             </button>
                           </td>
@@ -579,15 +578,6 @@
                             <div className="flex items-center justify-center">
                               {getStatusBadge(row.status)}
                             </div>
-                          </td>
-                          <td className="text-center">
-                            {(row.status === '草稿' || row.status === '模板') ? (
-                              <span className="text-gray-300">—</span>
-                            ) : (() => {
-                              const ws = row.status === '簽核完成' ? (row.workStatus || '未派工') : '未派工';
-                              const cls = { '已完成': 'ui-badge-success', '處理中': 'ui-badge-info', '未派工': 'ui-badge-gray' }[ws] || 'ui-badge-gray';
-                              return <span className={`ui-badge ${cls}`}>{ws}</span>;
-                            })()}
                           </td>
                           <td>
                             <div className="flex items-center justify-center gap-2">

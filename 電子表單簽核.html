@@ -174,6 +174,20 @@
       // 單據覆寫（指派後更新簽核/工作狀態）：{ [docNo]: { status, workStatus } }
       const [docOverrides, setDocOverrides] = useState({});
       const [approveFiles, setApproveFiles] = useState([]); // [{ name, size }]
+      // 費用會計彈窗
+      const [costAcctOpen, setCostAcctOpen] = useState(false);
+      const [costAcctRows, setCostAcctRows] = useState([]); // 費用會計分錄，初始為空
+      const addCostAcctRow = () => setCostAcctRows(prev => [...prev, { subject: '', subjectNote: '', project: 'GT', dept: '', currency: 'TWD', amount: '' }]);
+      const removeCostAcctRow = (i) => setCostAcctRows(prev => prev.filter((_, idx) => idx !== i));
+      // 費用報銷明細（供表格顯示與「項目金額」計算共用）
+      const reimburseDetail = [
+        { project: 'GT', dept: 'RD', purpose: '辦公室文具採購', currency: 'TWD', amount: '1,200', note: '—' },
+        { project: 'GT', dept: 'HR', purpose: '茶水間用品補充', currency: 'TWD', amount: '800', note: '—' },
+      ];
+      // 匯率：換算成人民幣（CNY per 1 單位）
+      const FX_TO_CNY = { TWD: 451.47 / 2000, CNY: 1 };
+      const toCNY = (amt, cur) => (parseFloat(String(amt).replace(/,/g, '')) || 0) * (FX_TO_CNY[cur] || 1);
+      const fmtMoney = (n) => n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
       const approveEditorRef = React.useRef(null);
       // 費用報銷明細下方「說明」附件（預設帶入兩張發票示意）
       const [noteFiles, setNoteFiles] = useState([
@@ -536,6 +550,7 @@
         { oa: '行政', location: 'THQ', type: 'PU', docNo: 'PU-THQ-000003', applicant: 'Oliver', signature: 'Oliver', amounts: ['TWD 8,000', 'CNY 2137.09'],        date: '2026-05-12 15:36:45', approver: 'James', refNo: '-', status: '未簽核', isGreen: false, workStatus: '未派工', urgent: true },
         { oa: '行政', location: 'THQ', type: 'PU', docNo: 'PU-THQ-000002', applicant: 'Oliver', signature: 'Oliver', amounts: ['TWD 2,000,000', 'CNY 427407.40'], date: '2026-04-30 12:36:10', approver: 'James', refNo: '-', status: '簽核完成', isGreen: true, workStatus: '處理中' },
         { oa: '財務', location: 'THQ', type: 'C',  docNo: 'C-THQ-000001',  applicant: 'Oliver', signature: 'Oliver', amounts: ['TWD 2,000', 'CNY 451.47'],          date: '2026-04-26 19:00:45', approver: 'James', refNo: '-', status: '待我簽核', isGreen: false, workStatus: '未派工' },
+        { oa: '財務', location: 'THQ', type: 'C',  docNo: 'C-THQ-000001',  label: 'C-THQ-000001_辦公室用品費用報銷(費用會計+資金支付)', applicant: 'Oliver', signature: 'Oliver', amounts: ['TWD 2,000', 'CNY 451.47'],          date: '2026-04-26 19:00:45', approver: 'James', refNo: '-', status: '待我簽核', isGreen: false, workStatus: '未派工' },
         { oa: '財務', location: 'THQ', type: 'C',  docNo: 'C-THQ-000002',  applicant: 'Dev', signature: 'Dev', amounts: ['TWD 3,500', 'CNY 789.25'],          date: '2026-05-18 10:22:30', approver: 'James', refNo: '-', status: '待我簽核', isGreen: false, workStatus: '處理中' },
         { oa: '行政', location: 'THQ', type: 'PU', docNo: 'PU-THQ-000001', applicant: 'Oliver', signature: 'Oliver', amounts: ['TWD 2,000', 'CNY 451.47'],          date: '2026-04-25 19:00:45', approver: 'James', refNo: '-', status: '簽核完成', isGreen: true, workStatus: '已完成' },
       ];
@@ -658,12 +673,11 @@
                           <th>當前審批人</th>
                           <th>關聯單號</th>
                           <th>簽核狀態</th>
-                          <th>工作狀態</th>
                         </tr>
                       </thead>
                       <tbody>
                         {filteredFormData.length === 0 && (
-                          <tr><td colSpan="12" className="py-8 text-center text-gray-400">目前沒有符合條件的資料</td></tr>
+                          <tr><td colSpan="11" className="py-8 text-center text-gray-400">目前沒有符合條件的資料</td></tr>
                         )}
                         {filteredFormData.map((row, idx) => (
                           <tr
@@ -676,10 +690,10 @@
                             <td className="text-left">
                               <button
                                 onClick={() => openDocModal(row)}
-                                className="text-[#4A90E2] hover:underline font-medium text-left"
+                                className={`${row.urgent ? 'text-[#CE0000]' : 'text-[#4A90E2]'} hover:underline font-medium text-left`}
                               >
-                                {row.urgent && <span className="text-red-600 font-bold">【緊急】</span>}
-                                {row.docNo === 'C-THQ-000001' ? `${row.docNo}_辦公室用品費用報銷(費用會計範例)` : row.docNo === 'C-THQ-000002' ? `${row.docNo}_辦公室用品費用報銷(資金支付範例)` : `${row.docNo}_${({ B: '一般費用', C: '費用報銷', IC: '內部合同', PU: '請購', HR: '人員帳號異動', SA: '用印申請' })[row.type] || '申請'}`}
+                                {row.urgent && <span className="text-[#CE0000]">緊急_</span>}
+                                {row.label ? row.label : row.docNo === 'C-THQ-000001' ? `${row.docNo}_辦公室用品費用報銷(費用會計範例)` : row.docNo === 'C-THQ-000002' ? `${row.docNo}_辦公室用品費用報銷(資金支付範例)` : `${row.docNo}_${({ B: '一般費用', C: '費用報銷', IC: '內部合同', PU: '請購', HR: '人員帳號異動', SA: '用印申請' })[row.type] || '申請'}`}
                               </button>
                             </td>
                             <td>{row.applicant}</td>
@@ -723,15 +737,6 @@
                                   </button>
                                 )}
                               </div>
-                            </td>
-                            <td className="text-center">
-                              {(() => {
-                                const ov = docOverrides[row.docNo] || {};
-                                const effStatus = ov.status || row.status;
-                                const ws = effStatus === '簽核完成' ? (ov.workStatus || row.workStatus || '未派工') : '未派工';
-                                const cls = { '已完成': 'ui-badge-success', '已派工': 'ui-badge-info', '處理中': 'ui-badge-info', '未派工': 'ui-badge-gray' }[ws] || 'ui-badge-gray';
-                                return <span className={`ui-badge ${cls}`}>{ws}</span>;
-                              })()}
                             </td>
                           </tr>
                         ))}
@@ -1485,7 +1490,10 @@
                       </div>
                       <div className="w-full flex justify-center items-center gap-3 mt-2">
                         {modalRow?.docNo === 'C-THQ-000001' && (
-                          <button className="ui-btn ui-btn-secondary ui-btn-lg">費用會計</button>
+                          <button onClick={() => setCostAcctOpen(true)} className="ui-btn ui-btn-secondary ui-btn-lg">費用會計</button>
+                        )}
+                        {modalRow?.label === 'C-THQ-000001_辦公室用品費用報銷(費用會計+資金支付)' && (
+                          <button className="ui-btn ui-btn-secondary ui-btn-lg">資金支付</button>
                         )}
                         <button
                           onClick={openApproveAction}
@@ -1891,6 +1899,143 @@
               </div>
             );
           })()}
+
+          {/* ================= 費用會計彈窗 ================= */}
+          {costAcctOpen && (
+            <div className="fixed inset-0 bg-black bg-opacity-45 z-[60] flex items-center justify-center p-4" onClick={() => setCostAcctOpen(false)}>
+              <div className="bg-white rounded-md shadow-2xl w-full max-w-[960px] max-h-[90vh] flex flex-col overflow-hidden text-left" onClick={(e) => e.stopPropagation()}>
+                {/* 標題 */}
+                <div className="bg-[#EAF2FC] flex justify-between items-center px-5 py-3 border-b border-blue-100 flex-shrink-0">
+                  <h2 className="text-[#2b3b84] font-bold text-[16px]">費用會計</h2>
+                  <button onClick={() => setCostAcctOpen(false)} className="bg-blue-500 hover:bg-blue-600 text-white rounded p-1 transition-colors">
+                    <span className="block w-4 h-4 leading-4 text-center">✕</span>
+                  </button>
+                </div>
+
+                <div className="flex-1 overflow-y-auto p-5 space-y-6 bg-[#f4f5f8]">
+                  {/* 區塊一：費用報銷明細（帶入） */}
+                  <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm space-y-3">
+                    <div className="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2">費用報銷明細</div>
+                    <div className="overflow-x-auto border border-gray-100 rounded-lg">
+                      <table className="w-full text-left text-sm border-collapse whitespace-nowrap">
+                        <thead>
+                          <tr className="border-b border-gray-200 bg-gray-50 text-gray-700 font-bold text-xs">
+                            <th className="px-3 py-2 w-28">專案</th>
+                            <th className="px-3 py-2 w-28">部門</th>
+                            <th className="px-3 py-2 w-48">目的</th>
+                            <th className="px-3 py-2 w-48">金額</th>
+                            <th className="px-3 py-2">其他意見</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100 text-gray-700">
+                          {reimburseDetail.map((r, i) => (
+                            <tr key={i}>
+                              <td className="px-3 py-2">{r.project}</td>
+                              <td className="px-3 py-2">{r.dept}</td>
+                              <td className="px-3 py-2">{r.purpose}</td>
+                              <td className="px-3 py-2"><span className="text-gray-400 mr-1">{r.currency}</span>{r.amount}</td>
+                              <td className="px-3 py-2">{r.note}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  {/* 區塊二：費用會計（可新增分錄） */}
+                  <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm space-y-3">
+                    <div className="flex justify-between items-center border-b border-gray-100 pb-2">
+                      <div className="text-[#1A237E] font-bold text-[15px]">費用會計</div>
+                      <button onClick={addCostAcctRow} className="ui-btn ui-btn-primary ui-btn-sm">＋ 添加</button>
+                    </div>
+                    <div className="overflow-x-auto border border-gray-100 rounded-lg">
+                      <table className="w-full text-left text-sm border-collapse whitespace-nowrap">
+                        <thead>
+                          <tr className="border-b border-gray-200 bg-gray-50 text-gray-700 font-bold text-xs">
+                            <th className="px-3 py-2 w-44">科目</th>
+                            <th className="px-3 py-2 w-48">說明</th>
+                            <th className="px-3 py-2 w-28">專案</th>
+                            <th className="px-3 py-2 w-28">部門</th>
+                            <th className="px-3 py-2 w-24">貨幣</th>
+                            <th className="px-3 py-2 w-40">金額</th>
+                            <th className="px-3 py-2 w-16 text-center">操作</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100">
+                          {costAcctRows.length === 0 ? (
+                            <tr><td colSpan="7" className="px-3 py-6 text-center text-gray-400 text-sm">尚無資料，請點「＋ 添加」新增分錄</td></tr>
+                          ) : costAcctRows.map((r, i) => (
+                            <tr key={i}>
+                              <td className="px-3 py-1.5">
+                                <select value={r.subject} onChange={(e) => setCostAcctRows(prev => prev.map((x, idx) => idx === i ? { ...x, subject: e.target.value } : x))} className="w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2]">
+                                  <option value="">請選擇</option>
+                                  <option>辦公費</option><option>差旅費</option><option>交際費</option><option>郵電費</option><option>雜項購置</option><option>其他費用</option>
+                                </select>
+                              </td>
+                              <td className="px-3 py-1.5">
+                                <input type="text" value={r.subjectNote} onChange={(e) => setCostAcctRows(prev => prev.map((x, idx) => idx === i ? { ...x, subjectNote: e.target.value } : x))} className="w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2]" placeholder="科目說明" />
+                              </td>
+                              <td className="px-3 py-1.5">
+                                <select value={r.project} onChange={(e) => setCostAcctRows(prev => prev.map((x, idx) => idx === i ? { ...x, project: e.target.value } : x))} className="w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2]"><option>GT</option></select>
+                              </td>
+                              <td className="px-3 py-1.5">
+                                <select value={r.dept} onChange={(e) => setCostAcctRows(prev => prev.map((x, idx) => idx === i ? { ...x, dept: e.target.value } : x))} className="w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2]">
+                                  <option value="">請選擇</option><option>RD</option><option>HR</option><option>MKT</option><option>IA1</option>
+                                </select>
+                              </td>
+                              <td className="px-3 py-1.5">
+                                <select value={r.currency} onChange={(e) => setCostAcctRows(prev => prev.map((x, idx) => idx === i ? { ...x, currency: e.target.value } : x))} className="w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2]"><option>TWD</option><option>CNY</option></select>
+                              </td>
+                              <td className="px-3 py-1.5">
+                                <input type="text" value={r.amount} onChange={(e) => setCostAcctRows(prev => prev.map((x, idx) => idx === i ? { ...x, amount: e.target.value } : x))} className="w-full border border-gray-300 rounded px-2 py-1 text-sm text-right outline-none focus:border-[#4A90E2]" placeholder="0" />
+                              </td>
+                              <td className="px-3 py-1.5 text-center">
+                                <button onClick={() => removeCostAcctRow(i)} className="text-red-400 hover:text-red-600">✕</button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 固定懸浮計算列 */}
+                {(() => {
+                  const projectAmountCNY = reimburseDetail.reduce((s, r) => s + toCNY(r.amount, r.currency), 0);
+                  const totalCostCNY = costAcctRows.reduce((s, r) => s + toCNY(r.amount, r.currency), 0);
+                  const diffCNY = projectAmountCNY - totalCostCNY;
+                  const balanced = Math.abs(diffCNY) < 0.005;
+                  return (
+                    <div className="bg-[#f4f5f8] border-t border-gray-200 px-5 py-3 flex justify-end flex-shrink-0">
+                      <div className="bg-white border border-gray-200 rounded-xl shadow-lg px-6 py-3 flex items-center gap-8">
+                        <div className="text-right">
+                          <div className="text-[11px] text-gray-400 font-medium">項目金額</div>
+                          <div className="text-[15px] font-bold text-[#2b3b84] leading-tight">CNY {fmtMoney(projectAmountCNY)}</div>
+                        </div>
+                        <div className="w-px h-8 bg-gray-200"></div>
+                        <div className="text-right">
+                          <div className="text-[11px] text-gray-400 font-medium">總項目費用</div>
+                          <div className="text-[15px] font-bold text-[#2b3b84] leading-tight">CNY {fmtMoney(totalCostCNY)}</div>
+                        </div>
+                        <div className="w-px h-8 bg-gray-200"></div>
+                        <div className="text-right">
+                          <div className="text-[11px] text-gray-400 font-medium">差額</div>
+                          <div className={`text-[15px] font-bold leading-tight ${balanced ? 'text-emerald-600' : 'text-rose-600'}`}>CNY {fmtMoney(diffCNY)}</div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* 底部按鈕 */}
+                <div className="bg-white border-t border-gray-200 px-5 py-3 flex justify-center gap-3 flex-shrink-0">
+                  <button onClick={() => setCostAcctOpen(false)} className="ui-btn ui-btn-secondary px-6">取消</button>
+                  <button onClick={() => setCostAcctOpen(false)} className="ui-btn ui-btn-primary px-8">保存</button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* ================= 匯出設定彈窗群 ================= */}
           {activeExportModal && (
