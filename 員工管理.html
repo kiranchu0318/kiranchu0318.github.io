@@ -953,7 +953,7 @@
                             </div>
                             <div class="record-list space-y-3">
                                 <div class="record-row relative border border-gray-200 rounded-lg bg-white p-4">
-                                    <button type="button" onclick="this.closest('.record-row').remove()" class="js-edit-only hidden absolute -top-2.5 -right-2.5 w-7 h-7 flex items-center justify-center bg-white text-gray-400 hover:text-red-500 border border-gray-200 hover:border-red-200 shadow-sm rounded-full transition-colors" title="移除"><i class="fa-solid fa-trash-can text-xs"></i></button>
+                                    <button type="button" onclick="removeRecordCard(this)" class="js-edit-only hidden absolute -top-2.5 -right-2.5 w-7 h-7 flex items-center justify-center bg-white text-gray-400 hover:text-red-500 border border-gray-200 hover:border-red-200 shadow-sm rounded-full transition-colors" title="移除"><i class="fa-solid fa-trash-can text-xs"></i></button>
                                     <div class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-x-3 gap-y-3"><div><label class="block text-xs font-semibold text-gray-500 mb-1.5">生效日期</label><input type="text" value="2010/01/01" readonly class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded-md text-sm text-gray-800 outline-none"></div><div><label class="block text-xs font-semibold text-gray-500 mb-1.5">發薪日</label><div class="relative"><select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded-md text-sm outline-none"><option>Every 5th</option></select><i class="fa-solid fa-caret-down absolute right-3 top-1/2 -translate-y-1/2 text-xs pointer-events-none"></i></div></div><div><label class="block text-xs font-semibold text-gray-500 mb-1.5">貨幣類型</label><div class="relative"><select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded-md text-sm outline-none"><option>USD</option><option>TWD</option><option>EUR</option></select><i class="fa-solid fa-caret-down absolute right-3 top-1/2 -translate-y-1/2 text-xs pointer-events-none"></i></div></div><div><label class="block text-xs font-semibold text-gray-500 mb-1.5">薪資(月)</label><input type="text" value="99.000000" readonly class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded-md text-sm text-gray-800 outline-none"></div><div><label class="block text-xs font-semibold text-gray-500 mb-1.5">支付方式</label><div class="relative"><select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded-md text-sm outline-none"><option>Autopay</option></select><i class="fa-solid fa-caret-down absolute right-3 top-1/2 -translate-y-1/2 text-xs pointer-events-none"></i></div></div><div><label class="block text-xs font-semibold text-gray-500 mb-1.5">薪資調整原因</label><input type="text" value="" readonly class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded-md text-sm text-gray-800 outline-none"></div><div><label class="block text-xs font-semibold text-gray-500 mb-1.5">備註</label><input type="text" value="" readonly class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded-md text-sm text-gray-800 outline-none"></div></div>
                                 </div>
                             </div>
@@ -984,7 +984,7 @@
                             </div>
                             <div class="record-list space-y-3">
                                 <div class="record-row relative border border-gray-200 rounded-lg bg-white p-4">
-                                    <button type="button" onclick="this.closest('.record-row').remove()" class="js-edit-only hidden absolute -top-2.5 -right-2.5 w-7 h-7 flex items-center justify-center bg-white text-gray-400 hover:text-red-500 border border-gray-200 hover:border-red-200 shadow-sm rounded-full transition-colors" title="移除"><i class="fa-solid fa-trash-can text-xs"></i></button>
+                                    <button type="button" onclick="removeRecordCard(this)" class="js-edit-only hidden absolute -top-2.5 -right-2.5 w-7 h-7 flex items-center justify-center bg-white text-gray-400 hover:text-red-500 border border-gray-200 hover:border-red-200 shadow-sm rounded-full transition-colors" title="移除"><i class="fa-solid fa-trash-can text-xs"></i></button>
                                     <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-x-3 gap-y-3"><div><label class="block text-xs font-semibold text-gray-500 mb-1.5">生效日期</label><input type="text" value="2010/01/01" readonly class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded-md text-sm text-gray-800 outline-none"></div><div><label class="block text-xs font-semibold text-gray-500 mb-1.5">主體</label><div class="relative"><select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded-md text-sm outline-none"><option>None</option></select><i class="fa-solid fa-caret-down absolute right-3 top-1/2 -translate-y-1/2 text-xs pointer-events-none"></i></div></div><div><label class="block text-xs font-semibold text-gray-500 mb-1.5">部門</label><div class="relative"><select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded-md text-sm outline-none"><option>選擇</option></select><i class="fa-solid fa-caret-down absolute right-3 top-1/2 -translate-y-1/2 text-xs pointer-events-none"></i></div></div><div><label class="block text-xs font-semibold text-gray-500 mb-1.5">職位</label><div class="relative"><select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded-md text-sm outline-none"><option>選擇</option></select><i class="fa-solid fa-caret-down absolute right-3 top-1/2 -translate-y-1/2 text-xs pointer-events-none"></i></div></div><div><label class="block text-xs font-semibold text-gray-500 mb-1.5">直屬上司</label><div class="relative"><select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded-md text-sm outline-none"><option>選擇</option></select><i class="fa-solid fa-caret-down absolute right-3 top-1/2 -translate-y-1/2 text-xs pointer-events-none"></i></div></div></div>
                                 </div>
                             </div>
@@ -998,7 +998,7 @@
                             </div>
                             <div class="record-list space-y-3">
                                 <div class="record-row relative border border-gray-200 rounded-lg bg-white p-4">
-                                    <button type="button" onclick="this.closest('.record-row').remove()" class="js-edit-only hidden absolute -top-2.5 -right-2.5 w-7 h-7 flex items-center justify-center bg-white text-gray-400 hover:text-red-500 border border-gray-200 hover:border-red-200 shadow-sm rounded-full transition-colors" title="移除"><i class="fa-solid fa-trash-can text-xs"></i></button>
+                                    <button type="button" onclick="removeRecordCard(this)" class="js-edit-only hidden absolute -top-2.5 -right-2.5 w-7 h-7 flex items-center justify-center bg-white text-gray-400 hover:text-red-500 border border-gray-200 hover:border-red-200 shadow-sm rounded-full transition-colors" title="移除"><i class="fa-solid fa-trash-can text-xs"></i></button>
                                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3"><div><label class="block text-xs font-semibold text-gray-500 mb-1.5">生效日期</label><input type="text" value="2010/01/01" readonly class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded-md text-sm text-gray-800 outline-none"></div><div><label class="block text-xs font-semibold text-gray-500 mb-1.5">項目</label><div class="relative"><select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded-md text-sm outline-none"><option>選擇</option><option>GT</option></select><i class="fa-solid fa-caret-down absolute right-3 top-1/2 -translate-y-1/2 text-xs pointer-events-none"></i></div></div></div>
                                 </div>
                             </div>
@@ -1011,7 +1011,7 @@
                             </div>
                             <div class="record-list space-y-3">
                                 <div class="record-row relative border border-gray-200 rounded-lg bg-white p-4">
-                                    <button type="button" onclick="this.closest('.record-row').remove()" class="js-edit-only hidden absolute -top-2.5 -right-2.5 w-7 h-7 flex items-center justify-center bg-white text-gray-400 hover:text-red-500 border border-gray-200 hover:border-red-200 shadow-sm rounded-full transition-colors" title="移除"><i class="fa-solid fa-trash-can text-xs"></i></button>
+                                    <button type="button" onclick="removeRecordCard(this)" class="js-edit-only hidden absolute -top-2.5 -right-2.5 w-7 h-7 flex items-center justify-center bg-white text-gray-400 hover:text-red-500 border border-gray-200 hover:border-red-200 shadow-sm rounded-full transition-colors" title="移除"><i class="fa-solid fa-trash-can text-xs"></i></button>
                                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3"><div><label class="block text-xs font-semibold text-gray-500 mb-1.5">生效日期</label><input type="text" value="2010/01/01" readonly class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded-md text-sm text-gray-800 outline-none"></div><div><label class="block text-xs font-semibold text-gray-500 mb-1.5">職級</label><div class="relative"><select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded-md text-sm outline-none"><option>K</option><option>A</option><option>B</option><option>C</option></select><i class="fa-solid fa-caret-down absolute right-3 top-1/2 -translate-y-1/2 text-xs pointer-events-none"></i></div></div></div>
                                 </div>
                             </div>
@@ -1044,57 +1044,10 @@
                     <!-- ========================================== -->
                     <div id="tab-account" class="tab-content hidden max-w-4xl mx-auto space-y-8">
                         <div>
-                            <div class="divide-y divide-slate-100 border-y border-slate-100">
-                                <!-- Mobile / WhatsApp（可多組）-->
-                                <div class="py-3.5 flex items-start gap-4">
-                                    <div class="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 shrink-0"><i class="fa-solid fa-mobile-screen-button"></i></div>
-                                    <div class="min-w-0">
-                                        <h5 class="font-bold text-slate-800 text-sm mb-1.5">Mobile / WhatsApp</h5>
-                                        <div class="space-y-1">
-                                            <div class="flex items-center gap-2 text-sm"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span><span class="font-medium text-slate-700 font-mono">「T2」601114372701</span><span class="text-xs text-slate-400">WhatsApp</span></div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <!-- E-mail -->
-                                <div class="py-3.5 flex items-start gap-4">
-                                    <div class="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 shrink-0"><i class="fa-solid fa-envelope"></i></div>
-                                    <div class="min-w-0">
-                                        <h5 class="font-bold text-slate-800 text-sm mb-1.5">E-mail</h5>
-                                        <div class="flex items-center gap-2 text-sm"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span><span class="font-medium text-slate-700">gibsonyang@roycetechnology.com</span><span class="text-xs text-slate-400">公司</span></div>
-                                    </div>
-                                </div>
-                                <!-- OA -->
-                                <div class="py-3.5 flex items-start gap-4">
-                                    <div class="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 shrink-0"><i class="fa-solid fa-table-cells-large"></i></div>
-                                    <div class="min-w-0">
-                                        <h5 class="font-bold text-slate-800 text-sm mb-1.5">OA (Office Automation)</h5>
-                                        <span class="ui-badge ui-badge-gray">未綁定</span>
-                                    </div>
-                                </div>
-                                <!-- Apple ID -->
-                                <div class="py-3.5 flex items-start gap-4">
-                                    <div class="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 shrink-0"><i class="fa-brands fa-apple"></i></div>
-                                    <div class="min-w-0">
-                                        <h5 class="font-bold text-slate-800 text-sm mb-1.5">Apple ID</h5>
-                                        <span class="ui-badge ui-badge-gray">未綁定</span>
-                                    </div>
-                                </div>
-                                <!-- Jira -->
-                                <div class="py-3.5 flex items-start gap-4">
-                                    <div class="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 shrink-0"><span class="font-bold text-lg">J</span></div>
-                                    <div class="min-w-0">
-                                        <h5 class="font-bold text-slate-800 text-sm mb-1.5">Jira</h5>
-                                        <span class="ui-badge ui-badge-gray">未綁定</span>
-                                    </div>
-                                </div>
-                                <!-- MM -->
-                                <div class="py-3.5 flex items-start gap-4">
-                                    <div class="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 shrink-0"><span class="font-bold text-lg">M</span></div>
-                                    <div class="min-w-0">
-                                        <h5 class="font-bold text-slate-800 text-sm mb-1.5">MM</h5>
-                                        <span class="ui-badge ui-badge-gray">未綁定</span>
-                                    </div>
-                                </div>
+                            <div class="overflow-x-auto border border-gray-200 rounded-lg">
+                                <table class="w-full text-sm">
+                                    <tbody id="account-fields-tbody" class="divide-y divide-gray-100 text-gray-800"><!-- 動態由 renderAccountTab 渲染 --></tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
@@ -1970,7 +1923,7 @@
                 </div>
 
                 <!-- 底部按鈕區 (保存/取消) -->
-                <div class="px-6 md:px-12 py-4 flex gap-3 shrink-0 border-t border-gray-100 bg-[#fafafa] rounded-b-xl">
+                <div class="px-6 md:px-12 py-4 flex justify-end gap-3 shrink-0 border-t border-gray-100 bg-[#fafafa] rounded-b-xl">
                     <button type="button" onclick="closeAddEmployeeModal()" class="px-6 py-2 text-[15px] font-medium text-white bg-[#4A90E2] rounded shadow-sm hover:bg-opacity-90 transition-colors">
                         保存
                     </button>
@@ -2040,13 +1993,13 @@
     <div id="accChangeModal" class="fixed inset-0 z-[60] hidden">
         <div class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm" onclick="closeAccountChangeModal()"></div>
         <div class="fixed inset-0 flex items-center justify-center p-4">
-            <div class="relative bg-white rounded-xl shadow-2xl w-full max-w-[1120px] max-h-[90vh] flex flex-col overflow-hidden">
+            <div class="relative bg-white rounded-xl shadow-2xl w-full max-w-[1400px] max-h-[90vh] flex flex-col overflow-hidden">
                 <div class="px-6 py-4 flex items-center justify-between border-b border-gray-100 shrink-0">
                     <h3 class="text-lg font-bold text-gray-900">提交異動申請 — 人員帳號</h3>
                     <button onclick="closeAccountChangeModal()" class="text-gray-400 hover:text-gray-600 transition-colors"><i class="fa-solid fa-xmark text-xl"></i></button>
                 </div>
                 <div class="flex-1 overflow-y-auto p-6 space-y-4">
-                    <p class="text-sm text-gray-500">針對以下人員帳號欄位選擇異動方式（新增 / 修改 / 刪除）；選擇「刪除」需指定刪除方式，並可填寫備註與上傳附件。</p>
+                    <p class="text-sm text-gray-500">每個目前值可各自選擇「修改」或「刪除」，或於各欄位的「新增」列新增多筆全新值；選擇「刪除」需指定刪除方式，並可填寫備註與上傳附件。</p>
                     <div class="overflow-x-auto border border-gray-200 rounded-lg">
                         <table class="w-full text-sm whitespace-nowrap">
                             <thead class="bg-gray-50 text-gray-500 text-xs">
@@ -2295,6 +2248,20 @@
             updateSaveButton();
         }
 
+        // 基本工資 / 職位信息 / 事業部 / 職級：移除一筆條目（至少保留一筆，不可刪到空）
+        function removeRecordCard(btn) {
+            const row = btn.closest('.record-row');
+            if (!row) return;
+            const list = row.closest('.record-list');
+            if (list && list.querySelectorAll('.record-row').length <= 1) {
+                // 僅剩一筆時不刪除，以紅框提示
+                row.classList.add('ring-2', 'ring-rose-300');
+                setTimeout(() => row.classList.remove('ring-2', 'ring-rose-300'), 600);
+                return;
+            }
+            row.remove();
+        }
+
         // 基本工資 / 職位信息：新增一筆條目（複製首張卡片並清空）
         function addRecordCard(btn) {
             const section = btn.closest('.record-section');
@@ -2346,39 +2313,112 @@
         }
 
         /* -----------------------
-           帳號異動申請彈窗：依人員帳號 8 欄位逐列選擇 增 / 改 / 刪，含備註與附件
+           人員帳號資料（單一來源，供「人員帳號」分頁表格與異動申請彈窗共用）
+           ----------------------- */
+        const ACCOUNT_FIELDS = [
+            { label: 'Mobile / WhatsApp', values: ['「T2」601114372701', '「T1」0912-345-678', '「J」81-90-1234-5678', '「T2」602233445566'] },
+            { label: 'E-mail', values: ['gibsonyang@roycetechnology.com'] },
+            { label: 'OA (Office Automation)', values: [] },
+            { label: 'Apple ID', values: [] },
+            { label: 'Jira', values: [] },
+            { label: 'MM', values: [] }
+        ];
+
+        // 人員帳號分頁：以表格呈現（欄位 / 目前值），比照異動申請彈窗前兩欄
+        function renderAccountTab() {
+            const tbody = document.getElementById('account-fields-tbody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+            ACCOUNT_FIELDS.forEach(f => {
+                const vals = f.values || [];
+                if (vals.length) {
+                    vals.forEach((v, idx) => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML =
+                            (idx === 0 ? '<td class="px-4 py-2.5 font-medium text-gray-800 align-top border-r border-gray-100" rowspan="' + vals.length + '">' + f.label + '</td>' : '') +
+                            '<td class="px-4 py-2.5 text-gray-700 font-mono align-top">' + v + '</td>';
+                        tbody.appendChild(tr);
+                    });
+                } else {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML =
+                        '<td class="px-4 py-2.5 font-medium text-gray-800 align-top border-r border-gray-100">' + f.label + '</td>' +
+                        '<td class="px-4 py-2.5 align-top"><span class="ui-badge ui-badge-gray">未綁定</span></td>';
+                    tbody.appendChild(tr);
+                }
+            });
+        }
+        renderAccountTab();
+
+        /* -----------------------
+           帳號異動申請彈窗：每個目前值可各自 修改 / 刪除，另可新增多筆
            ----------------------- */
         function openAccountChangeModal() {
-            const tab = document.getElementById('tab-account');
-            // 從「人員帳號」顯示清單逐項讀取（項目名稱 + 已綁定值）
-            const items = tab ? Array.from(tab.querySelectorAll('.divide-y > div')) : [];
             const tbody = document.getElementById('acc-change-tbody');
             if (!tbody) return;
             tbody.innerHTML = '';
-            items.forEach((item, i) => {
-                const h5 = item.querySelector('h5');
-                const label = h5 ? h5.textContent.trim() : ('欄位 ' + (i + 1));
-                const valEls = item.querySelectorAll('.font-medium');
-                const cur = valEls.length ? Array.from(valEls).map(e => e.textContent.trim()).join('、') : '';
-                const tr = document.createElement('tr');
-                tr.innerHTML =
-                    '<td class="px-4 py-2.5 font-medium text-gray-800">' + label + '</td>' +
-                    '<td class="px-4 py-2.5 text-gray-600">' + (cur ? cur : '—') + '</td>' +
-                    '<td class="px-4 py-2.5">' +
-                        '<select onchange="onAccChangeType(this)" class="w-full border border-gray-300 rounded-md px-2 py-1.5 text-sm bg-white cursor-pointer">' +
-                            '<option value="">不異動</option><option value="add">新增</option><option value="edit">修改</option><option value="del">刪除</option>' +
-                        '</select>' +
+            // 共用的「備註 / 附件」欄
+            const noteCell = '<td class="px-4 py-2.5 align-top"><input type="text" placeholder="備註" class="w-full border border-gray-300 rounded-md px-2 py-1.5 text-sm"></td>';
+            const fileCell = '<td class="px-4 py-2.5 align-top">' +
+                '<label class="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded cursor-pointer hover:bg-gray-50">' +
+                    '<i class="fa-solid fa-paperclip"></i>選擇檔案<input type="file" class="hidden" onchange="onAccAttach(this)">' +
+                '</label><span class="js-acc-file text-xs text-gray-500 ml-1.5 align-middle"></span></td>';
+            // 現有值列：可各自「修改 / 刪除」
+            const editSelect = '<select onchange="onAccChangeType(this)" class="w-full border border-gray-300 rounded-md px-2 py-1.5 text-sm bg-white cursor-pointer">' +
+                '<option value="">不異動</option><option value="edit">修改</option><option value="del">刪除</option></select>';
+
+            ACCOUNT_FIELDS.forEach((f) => {
+                const label = f.label;
+                const curVals = (f.values || []).slice();
+                const totalRows = curVals.length + 1;   // 每筆現有值一列 + 一列「新增」
+                const labelCell = '<td class="px-4 py-2.5 font-medium text-gray-800 align-top border-r border-gray-100 bg-white" rowspan="' + totalRows + '">' + label + '</td>';
+
+                // 每一個目前值 → 獨立一列，可各自修改 / 刪除
+                curVals.forEach((v, idx) => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML =
+                        (idx === 0 ? labelCell : '') +
+                        '<td class="px-4 py-2.5 text-gray-700 align-top font-mono">' + v + '</td>' +
+                        '<td class="px-4 py-2.5 align-top">' + editSelect + '</td>' +
+                        '<td class="px-4 py-2.5 js-acc-detail align-top"><span class="text-gray-300">—</span></td>' +
+                        noteCell + fileCell;
+                    tbody.appendChild(tr);
+                });
+
+                // 「新增」列：可新增多筆全新值（未綁定欄位僅有此列）
+                const addTr = document.createElement('tr');
+                addTr.className = 'bg-gray-50/40';
+                addTr.innerHTML =
+                    (curVals.length === 0 ? labelCell : '') +
+                    '<td class="px-4 py-2.5 align-top ' + (curVals.length ? 'text-gray-300' : 'text-gray-400') + '">' + (curVals.length ? '—' : '（未綁定）') + '</td>' +
+                    '<td class="px-4 py-2.5 align-top"><span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold bg-emerald-50 text-emerald-600"><i class="fa-solid fa-plus text-[10px]"></i>新增</span></td>' +
+                    '<td class="px-4 py-2.5 align-top">' +
+                        '<div class="acc-add-list space-y-1.5">' + accAddItemHtml() + '</div>' +
+                        '<button type="button" onclick="addAccAddItem(this)" class="mt-1.5 inline-flex items-center gap-1 text-xs text-primary font-medium hover:underline"><i class="fa-solid fa-plus text-[10px]"></i>新增一筆</button>' +
                     '</td>' +
-                    '<td class="px-4 py-2.5 js-acc-detail"><span class="text-gray-300">—</span></td>' +
-                    '<td class="px-4 py-2.5"><input type="text" placeholder="備註" class="w-full border border-gray-300 rounded-md px-2 py-1.5 text-sm"></td>' +
-                    '<td class="px-4 py-2.5">' +
-                        '<label class="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded cursor-pointer hover:bg-gray-50">' +
-                            '<i class="fa-solid fa-paperclip"></i>選擇檔案<input type="file" class="hidden" onchange="onAccAttach(this)">' +
-                        '</label><span class="js-acc-file text-xs text-gray-500 ml-1.5 align-middle"></span>' +
-                    '</td>';
-                tbody.appendChild(tr);
+                    noteCell + fileCell;
+                tbody.appendChild(addTr);
             });
             if (accChangeModal) accChangeModal.classList.remove('hidden');
+        }
+
+        // 單筆「新增內容」列（含移除鈕）
+        function accAddItemHtml() {
+            return '<div class="acc-add-item flex items-center gap-1.5">' +
+                '<input type="text" placeholder="輸入新增內容" class="flex-1 min-w-0 border border-gray-300 rounded-md px-2 py-1.5 text-sm">' +
+                '<button type="button" onclick="removeAccAddItem(this)" class="w-6 h-6 flex items-center justify-center text-gray-400 hover:text-rose-500 shrink-0" title="移除此筆"><i class="fa-solid fa-xmark text-xs"></i></button>' +
+                '</div>';
+        }
+        // 「新增」異動：追加一筆
+        function addAccAddItem(btn) {
+            const list = btn.closest('td').querySelector('.acc-add-list');
+            if (list) list.insertAdjacentHTML('beforeend', accAddItemHtml());
+        }
+        // 「新增」異動：移除一筆（至少保留一筆）
+        function removeAccAddItem(btn) {
+            const item = btn.closest('.acc-add-item');
+            const list = item ? item.parentElement : null;
+            if (list && list.children.length > 1) item.remove();
         }
 
         // 切換異動類型時，更新「異動內容 / 刪除方式」欄
@@ -2387,8 +2427,13 @@
             const cell = row ? row.querySelector('.js-acc-detail') : null;
             if (!cell) return;
             const v = sel.value;
-            if (v === 'add' || v === 'edit') {
-                cell.innerHTML = '<input type="text" placeholder="' + (v === 'add' ? '輸入新增內容' : '輸入修改後的值') + '" class="w-full border border-gray-300 rounded-md px-2 py-1.5 text-sm">';
+            if (v === 'add') {
+                // 新增：可新增多筆
+                cell.innerHTML =
+                    '<div class="acc-add-list space-y-1.5">' + accAddItemHtml() + '</div>' +
+                    '<button type="button" onclick="addAccAddItem(this)" class="mt-1.5 inline-flex items-center gap-1 text-xs text-primary font-medium hover:underline"><i class="fa-solid fa-plus text-[10px]"></i>新增一筆</button>';
+            } else if (v === 'edit') {
+                cell.innerHTML = '<input type="text" placeholder="輸入修改後的值" class="w-full border border-gray-300 rounded-md px-2 py-1.5 text-sm">';
             } else if (v === 'del') {
                 cell.innerHTML = '<select class="w-full border border-rose-300 rounded-md px-2 py-1.5 text-sm bg-rose-50 text-rose-700 cursor-pointer">' +
                     '<option value="immediate">立即刪除</option><option value="transfer">資料轉移</option><option value="hold">暫時保留</option>' +
@@ -2629,13 +2674,39 @@
            ----------------------- */
         function openAddEmployeeModal() {
             if (addEmployeeModal && addEmployeeModalPanel) {
+                // 職位信息 / 假期信息：內容完全比照「員工詳細資料」對應分頁
+                syncAddTabsFromDetail();
                 addEmployeeModal.classList.remove('hidden');
                 void addEmployeeModal.offsetWidth;
                 addEmployeeModalPanel.classList.add('modal-enter-active');
-                
+
                 // 每次開啟預設顯示第一個頁籤
                 switchAddTab('tab-add-personal');
             }
+        }
+
+        // 將「員工詳細資料」的 職位信息 / 假期信息 內容複製到新增彈窗對應分頁，並正規化為可編輯的空白表單
+        function syncAddTabsFromDetail() {
+            [['tab-job', 'tab-add-job'], ['tab-leave', 'tab-add-leave']].forEach(function (pair) {
+                const src = document.getElementById(pair[0]);
+                const dst = document.getElementById(pair[1]);
+                if (!src || !dst) return;
+                dst.innerHTML = src.innerHTML;
+                // 比照詳情編輯模式：可異動欄位解除唯讀、顯示編輯專用元件、隱藏檢視專用元件
+                dst.querySelectorAll('input.bg-\\[\\#f1f3f5\\], textarea.bg-\\[\\#f1f3f5\\]').forEach(el => { el.readOnly = false; });
+                dst.querySelectorAll('.js-edit-only').forEach(el => el.classList.remove('hidden'));
+                dst.querySelectorAll('.js-view-only').forEach(el => el.classList.add('hidden'));
+                // 基本工資 / 職位信息 / 事業部 / 職級：新增員工僅需一筆，只保留第一筆並移除「新增／移除」按鈕
+                dst.querySelectorAll('.record-section').forEach(sec => {
+                    const list = sec.querySelector('.record-list');
+                    if (list) list.querySelectorAll('.record-row').forEach((r, i) => { if (i > 0) r.remove(); });
+                    sec.querySelectorAll('[onclick^="addRecordCard"], [onclick^="removeRecordCard"]').forEach(b => b.remove());
+                });
+                // 新增為空白表單：清空輸入值、下拉回第一項；移除會與詳情重複的 id
+                dst.querySelectorAll('input:not([type=file]), textarea').forEach(el => { el.value = ''; });
+                dst.querySelectorAll('select').forEach(el => { el.selectedIndex = 0; });
+                dst.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
+            });
         }
 
         function closeAddEmployeeModal() {
