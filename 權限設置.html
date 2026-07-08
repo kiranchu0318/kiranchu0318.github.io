@@ -351,7 +351,7 @@
             // 財務管理
             { key: 'pg_fxrate',     name: '月初匯率管理', group: '財務管理', ops: ['匯出'] },
             // 行政管理
-            { key: 'pg_announce',   name: '公告管理',     group: '行政管理', ops: ['發布'] },
+            { key: 'pg_announce',   name: '公告管理',     group: '行政管理', ops: [] },
             { key: 'pg_docmgmt',    name: '文件庫管理',   group: '行政管理', ops: ['上傳', '下載', '公開資料庫'] },
             { key: 'pg_assetstat',  name: '資產數統計',   group: '行政管理', ops: ['匯出'] },
             { key: 'pg_assetlist',  name: '資產清單',     group: '行政管理', ops: ['匯出'] },
@@ -365,14 +365,14 @@
             { key: 'pg_apprvperm',  name: '審批角色權限', group: '系統設定', ops: [] },
             { key: 'pg_apprvflow',  name: '審批流管理',   group: '系統設定', ops: ['編輯簽核流程', '變更簽核流程', '人事異動流程變更', '到職核准流程變更', '招募申請流程變更', '薪資職級變更流程變更'] },
             { key: 'pg_group',      name: '分組管理',     group: '系統設定', ops: [] },
-            { key: 'pg_acctperm',   name: '帳號權限',     group: '系統設定', ops: ['新增帳號', '編輯權限'] },
-            { key: 'pg_permset',    name: '權限設置',     group: '系統設定', ops: ['新增角色', '檢視成員'] },
-            { key: 'pg_orgchart',   name: '組織圖設定',   group: '系統設定', ops: ['存取'] },
-            { key: 'pg_orgmgmt',    name: '組織架構管理', group: '系統設定', ops: ['部門存取'] },
+            { key: 'pg_acctperm',   name: '帳號權限',     group: '系統設定', ops: [] },
+            { key: 'pg_permset',    name: '權限設置',     group: '系統設定', ops: [] },
+            { key: 'pg_orgchart',   name: '組織圖設定',   group: '系統設定', ops: [] },
+            { key: 'pg_orgmgmt',    name: '組織架構管理', group: '系統設定', ops: [] },
             { key: 'pg_finset',     name: '財務設定',     group: '系統設定', ops: [] },
-            { key: 'pg_adminset',   name: '行政設定',     group: '系統設定', ops: ['管理者設定', '設定存取'] },
+            { key: 'pg_adminset',   name: '行政設定',     group: '系統設定', ops: [] },
             { key: 'pg_salarypwd',  name: '薪資密碼設定', group: '系統設定', ops: [] },
-            { key: 'pg_syslog',     name: '系統日誌',     group: '系統設定', ops: ['匯出', 'Log存取'] },
+            { key: 'pg_syslog',     name: '系統日誌',     group: '系統設定', actions: ['檢視'], ops: ['匯出'] },
             { key: 'pg_block',      name: '封鎖設定',     group: '系統設定', ops: [] }
         ];
         // 可提交的申請單（依類別）
@@ -402,7 +402,7 @@
         // 全部頁面：標準動作 + 各頁特殊操作（完整權限）
         function buildDataFull() {
             const d = {};
-            DATA_PAGES.forEach(p => d[p.key] = STD_ACTIONS.concat(p.ops || []));
+            DATA_PAGES.forEach(p => d[p.key] = (p.actions || STD_ACTIONS).concat(p.ops || []));
             return d;
         }
         // 依分類（group→動作）批次建立；未列分類套用 def
@@ -534,7 +534,9 @@
                     html += `<tr><td colspan="4" class="text-left bg-primary-light text-primary text-sm font-bold py-2.5 border-y border-primary/15"><i class="fa-solid fa-folder-open mr-2"></i>${p.group}</td></tr>`;
                 }
                 const cells = DATA_ACTIONS.map(a =>
-                    `<td class="text-center"><input type="checkbox" class="perm-check" ${permDraft.data[p.key].has(a) ? 'checked' : ''} onchange="togglePerm('${p.key}','${a}',this.checked)"></td>`
+                    (p.actions || DATA_ACTIONS).includes(a)
+                        ? `<td class="text-center"><input type="checkbox" class="perm-check" ${permDraft.data[p.key].has(a) ? 'checked' : ''} onchange="togglePerm('${p.key}','${a}',this.checked)"></td>`
+                        : `<td class="text-center text-gray-200">—</td>`
                 ).join('');
                 // 特殊操作：勾選才會於該頁顯示並可使用
                 const ops = p.ops || [];
@@ -565,7 +567,7 @@
         }
 
         function setAllPerms(on) {
-            DATA_PAGES.forEach(p => permDraft.data[p.key] = on ? new Set(STD_ACTIONS.concat(p.ops || [])) : new Set());
+            DATA_PAGES.forEach(p => permDraft.data[p.key] = on ? new Set((p.actions || STD_ACTIONS).concat(p.ops || [])) : new Set());
             renderPermSections();
         }
         function setAllApprove(on) {
@@ -582,7 +584,7 @@
         function savePerms() {
             const role = roles[selectedIndex];
             const data = {};
-            DATA_PAGES.forEach(p => data[p.key] = STD_ACTIONS.concat(p.ops || []).filter(a => permDraft.data[p.key].has(a)));
+            DATA_PAGES.forEach(p => data[p.key] = (p.actions || STD_ACTIONS).concat(p.ops || []).filter(a => permDraft.data[p.key].has(a)));
             role.perms = { data, approve: ALL_FORM_KEYS.filter(k => permDraft.approve.has(k)) };
             renderRoleList();
             renderRightPanel();

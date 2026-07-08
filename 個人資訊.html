@@ -6,6 +6,8 @@
     <title>個人資訊</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome（帳號異動申請彈窗圖示） -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts Noto Sans TC -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
@@ -409,7 +411,7 @@
                     </div>
 
                     <div class="flex justify-start pt-2">
-                        <button class="ui-btn ui-btn-primary inline-flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" /></svg>提交異動申請</button>
+                        <button onclick="openAccountChangeModal()" class="ui-btn ui-btn-primary inline-flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" /></svg>提交異動申請</button>
                     </div>
                 </div>
 
@@ -554,7 +556,143 @@
         </div>
     </div>
 
+    <!-- ========================================== -->
+    <!-- 帳號異動申請彈窗（比照員工管理：每個目前值可各自 增 / 改 / 刪 + 備註 + 附件） -->
+    <!-- ========================================== -->
+    <div id="accChangeModal" class="fixed inset-0 z-[60] hidden">
+        <div class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm" onclick="closeAccountChangeModal()"></div>
+        <div class="fixed inset-0 flex items-center justify-center p-4">
+            <div class="relative bg-white rounded-xl shadow-2xl w-full max-w-[1400px] max-h-[90vh] flex flex-col overflow-hidden">
+                <div class="px-6 py-4 flex items-center justify-between border-b border-gray-100 shrink-0">
+                    <h3 class="text-lg font-bold text-gray-900">提交異動申請 — 人員帳號</h3>
+                    <button onclick="closeAccountChangeModal()" class="text-gray-400 hover:text-gray-600 transition-colors"><i class="fa-solid fa-xmark text-xl"></i></button>
+                </div>
+                <div class="flex-1 overflow-y-auto p-6 space-y-4">
+                    <p class="text-sm text-gray-500">每個目前值可各自選擇「修改」或「刪除」，或於各欄位的「新增」列新增多筆全新值；選擇「刪除」需指定刪除方式，並可填寫備註與上傳附件。</p>
+                    <div class="overflow-x-auto border border-gray-200 rounded-lg">
+                        <table class="w-full text-sm whitespace-nowrap">
+                            <thead class="bg-gray-50 text-gray-500 text-xs">
+                                <tr>
+                                    <th class="px-4 py-2.5 text-left font-medium">欄位</th>
+                                    <th class="px-4 py-2.5 text-left font-medium">目前值</th>
+                                    <th class="px-4 py-2.5 text-left font-medium w-28">異動類型</th>
+                                    <th class="px-4 py-2.5 text-left font-medium w-60">異動內容 / 刪除方式</th>
+                                    <th class="px-4 py-2.5 text-left font-medium w-48">備註</th>
+                                    <th class="px-4 py-2.5 text-left font-medium w-44">附件</th>
+                                </tr>
+                            </thead>
+                            <tbody id="acc-change-tbody" class="divide-y divide-gray-100 text-gray-800"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="px-6 py-4 flex justify-end gap-3 border-t border-gray-100 bg-gray-50 shrink-0">
+                    <button type="button" onclick="closeAccountChangeModal()" class="px-5 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded shadow-sm hover:bg-gray-50 transition-colors">取消</button>
+                    <button type="button" onclick="submitAccountChange()" class="px-5 py-2 text-sm font-medium text-white bg-primary rounded shadow-sm hover:bg-opacity-90 transition-colors"><i class="fa-solid fa-paper-plane mr-1.5"></i>送出申請</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
+        /* ============ 帳號異動申請彈窗（比照員工管理）============ */
+        const accChangeModal = document.getElementById('accChangeModal');
+        // 人員帳號資料（此頁人員的帳號清單）
+        const ACCOUNT_FIELDS = [
+            { label: 'Mobile / WhatsApp', values: ['0912-345-678', '0988-111-222'] },
+            { label: 'E-mail', values: ['nora.chen@company.com', 'nora.chen0812@gmail.com'] },
+            { label: 'OA (Office Automation)', values: ['nora.chen'] },
+            { label: 'Apple ID', values: ['nora.chen0812@icloud.com'] },
+            { label: 'Jira', values: [] },
+            { label: 'MM', values: ['nora.chen'] }
+        ];
+
+        function openAccountChangeModal() {
+            const tbody = document.getElementById('acc-change-tbody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+            const noteCell = '<td class="px-4 py-2.5 align-top"><input type="text" placeholder="備註" class="w-full border border-gray-300 rounded-md px-2 py-1.5 text-sm"></td>';
+            const fileCell = '<td class="px-4 py-2.5 align-top">' +
+                '<label class="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded cursor-pointer hover:bg-gray-50">' +
+                    '<i class="fa-solid fa-paperclip"></i>選擇檔案<input type="file" class="hidden" onchange="onAccAttach(this)">' +
+                '</label><span class="js-acc-file text-xs text-gray-500 ml-1.5 align-middle"></span></td>';
+            const editSelect = '<select onchange="onAccChangeType(this)" class="w-full border border-gray-300 rounded-md px-2 py-1.5 text-sm bg-white cursor-pointer">' +
+                '<option value="">不異動</option><option value="edit">修改</option><option value="del">刪除</option></select>';
+
+            ACCOUNT_FIELDS.forEach((f) => {
+                const label = f.label;
+                const curVals = (f.values || []).slice();
+                const totalRows = curVals.length + 1;
+                const labelCell = '<td class="px-4 py-2.5 font-medium text-gray-800 align-top border-r border-gray-100 bg-white" rowspan="' + totalRows + '">' + label + '</td>';
+
+                curVals.forEach((v, idx) => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML =
+                        (idx === 0 ? labelCell : '') +
+                        '<td class="px-4 py-2.5 text-gray-700 align-top font-mono">' + v + '</td>' +
+                        '<td class="px-4 py-2.5 align-top">' + editSelect + '</td>' +
+                        '<td class="px-4 py-2.5 js-acc-detail align-top"><span class="text-gray-300">—</span></td>' +
+                        noteCell + fileCell;
+                    tbody.appendChild(tr);
+                });
+
+                const addTr = document.createElement('tr');
+                addTr.className = 'bg-gray-50/40';
+                addTr.innerHTML =
+                    (curVals.length === 0 ? labelCell : '') +
+                    '<td class="px-4 py-2.5 align-top ' + (curVals.length ? 'text-gray-300' : 'text-gray-400') + '">' + (curVals.length ? '—' : '（未綁定）') + '</td>' +
+                    '<td class="px-4 py-2.5 align-top"><span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold bg-emerald-50 text-emerald-600"><i class="fa-solid fa-plus text-[10px]"></i>新增</span></td>' +
+                    '<td class="px-4 py-2.5 align-top">' +
+                        '<div class="acc-add-list space-y-1.5">' + accAddItemHtml() + '</div>' +
+                        '<button type="button" onclick="addAccAddItem(this)" class="mt-1.5 inline-flex items-center gap-1 text-xs text-primary font-medium hover:underline"><i class="fa-solid fa-plus text-[10px]"></i>新增一筆</button>' +
+                    '</td>' +
+                    noteCell + fileCell;
+                tbody.appendChild(addTr);
+            });
+            if (accChangeModal) accChangeModal.classList.remove('hidden');
+        }
+
+        function accAddItemHtml() {
+            return '<div class="acc-add-item flex items-center gap-1.5">' +
+                '<input type="text" placeholder="輸入新增內容" class="flex-1 min-w-0 border border-gray-300 rounded-md px-2 py-1.5 text-sm">' +
+                '<button type="button" onclick="removeAccAddItem(this)" class="w-6 h-6 flex items-center justify-center text-gray-400 hover:text-rose-500 shrink-0" title="移除此筆"><i class="fa-solid fa-xmark text-xs"></i></button>' +
+                '</div>';
+        }
+        function addAccAddItem(btn) {
+            const list = btn.closest('td').querySelector('.acc-add-list');
+            if (list) list.insertAdjacentHTML('beforeend', accAddItemHtml());
+        }
+        function removeAccAddItem(btn) {
+            const item = btn.closest('.acc-add-item');
+            const list = item ? item.parentElement : null;
+            if (list && list.children.length > 1) item.remove();
+        }
+        function onAccChangeType(sel) {
+            const row = sel.closest('tr');
+            const cell = row ? row.querySelector('.js-acc-detail') : null;
+            if (!cell) return;
+            const v = sel.value;
+            if (v === 'add') {
+                cell.innerHTML =
+                    '<div class="acc-add-list space-y-1.5">' + accAddItemHtml() + '</div>' +
+                    '<button type="button" onclick="addAccAddItem(this)" class="mt-1.5 inline-flex items-center gap-1 text-xs text-primary font-medium hover:underline"><i class="fa-solid fa-plus text-[10px]"></i>新增一筆</button>';
+            } else if (v === 'edit') {
+                cell.innerHTML = '<input type="text" placeholder="輸入修改後的值" class="w-full border border-gray-300 rounded-md px-2 py-1.5 text-sm">';
+            } else if (v === 'del') {
+                cell.innerHTML = '<select class="w-full border border-rose-300 rounded-md px-2 py-1.5 text-sm bg-rose-50 text-rose-700 cursor-pointer">' +
+                    '<option value="immediate">立即刪除</option><option value="transfer">資料轉移</option><option value="hold">暫時保留</option>' +
+                    '</select>';
+            } else {
+                cell.innerHTML = '<span class="text-gray-300">—</span>';
+            }
+        }
+        function onAccAttach(input) {
+            const td = input.closest('td');
+            const nameEl = td ? td.querySelector('.js-acc-file') : null;
+            if (nameEl) nameEl.textContent = (input.files && input.files.length) ? input.files[0].name : '';
+        }
+        function closeAccountChangeModal() { if (accChangeModal) accChangeModal.classList.add('hidden'); }
+        function submitAccountChange() { closeAccountChangeModal(); }
+
         // 現代化頁籤切換邏輯
         function switchTab(tabId) {
             const tabs = ['personal', 'job', 'account', 'salary', 'asset'];
