@@ -331,6 +331,7 @@
                             <td class="px-6 py-4 text-center">
                                 <div class="flex items-center justify-center gap-2">
                                     <button onclick="openEditModal('EMP001','Logan')" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-circle-info"></i> 詳情</button>
+                                    <button onclick="cancelOnboarding(this,'EMP001','Logan')" class="ui-btn ui-btn-sm text-rose-600 border border-rose-200 hover:bg-rose-50" title="人員資料已建立但尚未報到，通知不來報到時取消入職"><i class="fa-solid fa-user-xmark"></i> 取消入職</button>
                                 </div>
                             </td>
                         </tr>
@@ -1064,13 +1065,13 @@
                                 <div class="grid grid-cols-1 sm:grid-cols-[140px_1fr] gap-2 sm:gap-4">
                                     <label class="text-xs font-semibold text-gray-500 sm:pt-1">配置方式</label>
                                     <div class="flex flex-wrap items-center gap-6">
-                                        <label class="inline-flex items-center gap-2 text-sm text-gray-700 cursor-pointer"><input type="radio" name="att-mode" value="template" class="w-4 h-4 text-primary focus:ring-primary" checked onchange="onAttModeChange()"> 套用考勤模板</label>
-                                        <label class="inline-flex items-center gap-2 text-sm text-gray-700 cursor-pointer"><input type="radio" name="att-mode" value="custom" class="w-4 h-4 text-primary focus:ring-primary" onchange="onAttModeChange()"> 自定義考勤規則</label>
+                                        <label class="inline-flex items-center gap-2 text-sm text-gray-700 cursor-pointer"><input type="radio" name="att-mode" value="template" class="att-mode-radio w-4 h-4 text-primary focus:ring-primary" checked onchange="onAttModeChange(this.closest('.tab-content,.tab-add-content'))"> 套用考勤模板</label>
+                                        <label class="inline-flex items-center gap-2 text-sm text-gray-700 cursor-pointer"><input type="radio" name="att-mode" value="custom" class="att-mode-radio w-4 h-4 text-primary focus:ring-primary" onchange="onAttModeChange(this.closest('.tab-content,.tab-add-content'))"> 自定義考勤規則</label>
                                     </div>
                                 </div>
 
                                 <!-- 套用考勤模板 -->
-                                <div id="att-template-wrap" class="grid grid-cols-1 sm:grid-cols-[140px_1fr] gap-2 sm:gap-4 sm:items-center">
+                                <div class="att-template-wrap grid grid-cols-1 sm:grid-cols-[140px_1fr] gap-2 sm:gap-4 sm:items-center">
                                     <label class="text-xs font-semibold text-gray-500">考勤模板</label>
                                     <div class="relative sm:max-w-xs">
                                         <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded-md text-sm outline-none">
@@ -1083,22 +1084,22 @@
                                 </div>
 
                                 <!-- 自定義考勤規則（沿用考勤設置屬性欄位）-->
-                                <div id="att-custom-wrap" class="hidden space-y-4 border-t border-gray-100 pt-5">
+                                <div class="att-custom-wrap hidden space-y-4 border-t border-gray-100 pt-5">
                                     <div class="grid grid-cols-1 sm:grid-cols-[140px_1fr] gap-2 sm:gap-4 sm:items-center">
                                         <label class="text-xs font-semibold text-gray-600">固定上班時間</label>
                                         <div class="flex flex-wrap items-center gap-2">
-                                            <input type="time" id="att-work-start" value="09:00" class="border border-gray-300 rounded px-2 py-1 text-sm" onchange="attCalcHours()">
+                                            <input type="time" value="09:00" class="att-work-start border border-gray-300 rounded px-2 py-1 text-sm" onchange="attCalcHours(this.closest('.tab-content,.tab-add-content'))">
                                             <span class="text-gray-400 text-sm">~</span>
-                                            <input type="time" id="att-work-end" value="18:00" class="border border-gray-300 rounded px-2 py-1 text-sm" onchange="attCalcHours()">
-                                            <label class="inline-flex items-center gap-1.5 text-sm text-gray-700 cursor-pointer ml-2"><input type="checkbox" id="att-overnight" class="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary" onchange="attCalcHours()"> 跨日打卡</label>
+                                            <input type="time" value="18:00" class="att-work-end border border-gray-300 rounded px-2 py-1 text-sm" onchange="attCalcHours(this.closest('.tab-content,.tab-add-content'))">
+                                            <label class="inline-flex items-center gap-1.5 text-sm text-gray-700 cursor-pointer ml-2"><input type="checkbox" class="att-overnight w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary" onchange="attCalcHours(this.closest('.tab-content,.tab-add-content'))"> 跨日打卡</label>
                                         </div>
                                     </div>
                                     <div class="grid grid-cols-1 sm:grid-cols-[140px_1fr] gap-2 sm:gap-4 sm:items-center">
                                         <label class="text-xs font-semibold text-gray-600">休息時間</label>
                                         <div class="flex items-center gap-2">
-                                            <input type="time" id="att-rest-start" value="12:00" class="border border-gray-300 rounded px-2 py-1 text-sm" onchange="attCalcHours()">
+                                            <input type="time" value="12:00" class="att-rest-start border border-gray-300 rounded px-2 py-1 text-sm" onchange="attCalcHours(this.closest('.tab-content,.tab-add-content'))">
                                             <span class="text-gray-400 text-sm">~</span>
-                                            <input type="time" id="att-rest-end" value="13:00" class="border border-gray-300 rounded px-2 py-1 text-sm" onchange="attCalcHours()">
+                                            <input type="time" value="13:00" class="att-rest-end border border-gray-300 rounded px-2 py-1 text-sm" onchange="attCalcHours(this.closest('.tab-content,.tab-add-content'))">
                                         </div>
                                     </div>
                                     <div class="grid grid-cols-1 sm:grid-cols-[140px_1fr] gap-2 sm:gap-4">
@@ -1110,7 +1111,7 @@
                                     </div>
                                     <div class="grid grid-cols-1 sm:grid-cols-[140px_1fr] gap-2 sm:gap-4 sm:items-center">
                                         <label class="text-xs font-semibold text-gray-600">工時</label>
-                                        <input type="text" id="att-work-hours" readonly class="w-full sm:max-w-[200px] px-3 py-2 bg-gray-50 border border-transparent rounded-md text-sm text-gray-600 outline-none">
+                                        <input type="text" readonly class="att-work-hours w-full sm:max-w-[200px] px-3 py-2 bg-gray-50 border border-transparent rounded-md text-sm text-gray-600 outline-none">
                                     </div>
                                     <div class="grid grid-cols-1 sm:grid-cols-[140px_1fr] gap-2 sm:gap-4">
                                         <label class="text-xs font-semibold text-gray-600 sm:pt-1">彈性上班時間</label>
@@ -1447,6 +1448,11 @@
                             <li>
                                 <a href="#" id="btn-tab-add-job" onclick="switchAddTab('tab-add-job')" class="inline-block pb-3 text-sm font-medium text-gray-500 hover:text-gray-700 border-b-2 border-transparent transition-colors">
                                     職位信息
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" id="btn-tab-add-attendance" onclick="switchAddTab('tab-add-attendance')" class="inline-block pb-3 text-sm font-medium text-gray-500 hover:text-gray-700 border-b-2 border-transparent transition-colors">
+                                    考勤信息
                                 </a>
                             </li>
                             <li>
@@ -1865,6 +1871,9 @@
                     <!-- ========================================== -->
                     <!-- 頁籤內容：假期信息 -->
                     <!-- ========================================== -->
+                    <!-- 頁籤內容：考勤信息（開啟時由詳情彈窗複製）-->
+                    <div id="tab-add-attendance" class="tab-add-content hidden max-w-4xl mx-auto space-y-8"><!-- 動態複製 --></div>
+
                     <div id="tab-add-leave" class="tab-add-content hidden max-w-5xl mx-auto space-y-8">
 
                         <!-- 分部資訊 -->
@@ -2243,7 +2252,7 @@
             const att = document.getElementById('tab-attendance');
             if (att) {
                 att.querySelectorAll('input').forEach(el => { el.disabled = !isEdit; });
-                if (isEdit) attCalcHours();
+                if (isEdit) attCalcHours(att);
             }
             updateSaveButton();
         }
@@ -2472,14 +2481,16 @@
            編輯彈窗內 頁籤切換邏輯 (Tabs)
            ----------------------- */
         /* ===== 考勤信息：模板 / 自定義切換 + 工時計算 ===== */
-        function onAttModeChange() {
-            const sel = document.querySelector('input[name="att-mode"]:checked');
+        // root 為考勤分頁容器（詳情或新增彈窗）；未指定則整份文件
+        function onAttModeChange(root) {
+            root = root || document;
+            const sel = root.querySelector('.att-mode-radio:checked');
             const custom = sel && sel.value === 'custom';
-            const tpl = document.getElementById('att-template-wrap');
-            const cus = document.getElementById('att-custom-wrap');
+            const tpl = root.querySelector('.att-template-wrap');
+            const cus = root.querySelector('.att-custom-wrap');
             if (tpl) tpl.classList.toggle('hidden', custom);
             if (cus) cus.classList.toggle('hidden', !custom);
-            if (custom) attCalcHours();
+            if (custom) attCalcHours(root);
         }
         function attToMin(v) {
             if (!v || v.indexOf(':') < 0) return null;
@@ -2487,16 +2498,22 @@
             if (isNaN(h) || isNaN(m)) return null;
             return h * 60 + m;
         }
-        function attCalcHours() {
-            const out = document.getElementById('att-work-hours');
-            if (!out) return;
-            const ws = attToMin(document.getElementById('att-work-start').value);
-            const we = attToMin(document.getElementById('att-work-end').value);
-            const overnight = document.getElementById('att-overnight').checked;
+        function attCalcHours(root) {
+            root = root || document;
+            const out = root.querySelector('.att-work-hours');
+            const wsEl = root.querySelector('.att-work-start');
+            const weEl = root.querySelector('.att-work-end');
+            if (!out || !wsEl || !weEl) return;
+            const ws = attToMin(wsEl.value);
+            const we = attToMin(weEl.value);
+            const ovEl = root.querySelector('.att-overnight');
+            const overnight = ovEl ? ovEl.checked : false;
             let total = (ws !== null && we !== null) ? (we - ws) : 0;
             if (total < 0 || (overnight && total <= 0)) total += 24 * 60;
-            const rs = attToMin(document.getElementById('att-rest-start').value);
-            const re = attToMin(document.getElementById('att-rest-end').value);
+            const rsEl = root.querySelector('.att-rest-start');
+            const reEl = root.querySelector('.att-rest-end');
+            const rs = rsEl ? attToMin(rsEl.value) : null;
+            const re = reEl ? attToMin(reEl.value) : null;
             let rest = 0;
             if (rs !== null && re !== null) { rest = re - rs; if (rest < 0) rest += 24 * 60; }
             const net = Math.max(0, total - rest);
@@ -2505,7 +2522,7 @@
 
         function switchTab(tabId) {
             currentDetailTab = tabId;
-            if (tabId === 'tab-attendance') onAttModeChange();
+            if (tabId === 'tab-attendance') onAttModeChange(document.getElementById('tab-attendance'));
             if (tabId === 'tab-salary') resetSalaryQuery();
             // 隱藏所有內容
             document.querySelectorAll('.tab-content').forEach(content => {
@@ -2685,9 +2702,9 @@
             }
         }
 
-        // 將「員工詳細資料」的 職位信息 / 假期信息 內容複製到新增彈窗對應分頁，並正規化為可編輯的空白表單
+        // 將「員工詳細資料」的 職位信息 / 考勤信息 / 假期信息 內容複製到新增彈窗對應分頁，並正規化為可編輯的空白表單
         function syncAddTabsFromDetail() {
-            [['tab-job', 'tab-add-job'], ['tab-leave', 'tab-add-leave']].forEach(function (pair) {
+            [['tab-job', 'tab-add-job'], ['tab-attendance', 'tab-add-attendance'], ['tab-leave', 'tab-add-leave']].forEach(function (pair) {
                 const src = document.getElementById(pair[0]);
                 const dst = document.getElementById(pair[1]);
                 if (!src || !dst) return;
@@ -2696,6 +2713,15 @@
                 dst.querySelectorAll('input.bg-\\[\\#f1f3f5\\], textarea.bg-\\[\\#f1f3f5\\]').forEach(el => { el.readOnly = false; });
                 dst.querySelectorAll('.js-edit-only').forEach(el => el.classList.remove('hidden'));
                 dst.querySelectorAll('.js-view-only').forEach(el => el.classList.add('hidden'));
+
+                // 考勤信息：啟用互動欄位、避免與詳情共用 radio 群組；保留預設時間值
+                if (pair[1] === 'tab-add-attendance') {
+                    dst.querySelectorAll('input, select, textarea').forEach(el => { el.disabled = false; });
+                    dst.querySelectorAll('input[type=radio]').forEach(el => { if (el.name) el.name = el.name + '-add'; });
+                    dst.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
+                    return;
+                }
+
                 // 基本工資 / 職位信息 / 事業部 / 職級：新增員工僅需一筆，只保留第一筆並移除「新增／移除」按鈕
                 dst.querySelectorAll('.record-section').forEach(sec => {
                     const list = sec.querySelector('.record-list');
@@ -2707,6 +2733,8 @@
                 dst.querySelectorAll('select').forEach(el => { el.selectedIndex = 0; });
                 dst.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
             });
+            // 初始化考勤信息分頁的「套用模板 / 自定義」顯示
+            onAttModeChange(document.getElementById('tab-add-attendance'));
         }
 
         function closeAddEmployeeModal() {
@@ -2795,6 +2823,16 @@
             closeQFlow();
         }
 
+        // 取消入職：人員資料已建立但尚未報到、且通知不來報到時，由人資取消入職
+        function cancelOnboarding(btn, empno, name) {
+            if (!confirm(`確定要取消「${name}（${empno}）」的入職嗎？\n\n適用於：人員資料已建立、但尚未報到，且已通知不來報到。\n取消後將標記為「已取消入職」。`)) return;
+            const tr = btn.closest('tr');
+            if (tr && tr.children[2]) {
+                tr.children[2].innerHTML = '<span class="ui-badge ui-badge-gray">已取消入職</span>';
+            }
+            btn.remove();   // 已取消，移除按鈕避免重複操作
+        }
+
         /* -----------------------
            職位信息：新增 / 移除分部（可掛多組分部）
            ----------------------- */
@@ -2822,6 +2860,7 @@
            新增員工內 頁籤切換邏輯 (Tabs)
            ----------------------- */
         function switchAddTab(tabId) {
+            if (tabId === 'tab-add-attendance') onAttModeChange(document.getElementById('tab-add-attendance'));
             // 隱藏所有新增內容
             document.querySelectorAll('.tab-add-content').forEach(content => {
                 content.classList.remove('active');

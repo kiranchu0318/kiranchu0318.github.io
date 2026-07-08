@@ -21,6 +21,7 @@
         ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
     </style>
     <link rel="stylesheet" href="shared-ui.css">
 </head>
@@ -32,21 +33,95 @@
         </header>
 
         <div class="ui-card overflow-hidden flex flex-col lg:flex-row min-h-[640px]">
-            <!-- 左：審批角色清單 -->
-            <aside class="lg:w-64 shrink-0 border-b lg:border-b-0 lg:border-r border-gray-100 flex flex-col">
+            <!-- 左：審批角色清單（含新增／搜尋）-->
+            <aside class="lg:w-72 shrink-0 border-b lg:border-b-0 lg:border-r border-gray-100 flex flex-col">
+                <div class="p-4 border-b border-gray-100 flex items-center justify-between gap-2">
+                    <h2 class="font-bold text-gray-900">審批角色</h2>
+                    <button onclick="openAddRoleModal()" class="ui-btn ui-btn-primary ui-btn-sm"><i class="fa-solid fa-plus"></i> 新增</button>
+                </div>
                 <div class="px-4 py-3 border-b border-gray-100">
                     <div class="ui-search">
                         <i class="fa-solid fa-magnifying-glass"></i>
                         <input type="text" id="role-search" oninput="renderRoleList()" placeholder="搜尋審批角色..." class="ui-input ui-search-input">
                     </div>
                 </div>
-                <div id="role-list" class="flex-1 overflow-y-auto p-2 space-y-1 lg:max-h-[600px]"></div>
+                <div id="role-list" class="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-1 lg:max-h-[600px]"></div>
             </aside>
 
             <!-- 右：權限設定 -->
             <section class="flex-1 min-w-0 flex flex-col">
-                <div id="perm-panel" class="flex-1 overflow-y-auto p-5 sm:p-6 space-y-5"></div>
+                <div id="perm-empty" class="hidden flex-1 flex flex-col items-center justify-center text-center p-10 gap-3">
+                    <div class="inline-flex p-4 bg-gray-50 text-gray-400 rounded-full"><i class="fa-solid fa-user-shield text-3xl"></i></div>
+                    <p class="text-sm text-text-muted font-medium">請從左側選擇審批角色以設定權限</p>
+                </div>
+                <div id="perm-panel" class="flex-1 overflow-y-auto custom-scrollbar p-5 sm:p-6 space-y-5"></div>
             </section>
+        </div>
+    </div>
+
+    <!-- 新增 / 編輯 審批角色 彈窗 -->
+    <div id="roleModal" class="fixed inset-0 bg-black/40 z-50 flex justify-center items-center hidden p-4">
+        <div class="bg-white rounded-2xl shadow-modal w-full max-w-md overflow-hidden">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                <h3 id="roleModalTitle" class="text-base font-bold text-gray-900">新增審批角色</h3>
+                <button onclick="closeRoleModal()" class="text-gray-400 hover:text-gray-600 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="px-6 py-5 space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">角色名稱 <span class="text-rose-500">*</span></label>
+                    <input type="text" id="roleName" placeholder="請輸入角色名稱" class="ui-input">
+                </div>
+                <div>
+                    <label class="inline-flex items-center gap-2 cursor-pointer select-none">
+                        <input type="checkbox" id="roleNoGroup" class="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer">
+                        <span class="text-sm text-gray-700">此角色無分組</span>
+                    </label>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">說明</label>
+                    <textarea id="roleDesc" rows="3" placeholder="請輸入角色說明（選填）" class="ui-input resize-none"></textarea>
+                </div>
+            </div>
+            <div class="flex justify-end gap-2.5 px-6 py-4 bg-gray-50 border-t border-gray-100">
+                <button onclick="closeRoleModal()" class="ui-btn ui-btn-secondary">取消</button>
+                <button onclick="saveRole()" class="ui-btn ui-btn-primary">儲存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 綁定人員 彈窗 -->
+    <div id="bindModal" class="fixed inset-0 bg-black/40 z-50 flex justify-center items-center hidden p-4">
+        <div class="bg-white rounded-2xl shadow-modal w-full max-w-2xl overflow-hidden flex flex-col max-h-[80vh]">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                <div class="flex items-center gap-2 min-w-0">
+                    <h3 class="text-base font-bold text-gray-900 shrink-0">綁定人員</h3>
+                    <span id="bindRoleName" class="px-2 py-0.5 bg-blue-50 text-primary rounded text-xs font-semibold truncate"></span>
+                    <span id="bindCount" class="text-xs text-text-muted shrink-0"></span>
+                </div>
+                <button onclick="closeBindModal()" class="text-gray-400 hover:text-gray-600 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors shrink-0"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <!-- 加入人員：工號 + 分組類型 + 指定分組 -->
+            <div class="px-6 pt-5">
+                <label class="block text-xs font-semibold text-text-muted mb-1.5">加入人員</label>
+                <div class="grid grid-cols-1 sm:grid-cols-[1fr_1fr_1fr_auto] gap-2">
+                    <input type="text" id="bindEmpno" placeholder="工號" class="ui-input" onkeydown="if(event.key==='Enter')addBindMember()">
+                    <select id="bindType" onchange="onBindTypeChange()" class="ui-select"><option value="">分組類型</option></select>
+                    <select id="bindGroup" class="ui-select"><option value="">指定分組</option></select>
+                    <button onclick="addBindMember()" class="ui-btn ui-btn-primary ui-btn-sm shrink-0"><i class="fa-solid fa-plus"></i> 加入</button>
+                </div>
+                <p class="text-xs text-text-light mt-1.5">姓名依工號自動帶入；選擇分組類型後再選指定分組。</p>
+            </div>
+            <!-- 已綁定清單 -->
+            <div class="px-6 py-5 overflow-auto custom-scrollbar">
+                <div id="bindList" class="space-y-2"><!-- 動態渲染 --></div>
+                <div id="bindEmpty" class="hidden py-10 text-center space-y-2">
+                    <div class="inline-flex p-3 bg-gray-50 text-gray-400 rounded-full"><i class="fa-solid fa-users-slash text-xl"></i></div>
+                    <p class="text-sm text-text-muted font-medium">尚未綁定任何人員</p>
+                </div>
+            </div>
+            <div class="flex justify-end px-6 py-4 bg-gray-50 border-t border-gray-100">
+                <button onclick="closeBindModal()" class="ui-btn ui-btn-primary">完成</button>
+            </div>
         </div>
     </div>
 
@@ -76,38 +151,74 @@
         const ALL_KEYS = PERM_GROUPS.flatMap(g => g.items.map(i => i.key));
         const LABEL_OF = {}; PERM_GROUPS.forEach(g => g.items.forEach(i => LABEL_OF[i.key] = i.label));
 
-        // 審批角色
+        // 審批角色（含說明 desc 與 無分組 noGroup）
         let roles = [
-            { name: '申請人直屬主管', perms: {} }, { name: '部門主管', perms: {} },
-            { name: '負責人', perms: {} }, { name: '人事專員', perms: {} },
-            { name: '人事主管', perms: {} }, { name: '財務人員', perms: {} },
-            { name: '財務主管', perms: {} }, { name: '執行長', perms: {} },
-            { name: '董事長', perms: {} }
+            { name: '申請人直屬主管', desc: '審批申請人的直屬主管', noGroup: false, perms: {} },
+            { name: '部門主管',       desc: '各部門主管審批角色',   noGroup: false, perms: {} },
+            { name: '負責人',         desc: '專案／項目負責人',     noGroup: false, perms: {} },
+            { name: '人事專員',       desc: '人事相關單據審批',     noGroup: false, perms: {} },
+            { name: '人事主管',       desc: '人事主管審批角色',     noGroup: false, perms: {} },
+            { name: '財務人員',       desc: '財務單據處理',         noGroup: false, perms: {} },
+            { name: '財務主管',       desc: '財務主管審批角色',     noGroup: false, perms: {} },
+            { name: '執行長',         desc: '最高層級審批',         noGroup: false, perms: {} },
+            { name: '董事長',         desc: '董事長審批角色',       noGroup: true,  perms: {} }
         ];
         // 預設權限（示範）：首列全開，其餘依規律
         roles.forEach((r, ri) => { ALL_KEYS.forEach((k, pi) => { r.perms[k] = (ri === 0) ? true : ((pi + ri) % 3 !== 0); }); });
 
+        // 員工主檔（示範）：以工號帶出姓名
+        const EMP_DIRECTORY = {
+            '100423': { name: 'Henry' },      '100479': { name: 'William' },
+            '100344': { name: 'James' },      '50029':  { name: 'Logan Adams' },
+            '50030':  { name: 'Ellie Nelson' }, '50028': { name: 'Poppy Baker' },
+            '100139': { name: 'Gibson Yang' }, '101383': { name: 'Matthew' }
+        };
+        function empInfo(empno) { return EMP_DIRECTORY[empno] || { name: '—' }; }
+
+        // 分組類型 → 可選的指定分組（示範，比照審批帳號）
+        const GROUP_TYPES = {
+            '地區':   ['台灣', '越南', '香港', '日本', '新加坡'],
+            '公司':   ['RG', 'LKG', 'KX', 'BOSS'],
+            '事業部': ['第一事業部', '第二事業部', '第三事業部', 'PMO'],
+            '項目':   ['GT', 'GT/VN'],
+            '部門':   ['財務部', '人資部', '研發部', '行銷部']
+        };
+
+        // 各審批角色綁定的人員（示範）：每筆含 工號 / 分組類型 type / 指定分組 group
+        const MEMBER_SEED = {
+            '申請人直屬主管': [{ empno: '100423', type: '事業部', group: 'PMO' }, { empno: '100479', type: '地區', group: '越南' }],
+            '部門主管':       [{ empno: '100344', type: '部門', group: '研發部' }],
+            '人事專員':       [{ empno: '50029', type: '地區', group: '台灣' }],
+            '財務主管':       [{ empno: '50030', type: '事業部', group: '第三事業部' }, { empno: '50028', type: '公司', group: 'KX' }]
+        };
+        roles.forEach(r => { r.members = (MEMBER_SEED[r.name] || []).map(m => ({ ...m })); });
+
         let selectedIndex = 0;
+        let editIndex = -1;   // -1 = 新增；>=0 = 編輯
 
         function grantedCount(r) { return ALL_KEYS.filter(k => r.perms[k]).length; }
 
+        /* ============ 左側審批角色清單 ============ */
         function renderRoleList() {
             const kw = (document.getElementById('role-search').value || '').trim().toLowerCase();
             const box = document.getElementById('role-list');
-            box.innerHTML = roles.map((r, i) => {
-                if (kw && !r.name.toLowerCase().includes(kw)) return '';
+            const rows = roles.map((r, i) => ({ r, i })).filter(({ r }) => !kw || r.name.toLowerCase().includes(kw) || (r.desc || '').toLowerCase().includes(kw));
+            if (!rows.length) { box.innerHTML = '<p class="text-sm text-text-muted text-center py-10">查無符合的審批角色</p>'; return; }
+            box.innerHTML = rows.map(({ r, i }) => {
                 const on = i === selectedIndex;
                 return `<button onclick="selectRole(${i})" class="w-full text-left px-3 py-2.5 rounded-lg transition-colors ${on ? 'bg-primary-light border border-primary/30' : 'hover:bg-gray-50 border border-transparent'}">
-                    <div class="flex items-center justify-between">
-                        <span class="text-sm font-semibold ${on ? 'text-primary' : 'text-gray-800'}">${r.name}</span>
-                        <span class="text-[11px] ${on ? 'text-primary' : 'text-gray-400'}">${grantedCount(r)}/${ALL_KEYS.length}</span>
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="text-sm font-semibold truncate ${on ? 'text-primary' : 'text-gray-800'}">${r.name}</span>
+                        <span class="text-[11px] shrink-0 ${on ? 'text-primary' : 'text-gray-400'}">${grantedCount(r)}/${ALL_KEYS.length}</span>
                     </div>
+                    <div class="text-xs text-text-muted mt-0.5 truncate">${r.desc || '（無說明）'}</div>
                 </button>`;
             }).join('');
         }
 
         function selectRole(i) { selectedIndex = i; renderRoleList(); renderPanel(); }
 
+        /* ============ 右側權限面板 ============ */
         function toggleHtml(item, r) {
             return `<label class="flex items-center gap-2.5 px-3 py-2 rounded-lg border border-gray-100 hover:border-gray-200 cursor-pointer">
                 <input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer" ${r.perms[item.key] ? 'checked' : ''} onchange="togglePerm('${item.key}', this.checked)">
@@ -116,19 +227,38 @@
         }
 
         function renderPanel() {
+            const empty = document.getElementById('perm-empty');
+            const panel = document.getElementById('perm-panel');
+            if (selectedIndex < 0 || !roles[selectedIndex]) {
+                empty.classList.remove('hidden');
+                panel.classList.add('hidden');
+                return;
+            }
+            empty.classList.add('hidden');
+            panel.classList.remove('hidden');
+
             const r = roles[selectedIndex];
             const granted = grantedCount(r);
             let html = `
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-gray-100">
-                    <div>
-                        <h3 class="text-lg font-bold text-gray-900">${r.name}</h3>
-                        <p class="text-sm text-gray-500 mt-0.5">已授權 <span class="font-semibold text-primary">${granted}</span> / ${ALL_KEYS.length} 項</p>
+                <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3 pb-4 border-b border-gray-100">
+                    <div class="min-w-0">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <h3 class="text-lg font-bold text-gray-900">${r.name}</h3>
+                            ${r.noGroup ? '<span class="ui-badge bg-gray-100 text-gray-500">無分組</span>' : ''}
+                        </div>
+                        <p class="text-sm text-gray-500 mt-0.5">${r.desc || '（無說明）'}</p>
+                        <p class="text-xs text-text-light mt-1">${(r.members || []).length} 位綁定人員 · 已授權 <span class="font-semibold text-primary">${granted}</span> / ${ALL_KEYS.length} 項</p>
                     </div>
-                    <div class="flex items-center gap-2">
-                        <button onclick="setAll(true)" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-check-double"></i> 全選</button>
-                        <button onclick="setAll(false)" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-xmark"></i> 清除</button>
-                        <button onclick="savePerms()" class="ui-btn ui-btn-primary ui-btn-sm"><i class="fa-solid fa-floppy-disk"></i> 儲存</button>
+                    <div class="flex items-center gap-2 shrink-0">
+                        <button onclick="openBindModal()" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-user-plus"></i> 綁定人員</button>
+                        <button onclick="openEditRoleModal()" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-pen-to-square"></i> 編輯</button>
+                        <button onclick="deleteRole()" class="ui-btn ui-btn-sm text-rose-600 border border-rose-200 hover:bg-rose-50"><i class="fa-solid fa-trash-can"></i> 刪除</button>
                     </div>
+                </div>
+                <div class="flex items-center justify-end gap-2">
+                    <button onclick="setAll(true)" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-check-double"></i> 全選</button>
+                    <button onclick="setAll(false)" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-xmark"></i> 清除</button>
+                    <button onclick="savePerms()" class="ui-btn ui-btn-primary ui-btn-sm"><i class="fa-solid fa-floppy-disk"></i> 儲存</button>
                 </div>`;
             html += PERM_GROUPS.map(g => {
                 const gkeys = g.items.map(i => i.key);
@@ -136,7 +266,7 @@
                 const allOn = gGranted === gkeys.length;
                 return `<div class="border border-gray-100 rounded-xl p-4">
                     <div class="flex items-center justify-between mb-3">
-                        <h4 class="text-sm font-bold text-gray-800 flex items-center gap-2">${g.group}<span class="text-xs font-medium text-gray-400">${gGranted}/${gkeys.length}</span></h4>
+                        <h4 class="text-sm font-bold text-gray-800 flex items-center gap-2"><i class="fa-solid ${g.icon} text-primary"></i>${g.group}<span class="text-xs font-medium text-gray-400">${gGranted}/${gkeys.length}</span></h4>
                         <label class="inline-flex items-center gap-1.5 cursor-pointer text-xs font-medium text-gray-500">
                             <input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer" ${allOn ? 'checked' : ''} onchange="toggleGroup('${g.group}', this.checked)"> 全選
                         </label>
@@ -158,6 +288,138 @@
         function setAll(val) { ALL_KEYS.forEach(k => roles[selectedIndex].perms[k] = val); renderPanel(); renderRoleList(); }
         function savePerms() { showToast('success', `已儲存「${roles[selectedIndex].name}」的權限設定`); }
 
+        /* ============ 審批角色 新增 / 編輯 / 刪除 ============ */
+        function openAddRoleModal() {
+            editIndex = -1;
+            document.getElementById('roleModalTitle').innerText = '新增審批角色';
+            document.getElementById('roleName').value = '';
+            document.getElementById('roleNoGroup').checked = false;
+            document.getElementById('roleDesc').value = '';
+            document.getElementById('roleModal').classList.remove('hidden');
+        }
+        function openEditRoleModal() {
+            if (selectedIndex < 0 || !roles[selectedIndex]) return;
+            editIndex = selectedIndex;
+            const r = roles[selectedIndex];
+            document.getElementById('roleModalTitle').innerText = '編輯審批角色';
+            document.getElementById('roleName').value = r.name;
+            document.getElementById('roleNoGroup').checked = !!r.noGroup;
+            document.getElementById('roleDesc').value = r.desc || '';
+            document.getElementById('roleModal').classList.remove('hidden');
+        }
+        function closeRoleModal() { document.getElementById('roleModal').classList.add('hidden'); }
+
+        function saveRole() {
+            const name = document.getElementById('roleName').value.trim();
+            const noGroup = document.getElementById('roleNoGroup').checked;
+            const desc = document.getElementById('roleDesc').value.trim();
+            if (!name) { showToast('error', '請填寫角色名稱'); return; }
+            const dup = roles.some((r, idx) => r.name === name && idx !== editIndex);
+            if (dup) { showToast('error', `審批角色「${name}」已存在`); return; }
+
+            if (editIndex === -1) {
+                const perms = {}; ALL_KEYS.forEach(k => perms[k] = false);
+                roles.push({ name, desc, noGroup, perms });
+                selectedIndex = roles.length - 1;
+                showToast('success', `已新增審批角色「${name}」`);
+            } else {
+                roles[editIndex] = { ...roles[editIndex], name, desc, noGroup };
+                showToast('success', `已更新審批角色「${name}」`);
+            }
+            closeRoleModal();
+            document.getElementById('role-search').value = '';
+            renderRoleList();
+            renderPanel();
+        }
+
+        function deleteRole() {
+            const r = roles[selectedIndex];
+            if (!r) return;
+            if (!confirm(`確定要刪除審批角色「${r.name}」嗎？此動作無法復原。`)) return;
+            const name = r.name;
+            roles.splice(selectedIndex, 1);
+            selectedIndex = roles.length ? Math.min(selectedIndex, roles.length - 1) : -1;
+            renderRoleList();
+            renderPanel();
+            showToast('info', `已刪除審批角色「${name}」`);
+        }
+
+        /* ============ 綁定人員 ============ */
+        function openBindModal() {
+            if (selectedIndex < 0 || !roles[selectedIndex]) return;
+            document.getElementById('bindRoleName').innerText = roles[selectedIndex].name;
+            document.getElementById('bindEmpno').value = '';
+            const typeSel = document.getElementById('bindType');
+            typeSel.innerHTML = '<option value="">分組類型</option>' + Object.keys(GROUP_TYPES).map(t => `<option value="${t}">${t}</option>`).join('');
+            onBindTypeChange();
+            renderBindList();
+            document.getElementById('bindModal').classList.remove('hidden');
+        }
+        // 分組類型變更 → 連動更新指定分組選項
+        function onBindTypeChange() {
+            const type = document.getElementById('bindType').value;
+            const opts = GROUP_TYPES[type] || [];
+            document.getElementById('bindGroup').innerHTML = '<option value="">指定分組</option>' + opts.map(g => `<option value="${g}">${g}</option>`).join('');
+        }
+        function closeBindModal() {
+            document.getElementById('bindModal').classList.add('hidden');
+            renderPanel();      // 更新面板上的綁定人數
+            renderRoleList();
+        }
+        function renderBindList() {
+            const r = roles[selectedIndex];
+            const members = (r && r.members) || [];
+            document.getElementById('bindCount').innerText = `共 ${members.length} 位`;
+            const list = document.getElementById('bindList');
+            const empty = document.getElementById('bindEmpty');
+            if (!members.length) { list.innerHTML = ''; empty.classList.remove('hidden'); return; }
+            empty.classList.add('hidden');
+            list.innerHTML = members.map((m, i) => {
+                const info = empInfo(m.empno);
+                return `
+                <div class="flex items-center justify-between gap-3 p-2.5 rounded-lg border border-gray-200">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <span class="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm font-bold shrink-0">${(info.name || '?').slice(0, 1)}</span>
+                        <div class="min-w-0">
+                            <div class="text-sm font-medium text-gray-800 truncate">${info.name}</div>
+                            <div class="text-xs text-text-muted font-mono">${m.empno}</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 shrink-0">
+                        <span class="text-[11px] text-text-light">${m.type || ''}</span>
+                        <span class="px-2 py-0.5 bg-violet-50 text-violet-600 rounded text-xs font-semibold">${m.group || '—'}</span>
+                        <button onclick="removeBindMember(${i})" class="text-gray-400 hover:text-rose-500 w-7 h-7 flex items-center justify-center rounded-lg hover:bg-rose-50 transition-colors" title="解除綁定"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+        function addBindMember() {
+            const r = roles[selectedIndex];
+            if (!r) return;
+            const empno = document.getElementById('bindEmpno').value.trim();
+            const type = document.getElementById('bindType').value;
+            const group = document.getElementById('bindGroup').value;
+            if (!empno) { showToast('error', '請輸入工號'); return; }
+            if (!EMP_DIRECTORY[empno]) { showToast('error', `查無工號「${empno}」`); return; }
+            if (!type) { showToast('error', '請選擇分組類型'); return; }
+            if (!group) { showToast('error', '請選擇指定分組'); return; }
+            r.members = r.members || [];
+            if (r.members.some(m => m.empno === empno && m.type === type && m.group === group)) { showToast('error', '此人員與指定分組已綁定'); return; }
+            r.members.push({ empno, type, group });
+            document.getElementById('bindEmpno').value = '';
+            document.getElementById('bindEmpno').focus();
+            renderBindList();
+        }
+        function removeBindMember(i) {
+            const r = roles[selectedIndex];
+            if (!r || !r.members) return;
+            r.members.splice(i, 1);
+            renderBindList();
+        }
+        // 點背景關閉綁定人員彈窗
+        document.getElementById('bindModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeBindModal(); });
+
+        /* ============ Toast ============ */
         function showToast(type, text) {
             const toast = document.getElementById('toast');
             const icon = document.getElementById('toast-icon');
@@ -169,6 +431,9 @@
             toast.style.transform = 'translateY(0)'; toast.style.opacity = '1';
             clearTimeout(window.__t); window.__t = setTimeout(() => { toast.style.transform = 'translateY(5rem)'; toast.style.opacity = '0'; }, 2600);
         }
+
+        // 點背景關閉彈窗
+        document.getElementById('roleModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeRoleModal(); });
 
         renderRoleList();
         renderPanel();
