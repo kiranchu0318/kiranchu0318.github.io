@@ -62,6 +62,13 @@
                 <!-- 工具列 -->
                 <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
                     <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full sm:w-auto">
+                        <div class="w-full sm:w-[150px]">
+                            <select id="filter-bu" onchange="applyAccountFilter()" class="ui-select">
+                                <option value="all" selected>全部事業部</option>
+                                <option value="海外事業部">海外事業部</option>
+                                <option value="國內事業部">國內事業部</option>
+                            </select>
+                        </div>
                         <div class="w-full sm:w-[130px]">
                             <select id="filter-project" onchange="applyAccountFilter()" class="ui-select">
                                 <option value="all" selected>全部項目</option>
@@ -96,23 +103,25 @@
                     <table class="ui-table whitespace-nowrap">
                         <thead>
                             <tr>
-                                <th scope="col">項目</th>
-                                <th scope="col">部門</th>
-                                <th scope="col" class="w-28">工號</th>
-                                <th scope="col">姓名</th>
-                                <th scope="col">套用權限</th>
-                                <th scope="col">區域</th>
-                                <th scope="col" class="min-w-[150px] text-center">操作</th>
+                                <th scope="col" class="w-28">事業部</th>
+                                <th scope="col" class="w-20">項目</th>
+                                <th scope="col" class="w-20">部門</th>
+                                <th scope="col" class="w-24">工號</th>
+                                <th scope="col" class="w-40">姓名</th>
+                                <th scope="col" class="w-44">套用權限</th>
+                                <th scope="col" class="min-w-[200px]">負責區域</th>
+                                <th scope="col" class="w-40 text-center">操作</th>
                             </tr>
                         </thead>
                         <tbody id="account-tbody">
                             <tr data-region="T1">
+                                <td><span class="px-2 py-0.5 bg-indigo-50 text-indigo-600 rounded text-xs font-semibold">海外事業部</span></td>
                                 <td><span class="px-2 py-0.5 bg-violet-50 text-violet-600 rounded text-xs font-semibold">GT</span></td>
                                 <td><span class="px-2 py-0.5 bg-gray-100 rounded text-xs font-semibold text-gray-700">HR</span></td>
                                 <td>50030</td>
                                 <td>Ellie Nelson</td>
                                 <td class="acct-perm"></td>
-                                <td class="acct-region"><span class="px-2 py-0.5 bg-teal-50 text-teal-600 rounded text-xs font-semibold">T1</span></td>
+                                <td class="acct-region"><div class="flex flex-wrap gap-1"><span class="px-2 py-0.5 bg-teal-50 text-teal-600 rounded text-xs font-semibold">T1</span></div></td>
                                 <td>
                                     <div class="flex items-center justify-center gap-2">
                                         <button onclick="openEditPermModal(this)" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-pen"></i> 編輯權限</button>
@@ -120,12 +129,13 @@
                                 </td>
                             </tr>
                             <tr data-region="T2">
+                                <td><span class="px-2 py-0.5 bg-indigo-50 text-indigo-600 rounded text-xs font-semibold">海外事業部</span></td>
                                 <td><span class="px-2 py-0.5 bg-violet-50 text-violet-600 rounded text-xs font-semibold">GT</span></td>
                                 <td><span class="px-2 py-0.5 bg-gray-100 rounded text-xs font-semibold text-gray-700">RD</span></td>
                                 <td>50029</td>
                                 <td>Logan Adams</td>
                                 <td class="acct-perm"></td>
-                                <td class="acct-region"><span class="px-2 py-0.5 bg-teal-50 text-teal-600 rounded text-xs font-semibold">T2</span></td>
+                                <td class="acct-region"><div class="flex flex-wrap gap-1"><span class="px-2 py-0.5 bg-teal-50 text-teal-600 rounded text-xs font-semibold">T2</span></div></td>
                                 <td>
                                     <div class="flex items-center justify-center gap-2">
                                         <button onclick="openEditPermModal(this)" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-pen"></i> 編輯權限</button>
@@ -133,12 +143,27 @@
                                 </td>
                             </tr>
                             <tr data-region="U">
+                                <td><span class="px-2 py-0.5 bg-indigo-50 text-indigo-600 rounded text-xs font-semibold">國內事業部</span></td>
                                 <td><span class="px-2 py-0.5 bg-violet-50 text-violet-600 rounded text-xs font-semibold">GT</span></td>
                                 <td><span class="px-2 py-0.5 bg-gray-100 rounded text-xs font-semibold text-gray-700">FIN</span></td>
                                 <td>50028</td>
                                 <td>Poppy Baker</td>
                                 <td class="acct-perm"></td>
-                                <td class="acct-region"><span class="px-2 py-0.5 bg-teal-50 text-teal-600 rounded text-xs font-semibold">U</span></td>
+                                <td class="acct-region"><div class="flex flex-wrap gap-1"><span class="px-2 py-0.5 bg-teal-50 text-teal-600 rounded text-xs font-semibold">U</span></div></td>
+                                <td>
+                                    <div class="flex items-center justify-center gap-2">
+                                        <button onclick="openEditPermModal(this)" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-pen"></i> 編輯權限</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr data-region="T1,T2,U,S">
+                                <td><span class="px-2 py-0.5 bg-indigo-50 text-indigo-600 rounded text-xs font-semibold">國內事業部</span></td>
+                                <td><span class="px-2 py-0.5 bg-violet-50 text-violet-600 rounded text-xs font-semibold">GT</span></td>
+                                <td><span class="px-2 py-0.5 bg-gray-100 rounded text-xs font-semibold text-gray-700">OP</span></td>
+                                <td>50027</td>
+                                <td>Grace Turner</td>
+                                <td class="acct-perm"></td>
+                                <td class="acct-region"><div class="flex flex-wrap gap-1"><span class="px-2 py-0.5 bg-teal-50 text-teal-600 rounded text-xs font-semibold">T1</span><span class="px-2 py-0.5 bg-teal-50 text-teal-600 rounded text-xs font-semibold">T2</span><span class="px-2 py-0.5 bg-teal-50 text-teal-600 rounded text-xs font-semibold">U</span><span class="px-2 py-0.5 bg-teal-50 text-teal-600 rounded text-xs font-semibold">S</span></div></td>
                                 <td>
                                     <div class="flex items-center justify-center gap-2">
                                         <button onclick="openEditPermModal(this)" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-pen"></i> 編輯權限</button>
@@ -698,6 +723,7 @@
         /* ============ 帳號清單篩選（項目 / 部門 / 關鍵字）============ */
         function applyAccountFilter() {
             const kw = document.getElementById('acct-search').value.trim().toLowerCase();
+            const buVal = document.getElementById('filter-bu').value;
             const projVal = document.getElementById('filter-project').value;
             const deptVal = document.getElementById('filter-dept').value;
             const tbody = document.getElementById('account-tbody');
@@ -705,12 +731,14 @@
 
             Array.from(tbody.querySelectorAll('tr')).forEach(tr => {
                 if (tr.dataset.empty) return; // 略過「查無資料」提示列
-                const project = tr.children[0].innerText.trim();
-                const dept = tr.children[1].innerText.trim();
-                const empno = tr.children[2].innerText.trim().toLowerCase();
-                const name = tr.children[3].innerText.trim().toLowerCase();
+                const bu = tr.children[0].innerText.trim();
+                const project = tr.children[1].innerText.trim();
+                const dept = tr.children[2].innerText.trim();
+                const empno = tr.children[3].innerText.trim().toLowerCase();
+                const name = tr.children[4].innerText.trim().toLowerCase();
                 const match =
                     (!kw || empno.includes(kw) || name.includes(kw)) &&
+                    (buVal === 'all' || bu === buVal) &&
                     (projVal === 'all' || project === projVal) &&
                     (deptVal === 'all' || dept === deptVal);
                 tr.classList.toggle('hidden', !match);
@@ -723,7 +751,7 @@
                 if (!emptyRow) {
                     emptyRow = document.createElement('tr');
                     emptyRow.dataset.empty = '1';
-                    emptyRow.innerHTML = '<td colspan="7" class="text-center text-sm text-text-muted py-10">查無符合條件的帳號</td>';
+                    emptyRow.innerHTML = '<td colspan="8" class="text-center text-sm text-text-muted py-10">查無符合條件的帳號</td>';
                     tbody.appendChild(emptyRow);
                 }
                 emptyRow.classList.remove('hidden');
@@ -735,13 +763,13 @@
         /* ============ 新增帳號 彈窗（工號查詢 + 套用權限角色）============ */
         // 員工主檔（示意）：以工號帶出姓名、項目、部門，實際串接後端後改為查詢 API
         const EMPLOYEE_DIRECTORY = {
-            '100001': { name: 'Tony',          project: 'GT', dept: 'RD' },
-            '50027': { name: 'Oscar Wright',  project: 'GT', dept: 'RD' },
-            '50026': { name: 'Grace Hall',    project: 'GT', dept: 'MKT' },
-            '50025': { name: 'Leo Turner',    project: 'GT', dept: 'IA1' },
-            '50024': { name: 'Mia Scott',     project: 'GT', dept: 'HR' },
-            '50023': { name: 'Jack Morris',   project: 'GT', dept: 'FIN' },
-            '50022': { name: 'Ava Bennett',   project: 'GT', dept: 'RD' }
+            '100001': { name: 'Tony',          project: 'GT', dept: 'RD',  bu: '海外事業部' },
+            '50027': { name: 'Oscar Wright',  project: 'GT', dept: 'RD',  bu: '海外事業部' },
+            '50026': { name: 'Grace Hall',    project: 'GT', dept: 'MKT', bu: '國內事業部' },
+            '50025': { name: 'Leo Turner',    project: 'GT', dept: 'IA1', bu: '國內事業部' },
+            '50024': { name: 'Mia Scott',     project: 'GT', dept: 'HR',  bu: '海外事業部' },
+            '50023': { name: 'Jack Morris',   project: 'GT', dept: 'FIN', bu: '國內事業部' },
+            '50022': { name: 'Ava Bennett',   project: 'GT', dept: 'RD',  bu: '海外事業部' }
         };
 
         let queriedEmployee = null;   // 查詢到的員工資料（含 empno / name / project / dept）
@@ -771,7 +799,7 @@
         }
         // 區域徽章（列表用）
         function regionCell(regions) {
-            return `<div class="flex flex-wrap gap-1 justify-center">`
+            return `<div class="flex flex-wrap gap-1">`
                 + regions.map(r => `<span class="px-2 py-0.5 bg-teal-50 text-teal-600 rounded text-xs font-semibold">${r}</span>`).join('')
                 + `</div>`;
         }
@@ -827,13 +855,14 @@
             const regions = msGet('account-region');
             if (!regions.length) { showToast('error', '請至少選擇一個負責區域'); return; }
 
-            const { empno, name, project, dept } = queriedEmployee;
+            const { empno, name, project, dept, bu } = queriedEmployee;
             const roleName = roles[roleIdx].name;
-            // 新增一列至帳號清單（項目/部門/姓名由工號帶出，套用所選權限角色；負責區域存於該列資料屬性）
+            // 新增一列至帳號清單（事業部/項目/部門/姓名由工號帶出，套用所選權限角色；負責區域存於該列資料屬性）
             const tbody = document.getElementById('account-tbody');
             const tr = document.createElement('tr');
             tr.dataset.region = regions.join(',');
             tr.innerHTML = `
+                <td><span class="px-2 py-0.5 bg-indigo-50 text-indigo-600 rounded text-xs font-semibold">${bu || '—'}</span></td>
                 <td><span class="px-2 py-0.5 bg-violet-50 text-violet-600 rounded text-xs font-semibold">${project}</span></td>
                 <td><span class="px-2 py-0.5 bg-gray-100 rounded text-xs font-semibold text-gray-700">${dept}</span></td>
                 <td>${empno}</td>
