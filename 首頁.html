@@ -124,8 +124,8 @@
 
       <!-- Tab: 個人 -->
       <div id="tab-personal" class="tab-content block animate-slide-up">
-        <div class="max-w-4xl mx-auto">
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-5" id="leave-balances-container">
+        <div class="w-full">
+          <div class="grid gap-5" style="grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));" id="leave-balances-container">
              <!-- 由 JS 動態生成 -->
           </div>
         </div>
@@ -648,12 +648,6 @@
         'bg-amber-500':   { bar: 'bg-amber-500',   light: 'bg-amber-50',   text: 'text-amber-600',   ring: 'ring-amber-100',   glow: 'from-amber-500/10' },
         'bg-rose-500':    { bar: 'bg-rose-500',    light: 'bg-rose-50',    text: 'text-rose-600',    ring: 'ring-rose-100',    glow: 'from-rose-500/10' },
       };
-      const icons = {
-        al: '<svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5A2.25 2.25 0 0 1 5.25 5.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 11.25h13.5A2.25 2.25 0 0 1 21 13.5v5.25"/></svg>',
-        fl: '<svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>',
-        sl: '<svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.313 2.733-.714-1.607-2.376-2.733-4.312-2.733C5.099 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z"/></svg>',
-        ct: '<svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l3 3m6-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>',
-      };
 
       container.innerHTML = state.leaveBalances.map(leave => {
         const remaining = leave.total - leave.used;
@@ -663,51 +657,42 @@
         const usedPct = leave.total > 0 ? Math.min(100, (leave.used / leave.total) * 100) : 0;
         const plPct = leave.total > 0 ? Math.min(100 - usedPct, (pl / leave.total) * 100) : 0;
         const c = palette[leave.color] || palette['bg-blue-500'];
-        const icon = icons[leave.id] || icons.al;
-
-        // 剩餘時數旁的 () 預估調整：假單預扣顯示負號、加班預添加顯示正號
-        const segs = [];
-        if (pl) segs.push('<span class="text-rose-500">-' + pl + '</span>');
-        if (po) segs.push('<span class="text-emerald-600">+' + po + '</span>');
-        const pendingHtml = segs.length
-          ? '<span class="text-[13px] whitespace-nowrap">(' + segs.join('<span class="text-slate-300"> </span>') + ')</span>'
-          : '';
 
         return `
-          <div class="group bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm hover-card-effect relative overflow-hidden">
-            <div class="absolute -top-10 -right-10 w-28 h-28 rounded-full bg-gradient-to-br ${c.glow} to-transparent pointer-events-none"></div>
-            <div class="flex items-center gap-3 mb-4">
-              <div class="w-11 h-11 rounded-xl ${c.light} ${c.text} ring-4 ${c.ring} flex items-center justify-center shrink-0">
-                ${icon}
-              </div>
-              <div class="min-w-0">
-                <p class="text-sm font-bold text-slate-700 truncate">${leave.name}</p>
-                <p class="text-[11px] text-slate-400 font-medium">單位：小時 (H)</p>
-              </div>
+          <div class="group bg-white rounded-lg p-5 border border-gray-200 shadow-sm hover-card-effect relative overflow-hidden">
+
+            <!-- 標題 -->
+            <div class="flex items-center gap-2 mb-4">
+              <span class="flex items-center justify-center w-7 h-7 rounded-md ${c.light}"><span class="w-2.5 h-2.5 rounded-sm ${c.bar}"></span></span>
+              <h3 class="text-[14px] font-semibold text-slate-800 truncate">${leave.name}</h3>
             </div>
 
-            <!-- 原始時數 / 剩餘時數(預估調整) / 已用時數 -->
-            <div class="grid grid-cols-3 divide-x divide-slate-100 text-center mb-3">
-              <div class="px-1">
-                <div class="text-[11px] text-slate-400 mb-0.5">原始時數</div>
-                <div class="text-xl text-slate-700 tabular-nums">${leave.total}</div>
+            <!-- 剩餘（主數字）/ 總額 -->
+            <div class="flex items-end justify-between mb-2">
+              <div class="flex items-baseline gap-1.5">
+                <span class="text-[32px] font-semibold ${c.text} tabular-nums leading-none">${remaining}</span>
+                <span class="text-base text-slate-400">/ ${leave.total} H</span>
               </div>
-              <div class="px-1">
-                <div class="text-[11px] text-slate-400 mb-0.5">剩餘時數</div>
-                <div class="flex items-baseline justify-center gap-1">
-                  <span class="text-2xl ${c.text} tabular-nums leading-none">${remaining}</span>
-                  ${pendingHtml}
-                </div>
-              </div>
-              <div class="px-1">
-                <div class="text-[11px] text-slate-400 mb-0.5">已用時數</div>
-                <div class="text-xl text-slate-700 tabular-nums">${leave.used}</div>
-              </div>
+              <span class="text-[13px] text-slate-400">剩餘 / 總額</span>
             </div>
 
-            <div class="text-[11px] text-slate-400">
-              ${(pl || po) ? `預估剩餘 <span class="text-slate-600 tabular-nums">${projected} H</span>（含審核中假單/加班預估）` : '目前無審核中之預估調整'}
+            <!-- 進度條：已用（實色）+ 審核中預扣（淺色）-->
+            <div class="h-2 w-full rounded-full bg-slate-100 overflow-hidden flex mb-3">
+              <div class="${c.bar} h-full" style="width:${usedPct}%"></div>
+              <div class="${c.bar} h-full opacity-40" style="width:${plPct}%"></div>
             </div>
+
+            <!-- 明細 -->
+            <div class="flex items-center justify-between text-[13px]">
+              <span class="text-slate-500">已用 <span class="font-medium text-slate-700 tabular-nums">${leave.used}</span> H</span>
+              ${(pl || po)
+                ? `<span class="text-slate-500">預估剩餘 <span class="font-semibold ${c.text} tabular-nums">${projected}</span> H</span>`
+                : `<span class="text-slate-400">無審核中調整</span>`}
+            </div>
+            ${(pl || po) ? `<div class="mt-2 pt-2 border-t border-slate-100 flex flex-wrap items-center gap-x-4 gap-y-1 text-[13px]">
+              ${pl ? `<span class="inline-flex items-center gap-1.5 text-rose-500"><span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span>審核中假單 <span class="tabular-nums font-medium">-${pl} H</span></span>` : ''}
+              ${po ? `<span class="inline-flex items-center gap-1.5 text-emerald-600"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>加班預估 <span class="tabular-nums font-medium">+${po} H</span></span>` : ''}
+            </div>` : ''}
           </div>
         `;
       }).join('');

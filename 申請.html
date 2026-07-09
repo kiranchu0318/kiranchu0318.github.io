@@ -23,104 +23,164 @@
     </div>
     
     <!-- 頂部分類選單 (Tab) -->
-    <div class="flex flex-wrap items-center gap-3 mb-6 bg-white p-3 rounded-md shadow-sm border border-gray-100">
-        <button data-target="all" class="top-category-btn active bg-blue-500 text-white px-8 py-2.5 rounded-md text-[14px] font-medium transition-colors shadow-sm">全部</button>
-        <button data-target="business" class="top-category-btn bg-[#f8f9fa] hover:bg-gray-200 text-gray-700 px-8 py-2.5 rounded-md text-[14px] transition-colors border border-gray-100">商務</button>
-        <button data-target="contract" class="top-category-btn bg-[#f8f9fa] hover:bg-gray-200 text-gray-700 px-8 py-2.5 rounded-md text-[14px] transition-colors border border-gray-100">合同</button>
-        <button data-target="finance" class="top-category-btn bg-[#f8f9fa] hover:bg-gray-200 text-gray-700 px-8 py-2.5 rounded-md text-[14px] transition-colors border border-gray-100">財務</button>
-        <button data-target="admin" class="top-category-btn bg-[#f8f9fa] hover:bg-gray-200 text-gray-700 px-8 py-2.5 rounded-md text-[14px] transition-colors border border-gray-100">行政</button>
-        <button data-target="pmo" class="top-category-btn bg-[#f8f9fa] hover:bg-gray-200 text-gray-700 px-8 py-2.5 rounded-md text-[14px] transition-colors border border-gray-100">PMO</button>
-        <button data-target="hr" class="top-category-btn bg-[#f8f9fa] hover:bg-gray-200 text-gray-700 px-8 py-2.5 rounded-md text-[14px] transition-colors border border-gray-100">HR</button>
+    <div class="flex flex-wrap items-center gap-2 mb-8">
+        <button data-target="admin" class="top-category-btn active bg-blue-500 text-white border border-blue-500 px-3 py-1 rounded-full text-[12px] font-medium transition-colors">行政</button>
+        <button data-target="finance" class="top-category-btn bg-gray-100 text-gray-600 border border-gray-300 hover:bg-gray-200 px-3 py-1 rounded-full text-[12px] transition-colors">財務</button>
+        <button data-target="contract" class="top-category-btn bg-gray-100 text-gray-600 border border-gray-300 hover:bg-gray-200 px-3 py-1 rounded-full text-[12px] transition-colors">合同</button>
+        <button data-target="hr" class="top-category-btn bg-gray-100 text-gray-600 border border-gray-300 hover:bg-gray-200 px-3 py-1 rounded-full text-[12px] transition-colors">人事</button>
+        <button data-target="business" class="top-category-btn bg-gray-100 text-gray-600 border border-gray-300 hover:bg-gray-200 px-3 py-1 rounded-full text-[12px] transition-colors">商務</button>
+        <button data-target="pmo" class="top-category-btn bg-gray-100 text-gray-600 border border-gray-300 hover:bg-gray-200 px-3 py-1 rounded-full text-[12px] transition-colors">PMO</button>
     </div>
 
     <!-- 申請項目網格區 (四欄排列) -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5" id="app-grid">
         
-        <!-- 行政類 -->
-        <div data-category="admin" class="app-item bg-white border border-gray-200 hover:border-blue-400 hover:shadow-md cursor-pointer rounded-md px-5 py-4 flex items-center text-gray-700 transition-all duration-200 group" data-form="PU" data-pu-type="請購單 (PU)">
+        <!-- 行政 / 採購 / 資產 -->
+        <div data-category="admin" class="app-item bg-white border border-gray-200 hover:border-blue-400 hover:shadow-md cursor-pointer rounded-md px-4 py-2.5 flex items-center text-gray-700 transition-all duration-200 group" data-form="PU" data-pu-type="請購單 (PU)">
             <i data-lucide="pen" class="w-4 h-4 mr-3 text-gray-400 group-hover:text-blue-500 transition-colors"></i>
-            <span class="text-[14px] group-hover:text-blue-600 transition-colors">請購單 (PU)</span>
+            <span class="text-[14px] group-hover:text-blue-600 transition-colors">請購單(PU)</span>
         </div>
-        <div id="pta-card" data-category="admin" class="app-item bg-white border border-gray-200 hover:border-blue-400 hover:shadow-md cursor-pointer rounded-md px-5 py-4 flex items-center text-gray-700 transition-all duration-200 group" data-form="PTA">
+        <div id="pta-card" data-category="admin" class="app-item bg-white border border-gray-200 hover:border-blue-400 hover:shadow-md cursor-pointer rounded-md px-4 py-2.5 flex items-center text-gray-700 transition-all duration-200 group" data-form="PTA">
             <i data-lucide="pen" class="w-4 h-4 mr-3 text-gray-400 group-hover:text-blue-500 transition-colors"></i>
-            <span class="text-[14px] group-hover:text-blue-600 transition-colors">差旅申請單 (PTA)</span>
+            <span class="text-[14px] group-hover:text-blue-600 transition-colors">差旅申請單(PTA)</span>
         </div>
-        <div id="aa-card" data-category="admin" class="app-item bg-white border border-gray-200 hover:border-blue-400 hover:shadow-md cursor-pointer rounded-md px-5 py-4 flex items-center text-gray-700 transition-all duration-200 group" data-form="AA">
+        <div data-category="admin" class="app-item bg-white border border-gray-200 hover:border-blue-400 hover:shadow-md cursor-pointer rounded-md px-4 py-2.5 flex items-center text-gray-700 transition-all duration-200 group" data-form="RPU">
             <i data-lucide="pen" class="w-4 h-4 mr-3 text-gray-400 group-hover:text-blue-500 transition-colors"></i>
-            <span class="text-[14px] group-hover:text-blue-600 transition-colors">資產調撥申請 (AA)</span>
+            <span class="text-[14px] group-hover:text-blue-600 transition-colors">週期性請購單(RPU)</span>
         </div>
-        <div data-category="admin" class="app-item bg-white border border-gray-200 hover:border-blue-400 hover:shadow-md cursor-pointer rounded-md px-5 py-4 flex items-center text-gray-700 transition-all duration-200 group" data-form="AM">
+        <div data-category="admin" class="app-item bg-white border border-gray-200 hover:border-blue-400 hover:shadow-md cursor-pointer rounded-md px-4 py-2.5 flex items-center text-gray-700 transition-all duration-200 group" data-form="APU">
             <i data-lucide="pen" class="w-4 h-4 mr-3 text-gray-400 group-hover:text-blue-500 transition-colors"></i>
-            <span class="text-[14px] group-hover:text-blue-600 transition-colors">資產維修申請 (AM)</span>
-        </div>
-        <div data-category="admin" class="app-item bg-white border border-gray-200 hover:border-blue-400 hover:shadow-md cursor-pointer rounded-md px-5 py-4 flex items-center text-gray-700 transition-all duration-200 group" data-form="AR">
-            <i data-lucide="pen" class="w-4 h-4 mr-3 text-gray-400 group-hover:text-blue-500 transition-colors"></i>
-            <span class="text-[14px] group-hover:text-blue-600 transition-colors">資產減少申請 (AR)</span>
-        </div>
-        <div data-category="admin" class="app-item bg-white border border-gray-200 hover:border-blue-400 hover:shadow-md cursor-pointer rounded-md px-5 py-4 flex items-center text-gray-700 transition-all duration-200 group" data-form="ASSETS">
-            <i data-lucide="pen" class="w-4 h-4 mr-3 text-gray-400 group-hover:text-blue-500 transition-colors"></i>
-            <span class="text-[14px] group-hover:text-blue-600 transition-colors">新增資產申請 (ASSETS)</span>
-        </div>
-        <div data-category="admin" class="app-item bg-white border border-gray-200 hover:border-blue-400 hover:shadow-md cursor-pointer rounded-md px-5 py-4 flex items-center text-gray-700 transition-all duration-200 group" data-form="SA">
-            <i data-lucide="pen" class="w-4 h-4 mr-3 text-gray-400 group-hover:text-blue-500 transition-colors"></i>
-            <span class="text-[14px] group-hover:text-blue-600 transition-colors">其他申請 (SA)</span>
+            <span class="text-[14px] group-hover:text-blue-600 transition-colors">資產請購單(APU)</span>
         </div>
 
-        <!-- 財務類 -->
-        <div id="b-card" data-category="finance" class="app-item bg-white border border-gray-200 hover:border-blue-400 hover:shadow-md cursor-pointer rounded-md px-5 py-4 flex items-center text-gray-700 transition-all duration-200 group" data-form="B">
+        <!-- 財務 -->
+        <div id="b-card" data-category="finance" class="app-item bg-white border border-gray-200 hover:border-blue-400 hover:shadow-md cursor-pointer rounded-md px-4 py-2.5 flex items-center text-gray-700 transition-all duration-200 group" data-form="B">
             <i data-lucide="pen" class="w-4 h-4 mr-3 text-gray-400 group-hover:text-blue-500 transition-colors"></i>
-            <span class="text-[14px] group-hover:text-blue-600 transition-colors">費用申請單 (B)</span>
+            <span class="text-[14px] group-hover:text-blue-600 transition-colors">費用申請單(B)</span>
+        </div>
+        <div id="c-card" data-category="finance" class="app-item bg-white border border-gray-200 hover:border-blue-400 hover:shadow-md cursor-pointer rounded-md px-4 py-2.5 flex items-center text-gray-700 transition-all duration-200 group" data-form="C">
+            <i data-lucide="pen" class="w-4 h-4 mr-3 text-gray-400 group-hover:text-blue-500 transition-colors"></i>
+            <span class="text-[14px] group-hover:text-blue-600 transition-colors">費用報銷單(C)</span>
         </div>
 
-        <div id="c-card" data-category="finance" class="app-item bg-white border border-gray-200 hover:border-blue-400 hover:shadow-md cursor-pointer rounded-md px-5 py-4 flex items-center text-gray-700 transition-all duration-200 group" data-form="C">
+        <!-- 資產異動 -->
+        <div id="aa-card" data-category="admin" class="app-item bg-white border border-gray-200 hover:border-blue-400 hover:shadow-md cursor-pointer rounded-md px-4 py-2.5 flex items-center text-gray-700 transition-all duration-200 group" data-form="AA">
             <i data-lucide="pen" class="w-4 h-4 mr-3 text-gray-400 group-hover:text-blue-500 transition-colors"></i>
-            <span class="text-[14px] group-hover:text-blue-600 transition-colors">費用報銷單 (C)</span>
+            <span class="text-[14px] group-hover:text-blue-600 transition-colors">資產調撥申請(AA)</span>
+        </div>
+        <div data-category="admin" class="app-item bg-white border border-gray-200 hover:border-blue-400 hover:shadow-md cursor-pointer rounded-md px-4 py-2.5 flex items-center text-gray-700 transition-all duration-200 group" data-form="AM">
+            <i data-lucide="pen" class="w-4 h-4 mr-3 text-gray-400 group-hover:text-blue-500 transition-colors"></i>
+            <span class="text-[14px] group-hover:text-blue-600 transition-colors">資產維修申請(AM)</span>
+        </div>
+        <div data-category="admin" class="app-item bg-white border border-gray-200 hover:border-blue-400 hover:shadow-md cursor-pointer rounded-md px-4 py-2.5 flex items-center text-gray-700 transition-all duration-200 group" data-form="AR">
+            <i data-lucide="pen" class="w-4 h-4 mr-3 text-gray-400 group-hover:text-blue-500 transition-colors"></i>
+            <span class="text-[14px] group-hover:text-blue-600 transition-colors">資產減少申請(AR)</span>
+        </div>
+        <div data-category="admin" class="app-item bg-white border border-gray-200 hover:border-blue-400 hover:shadow-md cursor-pointer rounded-md px-4 py-2.5 flex items-center text-gray-700 transition-all duration-200 group" data-form="ASSETS">
+            <i data-lucide="pen" class="w-4 h-4 mr-3 text-gray-400 group-hover:text-blue-500 transition-colors"></i>
+            <span class="text-[14px] group-hover:text-blue-600 transition-colors">新增資產申請(ASSETS)</span>
         </div>
 
-        <!-- 商務與合同 -->
-        <div data-category="business" class="app-item bg-white border border-gray-200 hover:border-blue-400 hover:shadow-md cursor-pointer rounded-md px-5 py-4 flex items-center text-gray-700 transition-all duration-200 group" data-form="BU">
+        <!-- 供應商 / 資安 / 行政流程 -->
+        <div data-category="admin" class="app-item bg-white border border-gray-200 hover:border-blue-400 hover:shadow-md cursor-pointer rounded-md px-4 py-2.5 flex items-center text-gray-700 transition-all duration-200 group" data-form="VM">
+            <i data-lucide="pen" class="w-4 h-4 mr-3 text-gray-400 group-hover:text-blue-500 transition-colors"></i>
+            <span class="text-[14px] group-hover:text-blue-600 transition-colors">供應商管理流程(VM)</span>
+        </div>
+        <div data-category="admin" class="app-item bg-white border border-gray-200 hover:border-blue-400 hover:shadow-md cursor-pointer rounded-md px-4 py-2.5 flex items-center text-gray-700 transition-all duration-200 group" data-form="CV">
+            <i data-lucide="pen" class="w-4 h-4 mr-3 text-gray-400 group-hover:text-blue-500 transition-colors"></i>
+            <span class="text-[14px] group-hover:text-blue-600 transition-colors">CCTV調閱(CV)</span>
+        </div>
+        <div data-category="admin" class="app-item bg-white border border-gray-200 hover:border-blue-400 hover:shadow-md cursor-pointer rounded-md px-4 py-2.5 flex items-center text-gray-700 transition-all duration-200 group" data-form="SE">
+            <i data-lucide="pen" class="w-4 h-4 mr-3 text-gray-400 group-hover:text-blue-500 transition-colors"></i>
+            <span class="text-[14px] group-hover:text-blue-600 transition-colors">資安軟件豁免(SE)</span>
+        </div>
+        <div data-category="admin" class="app-item bg-white border border-gray-200 hover:border-blue-400 hover:shadow-md cursor-pointer rounded-md px-4 py-2.5 flex items-center text-gray-700 transition-all duration-200 group" data-form="SEYIN">
+            <i data-lucide="pen" class="w-4 h-4 mr-3 text-gray-400 group-hover:text-blue-500 transition-colors"></i>
+            <span class="text-[14px] group-hover:text-blue-600 transition-colors">用印流程(SE)</span>
+        </div>
+
+        <!-- 商務 / 合同 -->
+        <div data-category="business" class="app-item bg-white border border-gray-200 hover:border-blue-400 hover:shadow-md cursor-pointer rounded-md px-4 py-2.5 flex items-center text-gray-700 transition-all duration-200 group" data-form="BU">
             <i data-lucide="pen" class="w-4 h-4 mr-3 text-gray-400 group-hover:text-blue-500 transition-colors"></i>
             <span class="text-[14px] group-hover:text-blue-600 transition-colors">商務公告(BU)</span>
         </div>
-        <div data-category="contract" class="app-item bg-white border border-gray-200 hover:border-blue-400 hover:shadow-md cursor-pointer rounded-md px-5 py-4 flex items-center text-gray-700 transition-all duration-200 group" data-form="IC">
+        <div data-category="contract" class="app-item bg-white border border-gray-200 hover:border-blue-400 hover:shadow-md cursor-pointer rounded-md px-4 py-2.5 flex items-center text-gray-700 transition-all duration-200 group" data-form="IC">
             <i data-lucide="pen" class="w-4 h-4 mr-3 text-gray-400 group-hover:text-blue-500 transition-colors"></i>
-            <span class="text-[14px] group-hover:text-blue-600 transition-colors">內部合同審批單 (IC)</span>
+            <span class="text-[14px] group-hover:text-blue-600 transition-colors">內部合同審批單(IC)</span>
         </div>
 
-        <!-- PMO 類 -->
-        <div data-category="pmo" class="app-item bg-white border border-gray-200 hover:border-blue-400 hover:shadow-md cursor-pointer rounded-md px-5 py-4 flex items-center text-gray-700 transition-all duration-200 group" data-form="PMO">
+        <!-- PMO -->
+        <div data-category="pmo" class="app-item bg-white border border-gray-200 hover:border-blue-400 hover:shadow-md cursor-pointer rounded-md px-4 py-2.5 flex items-center text-gray-700 transition-all duration-200 group" data-form="PMO">
             <i data-lucide="pen" class="w-4 h-4 mr-3 text-gray-400 group-hover:text-blue-500 transition-colors"></i>
-            <span class="text-[14px] group-hover:text-blue-600 transition-colors">PMO項目立項申請 (PMO)</span>
+            <span class="text-[14px] group-hover:text-blue-600 transition-colors">PMO項目立項申請(PMO)</span>
         </div>
-        <div data-category="pmo" class="app-item bg-white border border-gray-200 hover:border-blue-400 hover:shadow-md cursor-pointer rounded-md px-5 py-4 flex items-center text-gray-700 transition-all duration-200 group" data-form="PMOA">
+        <div data-category="pmo" class="app-item bg-white border border-gray-200 hover:border-blue-400 hover:shadow-md cursor-pointer rounded-md px-4 py-2.5 flex items-center text-gray-700 transition-all duration-200 group" data-form="PMOA">
             <i data-lucide="pen" class="w-4 h-4 mr-3 text-gray-400 group-hover:text-blue-500 transition-colors"></i>
-            <span class="text-[14px] group-hover:text-blue-600 transition-colors">PMO項目變更 (PMOA)</span>
+            <span class="text-[14px] group-hover:text-blue-600 transition-colors">PMO項目變更(PMOA)</span>
         </div>
-        <div data-category="pmo" class="app-item bg-white border border-gray-200 hover:border-blue-400 hover:shadow-md cursor-pointer rounded-md px-5 py-4 flex items-center text-gray-700 transition-all duration-200 group" data-form="PMOS">
+        <div data-category="pmo" class="app-item bg-white border border-gray-200 hover:border-blue-400 hover:shadow-md cursor-pointer rounded-md px-4 py-2.5 flex items-center text-gray-700 transition-all duration-200 group" data-form="PMOS">
             <i data-lucide="pen" class="w-4 h-4 mr-3 text-gray-400 group-hover:text-blue-500 transition-colors"></i>
-            <span class="text-[14px] group-hover:text-blue-600 transition-colors">PMO項目終止 (PMOS)</span>
+            <span class="text-[14px] group-hover:text-blue-600 transition-colors">PMO項目終止(PMOS)</span>
         </div>
 
-        <!-- HR 類 -->
-        <div data-category="hr" data-form="HRPC" class="app-item bg-white border border-gray-200 hover:border-blue-400 hover:shadow-md cursor-pointer rounded-md px-5 py-4 flex items-center text-gray-700 transition-all duration-200 group">
-            <i data-lucide="pen" class="w-4 h-4 mr-3 text-gray-400 group-hover:text-blue-500 transition-colors"></i>
-            <span class="text-[14px] group-hover:text-blue-600 transition-colors">員工一般人事異動</span>
-        </div>
-        <div data-category="hr" data-form="HREA" class="app-item bg-white border border-gray-200 hover:border-blue-400 hover:shadow-md cursor-pointer rounded-md px-5 py-4 flex items-center text-gray-700 transition-all duration-200 group">
-            <i data-lucide="pen" class="w-4 h-4 mr-3 text-gray-400 group-hover:text-blue-500 transition-colors"></i>
-            <span class="text-[14px] group-hover:text-blue-600 transition-colors">錄用審批單</span>
-        </div>
-        <div data-category="hr" data-form="HRRA" class="app-item bg-white border border-gray-200 hover:border-blue-400 hover:shadow-md cursor-pointer rounded-md px-5 py-4 flex items-center text-gray-700 transition-all duration-200 group">
+        <!-- HR -->
+        <div data-category="hr" data-form="HRRA" class="app-item bg-white border border-gray-200 hover:border-blue-400 hover:shadow-md cursor-pointer rounded-md px-4 py-2.5 flex items-center text-gray-700 transition-all duration-200 group">
             <i data-lucide="pen" class="w-4 h-4 mr-3 text-gray-400 group-hover:text-blue-500 transition-colors"></i>
             <span class="text-[14px] group-hover:text-blue-600 transition-colors">招聘需求單</span>
         </div>
-        <div data-category="hr" data-form="HRSP" class="app-item bg-white border border-gray-200 hover:border-blue-400 hover:shadow-md cursor-pointer rounded-md px-5 py-4 flex items-center text-gray-700 transition-all duration-200 group">
+        <div data-category="hr" data-form="HREA" class="app-item bg-white border border-gray-200 hover:border-blue-400 hover:shadow-md cursor-pointer rounded-md px-4 py-2.5 flex items-center text-gray-700 transition-all duration-200 group">
+            <i data-lucide="pen" class="w-4 h-4 mr-3 text-gray-400 group-hover:text-blue-500 transition-colors"></i>
+            <span class="text-[14px] group-hover:text-blue-600 transition-colors">錄用審批單</span>
+        </div>
+        <div data-category="hr" data-form="HRON" class="app-item bg-white border border-gray-200 hover:border-blue-400 hover:shadow-md cursor-pointer rounded-md px-4 py-2.5 flex items-center text-gray-700 transition-all duration-200 group">
+            <i data-lucide="pen" class="w-4 h-4 mr-3 text-gray-400 group-hover:text-blue-500 transition-colors"></i>
+            <span class="text-[14px] group-hover:text-blue-600 transition-colors">入職流程</span>
+        </div>
+        <div data-category="hr" data-form="HRRG" class="app-item bg-white border border-gray-200 hover:border-blue-400 hover:shadow-md cursor-pointer rounded-md px-4 py-2.5 flex items-center text-gray-700 transition-all duration-200 group">
+            <i data-lucide="pen" class="w-4 h-4 mr-3 text-gray-400 group-hover:text-blue-500 transition-colors"></i>
+            <span class="text-[14px] group-hover:text-blue-600 transition-colors">轉正流程</span>
+        </div>
+        <div data-category="hr" data-form="HRSP" class="app-item bg-white border border-gray-200 hover:border-blue-400 hover:shadow-md cursor-pointer rounded-md px-4 py-2.5 flex items-center text-gray-700 transition-all duration-200 group">
             <i data-lucide="pen" class="w-4 h-4 mr-3 text-gray-400 group-hover:text-blue-500 transition-colors"></i>
             <span class="text-[14px] group-hover:text-blue-600 transition-colors">薪資、職級異動單</span>
         </div>
-        <div data-category="hr" data-form="HRTH" class="app-item bg-white border border-gray-200 hover:border-blue-400 hover:shadow-md cursor-pointer rounded-md px-5 py-4 flex items-center text-gray-700 transition-all duration-200 group">
+        <div data-category="hr" data-form="HRPC" class="app-item bg-white border border-gray-200 hover:border-blue-400 hover:shadow-md cursor-pointer rounded-md px-4 py-2.5 flex items-center text-gray-700 transition-all duration-200 group">
             <i data-lucide="pen" class="w-4 h-4 mr-3 text-gray-400 group-hover:text-blue-500 transition-colors"></i>
-            <span class="text-[14px] group-hover:text-blue-600 transition-colors">離職申請&工作交接表</span>
+            <span class="text-[14px] group-hover:text-blue-600 transition-colors">員工一般人事異動</span>
+        </div>
+        <div data-category="hr" data-form="HRTH" class="app-item bg-white border border-gray-200 hover:border-blue-400 hover:shadow-md cursor-pointer rounded-md px-4 py-2.5 flex items-center text-gray-700 transition-all duration-200 group">
+            <i data-lucide="pen" class="w-4 h-4 mr-3 text-gray-400 group-hover:text-blue-500 transition-colors"></i>
+            <span class="text-[14px] group-hover:text-blue-600 transition-colors">離職申請工作交接表</span>
+        </div>
+        <div data-category="admin" data-form="ACCT" class="app-item bg-white border border-gray-200 hover:border-blue-400 hover:shadow-md cursor-pointer rounded-md px-4 py-2.5 flex items-center text-gray-700 transition-all duration-200 group">
+            <i data-lucide="pen" class="w-4 h-4 mr-3 text-gray-400 group-hover:text-blue-500 transition-colors"></i>
+            <span class="text-[14px] group-hover:text-blue-600 transition-colors">員工帳號申請/換發/刪除</span>
+        </div>
+
+        <!-- 公告 / 商務公告類 -->
+        <div data-category="business" data-form="NR" class="app-item bg-white border border-gray-200 hover:border-blue-400 hover:shadow-md cursor-pointer rounded-md px-4 py-2.5 flex items-center text-gray-700 transition-all duration-200 group">
+            <i data-lucide="pen" class="w-4 h-4 mr-3 text-gray-400 group-hover:text-blue-500 transition-colors"></i>
+            <span class="text-[14px] group-hover:text-blue-600 transition-colors">公告發布流程</span>
+        </div>
+        <div data-category="business" data-form="BUG" class="app-item bg-white border border-gray-200 hover:border-blue-400 hover:shadow-md cursor-pointer rounded-md px-4 py-2.5 flex items-center text-gray-700 transition-all duration-200 group">
+            <i data-lucide="pen" class="w-4 h-4 mr-3 text-gray-400 group-hover:text-blue-500 transition-colors"></i>
+            <span class="text-[14px] group-hover:text-blue-600 transition-colors">商務_一般公告</span>
+        </div>
+        <div data-category="business" data-form="BUI" class="app-item bg-white border border-gray-200 hover:border-blue-400 hover:shadow-md cursor-pointer rounded-md px-4 py-2.5 flex items-center text-gray-700 transition-all duration-200 group">
+            <i data-lucide="pen" class="w-4 h-4 mr-3 text-gray-400 group-hover:text-blue-500 transition-colors"></i>
+            <span class="text-[14px] group-hover:text-blue-600 transition-colors">商務_重要公告</span>
+        </div>
+        <div data-category="business" data-form="BUB" class="app-item bg-white border border-gray-200 hover:border-blue-400 hover:shadow-md cursor-pointer rounded-md px-4 py-2.5 flex items-center text-gray-700 transition-all duration-200 group">
+            <i data-lucide="pen" class="w-4 h-4 mr-3 text-gray-400 group-hover:text-blue-500 transition-colors"></i>
+            <span class="text-[14px] group-hover:text-blue-600 transition-colors">商務_壞帳</span>
+        </div>
+        <div data-category="business" data-form="BUP" class="app-item bg-white border border-gray-200 hover:border-blue-400 hover:shadow-md cursor-pointer rounded-md px-4 py-2.5 flex items-center text-gray-700 transition-all duration-200 group">
+            <i data-lucide="pen" class="w-4 h-4 mr-3 text-gray-400 group-hover:text-blue-500 transition-colors"></i>
+            <span class="text-[14px] group-hover:text-blue-600 transition-colors">商務_賠付</span>
+        </div>
+        <div data-category="business" data-form="BUC" class="app-item bg-white border border-gray-200 hover:border-blue-400 hover:shadow-md cursor-pointer rounded-md px-4 py-2.5 flex items-center text-gray-700 transition-all duration-200 group">
+            <i data-lucide="pen" class="w-4 h-4 mr-3 text-gray-400 group-hover:text-blue-500 transition-colors"></i>
+            <span class="text-[14px] group-hover:text-blue-600 transition-colors">商務_佣金返點</span>
         </div>
     </div>
 
@@ -1117,6 +1177,216 @@
                     <!-- 报废原因 -->
                     <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5">
                         <div class="px-4 py-2.5 border-b border-gray-200"><h3 class="text-[#2b3b84] font-bold text-[15px]">報廢原因 <span class="text-red-500">*</span></h3></div>
+                        <div class="p-4">
+                            <textarea class="w-full min-h-[120px] outline-none resize-y text-[13px] border border-gray-300 rounded p-3"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- 附件 -->
+                    <div class="mb-5 file-upload">
+                        <label class="block mb-2 text-[14px] text-gray-700">附件</label>
+                        <input type="file" class="hidden file-input" multiple>
+                        <div class="dropzone border-2 border-dashed border-gray-300 rounded-lg py-4 flex flex-col items-center justify-center gap-2 text-gray-400 cursor-pointer hover:border-blue-400 hover:text-blue-500 transition-colors">
+                            <i data-lucide="upload-cloud" class="w-7 h-7"></i>
+                            <div class="text-[13px]"><span class="text-blue-600 font-medium">點擊上傳</span> 或將檔案拖曳至此</div>
+                            <div class="text-[12px] text-gray-400">支援多檔上傳</div>
+                        </div>
+                        <ul class="file-list mt-2 space-y-1"></ul>
+                    </div>
+
+                    <!-- 區塊：進度追蹤（與右側「審批流程」連動；資訊不足時為空） -->
+                    <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5">
+                        <div class="px-4 py-2.5 border-b border-gray-200">
+                            <h3 class="text-[#2b3b84] font-bold text-[15px]">進度追蹤</h3>
+                        </div>
+                        <div class="p-4">
+                            <div class="py-10 text-center text-gray-400 text-[13px] leading-relaxed">
+                                <i data-lucide="git-merge" class="w-7 h-7 mx-auto mb-2 text-gray-300"></i>
+                                尚未產生進度追蹤<br>填寫完整單據資訊後，將與「審批流程」一同自動帶出
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-[#f4f5f8] border-t border-gray-200 py-4 flex justify-center shadow-sm"><button type="button" onclick="showSaveToast('已儲存至臨時保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">臨時保存</button><button type="button" onclick="showSaveToast('已儲存至模板保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">模板保存</button><button type="button" onclick="submitApplication(this)" class="ui-btn ui-btn-primary px-12">提交</button></div>
+            </div>
+            <div class="w-[300px] border-l border-gray-300 bg-white hidden md:block overflow-y-auto">
+                <div class="bg-[#17a2b8] text-white px-4 py-2 text-[14px] font-bold sticky top-0">審批流程</div>
+                <div class="px-4 py-12 text-center text-gray-400 text-[12px] leading-relaxed"><i data-lucide="git-merge" class="w-7 h-7 mx-auto mb-2 text-gray-300"></i>尚未產生審批流程<br>填寫完整單據資訊後，<br>系統將自動判斷並帶出該單的審批流程</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- =========== 用印流程 (SE) Modal（複製自 資產減少申請 AR） =========== -->
+<div id="seyin-modal" class="form-modal fixed inset-0 bg-black/40 z-50 flex justify-center items-center hidden">
+    <div class="bg-white w-[98vw] max-w-[1400px] h-[95vh] rounded-md shadow-2xl flex flex-col relative overflow-hidden">
+        <div class="bg-[#EAF2FC] flex justify-between items-center px-4 py-3 border-b border-blue-100">
+            <h2 class="text-[#2b3b84] font-bold text-[16px]">用印流程 (SE)</h2>
+            <button class="form-modal-close bg-blue-500 hover:bg-blue-600 text-white rounded p-1 transition-colors"><i data-lucide="x" class="w-4 h-4"></i></button>
+        </div>
+        <div class="flex flex-1 overflow-hidden bg-[#f4f5f8]">
+            <div class="flex-1 flex flex-col overflow-hidden">
+                <div class="flex-1 overflow-y-auto p-5 pb-8">
+
+                    <!-- 基本信息 -->
+                    <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5">
+                        <div class="px-4 py-2.5 border-b border-gray-200"><h3 class="text-[#2b3b84] font-bold text-[15px]">基本信息</h3></div>
+                        <div class="px-4 pt-4 grid grid-cols-5 gap-x-5 gap-y-5 mb-4">
+                            <div class="col-span-2"><label class="block mb-1.5 text-[13px] text-gray-700">文件編號</label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed" value="自動生成" disabled></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">申請日期</label><div class="border border-gray-300 rounded px-3 py-1.5 bg-white flex items-center"><i data-lucide="calendar" class="w-4 h-4 text-gray-400"></i><input type="text" class="w-full ml-2 text-[13px] outline-none" disabled></div></div>
+                        </div>
+                        <div class="px-4 pb-4 grid grid-cols-5 gap-x-5 gap-y-5">
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">申請人 <span class="text-red-500">*</span></label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">項目 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇項目</option></select></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">區域 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option></select></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">主旨 <span class="text-red-500">*</span></label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">優先級</label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>高</option><option>中</option><option>低</option><option>不緊急</option></select></div>
+                        </div>
+                    </div>
+
+                    <!-- 报废原因 -->
+                    <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5">
+                        <div class="px-4 py-2.5 border-b border-gray-200"><h3 class="text-[#2b3b84] font-bold text-[15px]">備註</h3></div>
+                        <div class="p-4">
+                            <textarea class="w-full min-h-[120px] outline-none resize-y text-[13px] border border-gray-300 rounded p-3"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- 附件 -->
+                    <div class="mb-5 file-upload">
+                        <label class="block mb-2 text-[14px] text-gray-700">附件</label>
+                        <input type="file" class="hidden file-input" multiple>
+                        <div class="dropzone border-2 border-dashed border-gray-300 rounded-lg py-4 flex flex-col items-center justify-center gap-2 text-gray-400 cursor-pointer hover:border-blue-400 hover:text-blue-500 transition-colors">
+                            <i data-lucide="upload-cloud" class="w-7 h-7"></i>
+                            <div class="text-[13px]"><span class="text-blue-600 font-medium">點擊上傳</span> 或將檔案拖曳至此</div>
+                            <div class="text-[12px] text-gray-400">支援多檔上傳</div>
+                        </div>
+                        <ul class="file-list mt-2 space-y-1"></ul>
+                    </div>
+
+                    <!-- 區塊：進度追蹤（與右側「審批流程」連動；資訊不足時為空） -->
+                    <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5">
+                        <div class="px-4 py-2.5 border-b border-gray-200">
+                            <h3 class="text-[#2b3b84] font-bold text-[15px]">進度追蹤</h3>
+                        </div>
+                        <div class="p-4">
+                            <div class="py-10 text-center text-gray-400 text-[13px] leading-relaxed">
+                                <i data-lucide="git-merge" class="w-7 h-7 mx-auto mb-2 text-gray-300"></i>
+                                尚未產生進度追蹤<br>填寫完整單據資訊後，將與「審批流程」一同自動帶出
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-[#f4f5f8] border-t border-gray-200 py-4 flex justify-center shadow-sm"><button type="button" onclick="showSaveToast('已儲存至臨時保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">臨時保存</button><button type="button" onclick="showSaveToast('已儲存至模板保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">模板保存</button><button type="button" onclick="submitApplication(this)" class="ui-btn ui-btn-primary px-12">提交</button></div>
+            </div>
+            <div class="w-[300px] border-l border-gray-300 bg-white hidden md:block overflow-y-auto">
+                <div class="bg-[#17a2b8] text-white px-4 py-2 text-[14px] font-bold sticky top-0">審批流程</div>
+                <div class="px-4 py-12 text-center text-gray-400 text-[12px] leading-relaxed"><i data-lucide="git-merge" class="w-7 h-7 mx-auto mb-2 text-gray-300"></i>尚未產生審批流程<br>填寫完整單據資訊後，<br>系統將自動判斷並帶出該單的審批流程</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- =========== 供應商管理流程 (VM) Modal（複製自 用印流程 SE） =========== -->
+<div id="vm-modal" class="form-modal fixed inset-0 bg-black/40 z-50 flex justify-center items-center hidden">
+    <div class="bg-white w-[98vw] max-w-[1400px] h-[95vh] rounded-md shadow-2xl flex flex-col relative overflow-hidden">
+        <div class="bg-[#EAF2FC] flex justify-between items-center px-4 py-3 border-b border-blue-100">
+            <h2 class="text-[#2b3b84] font-bold text-[16px]">供應商管理流程 (VM)</h2>
+            <button class="form-modal-close bg-blue-500 hover:bg-blue-600 text-white rounded p-1 transition-colors"><i data-lucide="x" class="w-4 h-4"></i></button>
+        </div>
+        <div class="flex flex-1 overflow-hidden bg-[#f4f5f8]">
+            <div class="flex-1 flex flex-col overflow-hidden">
+                <div class="flex-1 overflow-y-auto p-5 pb-8">
+
+                    <!-- 基本信息 -->
+                    <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5">
+                        <div class="px-4 py-2.5 border-b border-gray-200"><h3 class="text-[#2b3b84] font-bold text-[15px]">基本信息</h3></div>
+                        <div class="px-4 pt-4 grid grid-cols-5 gap-x-5 gap-y-5 mb-4">
+                            <div class="col-span-2"><label class="block mb-1.5 text-[13px] text-gray-700">文件編號</label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed" value="自動生成" disabled></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">申請日期</label><div class="border border-gray-300 rounded px-3 py-1.5 bg-white flex items-center"><i data-lucide="calendar" class="w-4 h-4 text-gray-400"></i><input type="text" class="w-full ml-2 text-[13px] outline-none" disabled></div></div>
+                        </div>
+                        <div class="px-4 pb-4 grid grid-cols-5 gap-x-5 gap-y-5">
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">申請人 <span class="text-red-500">*</span></label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">項目 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇項目</option></select></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">區域 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option></select></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">主旨 <span class="text-red-500">*</span></label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">優先級</label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>高</option><option>中</option><option>低</option><option>不緊急</option></select></div>
+                        </div>
+                    </div>
+
+                    <!-- 備註 -->
+                    <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5">
+                        <div class="px-4 py-2.5 border-b border-gray-200"><h3 class="text-[#2b3b84] font-bold text-[15px]">備註</h3></div>
+                        <div class="p-4">
+                            <textarea class="w-full min-h-[120px] outline-none resize-y text-[13px] border border-gray-300 rounded p-3"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- 附件 -->
+                    <div class="mb-5 file-upload">
+                        <label class="block mb-2 text-[14px] text-gray-700">附件</label>
+                        <input type="file" class="hidden file-input" multiple>
+                        <div class="dropzone border-2 border-dashed border-gray-300 rounded-lg py-4 flex flex-col items-center justify-center gap-2 text-gray-400 cursor-pointer hover:border-blue-400 hover:text-blue-500 transition-colors">
+                            <i data-lucide="upload-cloud" class="w-7 h-7"></i>
+                            <div class="text-[13px]"><span class="text-blue-600 font-medium">點擊上傳</span> 或將檔案拖曳至此</div>
+                            <div class="text-[12px] text-gray-400">支援多檔上傳</div>
+                        </div>
+                        <ul class="file-list mt-2 space-y-1"></ul>
+                    </div>
+
+                    <!-- 區塊：進度追蹤（與右側「審批流程」連動；資訊不足時為空） -->
+                    <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5">
+                        <div class="px-4 py-2.5 border-b border-gray-200">
+                            <h3 class="text-[#2b3b84] font-bold text-[15px]">進度追蹤</h3>
+                        </div>
+                        <div class="p-4">
+                            <div class="py-10 text-center text-gray-400 text-[13px] leading-relaxed">
+                                <i data-lucide="git-merge" class="w-7 h-7 mx-auto mb-2 text-gray-300"></i>
+                                尚未產生進度追蹤<br>填寫完整單據資訊後，將與「審批流程」一同自動帶出
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-[#f4f5f8] border-t border-gray-200 py-4 flex justify-center shadow-sm"><button type="button" onclick="showSaveToast('已儲存至臨時保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">臨時保存</button><button type="button" onclick="showSaveToast('已儲存至模板保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">模板保存</button><button type="button" onclick="submitApplication(this)" class="ui-btn ui-btn-primary px-12">提交</button></div>
+            </div>
+            <div class="w-[300px] border-l border-gray-300 bg-white hidden md:block overflow-y-auto">
+                <div class="bg-[#17a2b8] text-white px-4 py-2 text-[14px] font-bold sticky top-0">審批流程</div>
+                <div class="px-4 py-12 text-center text-gray-400 text-[12px] leading-relaxed"><i data-lucide="git-merge" class="w-7 h-7 mx-auto mb-2 text-gray-300"></i>尚未產生審批流程<br>填寫完整單據資訊後，<br>系統將自動判斷並帶出該單的審批流程</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- =========== 公告發布流程 (NR) Modal（複製自 用印流程 SE） =========== -->
+<div id="nr-modal" class="form-modal fixed inset-0 bg-black/40 z-50 flex justify-center items-center hidden">
+    <div class="bg-white w-[98vw] max-w-[1400px] h-[95vh] rounded-md shadow-2xl flex flex-col relative overflow-hidden">
+        <div class="bg-[#EAF2FC] flex justify-between items-center px-4 py-3 border-b border-blue-100">
+            <h2 class="text-[#2b3b84] font-bold text-[16px]">公告發布流程</h2>
+            <button class="form-modal-close bg-blue-500 hover:bg-blue-600 text-white rounded p-1 transition-colors"><i data-lucide="x" class="w-4 h-4"></i></button>
+        </div>
+        <div class="flex flex-1 overflow-hidden bg-[#f4f5f8]">
+            <div class="flex-1 flex flex-col overflow-hidden">
+                <div class="flex-1 overflow-y-auto p-5 pb-8">
+
+                    <!-- 基本信息 -->
+                    <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5">
+                        <div class="px-4 py-2.5 border-b border-gray-200"><h3 class="text-[#2b3b84] font-bold text-[15px]">基本信息</h3></div>
+                        <div class="px-4 pt-4 grid grid-cols-5 gap-x-5 gap-y-5 mb-4">
+                            <div class="col-span-2"><label class="block mb-1.5 text-[13px] text-gray-700">文件編號</label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed" value="自動生成" disabled></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">申請日期</label><div class="border border-gray-300 rounded px-3 py-1.5 bg-white flex items-center"><i data-lucide="calendar" class="w-4 h-4 text-gray-400"></i><input type="text" class="w-full ml-2 text-[13px] outline-none" disabled></div></div>
+                        </div>
+                        <div class="px-4 pb-4 grid grid-cols-5 gap-x-5 gap-y-5">
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">申請人 <span class="text-red-500">*</span></label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">項目 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇項目</option></select></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">區域 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option></select></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">主旨 <span class="text-red-500">*</span></label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">優先級</label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>高</option><option>中</option><option>低</option><option>不緊急</option></select></div>
+                        </div>
+                    </div>
+
+                    <!-- 備註 -->
+                    <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5">
+                        <div class="px-4 py-2.5 border-b border-gray-200"><h3 class="text-[#2b3b84] font-bold text-[15px]">備註</h3></div>
                         <div class="p-4">
                             <textarea class="w-full min-h-[120px] outline-none resize-y text-[13px] border border-gray-300 rounded p-3"></textarea>
                         </div>
@@ -3740,39 +4010,64 @@
         lucide.createIcons();
 
         // 處理頂部分類按鈕點擊狀態切換與內容過濾
+        // 依分類將卡片重組為可直接檢視的區塊（保留 #app-grid 以維持卡片點擊委派）
+        (function buildSections() {
+            const grid = document.getElementById('app-grid');
+            if (!grid) return;
+            const CATS = [
+                ['admin', '行政', 'building-2', 'text-blue-600', 'bg-blue-50', 'border-blue-200'],
+                ['finance', '財務', 'wallet', 'text-emerald-600', 'bg-emerald-50', 'border-emerald-200'],
+                ['contract', '合同', 'file-signature', 'text-rose-600', 'bg-rose-50', 'border-rose-200'],
+                ['hr', '人事', 'users', 'text-cyan-600', 'bg-cyan-50', 'border-cyan-200'],
+                ['business', '商務', 'briefcase', 'text-amber-600', 'bg-amber-50', 'border-amber-200'],
+                ['pmo', 'PMO', 'target', 'text-violet-600', 'bg-violet-50', 'border-violet-200']
+            ];
+            const items = Array.from(grid.querySelectorAll('.app-item'));
+            grid.className = 'space-y-5';
+            grid.innerHTML = '';
+            CATS.forEach(([key, label, icon, txt, bg, bd]) => {
+                const catItems = items.filter(it => it.getAttribute('data-category') === key);
+                if (!catItems.length) return;
+                const sec = document.createElement('section');
+                sec.id = 'cat-' + key;
+                sec.className = 'scroll-mt-4 bg-white rounded-lg border border-gray-200 shadow-sm p-5';
+                sec.innerHTML =
+                    '<div class="flex items-center gap-2 mb-4">' +
+                        '<span class="flex items-center justify-center w-7 h-7 rounded-md ' + bg + ' ' + txt + '"><i data-lucide="' + icon + '" class="w-4 h-4"></i></span>' +
+                        '<h2 class="text-[14px] font-semibold text-gray-800">' + label + '</h2>' +
+                    '</div>';
+                const g = document.createElement('div');
+                g.className = 'grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-3';
+                catItems.forEach(it => { it.style.display = ''; g.appendChild(it); });
+                sec.appendChild(g);
+                grid.appendChild(sec);
+            });
+            if (window.lucide) lucide.createIcons();
+        })();
+
+        // 上方分類：作為錨點，點擊捲動到對應分類區塊
         const topCategoryBtns = document.querySelectorAll('.top-category-btn');
-        const appItems = document.querySelectorAll('.app-item');
-
         topCategoryBtns.forEach(btn => {
-            btn.addEventListener('click', function() {
-                // 移除其他按鈕的 active 狀態
+            btn.addEventListener('click', function () {
                 topCategoryBtns.forEach(b => {
-                    b.className = 'top-category-btn bg-[#f8f9fa] hover:bg-gray-200 text-gray-700 px-8 py-2.5 rounded-md text-[14px] transition-colors border border-gray-100';
+                    b.className = 'top-category-btn bg-gray-100 text-gray-600 border border-gray-300 hover:bg-gray-200 px-3 py-1 rounded-full text-[12px] transition-colors';
                 });
-                // 設定點擊按鈕為 active
-                this.className = 'top-category-btn active bg-blue-500 text-white px-8 py-2.5 rounded-md text-[14px] font-medium transition-colors shadow-sm';
-
-                // 執行過濾邏輯
-                const targetCategory = this.getAttribute('data-target');
-                appItems.forEach(item => {
-                    if (targetCategory === 'all' || item.getAttribute('data-category') === targetCategory) {
-                        item.style.display = 'flex'; 
-                    } else {
-                        item.style.display = 'none'; 
-                    }
-                });
+                this.className = 'top-category-btn active bg-blue-500 text-white border border-blue-500 px-3 py-1 rounded-full text-[12px] font-medium transition-colors';
+                const target = this.getAttribute('data-target');
+                const el = target === 'all' ? document.getElementById('app-grid') : document.getElementById('cat-' + target);
+                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
             });
         });
 
         // Modal 開關：卡片 data-form 對應彈窗（涵蓋既有與新建表單）
         const formModalMap = {
             AA:'aa-modal', B:'b-modal', C:'c-modal', PTA:'pta-modal', TR:'tr-modal',
-            AM:'am-modal', AR:'ar-modal', ASSETS:'assets-modal', PU:'pu-modal', SA:'sa-modal',
+            AM:'am-modal', AR:'ar-modal', SEYIN:'seyin-modal', VM:'vm-modal', NR:'nr-modal', ASSETS:'assets-modal', PU:'pu-modal', SA:'sa-modal',
             BU:'bu-modal', IC:'ic-modal', PMO:'pmo-modal', PMOA:'pmoa-modal', PMOS:'pmos-modal',
             HRPC:'hr-pc-modal', HREA:'hr-ea-modal', HRRA:'hr-ra-modal', HRSP:'hr-sp-modal', HRTH:'hr-th-modal'
         };
         // ===== 送出申請 → 寫入共享儲存（localStorage），供「我的申請 / 簽核」讀取 =====
-        const OA_MAP = { PU:'行政', AA:'行政', AM:'行政', AR:'行政', ASSETS:'行政', SA:'行政', PTA:'行政', TR:'行政', PMO:'PMO', PMOA:'PMO', PMOS:'PMO', BU:'事業部', B:'財務', C:'財務', IC:'合同', HRPC:'人事', HREA:'人事', HRRA:'人事', HRSP:'人事', HRTH:'人事' };
+        const OA_MAP = { PU:'行政', AA:'行政', AM:'行政', AR:'行政', SEYIN:'行政', VM:'行政', ASSETS:'行政', SA:'行政', PTA:'行政', TR:'行政', PMO:'PMO', PMOA:'PMO', PMOS:'PMO', BU:'事業部', NR:'事業部', B:'財務', C:'財務', IC:'合同', HRPC:'人事', HREA:'人事', HRRA:'人事', HRSP:'人事', HRTH:'人事' };
         function submitApplication(btn) {
             const modal = btn.closest('.form-modal');
             if (!modal) return;

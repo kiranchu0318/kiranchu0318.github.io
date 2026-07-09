@@ -206,9 +206,9 @@
                                 <table class="ui-table text-center">
                                     <thead>
                                         <tr>
-                                            <th scope="col" class="text-left w-56 sticky top-0 z-20 bg-gray-100">功能</th>
-                                            <th scope="col" class="w-20 sticky top-0 z-20 bg-gray-100">檢視</th>
-                                            <th scope="col" class="w-20 sticky top-0 z-20 bg-gray-100">編輯</th>
+                                            <th scope="col" class="text-left w-[10.08rem] sticky top-0 z-20 bg-gray-100">功能</th>
+                                            <th scope="col" class="w-[4.95rem] sticky top-0 z-20 bg-gray-100">檢視</th>
+                                            <th scope="col" class="w-[4.95rem] sticky top-0 z-20 bg-gray-100">編輯</th>
                                             <th scope="col" class="text-left sticky top-0 z-20 bg-gray-100">特殊操作</th>
                                         </tr>
                                     </thead>
@@ -332,38 +332,38 @@
         // 頁面清單依 index.html 選單；ops 為該頁的特殊操作（category_list 中非單純檢視/編輯的權限併入此欄）
         const DATA_PAGES = [
             // 電子表單
-            { key: 'pg_myapply',  name: '我的申請', group: '電子表單', ops: ['撤回', '匯出'] },
-            { key: 'pg_tempsave', name: '臨時保存', group: '電子表單', ops: ['刪除'] },
-            { key: 'pg_tplsave',  name: '模板保存', group: '電子表單', ops: ['刪除'] },
-            { key: 'pg_apply',    name: '申請',     group: '電子表單', ops: ['人事異動', '到職核准書', '招募申請書', '薪資職級變更', '離職交接書', '帳號核准書'] },
+            { key: 'pg_myapply',  name: '我的申請', group: '電子表單', ops: [] },
+            { key: 'pg_tempsave', name: '臨時保存', group: '電子表單', ops: [] },
+            { key: 'pg_tplsave',  name: '模板保存', group: '電子表單', ops: [] },
+            { key: 'pg_apply',    name: '申請',     group: '電子表單', ops: [] },
             // 簽核中心
-            { key: 'pg_signleave',  name: '請假簽核',     group: '簽核中心', ops: ['簽核'] },
-            { key: 'pg_signmakeup', name: '補卡簽核',     group: '簽核中心', ops: ['簽核'] },
-            { key: 'pg_signcancel', name: '銷假簽核',     group: '簽核中心', ops: ['簽核'] },
-            { key: 'pg_signeform',  name: '電子表單簽核', group: '簽核中心', ops: ['簽核', 'HR簽核', '行政簽核'] },
+            { key: 'pg_signleave',  name: '請假簽核',     group: '簽核中心', ops: [] },
+            { key: 'pg_signmakeup', name: '補卡簽核',     group: '簽核中心', ops: [] },
+            { key: 'pg_signcancel', name: '銷假簽核',     group: '簽核中心', ops: [] },
+            { key: 'pg_signeform',  name: '電子表單簽核', group: '簽核中心', ops: [] },
             // 人事管理
-            { key: 'pg_employee',   name: '員工管理',     group: '人事管理', ops: ['新增員工', '匯入', '匯出', '離職', '停用員工', '所屬區域', '下屬', '個人資訊頁籤', '職位資訊頁籤', '個人資料庫頁籤', '員工帳號頁籤', '休假資訊頁籤', '休假記錄頁籤', '出勤校正記錄頁籤', '績效記錄頁籤', '薪資資訊頁籤', 'HR文件匣頁籤', '人事成本頁籤', '出勤資訊頁籤', '個人資訊', '公司聯絡方式', '個人聯絡方式', '緊急聯絡方式', '個人資訊其他', '職位-部門', '職位-職位', '職位-基本薪資', '職位-其他薪資福利', '職位-獎金', '職位-其他福利', '職位-業務資訊', '職位-事業部', '職位-職級', '職位-ETC', '績效範本', '績效現況'] },
-            { key: 'pg_attmgmt',    name: '考勤管理',     group: '人事管理', ops: ['匯出', '匯入排班', '出勤存取', '出勤修改'] },
+            { key: 'pg_employee',   name: '員工管理',     group: '人事管理', ops: ['添加新員工', '取消入職', '重置密碼', '離職', '刪除帳號', '檢視個人信息', '檢視職位信息', '檢視人員帳號', '檢視考勤信息', '檢視假期信息', '檢視薪資單', '檢視資產', '修改個人-基礎/個人信息', '修改個人-個人聯絡方式', '修改個人-緊急聯絡人', '修改職位-基本工資', '修改職位-獎金', '修改職位-其他福利', '修改職位-職位信息', '修改職位-事業部', '修改職位-職級', '修改職位-其他項目', '提交人員帳號異動申請', '修改考勤信息', '修改假期信息'], specialOps: ['檢視負責區域員工', '檢視下屬'] },
+            { key: 'pg_attmgmt',    name: '考勤管理',     group: '人事管理', ops: [] },
             { key: 'pg_attset',     name: '考勤設置',     group: '人事管理', ops: [] },
-            { key: 'pg_leavemgmt',  name: '假期管理',     group: '人事管理', ops: ['匯出', '休假資訊管理'] },
-            { key: 'pg_salary',     name: '薪資管理',     group: '人事管理', ops: ['上傳薪資', '匯出', '薪資資料存取', '人事成本'] },
-            { key: 'pg_leavequery', name: '員工假期查詢', group: '人事管理', ops: ['匯出'] },
+            { key: 'pg_leavemgmt',  name: '假期管理',     group: '人事管理', ops: [] },
+            { key: 'pg_salary',     name: '薪資管理',     group: '人事管理', ops: [] },
+            { key: 'pg_leavequery', name: '員工假期查詢', group: '人事管理', ops: [] },
             // 財務管理
-            { key: 'pg_fxrate',     name: '月初匯率管理', group: '財務管理', ops: ['匯出'] },
+            { key: 'pg_fxrate',     name: '月初匯率管理', group: '財務管理', ops: [] },
             // 行政管理
             { key: 'pg_announce',   name: '公告管理',     group: '行政管理', ops: [] },
-            { key: 'pg_docmgmt',    name: '文件庫管理',   group: '行政管理', ops: ['上傳', '下載', '公開資料庫'] },
-            { key: 'pg_assetstat',  name: '資產數統計',   group: '行政管理', ops: ['匯出'] },
-            { key: 'pg_assetlist',  name: '資產清單',     group: '行政管理', ops: ['匯出'] },
-            { key: 'pg_assetorder', name: '資產單統計',   group: '行政管理', ops: ['匯出'] },
-            { key: 'pg_assetcheck', name: '資產盤點',     group: '行政管理', ops: ['建立盤點', '匯出'] },
-            { key: 'pg_assetspot',  name: '資產抽查',     group: '行政管理', ops: ['建立抽查', '匯出'] },
-            { key: 'pg_empno',      name: '工號創建管理', group: '行政管理', ops: ['匯入', '匯出', '申請問卷'] },
+            { key: 'pg_docmgmt',    name: '文件庫管理',   group: '行政管理', ops: [] },
+            { key: 'pg_assetstat',  name: '資產數統計',   group: '行政管理', ops: [] },
+            { key: 'pg_assetlist',  name: '資產清單',     group: '行政管理', ops: [] },
+            { key: 'pg_assetorder', name: '資產單統計',   group: '行政管理', ops: [] },
+            { key: 'pg_assetcheck', name: '資產盤點',     group: '行政管理', ops: [] },
+            { key: 'pg_assetspot',  name: '資產抽查',     group: '行政管理', ops: [] },
+            { key: 'pg_empno',      name: '工號創建管理', group: '行政管理', ops: [] },
             // 系統設定
             { key: 'pg_apprvacct',  name: '審批帳號',     group: '系統設定', ops: [] },
             { key: 'pg_apprvrole',  name: '審批角色',     group: '系統設定', ops: [] },
             { key: 'pg_apprvperm',  name: '審批角色權限', group: '系統設定', ops: [] },
-            { key: 'pg_apprvflow',  name: '審批流管理',   group: '系統設定', ops: ['編輯簽核流程', '變更簽核流程', '人事異動流程變更', '到職核准流程變更', '招募申請流程變更', '薪資職級變更流程變更'] },
+            { key: 'pg_apprvflow',  name: '審批流管理',   group: '系統設定', ops: [] },
             { key: 'pg_group',      name: '分組管理',     group: '系統設定', ops: [] },
             { key: 'pg_acctperm',   name: '帳號權限',     group: '系統設定', ops: [] },
             { key: 'pg_permset',    name: '權限設置',     group: '系統設定', ops: [] },
@@ -372,7 +372,7 @@
             { key: 'pg_finset',     name: '財務設定',     group: '系統設定', ops: [] },
             { key: 'pg_adminset',   name: '行政設定',     group: '系統設定', ops: [] },
             { key: 'pg_salarypwd',  name: '薪資密碼設定', group: '系統設定', ops: [] },
-            { key: 'pg_syslog',     name: '系統日誌',     group: '系統設定', actions: ['檢視'], ops: ['匯出'] },
+            { key: 'pg_syslog',     name: '系統日誌',     group: '系統設定', actions: ['檢視'], ops: [] },
             { key: 'pg_block',      name: '封鎖設定',     group: '系統設定', ops: [] }
         ];
         // 可提交的申請單（依類別）
@@ -402,7 +402,7 @@
         // 全部頁面：標準動作 + 各頁特殊操作（完整權限）
         function buildDataFull() {
             const d = {};
-            DATA_PAGES.forEach(p => d[p.key] = (p.actions || STD_ACTIONS).concat(p.ops || []));
+            DATA_PAGES.forEach(p => d[p.key] = (p.actions || STD_ACTIONS).concat(p.ops || []).concat(p.specialOps || []));
             return d;
         }
         // 依分類（group→動作）批次建立；未列分類套用 def
@@ -540,12 +540,26 @@
                 ).join('');
                 // 特殊操作：勾選才會於該頁顯示並可使用
                 const ops = p.ops || [];
-                const opsCell = ops.length
-                    ? `<div class="flex flex-wrap gap-x-4 gap-y-1.5">` + ops.map(op =>
-                        `<label class="inline-flex items-center gap-1.5 cursor-pointer">`
-                        + `<input type="checkbox" class="perm-check" ${permDraft.data[p.key].has(op) ? 'checked' : ''} onchange="togglePerm('${p.key}','${op}',this.checked)">`
-                        + `<span class="text-xs text-gray-600">${op}</span></label>`).join('') + `</div>`
-                    : `<span class="text-gray-300 text-xs">—</span>`;
+                const specialOps = p.specialOps || [];
+                const opCheckbox = op =>
+                    `<label class="inline-flex items-center gap-1.5 cursor-pointer">`
+                    + `<input type="checkbox" class="perm-check" ${permDraft.data[p.key].has(op) ? 'checked' : ''} onchange="togglePerm('${p.key}','${op}',this.checked)">`
+                    + `<span class="text-sm text-gray-600">${op}</span></label>`;
+                let opsCell;
+                if (ops.length || specialOps.length) {
+                    opsCell = '';
+                    if (specialOps.length) {
+                        // 檢視範圍：獨立一行置頂，與其他特殊操作以分隔線區隔
+                        opsCell += `<div class="flex flex-wrap items-center gap-x-6 gap-y-2">`
+                            + `<span class="inline-flex items-center gap-1 text-xs font-bold text-amber-600 mr-1"><i class="fa-solid fa-eye text-[10px]"></i>檢視範圍</span>`
+                            + specialOps.map(opCheckbox).join('') + `</div>`;
+                    }
+                    if (ops.length) {
+                        opsCell += `<div class="${specialOps.length ? 'mt-2.5 pt-2.5 border-t border-dashed border-gray-300' : ''} grid grid-cols-4 gap-x-6 gap-y-2">` + ops.map(opCheckbox).join('') + `</div>`;
+                    }
+                } else {
+                    opsCell = `<span class="text-gray-300 text-xs">—</span>`;
+                }
                 html += `<tr class="hover:bg-gray-50/70 transition-colors"><td class="text-left font-medium text-gray-700 pl-8"><i class="fa-regular fa-file-lines text-gray-300 text-xs mr-2"></i>${p.name}</td>${cells}<td class="text-left">${opsCell}</td></tr>`;
             });
             tbody.innerHTML = html;
@@ -567,7 +581,7 @@
         }
 
         function setAllPerms(on) {
-            DATA_PAGES.forEach(p => permDraft.data[p.key] = on ? new Set((p.actions || STD_ACTIONS).concat(p.ops || [])) : new Set());
+            DATA_PAGES.forEach(p => permDraft.data[p.key] = on ? new Set((p.actions || STD_ACTIONS).concat(p.ops || []).concat(p.specialOps || [])) : new Set());
             renderPermSections();
         }
         function setAllApprove(on) {
@@ -584,7 +598,7 @@
         function savePerms() {
             const role = roles[selectedIndex];
             const data = {};
-            DATA_PAGES.forEach(p => data[p.key] = (p.actions || STD_ACTIONS).concat(p.ops || []).filter(a => permDraft.data[p.key].has(a)));
+            DATA_PAGES.forEach(p => data[p.key] = (p.actions || STD_ACTIONS).concat(p.ops || []).concat(p.specialOps || []).filter(a => permDraft.data[p.key].has(a)));
             role.perms = { data, approve: ALL_FORM_KEYS.filter(k => permDraft.approve.has(k)) };
             renderRoleList();
             renderRightPanel();
