@@ -153,6 +153,14 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- 離職申請 -->
+                    <div class="flex justify-start">
+                        <button onclick="openResignModal()" class="ui-btn ui-btn-secondary inline-flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" /></svg>
+                            離職申請
+                        </button>
+                    </div>
                 </div>
 
                 <!-- 分頁 2：職位信息 -->
@@ -528,6 +536,174 @@
         </div>
     </div>
 
+    <!-- ========================================== -->
+    <!-- 彈出視窗：離職申請 -->
+    <!-- ========================================== -->
+    <div id="resignModal" class="fixed inset-0 z-[60] hidden" role="dialog" aria-modal="true">
+        <div class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm" onclick="closeResignModal()"></div>
+        <div class="fixed inset-0 z-10 flex items-center justify-center p-4">
+            <div class="relative bg-white rounded-2xl shadow-xl w-full max-w-4xl max-h-[92vh] flex flex-col overflow-hidden">
+                <div class="px-6 py-4 flex items-center justify-between border-b border-slate-100 flex-shrink-0">
+                    <h3 class="text-base font-bold text-slate-800">離職申請</h3>
+                    <button onclick="closeResignModal()" class="text-slate-400 hover:text-slate-600 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 transition-colors">✕</button>
+                </div>
+                <form onsubmit="return false" class="px-6 py-5 overflow-y-auto space-y-7">
+
+                    <!-- 基本資訊（自動代入） -->
+                    <section class="space-y-3">
+                        <h4 class="text-sm font-bold text-blue-600 flex items-center gap-2"><span class="w-1 h-4 bg-blue-600 rounded-full"></span>基本資訊</h4>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div><label class="block text-xs font-semibold text-slate-600 mb-1.5">填寫日期</label><input type="text" disabled value="2026-07-13" class="ui-input bg-slate-100 text-slate-500 cursor-not-allowed"></div>
+                            <div><label class="block text-xs font-semibold text-slate-600 mb-1.5">標題</label><input type="text" disabled value="離職申請單" class="ui-input bg-slate-100 text-slate-500 cursor-not-allowed"></div>
+                            <div><label class="block text-xs font-semibold text-slate-600 mb-1.5">文件編號</label><input type="text" disabled value="自動生成" class="ui-input bg-slate-100 text-slate-500 cursor-not-allowed"></div>
+                            <div><label class="block text-xs font-semibold text-slate-600 mb-1.5">離職通知單號</label><input type="text" disabled value="自動生成" class="ui-input bg-slate-100 text-slate-500 cursor-not-allowed"></div>
+                            <div><label class="block text-xs font-semibold text-slate-600 mb-1.5">工號</label><input type="text" disabled value="100258" class="ui-input bg-slate-100 text-slate-500 cursor-not-allowed"></div>
+                            <div><label class="block text-xs font-semibold text-slate-600 mb-1.5">名稱</label><input type="text" disabled value="Admin" class="ui-input bg-slate-100 text-slate-500 cursor-not-allowed"></div>
+                            <div><label class="block text-xs font-semibold text-slate-600 mb-1.5">離職日期</label><input type="text" disabled value="2026-07-31" class="ui-input bg-slate-100 text-slate-500 cursor-not-allowed"></div>
+                            <div><label class="block text-xs font-semibold text-slate-600 mb-1.5">項目 / 部門</label><input type="text" disabled value="GT / RD" class="ui-input bg-slate-100 text-slate-500 cursor-not-allowed"></div>
+                            <div><label class="block text-xs font-semibold text-slate-600 mb-1.5">部門主管</label><input type="text" disabled value="James (100423)" class="ui-input bg-slate-100 text-slate-500 cursor-not-allowed"></div>
+                        </div>
+                    </section>
+
+                    <!-- 離職原因（申請人填寫） -->
+                    <section class="space-y-3">
+                        <h4 class="text-sm font-bold text-blue-600 flex items-center gap-2"><span class="w-1 h-4 bg-blue-600 rounded-full"></span>離職原因</h4>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1.5">離職原因 <span class="text-rose-500">*</span></label>
+                            <select class="ui-input"><option value="">請選擇</option><option>個人因素</option><option>職涯發展</option><option>健康因素</option><option>家庭因素</option><option>薪資福利</option><option>工作環境</option><option>其他</option></select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1.5">原因說明 <span class="text-rose-500">*</span></label>
+                            <textarea rows="3" class="ui-input resize-y" placeholder="請輸入原因說明"></textarea>
+                        </div>
+                    </section>
+
+                    <!-- 公司信息 -->
+                    <section class="space-y-3">
+                        <h4 class="text-sm font-bold text-blue-600 flex items-center gap-2"><span class="w-1 h-4 bg-blue-600 rounded-full"></span>公司信息</h4>
+                        <div class="space-y-3">
+                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border border-slate-100 rounded-lg px-3 py-2.5">
+                                <span class="text-sm text-slate-700">1. 是否接觸公司敏感信息？（如公司賬戶與印鑒／員工個薪／系統權限管理存取等）</span>
+                                <span class="flex gap-4 shrink-0"><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="ci1" class="w-4 h-4"> 是</label><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="ci1" class="w-4 h-4"> 否</label></span>
+                            </div>
+                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border border-slate-100 rounded-lg px-3 py-2.5">
+                                <span class="text-sm text-slate-700">2. 是否負責或保管財務相關財產？（如資金、銀行賬戶、支付工具、印鑒、憑證等）</span>
+                                <span class="flex gap-4 shrink-0"><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="ci2" class="w-4 h-4"> 是</label><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="ci2" class="w-4 h-4"> 否</label></span>
+                            </div>
+                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border border-slate-100 rounded-lg px-3 py-2.5">
+                                <span class="text-sm text-slate-700">3. 是否有代墊費用／未核銷費用？</span>
+                                <span class="flex gap-4 shrink-0"><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="ci3" class="w-4 h-4"> 是</label><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="ci3" class="w-4 h-4"> 否</label></span>
+                            </div>
+                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border border-slate-100 rounded-lg px-3 py-2.5">
+                                <span class="text-sm text-slate-700">4. 是否負責簽署或保管對內或對外正式文件？（如客戶／供應商合約、保密協議、授權書等）</span>
+                                <span class="flex gap-4 shrink-0"><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="ci4" class="w-4 h-4"> 是</label><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="ci4" class="w-4 h-4"> 否</label></span>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- 工作交接 -->
+                    <section class="space-y-3">
+                        <h4 class="text-sm font-bold text-blue-600 flex items-center gap-2"><span class="w-1 h-4 bg-blue-600 rounded-full"></span>工作交接</h4>
+
+                        <div class="border border-slate-100 rounded-lg px-3 py-3 space-y-2.5">
+                            <p class="text-sm font-semibold text-slate-700">1. 賬號／軟體 <span class="text-xs font-normal text-slate-400">（自動代入）</span></p>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <div><label class="block text-xs text-slate-500 mb-1">Mobile</label><input type="text" disabled value="+886-912-345-678" class="ui-input bg-slate-100 text-slate-500 cursor-not-allowed"></div>
+                                <div><label class="block text-xs text-slate-500 mb-1">MM</label><input type="text" disabled value="nora.chen" class="ui-input bg-slate-100 text-slate-500 cursor-not-allowed"></div>
+                                <div><label class="block text-xs text-slate-500 mb-1">E-mail</label><input type="text" disabled value="nora.chen@company.com" class="ui-input bg-slate-100 text-slate-500 cursor-not-allowed"></div>
+                                <div><label class="block text-xs text-slate-500 mb-1">Jira</label><input type="text" disabled value="nora.chen" class="ui-input bg-slate-100 text-slate-500 cursor-not-allowed"></div>
+                                <div><label class="block text-xs text-slate-500 mb-1">Apple ID</label><input type="text" disabled value="nora@icloud.com" class="ui-input bg-slate-100 text-slate-500 cursor-not-allowed"></div>
+                                <div><label class="block text-xs text-slate-500 mb-1">OA</label><input type="text" disabled value="nora.chen" class="ui-input bg-slate-100 text-slate-500 cursor-not-allowed"></div>
+                            </div>
+                        </div>
+
+                        <div class="border border-slate-100 rounded-lg px-3 py-2.5 space-y-2.5">
+                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                                <span class="text-sm text-slate-700">2. 是否使用或擁有特定後台權限／管理賬號權限？</span>
+                                <span class="flex gap-4 shrink-0"><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="wh2" class="w-4 h-4"> 是</label><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="wh2" class="w-4 h-4"> 否</label></span>
+                            </div>
+                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pl-4">
+                                <span class="text-sm text-slate-600">2-1. 是否刪除權限？</span>
+                                <span class="flex gap-4 shrink-0"><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="wh2s" class="w-4 h-4"> 是</label><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="wh2s" class="w-4 h-4"> 否</label></span>
+                            </div>
+                        </div>
+
+                        <div class="border border-slate-100 rounded-lg px-3 py-2.5 space-y-2.5">
+                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                                <span class="text-sm text-slate-700">3. 是否以私人號碼註冊郵箱或通訊軟件？</span>
+                                <span class="flex gap-4 shrink-0"><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="wh3" class="w-4 h-4"> 是</label><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="wh3" class="w-4 h-4"> 否</label></span>
+                            </div>
+                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pl-4">
+                                <span class="text-sm text-slate-600">3-1. 是否完成註銷？</span>
+                                <span class="flex gap-4 shrink-0"><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="wh3s" class="w-4 h-4"> 是</label><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="wh3s" class="w-4 h-4"> 否</label></span>
+                            </div>
+                        </div>
+
+                        <div class="border border-slate-100 rounded-lg px-3 py-2.5 space-y-2.5">
+                            <p class="text-sm text-slate-700">4. 其他</p>
+                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pl-4">
+                                <span class="text-sm text-slate-600">4-1. 工作簽證</span>
+                                <span class="flex gap-4 shrink-0"><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="wh41" class="w-4 h-4"> 是</label><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="wh41" class="w-4 h-4"> 否</label></span>
+                            </div>
+                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pl-4">
+                                <span class="text-sm text-slate-600">4-2. 員工宿舍</span>
+                                <span class="flex gap-4 shrink-0"><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="wh42" class="w-4 h-4"> 是</label><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="wh42" class="w-4 h-4"> 否</label></span>
+                            </div>
+                        </div>
+
+                        <div class="border border-slate-100 rounded-lg px-3 py-2.5 space-y-2.5">
+                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                                <span class="text-sm text-slate-700">5. 是否完成工作交接？</span>
+                                <span class="flex gap-4 shrink-0"><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="wh5" class="w-4 h-4"> 是</label><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="wh5" class="w-4 h-4"> 否</label></span>
+                            </div>
+                            <div>
+                                <label class="block text-xs text-slate-500 mb-1 pl-4">原因及預計完成期限</label>
+                                <input type="text" class="ui-input" placeholder="請輸入原因及預計完成期限">
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border border-slate-100 rounded-lg px-3 py-2.5">
+                            <span class="text-sm text-slate-700">6. 是否部門主管／交接人確認辦公設備或儲存裝置無公司機密資料？</span>
+                            <span class="flex gap-4 shrink-0"><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="wh6" class="w-4 h-4"> 是</label><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="wh6" class="w-4 h-4"> 否</label></span>
+                        </div>
+
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border border-slate-100 rounded-lg px-3 py-2.5">
+                            <span class="text-sm text-slate-700">7. 是否設有『公司門禁卡』及『指紋打卡』？</span>
+                            <span class="flex gap-4 shrink-0"><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="wh7" class="w-4 h-4"> 是</label><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="wh7" class="w-4 h-4"> 否</label></span>
+                        </div>
+                    </section>
+
+                    <!-- 公司資產列表（從人員資產自動帶出） -->
+                    <section class="space-y-3">
+                        <h4 class="text-sm font-bold text-blue-600 flex items-center gap-2"><span class="w-1 h-4 bg-blue-600 rounded-full"></span>公司資產列表 <span class="text-xs font-normal text-slate-400">（從人員資產自動帶出）</span></h4>
+                        <div class="overflow-x-auto border border-slate-100 rounded-lg">
+                            <table class="w-full text-sm text-left whitespace-nowrap">
+                                <thead class="bg-slate-50 text-slate-600 text-xs font-bold">
+                                    <tr><th class="px-3 py-2">資產類型</th><th class="px-3 py-2">資產名稱</th><th class="px-3 py-2">資產編號</th><th class="px-3 py-2">資產密碼</th></tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100 text-slate-700">
+                                    <tr><td class="px-3 py-2">筆記型電腦</td><td class="px-3 py-2">MacBook Pro 14"</td><td class="px-3 py-2 font-mono">ZC-24-0001</td><td class="px-3 py-2"><input type="text" placeholder="請輸入資產密碼" class="w-full border border-slate-300 rounded px-2 py-1 text-sm outline-none focus:border-blue-500"></td></tr>
+                                    <tr><td class="px-3 py-2">顯示器</td><td class="px-3 py-2">Dell U2723QE 27"</td><td class="px-3 py-2 font-mono">ZC-24-0003</td><td class="px-3 py-2"><input type="text" placeholder="請輸入資產密碼" class="w-full border border-slate-300 rounded px-2 py-1 text-sm outline-none focus:border-blue-500"></td></tr>
+                                    <tr><td class="px-3 py-2">行動電話</td><td class="px-3 py-2">iPhone 15 Pro</td><td class="px-3 py-2 font-mono">ZC-24-0002</td><td class="px-3 py-2"><input type="text" placeholder="請輸入資產密碼" class="w-full border border-slate-300 rounded px-2 py-1 text-sm outline-none focus:border-blue-500"></td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+
+                    <!-- 附件 -->
+                    <section class="space-y-3">
+                        <h4 class="text-sm font-bold text-blue-600 flex items-center gap-2"><span class="w-1 h-4 bg-blue-600 rounded-full"></span>附件</h4>
+                        <input type="file" multiple class="ui-input">
+                    </section>
+                </form>
+                <div class="flex justify-end gap-2.5 px-6 py-4 bg-slate-50 border-t border-slate-100 flex-shrink-0">
+                    <button onclick="closeResignModal()" class="ui-btn ui-btn-secondary">取消</button>
+                    <button onclick="submitResign()" class="ui-btn ui-btn-primary">提交</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- 資產使用條款彈窗 -->
     <div id="terms-modal" class="fixed inset-0 z-50 bg-gray-900/40 backdrop-blur-sm hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg flex flex-col max-h-[80vh] overflow-hidden">
@@ -692,6 +868,11 @@
         }
         function closeAccountChangeModal() { if (accChangeModal) accChangeModal.classList.add('hidden'); }
         function submitAccountChange() { closeAccountChangeModal(); }
+
+        // 離職申請彈窗
+        function openResignModal() { document.getElementById('resignModal').classList.remove('hidden'); }
+        function closeResignModal() { document.getElementById('resignModal').classList.add('hidden'); }
+        function submitResign() { closeResignModal(); alert('已提交離職申請'); }
 
         // 現代化頁籤切換邏輯
         function switchTab(tabId) {
