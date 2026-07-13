@@ -61,8 +61,8 @@
         <!-- 篩選台 (清單) -->
         <div class="ui-card p-5 space-y-4">
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div class="relative">
+            <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-4">
+                <div class="relative sm:col-span-2">
                     <label class="block text-xs font-semibold text-text-muted mb-1.5">搜尋 (編號/名稱/序列號/工號/使用人)</label>
                     <div class="relative ui-search">
                         <i class="fa-solid fa-magnifying-glass"></i>
@@ -91,6 +91,43 @@
                         <option value="IA1">內稽部 (IA1)</option>
                         <option value="FIN">財務部 (FIN)</option>
                         <option value="MKT">行銷部 (MKT)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">區域</label>
+                    <select id="list-region" onchange="applyListFilters()" class="ui-select">
+                        <option value="all">全部區域</option>
+                        <option>T1</option>
+                        <option>T2</option>
+                        <option>U</option>
+                        <option>J</option>
+                        <option>S</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">狀態</label>
+                    <select id="list-status" onchange="applyListFilters()" class="ui-select">
+                        <option value="all">全部状态</option>
+                        <option>使用中</option>
+                        <option>项目闲置</option>
+                        <option>行政闲置</option>
+                        <option>项目保管</option>
+                        <option>行政保管</option>
+                        <option>外借</option>
+                        <option>待出售</option>
+                        <option>已出售</option>
+                        <option>已赔付</option>
+                        <option>已销毁</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">類別</label>
+                    <select id="list-category" onchange="applyListFilters()" class="ui-select">
+                        <option value="all">全部类别</option>
+                        <option>资产</option>
+                        <option>列管品</option>
+                        <option>软资产</option>
+                        <option>暂无类别</option>
                     </select>
                 </div>
             </div>
@@ -128,12 +165,15 @@
                             <th scope="col">類型</th>
                             <th scope="col" class="text-left">資產名稱</th>
                             <th scope="col" class="text-left">序列號</th>
+                            <th scope="col">區域</th>
                             <th scope="col">項目</th>
                             <th scope="col">部門</th>
                             <th scope="col">工號</th>
                             <th scope="col">使用人</th>
                             <th scope="col">負責人</th>
+                            <th scope="col">狀態</th>
                             <th scope="col" class="text-right">殘值</th>
+                            <th scope="col">類別</th>
                         </tr>
                     </thead>
                     <tbody id="list-tbody"><!-- 動態由 JavaScript 渲染 --></tbody>
@@ -191,6 +231,46 @@
             { no: 'ZC-24-0012', type: '收納設備',         name: '鋼製文件櫃',                serial: 'CAB-STEEL-45', project: 'GT', dept: 'FIN', userId: '101501', user: 'Audrey', owner: 'Henry', residual: 100 }
         ];
 
+        // 資產狀態（篩選用「全部状态」不入資料）
+        const ASSET_STATUSES = ['使用中', '项目闲置', '行政闲置', '项目保管', '行政保管', '外借', '待出售', '已出售', '已赔付', '已销毁'];
+        // 指派示範狀態（涵蓋全部狀態值）與區域
+        (function assignStatuses() {
+            const demo = ['使用中', '项目闲置', '行政闲置', '项目保管', '行政保管', '外借', '待出售', '已出售', '已赔付', '已销毁', '使用中', '项目保管'];
+            const regions = ['T1', 'T2', 'U', 'J', 'S', 'T1', 'T2', 'U', 'J', 'S', 'T1', 'T2'];
+            const cats = ['资产', '列管品', '软资产', '暂无类别', '资产', '列管品', '软资产', '暂无类别', '资产', '列管品', '软资产', '暂无类别'];
+            listDb.forEach((r, i) => { r.status = demo[i % demo.length]; r.region = regions[i % regions.length]; r.category = cats[i % cats.length]; });
+        })();
+
+        // 類別徽章配色
+        const CATEGORY_STYLE = {
+            '资产': 'bg-indigo-50 text-indigo-600',
+            '列管品': 'bg-cyan-50 text-cyan-600',
+            '软资产': 'bg-purple-50 text-purple-600',
+            '暂无类别': 'bg-gray-100 text-gray-500'
+        };
+        function categoryBadge(c) {
+            const cls = CATEGORY_STYLE[c] || 'bg-gray-100 text-gray-500';
+            return `<span class="px-2 py-0.5 ${cls} rounded text-xs font-semibold">${c || '-'}</span>`;
+        }
+
+        // 狀態徽章配色
+        const STATUS_STYLE = {
+            '使用中': 'bg-emerald-50 text-emerald-600',
+            '项目闲置': 'bg-amber-50 text-amber-600',
+            '行政闲置': 'bg-amber-50 text-amber-600',
+            '项目保管': 'bg-blue-50 text-blue-600',
+            '行政保管': 'bg-blue-50 text-blue-600',
+            '外借': 'bg-violet-50 text-violet-600',
+            '待出售': 'bg-orange-50 text-orange-600',
+            '已出售': 'bg-gray-100 text-gray-500',
+            '已赔付': 'bg-rose-50 text-rose-600',
+            '已销毁': 'bg-gray-200 text-gray-600'
+        };
+        function statusBadge(s) {
+            const cls = STATUS_STYLE[s] || 'bg-gray-100 text-gray-500';
+            return `<span class="px-2 py-0.5 ${cls} rounded text-xs font-semibold">${s || '-'}</span>`;
+        }
+
         // 千分位格式化
         function fmt(n) { return Number(n).toLocaleString('en-US'); }
 
@@ -232,6 +312,9 @@
             const typeVal = document.getElementById('list-type').value;
             const projVal = document.getElementById('list-project').value;
             const deptVal = document.getElementById('list-dept').value;
+            const regionVal = document.getElementById('list-region').value;
+            const statusVal = document.getElementById('list-status').value;
+            const catVal = document.getElementById('list-category').value;
 
             const filtered = listDb.filter(r =>
                 (!kw || r.no.toLowerCase().includes(kw) || r.name.toLowerCase().includes(kw)
@@ -239,7 +322,10 @@
                     || (r.userId || '').toLowerCase().includes(kw)) &&
                 (typeVal === 'all' || r.type === typeVal) &&
                 (projVal === 'all' || r.project === projVal) &&
-                (deptVal === 'all' || r.dept === deptVal));
+                (deptVal === 'all' || r.dept === deptVal) &&
+                (regionVal === 'all' || r.region === regionVal) &&
+                (statusVal === 'all' || r.status === statusVal) &&
+                (catVal === 'all' || r.category === catVal));
             renderActiveList(filtered);
         }
 
@@ -289,12 +375,15 @@
                     <td><span class="px-2 py-0.5 bg-blue-50 text-primary rounded text-xs font-semibold">${r.type}</span></td>
                     <td class="text-left font-medium text-gray-800">${r.name}</td>
                     <td class="text-left font-mono text-gray-500 text-xs">${r.serial}</td>
+                    <td><span class="px-2 py-0.5 bg-teal-50 text-teal-600 rounded text-xs font-semibold">${r.region}</span></td>
                     <td><span class="px-2 py-0.5 bg-violet-50 text-violet-600 rounded text-xs font-semibold">${r.project}</span></td>
                     <td><span class="px-2 py-0.5 bg-gray-100 rounded text-xs font-semibold text-gray-700">${r.dept}</span></td>
                     <td class="font-mono text-gray-500">${r.userId || '-'}</td>
                     <td class="text-gray-700">${r.user}</td>
                     <td class="text-gray-700">${r.owner}</td>
+                    <td>${statusBadge(r.status)}</td>
                     <td class="text-right font-mono text-gray-700">¥ ${fmt(r.residual)}</td>
+                    <td>${categoryBadge(r.category)}</td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -325,8 +414,11 @@
                         <td><span class="px-2 py-0.5 bg-blue-50 text-primary rounded text-xs font-semibold">${a.type}</span></td>
                         <td class="text-left font-medium text-gray-800">${a.name}</td>
                         <td class="text-left font-mono text-gray-500 text-xs">${a.serial}</td>
+                        <td><span class="px-2 py-0.5 bg-teal-50 text-teal-600 rounded text-xs font-semibold">${a.region}</span></td>
                         <td class="text-gray-700">${a.owner}</td>
+                        <td>${statusBadge(a.status)}</td>
                         <td class="text-right font-mono text-gray-700">¥ ${fmt(a.residual)}</td>
+                        <td>${categoryBadge(a.category)}</td>
                     </tr>`).join('');
                 card.innerHTML = `
                     <button type="button" onclick="togglePerson(this)" class="w-full flex items-center justify-between gap-3 px-4 py-3 bg-gray-50/60 hover:bg-gray-100 transition-colors text-left">
@@ -357,8 +449,11 @@
                                     <th scope="col">類型</th>
                                     <th scope="col" class="text-left">資產名稱</th>
                                     <th scope="col" class="text-left">序列號</th>
+                                    <th scope="col">區域</th>
                                     <th scope="col">負責人</th>
+                                    <th scope="col">狀態</th>
                                     <th scope="col" class="text-right">殘值</th>
+                                    <th scope="col">類別</th>
                                 </tr>
                             </thead>
                             <tbody>${rows}</tbody>
@@ -382,6 +477,9 @@
             document.getElementById('list-type').value = 'all';
             document.getElementById('list-project').value = 'all';
             document.getElementById('list-dept').value = 'all';
+            document.getElementById('list-region').value = 'all';
+            document.getElementById('list-status').value = 'all';
+            document.getElementById('list-category').value = 'all';
             showToast('info', '已還原資產清單的篩選設定');
             applyListFilters();
         }
