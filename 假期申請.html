@@ -163,7 +163,7 @@
                             </td>
                             <td class="text-center">
                                 <div class="flex items-center justify-center gap-2">
-                                    <button class="ui-btn ui-btn-secondary ui-btn-sm">檢視</button>
+                                    <button onclick="openViewModal(this)" class="ui-btn ui-btn-secondary ui-btn-sm">檢視</button>
                                     <button class="ui-btn ui-btn-secondary ui-btn-sm">撤回</button>
                                 </div>
                             </td>
@@ -183,7 +183,7 @@
                             </td>
                             <td class="text-center">
                                 <div class="flex items-center justify-center gap-2">
-                                    <button class="ui-btn ui-btn-secondary ui-btn-sm">檢視</button>
+                                    <button onclick="openViewModal(this)" class="ui-btn ui-btn-secondary ui-btn-sm">檢視</button>
                                     <button class="ui-btn ui-btn-secondary ui-btn-sm">撤回</button>
                                 </div>
                             </td>
@@ -203,7 +203,7 @@
                             </td>
                             <td class="text-center">
                                 <div class="flex items-center justify-center gap-2">
-                                    <button class="ui-btn ui-btn-secondary ui-btn-sm">檢視</button>
+                                    <button onclick="openViewModal(this)" class="ui-btn ui-btn-secondary ui-btn-sm">檢視</button>
                                     <button class="ui-btn ui-btn-secondary ui-btn-sm js-cancel-btn" onclick="openCancelModal(this)">銷假</button>
                                 </div>
                             </td>
@@ -223,7 +223,7 @@
                             </td>
                             <td class="text-center">
                                 <div class="flex items-center justify-center gap-2">
-                                    <button class="ui-btn ui-btn-secondary ui-btn-sm">檢視</button>
+                                    <button onclick="openViewModal(this)" class="ui-btn ui-btn-secondary ui-btn-sm">檢視</button>
                                 </div>
                             </td>
                         </tr>
@@ -655,6 +655,95 @@
             }
             subrow.remove();
         }
+
+        /* ============ 檢視彈窗（參考 申請.html 表單彈窗樣式）============ */
+        // 橫向審批進度條（參考 我的申請.html 的流程圖）
+        function approvalFlowHTML(status, applicant, approverTitle) {
+            const done = status === '完成' || status === '簽核完成';
+            const rejected = status === '駁回';
+            const node = (cls, inner, title, sub, titleCls) =>
+                `<div class="flex flex-col items-center text-center w-28 shrink-0">
+                    <div class="w-9 h-9 rounded-full ${cls} flex items-center justify-center text-sm font-bold">${inner}</div>
+                    <div class="mt-2 text-xs font-bold whitespace-nowrap ${titleCls}">${title}</div>
+                    <div class="text-[11px] text-gray-400 whitespace-nowrap">${sub}</div>
+                </div>`;
+            const conn = (on) => `<div class="flex-1 min-w-[24px] h-0.5 ${on ? 'bg-emerald-500' : 'bg-gray-200'} mt-[18px] mx-1"></div>`;
+            const n1 = node('bg-emerald-500 text-white', '✓', '提出申請', applicant || '申請人', 'text-gray-800');
+            let n2, n3, c2;
+            if (done) {
+                n2 = node('bg-emerald-500 text-white', '✓', approverTitle, '已核准', 'text-gray-800');
+                c2 = conn(true);
+                n3 = node('bg-emerald-500 text-white', '✓', '完成', '已完成', 'text-gray-800');
+            } else if (rejected) {
+                n2 = node('bg-rose-500 text-white', '✕', approverTitle, '已駁回', 'text-rose-600');
+                c2 = conn(false);
+                n3 = node('bg-gray-200 text-gray-500', '3', '完成', '—', 'text-gray-500');
+            } else {
+                n2 = node('bg-[#4A90E2] text-white ring-4 ring-blue-100', '2', approverTitle, '審批中', 'text-[#4A90E2]');
+                c2 = conn(false);
+                n3 = node('bg-gray-200 text-gray-500', '3', '完成', '待審批', 'text-gray-500');
+            }
+            return `<div class="flex items-start min-w-[380px]">${n1}${conn(true)}${n2}${c2}${n3}</div>`;
+        }
+
+        function openViewModal(btn) {
+            const tr = btn.closest('tr');
+            const c = tr.children;
+            const t = (i) => (c[i] ? c[i].innerText.trim() : '');
+            document.getElementById('lv-apply').textContent = t(0);
+            document.getElementById('lv-type').textContent = t(1);
+            document.getElementById('lv-reason').textContent = t(2);
+            document.getElementById('lv-period').textContent = t(3);
+            document.getElementById('lv-amount').textContent = t(4);
+            const status = t(5);
+            document.getElementById('lv-status').textContent = status;
+            document.getElementById('lv-flow').innerHTML = approvalFlowHTML(status, '申請人', '直屬主管');
+            document.getElementById('leaveViewModal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            if (window.lucide) lucide.createIcons();
+        }
+        function closeLeaveViewModal() {
+            document.getElementById('leaveViewModal').classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && !document.getElementById('leaveViewModal').classList.contains('hidden')) closeLeaveViewModal();
+        });
     </script>
+
+    <!-- ============ 檢視彈窗（參考 申請.html 表單彈窗樣式）============ -->
+    <div id="leaveViewModal" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true">
+        <div class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm" onclick="closeLeaveViewModal()"></div>
+        <div class="fixed inset-0 z-10 flex items-center justify-center p-4">
+            <div class="relative bg-white w-full max-w-2xl max-h-[92vh] rounded-md shadow-2xl flex flex-col overflow-hidden">
+                <div class="bg-[#EAF2FC] flex justify-between items-center px-5 py-3 border-b border-blue-100 flex-shrink-0">
+                    <h2 class="text-[#2b3b84] font-bold text-[16px]">請假申請詳情</h2>
+                    <button onclick="closeLeaveViewModal()" class="bg-blue-500 hover:bg-blue-600 text-white rounded p-1.5 transition-colors"><i data-lucide="x" class="w-4 h-4"></i></button>
+                </div>
+                <div class="flex-1 overflow-y-auto p-5 bg-[#f4f5f8] space-y-5">
+                    <div class="bg-white border border-gray-300 rounded-md shadow-sm">
+                        <div class="px-4 py-2.5 border-b border-gray-200"><h3 class="text-[#2b3b84] font-bold text-[15px]">基本資訊</h3></div>
+                        <div class="p-4 grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-4">
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">申請日期</label><div id="lv-apply" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] bg-[#f8f9fa] text-gray-700 min-h-[34px]"></div></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">假別</label><div id="lv-type" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] bg-[#f8f9fa] text-gray-700 min-h-[34px]"></div></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">時數 / 天數</label><div id="lv-amount" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] bg-[#f8f9fa] text-gray-700 min-h-[34px]"></div></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">狀態</label><div id="lv-status" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] bg-[#f8f9fa] text-gray-700 min-h-[34px]"></div></div>
+                            <div class="sm:col-span-2"><label class="block mb-1.5 text-[13px] text-gray-700">起訖時間</label><div id="lv-period" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] bg-[#f8f9fa] text-gray-700 min-h-[34px]"></div></div>
+                            <div class="sm:col-span-2"><label class="block mb-1.5 text-[13px] text-gray-700">事由</label><div id="lv-reason" class="w-full border border-gray-300 rounded px-3 py-2 text-[13px] bg-[#f8f9fa] text-gray-700 min-h-[60px] whitespace-pre-wrap"></div></div>
+                        </div>
+                    </div>
+                    <div class="bg-white border border-gray-300 rounded-md shadow-sm">
+                        <div class="px-4 py-2.5 border-b border-gray-200"><h3 class="text-[#2b3b84] font-bold text-[15px]">審批流程</h3></div>
+                        <div class="p-4 overflow-x-auto">
+                            <div id="lv-flow"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-5 py-3 flex justify-end gap-3 border-t border-gray-100 flex-shrink-0">
+                    <button onclick="closeLeaveViewModal()" class="ui-btn ui-btn-secondary">關閉</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

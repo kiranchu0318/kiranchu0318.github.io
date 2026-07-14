@@ -58,21 +58,46 @@
             <h1 class="ui-page-title">資產清單</h1>
         </header>
 
+        <!-- 檢視維度切換 Tab（依設備 / 依人員） -->
+        <div class="flex gap-1 border-b border-gray-200">
+            <button id="tab-device" onclick="switchListView('device')" class="px-4 py-2.5 text-sm font-semibold text-primary border-b-2 border-primary -mb-px transition-colors"><i class="fa-solid fa-boxes-stacked mr-1.5"></i>依設備</button>
+            <button id="tab-person" onclick="switchListView('person')" class="px-4 py-2.5 text-sm font-medium text-gray-500 hover:text-gray-700 border-b-2 border-transparent -mb-px transition-colors"><i class="fa-solid fa-user mr-1.5"></i>依人員</button>
+        </div>
+
         <!-- 篩選台 (清單) -->
         <div class="ui-card p-5 space-y-4">
 
             <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-4">
-                <div class="relative sm:col-span-2">
-                    <label class="block text-xs font-semibold text-text-muted mb-1.5">搜尋 (編號/名稱/序列號/工號/使用人)</label>
+                <div id="filter-search-wrap" class="relative sm:col-span-2">
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">搜尋 (編號/名稱/序列號)</label>
                     <div class="relative ui-search">
                         <i class="fa-solid fa-magnifying-glass"></i>
-                        <input type="text" id="list-search" oninput="applyListFilters()" placeholder="輸入資產編號、名稱、序列號或工號..." class="ui-input ui-search-input">
+                        <input type="text" id="list-search" oninput="applyListFilters()" placeholder="輸入資產編號、名稱或序列號..." class="ui-input ui-search-input">
                     </div>
+                </div>
+                <div id="filter-user-wrap">
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">使用人 (名字/工號)</label>
+                    <input type="text" id="list-user" oninput="applyListFilters()" placeholder="姓名或工號" class="ui-input">
+                </div>
+                <div id="filter-owner-wrap">
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">負責人 (名字/工號)</label>
+                    <input type="text" id="list-owner" oninput="applyListFilters()" placeholder="姓名或工號" class="ui-input">
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-text-muted mb-1.5">類型</label>
                     <select id="list-type" onchange="applyListFilters()" class="ui-select">
                         <option value="all">全部類型</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">區域</label>
+                    <select id="list-region" onchange="applyListFilters()" class="ui-select">
+                        <option value="all">全部區域</option>
+                        <option>T1</option>
+                        <option>T2</option>
+                        <option>U</option>
+                        <option>J</option>
+                        <option>S</option>
                     </select>
                 </div>
                 <div>
@@ -91,17 +116,6 @@
                         <option value="IA1">內稽部 (IA1)</option>
                         <option value="FIN">財務部 (FIN)</option>
                         <option value="MKT">行銷部 (MKT)</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-text-muted mb-1.5">區域</label>
-                    <select id="list-region" onchange="applyListFilters()" class="ui-select">
-                        <option value="all">全部區域</option>
-                        <option>T1</option>
-                        <option>T2</option>
-                        <option>U</option>
-                        <option>J</option>
-                        <option>S</option>
                     </select>
                 </div>
                 <div>
@@ -140,20 +154,9 @@
 
         <!-- 列表 (清單) -->
         <section class="ui-card p-4 sm:p-6">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
-                <div class="flex items-center gap-2">
-                    <h2 class="text-lg font-bold text-gray-900 whitespace-nowrap">資產清單</h2>
-                    <span id="list-count-badge" class="bg-blue-50 text-primary text-xs px-2.5 py-1 rounded-md font-bold">0 筆資料</span>
-                </div>
-                <!-- 檢視維度切換：依設備 / 依人員 -->
-                <div class="inline-flex rounded-lg border border-gray-200 p-0.5 bg-gray-50">
-                    <button id="view-btn-device" onclick="switchListView('device')" class="px-3 py-1.5 text-xs font-semibold rounded-md transition-colors bg-white text-primary shadow-sm">
-                        <i class="fa-solid fa-boxes-stacked mr-1"></i> 依設備
-                    </button>
-                    <button id="view-btn-person" onclick="switchListView('person')" class="px-3 py-1.5 text-xs font-medium rounded-md transition-colors text-gray-500 hover:text-gray-700">
-                        <i class="fa-solid fa-user mr-1"></i> 依人員
-                    </button>
-                </div>
+            <div class="flex items-center gap-2 mb-4">
+                <h2 class="text-lg font-bold text-gray-900 whitespace-nowrap">資產清單</h2>
+                <span id="list-count-badge" class="bg-blue-50 text-primary text-xs px-2.5 py-1 rounded-md font-bold">0 筆資料</span>
             </div>
 
             <!-- 檢視 A：依設備（每件資產由誰使用） -->
@@ -168,7 +171,6 @@
                             <th scope="col">區域</th>
                             <th scope="col">項目</th>
                             <th scope="col">部門</th>
-                            <th scope="col">工號</th>
                             <th scope="col">使用人</th>
                             <th scope="col">負責人</th>
                             <th scope="col">狀態</th>
@@ -271,6 +273,19 @@
             return `<span class="px-2 py-0.5 ${cls} rounded text-xs font-semibold">${s || '-'}</span>`;
         }
 
+        // 人員 → 工號對照（示範）
+        const NAME_ID = {
+            'Matthew': '101383', 'James': '100344', 'Henry': '100423', 'Audrey': '101501',
+            'William': '100645', 'Alexander': '101334', 'Samuel': '101312', 'Isabella': '101502',
+            'Daniel': '101122', 'Emma': '101503', 'Arthur': '100777'
+        };
+        // 顯示為「人名（工號）」
+        function personCell(name, id) {
+            if (!name) return '-';
+            const eid = id || NAME_ID[name] || '';
+            return `${name}${eid ? `<span class="text-gray-400 font-mono text-xs ml-0.5">（${eid}）</span>` : ''}`;
+        }
+
         // 千分位格式化
         function fmt(n) { return Number(n).toLocaleString('en-US'); }
 
@@ -295,14 +310,23 @@
         // 切換檢視維度
         function switchListView(view) {
             listView = view;
-            const onCls = 'px-3 py-1.5 text-xs font-semibold rounded-md transition-colors bg-white text-primary shadow-sm';
-            const offCls = 'px-3 py-1.5 text-xs font-medium rounded-md transition-colors text-gray-500 hover:text-gray-700';
+            const onCls = 'px-4 py-2.5 text-sm font-semibold text-primary border-b-2 border-primary -mb-px transition-colors';
+            const offCls = 'px-4 py-2.5 text-sm font-medium text-gray-500 hover:text-gray-700 border-b-2 border-transparent -mb-px transition-colors';
             const isDevice = view === 'device';
-            document.getElementById('view-btn-device').className = isDevice ? onCls : offCls;
-            document.getElementById('view-btn-person').className = isDevice ? offCls : onCls;
-            // 重新加上各自的 icon
-            document.getElementById('view-btn-device').innerHTML = '<i class="fa-solid fa-boxes-stacked mr-1"></i> 依設備';
-            document.getElementById('view-btn-person').innerHTML = '<i class="fa-solid fa-user mr-1"></i> 依人員';
+            document.getElementById('tab-device').className = isDevice ? onCls : offCls;
+            document.getElementById('tab-person').className = isDevice ? offCls : onCls;
+            document.getElementById('tab-device').innerHTML = '<i class="fa-solid fa-boxes-stacked mr-1.5"></i>依設備';
+            document.getElementById('tab-person').innerHTML = '<i class="fa-solid fa-user mr-1.5"></i>依人員';
+            // 依人員時隱藏「搜尋 / 使用人 / 負責人」欄位（並清空避免殘留篩選）
+            ['filter-search-wrap', 'filter-user-wrap', 'filter-owner-wrap'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.classList.toggle('hidden', !isDevice);
+            });
+            if (!isDevice) {
+                document.getElementById('list-search').value = '';
+                document.getElementById('list-user').value = '';
+                document.getElementById('list-owner').value = '';
+            }
             applyListFilters();
         }
 
@@ -315,11 +339,14 @@
             const regionVal = document.getElementById('list-region').value;
             const statusVal = document.getElementById('list-status').value;
             const catVal = document.getElementById('list-category').value;
+            const userKw = (document.getElementById('list-user').value || '').trim().toLowerCase();
+            const ownerKw = (document.getElementById('list-owner').value || '').trim().toLowerCase();
 
             const filtered = listDb.filter(r =>
                 (!kw || r.no.toLowerCase().includes(kw) || r.name.toLowerCase().includes(kw)
-                    || r.serial.toLowerCase().includes(kw) || r.user.toLowerCase().includes(kw) || r.owner.toLowerCase().includes(kw)
-                    || (r.userId || '').toLowerCase().includes(kw)) &&
+                    || r.serial.toLowerCase().includes(kw)) &&
+                (!userKw || r.user.toLowerCase().includes(userKw) || (r.userId || '').toLowerCase().includes(userKw)) &&
+                (!ownerKw || r.owner.toLowerCase().includes(ownerKw) || (NAME_ID[r.owner] || '').toLowerCase().includes(ownerKw)) &&
                 (typeVal === 'all' || r.type === typeVal) &&
                 (projVal === 'all' || r.project === projVal) &&
                 (deptVal === 'all' || r.dept === deptVal) &&
@@ -378,9 +405,8 @@
                     <td><span class="px-2 py-0.5 bg-teal-50 text-teal-600 rounded text-xs font-semibold">${r.region}</span></td>
                     <td><span class="px-2 py-0.5 bg-violet-50 text-violet-600 rounded text-xs font-semibold">${r.project}</span></td>
                     <td><span class="px-2 py-0.5 bg-gray-100 rounded text-xs font-semibold text-gray-700">${r.dept}</span></td>
-                    <td class="font-mono text-gray-500">${r.userId || '-'}</td>
-                    <td class="text-gray-700">${r.user}</td>
-                    <td class="text-gray-700">${r.owner}</td>
+                    <td class="text-gray-700">${personCell(r.user, r.userId)}</td>
+                    <td class="text-gray-700">${personCell(r.owner)}</td>
                     <td>${statusBadge(r.status)}</td>
                     <td class="text-right font-mono text-gray-700">¥ ${fmt(r.residual)}</td>
                     <td>${categoryBadge(r.category)}</td>
@@ -393,7 +419,7 @@
         function groupByUser(data) {
             const map = {};
             data.forEach(r => {
-                if (!map[r.user]) map[r.user] = { user: r.user, userId: r.userId, dept: r.dept, assets: [], total: 0 };
+                if (!map[r.user]) map[r.user] = { user: r.user, userId: r.userId, project: r.project, dept: r.dept, assets: [], total: 0 };
                 map[r.user].assets.push(r);
                 map[r.user].total += r.residual;
             });
@@ -414,8 +440,7 @@
                         <td><span class="px-2 py-0.5 bg-blue-50 text-primary rounded text-xs font-semibold">${a.type}</span></td>
                         <td class="text-left font-medium text-gray-800">${a.name}</td>
                         <td class="text-left font-mono text-gray-500 text-xs">${a.serial}</td>
-                        <td><span class="px-2 py-0.5 bg-teal-50 text-teal-600 rounded text-xs font-semibold">${a.region}</span></td>
-                        <td class="text-gray-700">${a.owner}</td>
+                        <td class="text-gray-700">${personCell(a.owner)}</td>
                         <td>${statusBadge(a.status)}</td>
                         <td class="text-right font-mono text-gray-700">¥ ${fmt(a.residual)}</td>
                         <td>${categoryBadge(a.category)}</td>
@@ -426,7 +451,7 @@
                             <span class="w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold shrink-0">${g.user.slice(0, 1)}</span>
                             <div class="min-w-0">
                                 <div class="font-bold text-gray-800 truncate">${g.user} <span class="text-xs font-mono font-normal text-gray-400">(${g.userId || '-'})</span></div>
-                                <div class="mt-0.5"><span class="px-2 py-0.5 bg-gray-100 rounded text-xs font-semibold text-gray-700">${g.dept}</span></div>
+                                <div class="mt-0.5 flex items-center gap-1"><span class="px-2 py-0.5 bg-violet-50 text-violet-600 rounded text-xs font-semibold">${g.project}</span><span class="px-2 py-0.5 bg-gray-100 rounded text-xs font-semibold text-gray-700">${g.dept}</span></div>
                             </div>
                         </div>
                         <div class="flex items-center gap-5 shrink-0">
@@ -442,18 +467,17 @@
                         </div>
                     </button>
                     <div class="person-body border-t border-gray-100 overflow-x-auto custom-scrollbar">
-                        <table class="ui-table text-center whitespace-nowrap">
+                        <table class="ui-table text-center whitespace-nowrap table-fixed w-full min-w-[960px]">
                             <thead>
                                 <tr>
-                                    <th scope="col" class="text-left">資產編號</th>
-                                    <th scope="col">類型</th>
-                                    <th scope="col" class="text-left">資產名稱</th>
-                                    <th scope="col" class="text-left">序列號</th>
-                                    <th scope="col">區域</th>
-                                    <th scope="col">負責人</th>
-                                    <th scope="col">狀態</th>
-                                    <th scope="col" class="text-right">殘值</th>
-                                    <th scope="col">類別</th>
+                                    <th scope="col" class="text-left w-32">資產編號</th>
+                                    <th scope="col" class="w-24">類型</th>
+                                    <th scope="col" class="text-left w-52">資產名稱</th>
+                                    <th scope="col" class="text-left w-36">序列號</th>
+                                    <th scope="col" class="w-28">負責人</th>
+                                    <th scope="col" class="w-24">狀態</th>
+                                    <th scope="col" class="text-right w-24">殘值</th>
+                                    <th scope="col" class="w-24">類別</th>
                                 </tr>
                             </thead>
                             <tbody>${rows}</tbody>
@@ -474,6 +498,8 @@
 
         function resetListFilters() {
             document.getElementById('list-search').value = '';
+            document.getElementById('list-user').value = '';
+            document.getElementById('list-owner').value = '';
             document.getElementById('list-type').value = 'all';
             document.getElementById('list-project').value = 'all';
             document.getElementById('list-dept').value = 'all';
