@@ -1073,14 +1073,14 @@
                     <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5">
                         <div class="px-4 py-2.5 border-b border-gray-200 flex justify-between items-center">
                             <h3 class="text-[#2b3b84] font-bold text-[15px]">資產維修信息</h3>
-                            <button class="ui-btn ui-btn-primary"><i data-lucide="plus" class="w-4 h-4 mr-1"></i> 添加</button>
+                            <button type="button" onclick="amAddAssetCard()" class="ui-btn ui-btn-primary"><i data-lucide="plus" class="w-4 h-4 mr-1"></i> 添加</button>
                         </div>
-                        <div class="p-4">
+                        <div class="p-4" id="am-asset-list">
                             <!-- 明細卡 #1 -->
-                            <div class="border border-gray-300 rounded-md overflow-hidden mb-4">
+                            <div class="border border-gray-300 rounded-md overflow-hidden mb-4 am-asset-card">
                                 <div class="bg-[#f5f5f5] px-4 py-2.5 flex justify-between items-center">
-                                    <span class="font-bold text-[13px] text-gray-700">資產 #1</span>
-                                    <button class="ui-btn ui-btn-light text-[12px]"><i data-lucide="trash-2" class="w-4 h-4 mr-1"></i> 刪除</button>
+                                    <span class="font-bold text-[13px] text-gray-700 am-asset-title">資產 #1</span>
+                                    <button type="button" onclick="amRemoveAssetCard(this)" class="ui-btn ui-btn-light text-[12px] am-asset-remove hidden"><i data-lucide="trash-2" class="w-4 h-4 mr-1"></i> 刪除</button>
                                 </div>
                                 <div class="p-4">
                                     <div class="grid grid-cols-5 gap-x-6 gap-y-5 mb-2">
@@ -1102,6 +1102,17 @@
                                         <div class="col-span-2"><label class="block mb-1.5 text-[13px] text-gray-700">幣種 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>CNY</option></select></div>
                                     </div>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 额外费用 -->
+                    <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5">
+                        <div class="px-4 py-2.5 border-b border-gray-200"><h3 class="text-[#2b3b84] font-bold text-[15px]">額外費用</h3></div>
+                        <div class="p-4">
+                            <div class="grid grid-cols-2 sm:grid-cols-5 gap-x-5 gap-y-4">
+                                <div><label class="block mb-1.5 text-[13px] text-gray-700">是否有運費</label><select id="am-has-shipping" onchange="amToggleExtra()" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option value="">否</option><option value="1">是</option></select></div>
+                                <div id="am-shipping-wrap" class="hidden"><label class="block mb-1.5 text-[13px] text-gray-700">運費金額</label><div class="flex items-center border border-gray-300 rounded px-3 py-1.5 bg-white"><span class="text-gray-500 text-[13px] mr-2">¥</span><input id="am-shipping" type="text" value="0" class="w-full text-[13px] outline-none bg-transparent"></div></div>
                             </div>
                         </div>
                     </div>
@@ -1819,6 +1830,47 @@
                                         </tr>
                                     </tbody>
                                 </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 區塊：額外費用 -->
+                    <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5">
+                        <div class="px-4 py-2.5 border-b border-gray-200"><h3 class="text-[#2b3b84] font-bold text-[15px]">額外費用</h3></div>
+                        <div class="p-4 space-y-4">
+                            <div class="grid grid-cols-2 sm:grid-cols-5 gap-x-5 gap-y-4">
+                                <div>
+                                    <label class="block mb-1.5 text-[13px] text-gray-700">是否有運費</label>
+                                    <select id="pu-has-shipping" onchange="puToggleExtra()" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500">
+                                        <option value="">否</option><option value="1">是</option>
+                                    </select>
+                                </div>
+                                <div id="pu-shipping-wrap" class="hidden">
+                                    <label class="block mb-1.5 text-[13px] text-gray-700">運費金額</label>
+                                    <div class="flex items-center border border-gray-300 rounded overflow-hidden">
+                                        <span class="bg-gray-50 border-r border-gray-300 px-2.5 py-1.5 text-xs text-gray-500 select-none">¥</span>
+                                        <input type="text" id="pu-shipping" oninput="puUpdateTotal()" class="w-full px-3 py-1.5 text-[13px] text-right outline-none" placeholder="運費金額" value="0">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 sm:grid-cols-5 gap-x-5 gap-y-4">
+                                <div>
+                                    <label class="block mb-1.5 text-[13px] text-gray-700">是否有稅率</label>
+                                    <select id="pu-has-tax" onchange="puToggleExtra()" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500">
+                                        <option value="">否</option><option value="1">是</option>
+                                    </select>
+                                </div>
+                                <div id="pu-tax-name-wrap" class="hidden">
+                                    <label class="block mb-1.5 text-[13px] text-gray-700">稅名</label>
+                                    <input type="text" id="pu-tax-name" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500" placeholder="例如：增值稅 / VAT">
+                                </div>
+                                <div id="pu-tax-wrap" class="hidden">
+                                    <label class="block mb-1.5 text-[13px] text-gray-700">稅率</label>
+                                    <div class="flex items-center border border-gray-300 rounded overflow-hidden">
+                                        <input type="text" id="pu-tax" oninput="puUpdateTotal()" class="w-full px-3 py-1.5 text-[13px] text-right outline-none" placeholder="稅率" value="0">
+                                        <span class="bg-gray-50 border-l border-gray-300 px-2.5 py-1.5 text-xs text-gray-500 select-none">%</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -4226,6 +4278,58 @@
         const CNY_PER = { CNY: 1, TWD: 0.228, USD: 7.14, JPY: 0.046, EUR: 7.69, GBP: 9.09, MYR: 1.61, AED: 1.96, KRW: 0.0053, PHP: 0.127 };
         const fmtAmt = n => (isFinite(n) ? n : 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
+        // 請購單：額外費用勾選 → 顯示/隱藏輸入並重算
+        function puToggleExtra() {
+            const shipOn = !!(document.getElementById('pu-has-shipping') || {}).value;
+            const taxOn = !!(document.getElementById('pu-has-tax') || {}).value;
+            const shipWrap = document.getElementById('pu-shipping-wrap');
+            const taxWrap = document.getElementById('pu-tax-wrap');
+            if (shipWrap) shipWrap.classList.toggle('hidden', !shipOn);
+            if (taxWrap) taxWrap.classList.toggle('hidden', !taxOn);
+            const taxNameWrap = document.getElementById('pu-tax-name-wrap');
+            if (taxNameWrap) taxNameWrap.classList.toggle('hidden', !taxOn);
+            puUpdateTotal();
+        }
+
+        // 資產維修申請 (AM)：資產維修信息可重複明細
+        function amRenumberAssets() {
+            const list = document.getElementById('am-asset-list');
+            if (!list) return;
+            const cards = list.querySelectorAll('.am-asset-card');
+            cards.forEach((card, i) => {
+                const t = card.querySelector('.am-asset-title');
+                if (t) t.textContent = '資產 #' + (i + 1);
+                const rm = card.querySelector('.am-asset-remove');
+                if (rm) rm.classList.toggle('hidden', cards.length <= 1);
+            });
+        }
+        function amAddAssetCard() {
+            const list = document.getElementById('am-asset-list');
+            if (!list) return;
+            const first = list.querySelector('.am-asset-card');
+            if (!first) return;
+            const clone = first.cloneNode(true);
+            clone.querySelectorAll('input').forEach(el => {
+                if (el.value === 'CNY' || el.value === '0') return;
+                el.value = '';
+            });
+            clone.querySelectorAll('select').forEach(el => { el.selectedIndex = 0; });
+            list.appendChild(clone);
+            amRenumberAssets();
+            if (window.lucide) lucide.createIcons();
+        }
+        function amRemoveAssetCard(btn) {
+            const card = btn.closest('.am-asset-card');
+            if (card) card.remove();
+            amRenumberAssets();
+        }
+        // 資產維修申請 (AM)：額外費用（僅運費）
+        function amToggleExtra() {
+            const shipOn = !!(document.getElementById('am-has-shipping') || {}).value;
+            const shipWrap = document.getElementById('am-shipping-wrap');
+            if (shipWrap) shipWrap.classList.toggle('hidden', !shipOn);
+        }
+
         // 請購單：物品明細合計 → 懸浮總計
         function puUpdateTotal() {
             const tbody = document.getElementById('pu-item-tbody');
@@ -4237,6 +4341,16 @@
                 const p = parseFloat(((tr.querySelector('.pu-price') || {}).value || '').replace(/,/g, '')) || 0;
                 total += q * p;
             });
+            // 額外費用：稅率（先加）＋ 運費
+            const taxOn = !!(document.getElementById('pu-has-tax') || {}).value;
+            const shipOn = !!(document.getElementById('pu-has-shipping') || {}).value;
+            if (taxOn) {
+                const rate = parseFloat(((document.getElementById('pu-tax') || {}).value || '').replace(/[^0-9.\-]/g, '')) || 0;
+                total += total * rate / 100;
+            }
+            if (shipOn) {
+                total += parseFloat(((document.getElementById('pu-shipping') || {}).value || '').replace(/,/g, '')) || 0;
+            }
             const curEl = document.getElementById('pu-currency');
             const cur = curEl ? curEl.value : 'CNY';
             const per = CNY_PER[cur] != null ? CNY_PER[cur] : 1;

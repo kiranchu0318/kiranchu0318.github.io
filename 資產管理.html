@@ -46,6 +46,11 @@
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
         .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .asset-remark-editor:empty::before { content: attr(data-ph); color: #9ca3af; pointer-events: none; }
+        .asset-remark-editor ul { list-style: disc; padding-left: 1.25rem; }
+        .asset-remark-editor ol { list-style: decimal; padding-left: 1.25rem; }
+        .asset-remark-view ul { list-style: disc; padding-left: 1.25rem; }
+        .asset-remark-view ol { list-style: decimal; padding-left: 1.25rem; }
     </style>
     <link rel="stylesheet" href="shared-ui.css">
 </head>
@@ -310,13 +315,36 @@
     <div id="asset-detail-modal" class="fixed inset-0 z-50 hidden">
         <div class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm" onclick="closeAssetDetail()"></div>
         <div class="fixed inset-0 z-10 flex items-center justify-center p-4">
-            <div class="relative bg-white w-full max-w-4xl max-h-[90vh] rounded-2xl shadow-modal flex flex-col overflow-hidden">
+            <div class="relative bg-white w-full max-w-[1165px] max-h-[90vh] rounded-2xl shadow-modal flex flex-col overflow-hidden">
                 <div class="px-6 py-4 flex items-center justify-between border-b border-gray-100 flex-shrink-0">
                     <h3 class="text-base font-bold text-gray-900">資產詳情 <span id="ad-no" class="text-primary font-mono ml-1"></span></h3>
                     <button onclick="closeAssetDetail()" class="text-gray-400 hover:text-gray-600 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"><i class="fa-solid fa-xmark"></i></button>
                 </div>
                 <div class="px-6 py-5 overflow-y-auto">
                     <div id="asset-detail-grid" class="space-y-6"></div>
+                    <!-- 備註（可輸入多個）-->
+                    <div class="border border-gray-200 rounded-lg overflow-hidden shadow-sm mt-6">
+                        <div class="bg-gray-50 px-4 py-2.5 border-b border-gray-200 flex items-center justify-between">
+                            <div class="text-sm font-bold text-primary flex items-center gap-2"><span class="w-1.5 h-4 bg-primary rounded-full"></span>備註</div>
+                            <button type="button" id="asset-remark-add" onclick="assetAddRemark()" class="ui-btn ui-btn-primary ui-btn-sm hidden"><i class="fa-solid fa-plus"></i> 添加備註</button>
+                        </div>
+                        <div class="p-4"><div id="asset-remark-list" class="space-y-3"></div></div>
+                    </div>
+                    <!-- 附件（可上傳多個；直接預覽檔案內容示意）-->
+                    <div class="border border-gray-200 rounded-lg overflow-hidden shadow-sm mt-6">
+                        <div class="bg-gray-50 px-4 py-2.5 border-b border-gray-200 text-sm font-bold text-primary flex items-center gap-2"><span class="w-1.5 h-4 bg-primary rounded-full"></span>附件</div>
+                        <div class="p-4">
+                            <label id="asset-attach-upload" class="block mb-3 cursor-pointer hidden">
+                                <input type="file" multiple class="hidden" onchange="assetAddFiles(this)">
+                                <div class="border-2 border-dashed border-gray-300 rounded-lg py-4 flex flex-col items-center justify-center gap-1.5 text-gray-400 hover:border-primary hover:text-primary transition-colors">
+                                    <i class="fa-solid fa-cloud-arrow-up text-2xl"></i>
+                                    <div class="text-sm"><span class="text-primary font-medium">點擊上傳</span> 或將檔案拖曳至此</div>
+                                    <div class="text-xs text-gray-400">支援多檔上傳（示意）</div>
+                                </div>
+                            </label>
+                            <div id="asset-attach-list" class="space-y-4"></div>
+                        </div>
+                    </div>
                 </div>
                 <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-end flex-shrink-0">
                     <div id="ad-view-btns" class="flex gap-2">
@@ -444,8 +472,108 @@
             groups.forEach(([g, items]) => items.forEach(([k, v]) => _assetFields.push({ k, v, g })));
             _assetEdit = false;
             document.getElementById('ad-no').textContent = r.no;
+            _assetAttachments = [{ name: '採購發票.pdf' }, { name: '資產照片.jpg' }, { name: '保固證明.png' }];
+            _assetRemarks = ['2024-08-15 由行政部完成入庫驗收，配件齊全。', '2025-03-02 使用人回報螢幕偶有閃爍，已列入觀察。'];
             renderAssetDetail();
+            renderAssetAttachments();
+            renderAssetRemarks();
             document.getElementById('asset-detail-modal').classList.remove('hidden');
+        }
+        // 備註（可輸入多個；編輯時為嵌入式文字編輯器）
+        let _assetRemarks = [];
+        const _remarkTextEmpty = (html) => !String(html || '').replace(/<[^>]*>/g, '').replace(/&nbsp;/g, '').trim();
+        function assetSyncRemarks() {
+            const items = [...document.querySelectorAll('#asset-remark-list [data-r]')];
+            if (items.length) _assetRemarks = items.map(el => el.innerHTML);
+        }
+        function assetRemarkToolbar() {
+            const btns = [
+                ['bold', 'B', 'font-bold', '粗體'],
+                ['italic', 'I', 'italic font-serif', '斜體'],
+                ['underline', 'U', 'underline', '底線'],
+                ['strikeThrough', 'S', 'line-through', '刪除線'],
+                ['|'],
+                ['insertUnorderedList', '•—', '', '項目符號'],
+                ['insertOrderedList', '1.', '', '編號清單'],
+            ];
+            return btns.map(b => b[0] === '|'
+                ? '<span class="w-px h-5 bg-gray-300 mx-1"></span>'
+                : `<button type="button" title="${b[3]}" onmousedown="event.preventDefault();document.execCommand('${b[0]}',false,null)" class="min-w-7 h-7 px-1.5 flex items-center justify-center rounded text-gray-600 hover:bg-gray-200 hover:text-gray-800 text-sm ${b[2]}">${b[1]}</button>`
+            ).join('');
+        }
+        function assetAddRemark() { assetSyncRemarks(); _assetRemarks.push(''); renderAssetRemarks(); }
+        function assetRemoveRemark(i) { assetSyncRemarks(); _assetRemarks.splice(i, 1); renderAssetRemarks(); }
+        function renderAssetRemarks() {
+            const list = document.getElementById('asset-remark-list');
+            if (!list) return;
+            const addBtn = document.getElementById('asset-remark-add');
+            if (addBtn) addBtn.classList.toggle('hidden', !_assetEdit);
+            if (_assetEdit) {
+                list.innerHTML = (_assetRemarks.length ? _assetRemarks : ['']).map((v, i) => `<div class="flex gap-2 items-start">
+                        <div class="flex-1 border border-gray-300 rounded overflow-hidden focus-within:border-primary">
+                            <div class="flex flex-wrap items-center gap-0.5 px-2 py-1.5 border-b border-gray-200 bg-gray-50">${assetRemarkToolbar()}</div>
+                            <div contenteditable data-r="${i}" data-ph="請輸入備註…" class="asset-remark-editor min-h-[80px] px-3 py-2 text-sm text-gray-800 focus:outline-none">${v}</div>
+                        </div>
+                        <button type="button" onclick="assetRemoveRemark(${i})" class="text-gray-400 hover:text-red-500 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 shrink-0 mt-0.5"><i class="fa-solid fa-trash-can"></i></button>
+                    </div>`).join('');
+            } else {
+                const shown = _assetRemarks.filter(v => !_remarkTextEmpty(v));
+                list.innerHTML = shown.length
+                    ? shown.map(v => `<div class="asset-remark-view text-sm text-gray-800 border border-gray-200 rounded px-3 py-2 bg-gray-50/60 break-words">${v}</div>`).join('')
+                    : '<div class="text-center text-xs text-gray-400 py-2">尚無備註</div>';
+            }
+        }
+        // 附件（可上傳多個；直接預覽檔案內容示意）
+        let _assetAttachments = [];
+        const _isImage = (n) => /\.(png|jpe?g|gif|bmp|webp|svg)$/i.test(n || '');
+        function assetAddFiles(input) {
+            [...(input.files || [])].forEach(f => _assetAttachments.push({ name: f.name }));
+            input.value = '';
+            renderAssetAttachments();
+        }
+        function assetRemoveAttach(i) { _assetAttachments.splice(i, 1); renderAssetAttachments(); }
+        function renderAssetAttachments() {
+            const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+            const wrap = document.getElementById('asset-attach-list');
+            if (!wrap) return;
+            const up = document.getElementById('asset-attach-upload');
+            if (up) up.classList.toggle('hidden', !_assetEdit);
+            if (!_assetAttachments.length) {
+                wrap.innerHTML = '<div class="text-center text-xs text-gray-400 py-4">尚無附件</div>';
+                return;
+            }
+            wrap.innerHTML = _assetAttachments.map((f, i) => {
+                const img = _isImage(f.name);
+                const viewer = img
+                    ? `<div class="w-full max-w-[420px] self-start bg-white shadow-lg p-2"><div class="h-64 rounded flex flex-col items-center justify-center gap-2 text-gray-400 bg-gradient-to-br from-gray-100 to-gray-200"><i class="fa-solid fa-image text-5xl"></i><span class="text-xs">圖片預覽 · ${esc(f.name)}（示意）</span></div></div>`
+                    : `<div class="bg-white w-full max-w-[520px] shadow-lg px-8 py-7 self-start">
+                            <div class="h-5 w-2/3 bg-gray-800/80 rounded mb-5"></div>
+                            <div class="space-y-2.5">
+                                <div class="h-2.5 bg-gray-200 rounded w-full"></div>
+                                <div class="h-2.5 bg-gray-200 rounded w-11/12"></div>
+                                <div class="h-2.5 bg-gray-200 rounded w-full"></div>
+                                <div class="h-2.5 bg-gray-200 rounded w-4/5"></div>
+                            </div>
+                            <div class="h-28 bg-gray-100 border border-gray-200 rounded my-5 flex items-center justify-center text-gray-400 text-sm">表格 / 圖示區</div>
+                            <div class="space-y-2.5">
+                                <div class="h-2.5 bg-gray-200 rounded w-full"></div>
+                                <div class="h-2.5 bg-gray-200 rounded w-10/12"></div>
+                                <div class="h-2.5 bg-gray-200 rounded w-9/12"></div>
+                            </div>
+                            <div class="mt-6 text-center text-[11px] text-gray-400">— PDF 預覽（示意）· ${esc(f.name)} —</div>
+                        </div>`;
+                return `<div class="border border-gray-300 rounded-lg overflow-hidden bg-white shadow-sm">
+                        <div class="flex items-center justify-between px-3 py-2 bg-[#323639] text-gray-200 text-xs">
+                            <span class="truncate flex items-center gap-1.5">${img ? '🖼️' : '📄'} ${esc(f.name)}</span>
+                            <div class="flex items-center gap-4 shrink-0">
+                                <span class="text-gray-400 hidden sm:inline">${img ? '圖片檢視器' : 'PDF 檢視器 · 1 / 1'}</span>
+                                <a href="#" onclick="return false" class="hover:text-white inline-flex items-center gap-1"><i class="fa-solid fa-download"></i> 下載</a>
+                                ${_assetEdit ? `<button type="button" onclick="assetRemoveAttach(${i})" class="hover:text-white inline-flex items-center gap-1"><i class="fa-solid fa-trash-can"></i> 刪除</button>` : ''}
+                            </div>
+                        </div>
+                        <div class="bg-[#525659] px-4 py-5 h-72 overflow-auto flex justify-center">${viewer}</div>
+                    </div>`;
+            }).join('');
         }
         function renderAssetDetail() {
             const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
@@ -474,11 +602,14 @@
             document.getElementById('ad-view-btns').classList.toggle('hidden', _assetEdit);
             document.getElementById('ad-edit-btns').classList.toggle('hidden', !_assetEdit);
         }
-        function toggleAssetEdit(on) { _assetEdit = on; renderAssetDetail(); }
+        function toggleAssetEdit(on) { _assetEdit = on; renderAssetDetail(); renderAssetAttachments(); renderAssetRemarks(); }
         function saveAssetDetail() {
             document.querySelectorAll('#asset-detail-grid [data-i]').forEach(el => { _assetFields[+el.dataset.i].v = el.value; });
+            assetSyncRemarks();
+            _assetRemarks = _assetRemarks.filter(v => !_remarkTextEmpty(v));
             _assetEdit = false;
             renderAssetDetail();
+            renderAssetRemarks();
             showToast('success', '已儲存資產資料（示範）');
         }
         function closeAssetDetail() { _assetEdit = false; document.getElementById('asset-detail-modal').classList.add('hidden'); }
