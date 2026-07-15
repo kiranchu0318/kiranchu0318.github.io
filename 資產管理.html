@@ -346,15 +346,44 @@
                         </div>
                     </div>
                 </div>
+                <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-between items-center flex-shrink-0">
+                    <button onclick="openAssetHistory()" class="ui-btn ui-btn-secondary"><i class="fa-solid fa-clock-rotate-left"></i> 歷史紀錄</button>
+                    <div class="flex gap-2">
+                        <div id="ad-view-btns" class="flex gap-2">
+                            <button onclick="closeAssetDetail()" class="ui-btn ui-btn-secondary">關閉</button>
+                            <button onclick="toggleAssetEdit(true)" class="ui-btn ui-btn-primary"><i class="fa-solid fa-pen"></i> 編輯</button>
+                        </div>
+                        <div id="ad-edit-btns" class="flex gap-2 hidden">
+                            <button onclick="toggleAssetEdit(false)" class="ui-btn ui-btn-secondary">取消</button>
+                            <button onclick="saveAssetDetail()" class="ui-btn ui-btn-primary"><i class="fa-solid fa-check"></i> 儲存</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 資產歷史紀錄彈窗 -->
+    <div id="asset-history-modal" class="fixed inset-0 z-[60] hidden">
+        <div class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm" onclick="closeAssetHistory()"></div>
+        <div class="fixed inset-0 z-10 flex items-center justify-center p-4">
+            <div class="relative bg-white w-full max-w-[1228px] max-h-[88vh] rounded-2xl shadow-modal flex flex-col overflow-hidden">
+                <div class="px-6 py-4 flex items-center justify-between border-b border-gray-100 flex-shrink-0">
+                    <h3 class="text-base font-bold text-gray-900">歷史紀錄 <span id="ah-no" class="text-primary font-mono ml-1"></span></h3>
+                    <button onclick="closeAssetHistory()" class="text-gray-400 hover:text-gray-600 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <div class="px-6 py-5 overflow-auto">
+                    <table class="ui-table w-full text-sm">
+                        <thead>
+                            <tr>
+                                <th>資產編號</th><th>修改來源</th><th>修改項</th><th>修改前的內容</th><th>修改後的內容</th><th>修改者</th><th>修改時間</th>
+                            </tr>
+                        </thead>
+                        <tbody id="asset-history-tbody"></tbody>
+                    </table>
+                </div>
                 <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-end flex-shrink-0">
-                    <div id="ad-view-btns" class="flex gap-2">
-                        <button onclick="closeAssetDetail()" class="ui-btn ui-btn-secondary">關閉</button>
-                        <button onclick="toggleAssetEdit(true)" class="ui-btn ui-btn-primary"><i class="fa-solid fa-pen"></i> 編輯</button>
-                    </div>
-                    <div id="ad-edit-btns" class="flex gap-2 hidden">
-                        <button onclick="toggleAssetEdit(false)" class="ui-btn ui-btn-secondary">取消</button>
-                        <button onclick="saveAssetDetail()" class="ui-btn ui-btn-primary"><i class="fa-solid fa-check"></i> 儲存</button>
-                    </div>
+                    <button onclick="closeAssetHistory()" class="ui-btn ui-btn-secondary">關閉</button>
                 </div>
             </div>
         </div>
@@ -446,7 +475,7 @@
         // 資產詳情彈窗（可切換檢視 / 編輯）；欄位含未於清單顯示者，以示範值帶出
         let _assetFields = [];
         let _assetEdit = false;
-        const _assetRO = new Set(['资产编号', '价格', '残值', '数量', '型号', '序列号', '资产名称', '资产类型']);
+        const _assetRO = new Set(); // 編輯狀態可編輯所有欄位
         const _assetOptions = {
             '状态': ['使用中', '项目闲置', '行政闲置', '项目保管', '行政保管', '外借', '待出售', '已出售', '已赔付', '已销毁'],
             '类别': ['资产', '列管品', '软资产', '暂无类别'],
@@ -464,7 +493,7 @@
                 ['基本資訊', [['资产类型', r.type], ['状态', pick(_assetOptions['状态'])], ['类别', pick(_assetOptions['类别'])], ['区域', pick(_assetOptions['区域'])], ['项目', r.project], ['部门', r.dept]]],
                 ['資產識別', [['资产编号', r.no], ['型号', (r.name.split(' ')[0] || '-')], ['序列号', r.serial], ['历史资产编号', '-'], ['资产名称', r.name], ['规格', '標準規格'], ['数量', '1']]],
                 ['採購 / 財務', [['购买日期', '2024-0' + (h % 9 + 1) + '-15'], ['币种', 'CNY'], ['价格', '¥ ' + fmt(price)], ['残值', '¥ ' + fmt(r.residual)], ['收据号码', 'RC-' + no.slice(-6)], ['文件编号', 'DOC-' + tail]]],
-                ['使用 / 保管', [['使用人', r.user + '（' + (r.userId || '-') + '）'], ['部门资产保管人', r.owner]]],
+                ['使用 / 負責', [['使用人', r.user + '（' + (r.userId || '-') + '）'], ['負責人', r.owner]]],
                 ['關聯單據', [['物品购买申请号(PU单)', 'PU-THQ-0000' + (h % 90 + 10)], ['请款单号(A单/B单)', 'B-THQ-0000' + (h % 90 + 10)], ['报销单号(C单)', 'C-THQ-0000' + (h % 90 + 10)], ['维修记录(维修单号)', '-']]],
                 ['費用歸屬', [['原采购单位(原费用项目)', r.project + ' / ' + r.dept], ['现资产所有权单位(现费用项目)', r.project + ' / ' + r.dept]]],
             ];
@@ -579,7 +608,9 @@
             const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
             const cell = (f, i) => {
                 let ctrl;
-                if (_assetEdit && !_assetRO.has(f.k)) {
+                if (_assetEdit && (f.k === '使用人' || f.k === '負責人')) {
+                    ctrl = `<div class="relative asset-people-combo"><input data-i="${i}" value="${esc(f.v)}" autocomplete="off" oninput="assetPeopleFilter(this)" onfocus="assetPeopleFilter(this)" onblur="setTimeout(()=>assetPeopleHide(this),150)" placeholder="輸入姓名或工號" class="w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-primary"><div class="asset-people-list hidden absolute z-30 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto text-sm"></div></div>`;
+                } else if (_assetEdit && !_assetRO.has(f.k)) {
                     if (_assetOptions[f.k]) {
                         ctrl = `<select data-i="${i}" class="w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-primary">` +
                             _assetOptions[f.k].map(o => `<option${o === f.v ? ' selected' : ''}>${o}</option>`).join('') + `</select>`;
@@ -597,7 +628,7 @@
             document.getElementById('asset-detail-grid').innerHTML = groupTitles.map(g => {
                 const cells = _assetFields.map((f, i) => ({ f, i })).filter(x => x.f.g === g)
                     .map(({ f, i }) => cell(f, i)).join('');
-                return `<div class="border border-gray-200 rounded-lg overflow-hidden shadow-sm"><div class="bg-gray-50 px-4 py-2.5 border-b border-gray-200 text-sm font-bold text-primary flex items-center gap-2"><span class="w-1.5 h-4 bg-primary rounded-full"></span>${g}</div><div class="p-4 grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-4">${cells}</div></div>`;
+                return `<div class="border border-gray-200 rounded-lg shadow-sm"><div class="bg-gray-50 px-4 py-2.5 border-b border-gray-200 text-sm font-bold text-primary flex items-center gap-2 rounded-t-lg"><span class="w-1.5 h-4 bg-primary rounded-full"></span>${g}</div><div class="p-4 grid grid-cols-2 sm:grid-cols-4 gap-x-6 gap-y-4">${cells}</div></div>`;
             }).join('');
             document.getElementById('ad-view-btns').classList.toggle('hidden', _assetEdit);
             document.getElementById('ad-edit-btns').classList.toggle('hidden', !_assetEdit);
@@ -613,6 +644,63 @@
             showToast('success', '已儲存資產資料（示範）');
         }
         function closeAssetDetail() { _assetEdit = false; document.getElementById('asset-detail-modal').classList.add('hidden'); }
+        // 使用人 / 負責人：可輸入姓名或工號搜尋的人員下拉
+        function assetPeopleDir() {
+            if (window._peopleDir) return window._peopleDir;
+            const arr = [];
+            listDb.forEach(r => { if (r.user && !arr.some(p => p.name === r.user)) arr.push({ name: r.user, id: r.userId || '' }); });
+            const idmap = {}; arr.forEach(p => { if (p.id) idmap[p.name] = p.id; });
+            listDb.forEach(r => { if (r.owner && !arr.some(p => p.name === r.owner)) arr.push({ name: r.owner, id: idmap[r.owner] || '' }); });
+            window._peopleDir = arr.sort((a, b) => a.name.localeCompare(b.name));
+            return window._peopleDir;
+        }
+        function assetPeopleFilter(input) {
+            const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+            const box = input.parentElement.querySelector('.asset-people-list');
+            if (!box) return;
+            const q = (input.value || '').trim().toLowerCase();
+            const matches = assetPeopleDir().filter(p => !q || p.name.toLowerCase().includes(q) || (p.id || '').includes(q)).slice(0, 50);
+            box.innerHTML = matches.length
+                ? matches.map(p => `<div class="px-3 py-2 hover:bg-primary-light cursor-pointer flex justify-between gap-3" data-name="${esc(p.name)}" data-id="${esc(p.id)}" onmousedown="assetPeoplePick(this)"><span>${esc(p.name)}</span><span class="text-gray-400 font-mono text-xs">${esc(p.id)}</span></div>`).join('')
+                : '<div class="px-3 py-2 text-gray-400">查無人員</div>';
+            box.classList.remove('hidden');
+        }
+        function assetPeoplePick(el) {
+            const name = el.dataset.name, id = el.dataset.id;
+            const combo = el.closest('.asset-people-combo');
+            const input = combo.querySelector('input');
+            input.value = id ? name + '（' + id + '）' : name;
+            combo.querySelector('.asset-people-list').classList.add('hidden');
+        }
+        function assetPeopleHide(input) {
+            const box = input.parentElement.querySelector('.asset-people-list');
+            if (box) box.classList.add('hidden');
+        }
+        // 歷史紀錄
+        function openAssetHistory() {
+            const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+            const no = document.getElementById('ad-no').textContent || '-';
+            const h = (no.replace(/\D/g, '').split('').reduce((a, c) => a + (+c || 0), 0)) || 1;
+            const rows = [
+                { src: '資產登記', item: '資產名稱', before: '-', after: 'MacBook Pro 14"', by: 'System', at: '2024-0' + (h % 9 + 1) + '-15 09:12' },
+                { src: '資產調撥單 (AT-THQ-00' + (h % 90 + 10) + ')', item: '使用人', before: 'James（100344）', after: 'Matthew（101383）', by: 'Henry', at: '2024-11-03 14:27' },
+                { src: '手動編輯', item: '狀態', before: '使用中', after: '項目閒置', by: 'William', at: '2025-01-20 10:05' },
+                { src: '資產維修單 (RP-THQ-00' + (h % 90 + 10) + ')', item: '殘值', before: '¥ 15,000', after: '¥ 12,000', by: 'Audrey', at: '2025-03-08 16:41' },
+                { src: '手動編輯', item: '部門', before: 'RD', after: 'HR', by: 'Emma', at: '2025-06-12 11:33' },
+            ];
+            document.getElementById('ah-no').textContent = no;
+            document.getElementById('asset-history-tbody').innerHTML = rows.map(r => `<tr>
+                    <td class="font-mono">${esc(no)}</td>
+                    <td>${esc(r.src)}</td>
+                    <td>${esc(r.item)}</td>
+                    <td class="text-gray-500">${esc(r.before)}</td>
+                    <td class="text-gray-800">${esc(r.after)}</td>
+                    <td>${esc(r.by)}</td>
+                    <td class="whitespace-nowrap text-gray-500">${esc(r.at)}</td>
+                </tr>`).join('');
+            document.getElementById('asset-history-modal').classList.remove('hidden');
+        }
+        function closeAssetHistory() { document.getElementById('asset-history-modal').classList.add('hidden'); }
         // 電子表單檢視（由關聯單據查閱 icon 開啟）
         function openFormView(docNo) {
             const typeMap = { PU: '請購單 (PU)', B: '費用申請單 (B)', C: '費用報銷單 (C)', A: '請款單 (A)', RP: '維修單' };
