@@ -139,6 +139,59 @@
     };
 
     // --- 主程式元件 ---
+    // --- 附件預覽（畫面上直接預覽 + 下載，內嵌閱讀器樣式）---
+    const _fileExt = (n) => (String(n).split('.').pop() || '').toLowerCase();
+    const _isImage = (n) => ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'].includes(_fileExt(n));
+    const _demoDownload = (n) => 'data:text/plain;charset=utf-8,' + encodeURIComponent('（示意檔案）' + n);
+    const _bigImg = (label) =>
+      'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(
+        '<svg xmlns="http://www.w3.org/2000/svg" width="640" height="440">' +
+        '<rect width="100%" height="100%" fill="#e2e8f0"/>' +
+        '<rect x="40" y="40" width="560" height="360" rx="8" fill="#cbd5e1"/>' +
+        '<circle cx="150" cy="150" r="46" fill="#94a3b8"/>' +
+        '<path d="M90 360 L250 210 L360 320 L470 200 L560 300 L560 400 L90 400 Z" fill="#94a3b8"/>' +
+        '<text x="50%" y="420" font-family="sans-serif" font-size="16" fill="#64748b" text-anchor="middle">' + label + '</text></svg>');
+    const AttachmentPreview = ({ files }) => (
+      <div className="space-y-4">
+        {files.map((f, i) => {
+          const img = _isImage(f.name);
+          return (
+            <div key={i} className="border border-gray-300 rounded-lg overflow-hidden bg-white shadow-sm">
+              <div className="flex items-center justify-between px-3 py-2 bg-[#323639] text-gray-200 text-xs">
+                <span className="truncate flex items-center gap-1.5"><span>{img ? '🖼️' : '📄'}</span>{f.name}</span>
+                <div className="flex items-center gap-4 shrink-0">
+                  <span className="text-gray-400 hidden sm:inline">{img ? '圖片檢視器' : 'PDF 檢視器 · 1 / 1'}</span>
+                  <a href={_demoDownload(f.name)} download={f.name} className="hover:text-white inline-flex items-center gap-1">⬇ 下載</a>
+                </div>
+              </div>
+              <div className="bg-[#525659] px-4 py-5 h-96 overflow-auto flex justify-center">
+                {img ? (
+                  <img src={_bigImg('圖片預覽 · ' + f.name)} alt={f.name} className="max-w-full h-auto object-contain shadow-lg self-start" />
+                ) : (
+                  <div className="bg-white w-full max-w-[520px] shadow-lg px-8 py-7 self-start">
+                    <div className="h-5 w-2/3 bg-gray-800/80 rounded mb-5"></div>
+                    <div className="space-y-2.5">
+                      <div className="h-2.5 bg-gray-200 rounded w-full"></div>
+                      <div className="h-2.5 bg-gray-200 rounded w-11/12"></div>
+                      <div className="h-2.5 bg-gray-200 rounded w-full"></div>
+                      <div className="h-2.5 bg-gray-200 rounded w-4/5"></div>
+                    </div>
+                    <div className="h-28 bg-gray-100 border border-gray-200 rounded my-5 flex items-center justify-center text-gray-400 text-sm">表格 / 圖示區</div>
+                    <div className="space-y-2.5">
+                      <div className="h-2.5 bg-gray-200 rounded w-full"></div>
+                      <div className="h-2.5 bg-gray-200 rounded w-10/12"></div>
+                      <div className="h-2.5 bg-gray-200 rounded w-9/12"></div>
+                    </div>
+                    <div className="mt-6 text-center text-[11px] text-gray-400">— PDF 預覽（示意）· {f.name} —</div>
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+
     const App = () => {
       // 頁籤狀態
       const tabs = ['電子表單簽核'];
@@ -1313,15 +1366,7 @@
                         <div>
                           <div className="text-xs font-semibold text-gray-500 mb-2">附件</div>
                           {noteFiles.length > 0 ? (
-                            <ul className="space-y-1">
-                              {noteFiles.map((f, i) => (
-                                <li key={i} className="flex items-center gap-2 bg-gray-50 border border-gray-100 rounded px-3 py-1.5 text-xs text-gray-700">
-                                  <span className="text-gray-400">📎</span>
-                                  <span className="truncate">{f.name}</span>
-                                  <span className="text-gray-400 flex-shrink-0">{formatFileSize(f.size)}</span>
-                                </li>
-                              ))}
-                            </ul>
+                            <AttachmentPreview files={noteFiles} />
                           ) : (
                             <div className="text-xs text-gray-400">無附件</div>
                           )}
@@ -1354,7 +1399,6 @@
                                     <th className="px-3 py-1.5 text-center w-12">序號</th>
                                     <th className="px-3 py-1.5 text-center w-20">審批狀態</th>
                                     <th className="px-3 py-1.5 text-center w-14">條件</th>
-                                    <th className="px-3 py-1.5 w-20">級別</th>
                                     <th className="px-3 py-1.5">職稱</th>
                                     <th className="px-3 py-1.5">簽名</th>
                                     <th className="px-3 py-1.5">ID</th>
@@ -1369,7 +1413,6 @@
                                         <span className={`ui-badge ${s.status === '審批中' ? 'ui-badge-info' : s.status === '待審批' ? 'ui-badge-gray' : 'ui-badge-success'}`}>{s.status}</span>
                                       </td>
                                       <td className="px-3 py-1.5 text-center text-gray-500">{s.cond}</td>
-                                      <td className="px-3 py-1.5 text-gray-500">{s.level}</td>
                                       <td className="px-3 py-1.5 text-gray-800">{s.title}</td>
                                       <td className="px-3 py-1.5 text-gray-800">{s.sign}</td>
                                       <td className="px-3 py-1.5 text-gray-600 font-mono">{s.id}</td>
@@ -1380,25 +1423,40 @@
                               </table>
                             </div>
                           ) : (
-                          /* 橫向審批進度條 */
-                          <div className="flex items-start">
-                            <div className="flex flex-col items-center text-center w-28">
-                              <div className="w-9 h-9 rounded-full bg-emerald-500 text-white flex items-center justify-center text-sm font-bold">✓</div>
-                              <div className="mt-2 text-xs font-bold text-gray-800 whitespace-nowrap">提交申請</div>
-                              <div className="text-[11px] text-gray-400 whitespace-nowrap">{modalRow?.applicant || 'Oliver'}</div>
-                            </div>
-                            <div className="flex-1 h-0.5 bg-emerald-500 mt-[18px] mx-1"></div>
-                            <div className="flex flex-col items-center text-center w-28">
-                              <div className="w-9 h-9 rounded-full bg-[#4A90E2] text-white flex items-center justify-center text-sm font-bold ring-4 ring-blue-100">2</div>
-                              <div className="mt-2 text-xs font-bold text-[#4A90E2] whitespace-nowrap">部門主管</div>
-                              <div className="text-[11px] text-gray-400 whitespace-nowrap">James · 審批中</div>
-                            </div>
-                            <div className="flex-1 h-0.5 bg-gray-200 mt-[18px] mx-1"></div>
-                            <div className="flex flex-col items-center text-center w-28">
-                              <div className="w-9 h-9 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center text-sm font-bold">3</div>
-                              <div className="mt-2 text-xs font-medium text-gray-500 whitespace-nowrap">項目負責人</div>
-                              <div className="text-[11px] text-gray-400 whitespace-nowrap">Felix · 待審批</div>
-                            </div>
+                          /* 進度追蹤表格（通用） */
+                          <div className="overflow-x-auto border border-gray-100 rounded-lg">
+                            <table className="w-full text-left text-xs border-collapse whitespace-nowrap">
+                              <thead>
+                                <tr className="border-b border-gray-200 bg-gray-50 text-gray-700 font-bold">
+                                  <th className="px-3 py-1.5 text-center w-12">序號</th>
+                                  <th className="px-3 py-1.5 text-center w-20">審批狀態</th>
+                                  <th className="px-3 py-1.5 text-center w-14">條件</th>
+                                  <th className="px-3 py-1.5">職稱</th>
+                                  <th className="px-3 py-1.5">簽名</th>
+                                  <th className="px-3 py-1.5">ID</th>
+                                  <th className="px-3 py-1.5 w-40">審批時間</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-gray-100 font-medium">
+                                {[
+                                  { seq: '1', status: '已審批', cond: '—',  title: '提交申請',   sign: modalRow?.applicant || 'Oliver', id: '100258', time: '2026-05-30 15:36:45' },
+                                  { seq: '2', status: '審批中', cond: '串聯', title: '部門主管',   sign: 'James', id: '100423', time: '' },
+                                  { seq: '3', status: '待審批', cond: '串聯', title: '項目負責人', sign: 'Felix', id: '100962', time: '' },
+                                ].map((s) => (
+                                  <tr key={s.seq}>
+                                    <td className="px-3 py-1.5 text-center font-bold text-gray-800">{s.seq}</td>
+                                    <td className="px-3 py-1.5 text-center">
+                                      <span className={`ui-badge ${s.status === '審批中' ? 'ui-badge-info' : s.status === '待審批' ? 'ui-badge-gray' : 'ui-badge-success'}`}>{s.status}</span>
+                                    </td>
+                                    <td className="px-3 py-1.5 text-center text-gray-500">{s.cond}</td>
+                                    <td className="px-3 py-1.5 text-gray-800">{s.title}</td>
+                                    <td className="px-3 py-1.5 text-gray-800">{s.sign}</td>
+                                    <td className="px-3 py-1.5 text-gray-600 font-mono">{s.id}</td>
+                                    <td className="px-3 py-1.5 text-gray-400">{s.time || '-'}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
                           </div>
                           )}
 
@@ -1410,7 +1468,7 @@
                                 <div className="w-20 shrink-0 text-xs font-bold text-gray-700">提交申請<div className="font-normal text-gray-400 mt-0.5">{modalRow?.applicant || 'Oliver'}</div></div>
                                 <div className="flex-1 text-sm text-gray-700 bg-gray-50 border border-gray-100 rounded-lg p-3">
                                   依費用申請需求提出申請。
-                                  <div className="mt-2"><span className="inline-flex items-center gap-1 px-2 py-1 text-xs text-gray-600 bg-white border border-gray-200 rounded">📎 費用申請單.pdf</span></div>
+                                  <div className="mt-2 max-w-xs"><AttachmentPreview files={[{ name: '費用申請單.pdf' }]} /></div>
                                 </div>
                               </div>
                               <div className="flex items-start gap-3">
@@ -1432,7 +1490,6 @@
                                 <table className="w-full text-left text-xs border-collapse whitespace-nowrap">
                                   <thead>
                                     <tr className="border-b border-gray-200 bg-gray-50 text-gray-700 font-bold">
-                                      <th className="px-3 py-1.5 w-20">級別</th>
                                       <th className="px-3 py-1.5">職稱</th>
                                       <th className="px-3 py-1.5">簽名</th>
                                       <th className="px-3 py-1.5">ID</th>
@@ -1441,7 +1498,6 @@
                                   <tbody className="divide-y divide-gray-100 font-medium">
                                     {progressCCc.map((c, i) => (
                                       <tr key={i}>
-                                        <td className="px-3 py-1.5 text-gray-500">{c.level}</td>
                                         <td className="px-3 py-1.5 text-gray-800">{c.title}</td>
                                         <td className="px-3 py-1.5 text-gray-800">{c.sign}</td>
                                         <td className="px-3 py-1.5 text-gray-600 font-mono">{c.id}</td>

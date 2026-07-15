@@ -133,6 +133,65 @@
       );
     };
 
+    // --- 附件預覽（畫面上直接預覽 + 下載）---
+    const _fileExt = (n) => (String(n).split('.').pop() || '').toLowerCase();
+    const _isImage = (n) => ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'].includes(_fileExt(n));
+    const _demoDownload = (n) => 'data:text/plain;charset=utf-8,' + encodeURIComponent('（示意檔案）' + n);
+    const _demoThumb = (label, color) =>
+      'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(
+        '<svg xmlns="http://www.w3.org/2000/svg" width="240" height="150"><rect width="100%" height="100%" fill="#f1f5f9"/>' +
+        '<text x="50%" y="50%" font-family="sans-serif" font-size="13" fill="' + (color || '#94a3b8') + '" text-anchor="middle" dominant-baseline="middle">' + label + '</text></svg>');
+    const _bigImg = (label) =>
+      'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(
+        '<svg xmlns="http://www.w3.org/2000/svg" width="640" height="440">' +
+        '<rect width="100%" height="100%" fill="#e2e8f0"/>' +
+        '<rect x="40" y="40" width="560" height="360" rx="8" fill="#cbd5e1"/>' +
+        '<circle cx="150" cy="150" r="46" fill="#94a3b8"/>' +
+        '<path d="M90 360 L250 210 L360 320 L470 200 L560 300 L560 400 L90 400 Z" fill="#94a3b8"/>' +
+        '<text x="50%" y="420" font-family="sans-serif" font-size="16" fill="#64748b" text-anchor="middle">' + label + '</text></svg>');
+    const AttachmentPreview = ({ files }) => (
+      <div className="space-y-4">
+        {files.map((f, i) => {
+          const img = _isImage(f.name);
+          return (
+            <div key={i} className="border border-gray-300 rounded-lg overflow-hidden bg-white shadow-sm">
+              {/* 閱讀器工具列 */}
+              <div className="flex items-center justify-between px-3 py-2 bg-[#323639] text-gray-200 text-xs">
+                <span className="truncate flex items-center gap-1.5"><span>{img ? '🖼️' : '📄'}</span>{f.name}</span>
+                <div className="flex items-center gap-4 shrink-0">
+                  <span className="text-gray-400 hidden sm:inline">{img ? '圖片檢視器' : 'PDF 檢視器 · 1 / 1'}</span>
+                  <a href={_demoDownload(f.name)} download={f.name} className="hover:text-white inline-flex items-center gap-1">⬇ 下載</a>
+                </div>
+              </div>
+              {/* 檢視器內容區 */}
+              <div className="bg-[#525659] px-4 py-5 h-96 overflow-auto flex justify-center">
+                {img ? (
+                  <img src={_bigImg('圖片預覽 · ' + f.name)} alt={f.name} className="max-w-full h-auto object-contain shadow-lg self-start" />
+                ) : (
+                  <div className="bg-white w-full max-w-[520px] shadow-lg px-8 py-7 self-start">
+                    <div className="h-5 w-2/3 bg-gray-800/80 rounded mb-5"></div>
+                    <div className="space-y-2.5">
+                      <div className="h-2.5 bg-gray-200 rounded w-full"></div>
+                      <div className="h-2.5 bg-gray-200 rounded w-11/12"></div>
+                      <div className="h-2.5 bg-gray-200 rounded w-full"></div>
+                      <div className="h-2.5 bg-gray-200 rounded w-4/5"></div>
+                    </div>
+                    <div className="h-28 bg-gray-100 border border-gray-200 rounded my-5 flex items-center justify-center text-gray-400 text-sm">表格 / 圖示區</div>
+                    <div className="space-y-2.5">
+                      <div className="h-2.5 bg-gray-200 rounded w-full"></div>
+                      <div className="h-2.5 bg-gray-200 rounded w-10/12"></div>
+                      <div className="h-2.5 bg-gray-200 rounded w-9/12"></div>
+                    </div>
+                    <div className="mt-6 text-center text-[11px] text-gray-400">— PDF 預覽（示意）· {f.name} —</div>
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+
     // --- 主程式元件 ---
     const App = () => {
       // 頁籤狀態
@@ -219,23 +278,23 @@
                     openDropdown === filter.id ? 'border-[#4A90E2] ring-1 ring-[#4A90E2]' : 'border-gray-300 hover:border-[#4A90E2]'
                   }`}
                 >
-                  <div className="flex-1 flex flex-wrap gap-1 items-center overflow-hidden">
+                  <div className="flex-1 flex items-center gap-1 overflow-hidden min-w-0">
                     {filter.type === 'single' ? (
                       <span className="text-gray-700 truncate">{selectedFilters[filter.id]}</span>
-                    ) : selectedFilters[filter.id].length > 0 ? (
-                      selectedFilters[filter.id].map(opt => (
-                        <span key={opt} className="inline-flex items-center gap-1 bg-[#F0F2F5] text-gray-700 px-1.5 py-0.5 rounded-sm text-[11px] border border-gray-200 max-w-full">
-                          <span className="truncate">{opt}</span>
-                          <div 
-                            onClick={(e) => removeFilterOption(filter.id, opt, e)} 
-                            className="hover:text-red-500 hover:bg-gray-200 rounded-full p-0.5 transition-colors cursor-pointer flex-shrink-0"
-                          >
-                            <X size={10} strokeWidth={2} />
-                          </div>
-                        </span>
-                      ))
-                    ) : (
+                    ) : selectedFilters[filter.id].length === 0 ? (
                       <span className="text-gray-700">全部</span>
+                    ) : selectedFilters[filter.id].length === 1 ? (
+                      <span className="inline-flex items-center gap-1 bg-[#F0F2F5] text-gray-700 px-1.5 py-0.5 rounded-sm text-[11px] border border-gray-200 max-w-full">
+                        <span className="truncate">{selectedFilters[filter.id][0]}</span>
+                        <div
+                          onClick={(e) => removeFilterOption(filter.id, selectedFilters[filter.id][0], e)}
+                          className="hover:text-red-500 hover:bg-gray-200 rounded-full p-0.5 transition-colors cursor-pointer flex-shrink-0"
+                        >
+                          <X size={10} strokeWidth={2} />
+                        </div>
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center bg-[#E8F0FE] text-[#4A90E2] px-2 py-0.5 rounded-sm text-[11px] font-medium border border-[#c9ddfb] whitespace-nowrap flex-shrink-0">已選 {selectedFilters[filter.id].length} 項</span>
                     )}
                   </div>
                   <ChevronDown size={14} className={`text-gray-400 transition-transform flex-shrink-0 ml-1.5 ${openDropdown === filter.id ? 'rotate-180' : ''}`} />
@@ -460,6 +519,12 @@
         { seq: '4', status: '已審批', cond: '串聯', level: 'special',  title: '財務負責人', sign: 'CCC',    id: '100064', time: '2026-04-20 13:05:17' },
         { seq: '5', status: '已審批', cond: '串聯', level: 'location', title: '內審',       sign: 'DDD',    id: '101366', time: '2026-04-20 16:56:00' },
         { seq: '6', status: '審批中', cond: '串聯', level: 'special',  title: '資金主管',   sign: 'EEE',    id: '100120', time: '' },
+      ];
+      // 其他單據的進度追蹤（通用三節點，改以表格呈現）
+      const progressDefaultSteps = [
+        { seq: '1', status: '已審批', cond: '—',  level: '—',   title: '提交申請',   sign: 'Nick',  id: '100258', time: '2026-05-30 15:36:45' },
+        { seq: '2', status: '審批中', cond: '串聯', level: '部門', title: '部門主管',   sign: 'James', id: '100423', time: '' },
+        { seq: '3', status: '待審批', cond: '串聯', level: '項目', title: '項目負責人', sign: 'Felix', id: '100962', time: '' },
       ];
       const progressCCc = [
         { level: 'special',  title: '資金主管', sign: 'FFF', id: '100120' },
@@ -701,10 +766,7 @@
                           {/* 附件 */}
                           <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-3">
                             <div className="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2">附件</div>
-                            <div className="flex flex-wrap gap-2">
-                              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-700 bg-gray-50 border border-gray-200 rounded">📎 異動申請表.pdf</span>
-                              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-700 bg-gray-50 border border-gray-200 rounded">📎 門禁卡遺失聲明.jpg</span>
-                            </div>
+                            <AttachmentPreview files={[{ name: '異動申請表.pdf' }, { name: '門禁卡遺失聲明.jpg' }]} />
                           </div>
 
                           {/* 審批意見 */}
@@ -1061,7 +1123,6 @@
                                     <th className="px-3 py-1.5 text-center w-12">序號</th>
                                     {modalRow?.status !== '草稿' && <th className="px-3 py-1.5 text-center w-20">審批狀態</th>}
                                     <th className="px-3 py-1.5 text-center w-14">條件</th>
-                                    <th className="px-3 py-1.5 w-20">級別</th>
                                     <th className="px-3 py-1.5">職稱</th>
                                     <th className="px-3 py-1.5">簽名</th>
                                     <th className="px-3 py-1.5">ID</th>
@@ -1078,7 +1139,6 @@
                                         </td>
                                       )}
                                       <td className="px-3 py-1.5 text-center text-gray-500">{s.cond}</td>
-                                      <td className="px-3 py-1.5 text-gray-500">{s.level}</td>
                                       <td className="px-3 py-1.5 text-gray-800">{s.title}</td>
                                       <td className="px-3 py-1.5 text-gray-800">{s.sign}</td>
                                       <td className="px-3 py-1.5 text-gray-600 font-mono">{s.id}</td>
@@ -1089,25 +1149,38 @@
                               </table>
                             </div>
                           ) : (
-                          /* 橫向審批進度條（從左到右） */
-                          <div className="flex items-start">
-                            <div className="flex flex-col items-center text-center w-28">
-                              <div className="w-9 h-9 rounded-full bg-emerald-500 text-white flex items-center justify-center text-sm font-bold">✓</div>
-                              <div className="mt-2 text-xs font-bold text-gray-800 whitespace-nowrap">提交申請</div>
-                              <div className="text-[11px] text-gray-400 whitespace-nowrap">Nick</div>
-                            </div>
-                            <div className="flex-1 h-0.5 bg-emerald-500 mt-[18px] mx-1"></div>
-                            <div className="flex flex-col items-center text-center w-28">
-                              <div className="w-9 h-9 rounded-full bg-[#4A90E2] text-white flex items-center justify-center text-sm font-bold ring-4 ring-blue-100">2</div>
-                              <div className="mt-2 text-xs font-bold text-[#4A90E2] whitespace-nowrap">部門主管</div>
-                              <div className="text-[11px] text-gray-400 whitespace-nowrap">James · 審批中</div>
-                            </div>
-                            <div className="flex-1 h-0.5 bg-gray-200 mt-[18px] mx-1"></div>
-                            <div className="flex flex-col items-center text-center w-28">
-                              <div className="w-9 h-9 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center text-sm font-bold">3</div>
-                              <div className="mt-2 text-xs font-medium text-gray-500 whitespace-nowrap">項目負責人</div>
-                              <div className="text-[11px] text-gray-400 whitespace-nowrap">Felix · 待審批</div>
-                            </div>
+                          /* 進度追蹤表格（通用） */
+                          <div className="overflow-x-auto border border-gray-100 rounded-lg">
+                            <table className="w-full text-left text-xs border-collapse whitespace-nowrap">
+                              <thead>
+                                <tr className="border-b border-gray-200 bg-gray-50 text-gray-700 font-bold">
+                                  <th className="px-3 py-1.5 text-center w-12">序號</th>
+                                  {modalRow?.status !== '草稿' && <th className="px-3 py-1.5 text-center w-20">審批狀態</th>}
+                                  <th className="px-3 py-1.5 text-center w-14">條件</th>
+                                  <th className="px-3 py-1.5">職稱</th>
+                                  <th className="px-3 py-1.5">審批人</th>
+                                  <th className="px-3 py-1.5">ID</th>
+                                  {modalRow?.status !== '草稿' && <th className="px-3 py-1.5 w-40">審批時間</th>}
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-gray-100 font-medium">
+                                {progressDefaultSteps.map((s) => (
+                                  <tr key={s.seq}>
+                                    <td className="px-3 py-1.5 text-center font-bold text-gray-800">{s.seq}</td>
+                                    {modalRow?.status !== '草稿' && (
+                                      <td className="px-3 py-1.5 text-center">
+                                        <span className={`ui-badge ${s.status === '審批中' ? 'ui-badge-info' : (s.status === '待審批' ? 'ui-badge-warning' : 'ui-badge-success')}`}>{s.status}</span>
+                                      </td>
+                                    )}
+                                    <td className="px-3 py-1.5 text-center text-gray-500">{s.cond}</td>
+                                    <td className="px-3 py-1.5 text-gray-800">{s.title}</td>
+                                    <td className="px-3 py-1.5 text-gray-800">{s.sign}</td>
+                                    <td className="px-3 py-1.5 text-gray-600 font-mono">{s.id}</td>
+                                    {modalRow?.status !== '草稿' && <td className="px-3 py-1.5 text-gray-400">{s.time || '-'}</td>}
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
                           </div>
                           )}
 
@@ -1119,7 +1192,7 @@
                                 <div className="w-20 shrink-0 text-xs font-bold text-gray-700">提交申請<div className="font-normal text-gray-400 mt-0.5">Nick</div></div>
                                 <div className="flex-1 text-sm text-gray-700 bg-gray-50 border border-gray-100 rounded-lg p-3">
                                   依人員帳號異動需求提出申請。
-                                  <div className="mt-2"><span className="inline-flex items-center gap-1 px-2 py-1 text-xs text-gray-600 bg-white border border-gray-200 rounded">📎 異動申請表.pdf</span></div>
+                                  <div className="mt-2 max-w-xs"><AttachmentPreview files={[{ name: '異動申請表.pdf' }]} /></div>
                                 </div>
                               </div>
                               <div className="flex items-start gap-3">
@@ -1141,7 +1214,6 @@
                                 <table className="w-full text-left text-xs border-collapse whitespace-nowrap">
                                   <thead>
                                     <tr className="border-b border-gray-200 bg-gray-50 text-gray-700 font-bold">
-                                      <th className="px-3 py-1.5 w-20">級別</th>
                                       <th className="px-3 py-1.5">職稱</th>
                                       <th className="px-3 py-1.5">簽名</th>
                                       <th className="px-3 py-1.5">ID</th>
@@ -1150,7 +1222,6 @@
                                   <tbody className="divide-y divide-gray-100 font-medium">
                                     {progressCCc.map((c, i) => (
                                       <tr key={i}>
-                                        <td className="px-3 py-1.5 text-gray-500">{c.level}</td>
                                         <td className="px-3 py-1.5 text-gray-800">{c.title}</td>
                                         <td className="px-3 py-1.5 text-gray-800">{c.sign}</td>
                                         <td className="px-3 py-1.5 text-gray-600 font-mono">{c.id}</td>

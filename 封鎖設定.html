@@ -19,105 +19,105 @@
     <style>
         body { background-color: theme('colors.background'); font-family: theme('fontFamily.sans'); }
         ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
     </style>
     <link rel="stylesheet" href="shared-ui.css">
 </head>
 <body class="ui-page text-text-main antialiased relative">
 
     <div class="relative mx-auto w-full space-y-6">
+
         <header class="ui-page-header">
             <h1 class="ui-page-title">封鎖設定</h1>
         </header>
 
-        <section class="ui-card p-4 sm:p-6 space-y-4">
-            <div class="flex items-start gap-2.5 p-3.5 rounded-lg bg-primary-light/60 border border-primary/20">
-                <i class="fa-solid fa-shield-halved text-primary mt-0.5"></i>
-                <p class="text-sm text-gray-600 leading-relaxed">於此設定封鎖名單。被封鎖的 IP、帳號或裝置在封鎖期間內將無法登入或存取系統；可設定為永久封鎖或指定期間。</p>
-            </div>
+        <!-- 主版面：左側 Tab（地區 / IP / 國家）+ 右側清單 -->
+        <div class="ui-card overflow-hidden flex flex-col lg:flex-row min-h-[640px]">
 
-            <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                    <div class="ui-search w-full sm:w-72">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                        <input type="text" id="blk-search" oninput="renderBlocks()" placeholder="搜尋對象 / 原因..." class="ui-input ui-search-input">
-                    </div>
-                    <select id="blk-filter-type" onchange="renderBlocks()" class="ui-select w-full sm:w-32">
-                        <option value="">全部類型</option>
-                        <option>IP 位址</option><option>帳號</option><option>裝置</option>
-                    </select>
+            <!-- 左側：Tab -->
+            <aside class="lg:w-56 shrink-0 border-b lg:border-b-0 lg:border-r border-gray-100 flex flex-col">
+                <div class="px-4 py-3 border-b border-gray-100">
+                    <h2 class="font-bold text-gray-900 text-sm">封鎖類型</h2>
                 </div>
-                <button onclick="openBlockCreate()" class="ui-btn ui-btn-primary w-full sm:w-auto"><i class="fa-solid fa-plus"></i> 新增封鎖</button>
-            </div>
+                <div id="tab-bar" class="flex-1 overflow-y-auto p-2 space-y-0.5 custom-scrollbar lg:max-h-[600px]"><!-- 動態由 JavaScript 渲染 --></div>
+            </aside>
 
-            <div class="flex items-center gap-2">
-                <h2 class="text-lg font-bold text-gray-900 whitespace-nowrap">封鎖名單</h2>
-                <span id="blk-count-badge" class="bg-blue-50 text-primary text-xs px-2.5 py-1 rounded-md font-bold">0 筆</span>
-            </div>
+            <!-- 右側：清單 -->
+            <section class="flex-1 min-w-0 flex flex-col p-4 sm:p-6 space-y-4">
 
-            <div class="overflow-x-auto rounded-lg border border-gray-100">
-                <table class="ui-table whitespace-nowrap">
-                    <thead>
-                        <tr>
-                            <th class="text-center w-28">封鎖類型</th>
-                            <th class="text-left w-40">對象</th>
-                            <th class="text-left min-w-[220px]">封鎖原因</th>
-                            <th class="text-left w-52">封鎖期間</th>
-                            <th class="text-center w-24">狀態</th>
-                            <th class="text-center w-44">操作</th>
-                        </tr>
-                    </thead>
-                    <tbody id="blk-tbody"></tbody>
-                </table>
-            </div>
-            <div id="blk-no-data" class="hidden py-16 text-center space-y-3">
-                <div class="inline-flex p-4 bg-gray-50 text-gray-400 rounded-full"><i class="fa-solid fa-ban text-3xl"></i></div>
-                <p class="text-sm text-text-muted font-medium">查無符合條件的封鎖項目</p>
-            </div>
-        </section>
+                <!-- 工具列：搜尋 + 新增 -->
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                    <div class="flex items-center gap-2">
+                        <div class="ui-search w-full sm:w-80">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="text" id="search-input" oninput="render()" placeholder="搜尋..." class="ui-input ui-search-input">
+                        </div>
+                        <button onclick="render()" class="ui-btn ui-btn-primary ui-btn-sm"><i class="fa-solid fa-magnifying-glass"></i> 查詢</button>
+                    </div>
+                    <button onclick="openCreate()" class="ui-btn ui-btn-primary w-full sm:w-auto">
+                        <i class="fa-solid fa-plus"></i> 新增
+                    </button>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <h2 id="list-title" class="text-lg font-bold text-gray-900 whitespace-nowrap">地區封鎖清單</h2>
+                    <span id="count-badge" class="bg-blue-50 text-primary text-xs px-2.5 py-1 rounded-md font-bold">0 筆資料</span>
+                </div>
+
+                <div class="overflow-x-auto rounded-lg border border-gray-100 custom-scrollbar">
+                    <table id="cfg-table" class="ui-table text-left w-full">
+                        <thead>
+                            <tr>
+                                <th scope="col" id="col-value" class="text-left w-56">地區</th>
+                                <th scope="col" class="text-left">備註</th>
+                                <th scope="col" class="text-center w-32">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="blk-tbody"><!-- 動態由 JavaScript 渲染 --></tbody>
+                    </table>
+                </div>
+
+                <div id="no-data-view" class="hidden py-16 text-center space-y-3">
+                    <div class="inline-flex p-4 bg-gray-50 text-gray-400 rounded-full"><i class="fa-solid fa-ban text-3xl"></i></div>
+                    <p class="text-sm text-text-muted font-medium">查無符合條件的資料</p>
+                </div>
+
+                <div class="flex items-center justify-between pt-4 mt-auto border-t border-gray-100">
+                    <span id="pagination-info" class="text-sm text-gray-500">顯示第 0 到 0 筆，共 0 筆記錄</span>
+                    <div class="flex gap-1">
+                        <button class="ui-page-btn"><i class="fa-solid fa-chevron-left text-xs"></i></button>
+                        <button class="ui-page-btn is-active">1</button>
+                        <button class="ui-page-btn"><i class="fa-solid fa-chevron-right text-xs"></i></button>
+                    </div>
+                </div>
+            </section>
+        </div>
+
     </div>
 
-    <!-- 新增 / 編輯 封鎖 彈窗 -->
+    <!-- 新增 / 編輯 彈窗 -->
     <div id="blk-modal" class="fixed inset-0 bg-black/40 z-50 flex justify-center items-center hidden p-4">
-        <div class="bg-white rounded-2xl shadow-modal w-full max-w-lg max-h-[92vh] flex flex-col overflow-hidden">
-            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 flex-shrink-0">
-                <h3 id="blk-modal-title" class="text-base font-bold text-gray-900">新增封鎖</h3>
-                <button onclick="closeBlockModal()" class="text-gray-400 hover:text-gray-600 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"><i class="fa-solid fa-xmark"></i></button>
+        <div class="bg-white rounded-2xl shadow-modal w-full max-w-md overflow-hidden">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                <h3 id="modal-title" class="text-base font-bold text-gray-900">新增地區</h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <form id="blk-form" onsubmit="return false" class="px-6 py-5 overflow-y-auto space-y-4">
-                <div class="grid grid-cols-1 sm:grid-cols-[110px_1fr] gap-2 sm:gap-4 sm:items-center">
-                    <label class="text-xs font-semibold text-gray-600">封鎖類型</label>
-                    <select id="blk-type" class="ui-select"><option>IP 位址</option><option>帳號</option><option>裝置</option></select>
+            <div class="px-6 py-5 space-y-4">
+                <div>
+                    <label id="field-value-label" class="block text-xs font-semibold text-text-muted mb-1.5">地區 <span class="text-rose-500">*</span></label>
+                    <div id="field-value-wrap"><input type="text" id="field-value" placeholder="請輸入" class="ui-input"></div>
                 </div>
-                <div class="grid grid-cols-1 sm:grid-cols-[110px_1fr] gap-2 sm:gap-4 sm:items-center">
-                    <label class="text-xs font-semibold text-gray-600">對象 <span class="text-rose-500">*</span></label>
-                    <input type="text" id="blk-target" placeholder="例如：203.0.113.9 或 EMP301" class="ui-input">
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">備註</label>
+                    <textarea id="field-note" rows="3" placeholder="選填，說明封鎖原因" class="ui-input resize-y"></textarea>
                 </div>
-                <div class="grid grid-cols-1 sm:grid-cols-[110px_1fr] gap-2 sm:gap-4">
-                    <label class="text-xs font-semibold text-gray-600 sm:pt-2">封鎖原因</label>
-                    <textarea id="blk-reason" rows="2" placeholder="選填，說明封鎖原因" class="ui-input resize-none"></textarea>
-                </div>
-                <div class="grid grid-cols-1 sm:grid-cols-[110px_1fr] gap-2 sm:gap-4">
-                    <label class="text-xs font-semibold text-gray-600 sm:pt-1">封鎖期間</label>
-                    <div class="flex flex-col gap-2">
-                        <label class="inline-flex items-center gap-2 text-sm text-gray-700 cursor-pointer"><input type="radio" name="blk-period" data-label="永久" class="w-4 h-4 text-primary focus:ring-primary" checked onchange="toggleBlkPeriod()"> 永久封鎖</label>
-                        <label class="inline-flex items-center gap-2 text-sm text-gray-700 cursor-pointer flex-wrap"><input type="radio" name="blk-period" data-label="指定期間" class="w-4 h-4 text-primary focus:ring-primary" onchange="toggleBlkPeriod()"> 指定期間</label>
-                        <div id="blk-period-range" class="hidden flex items-center gap-2 pl-6">
-                            <input type="date" id="blk-from" class="border border-gray-300 rounded px-2 py-1 text-sm">
-                            <span class="text-gray-400 text-sm">~</span>
-                            <input type="date" id="blk-to" class="border border-gray-300 rounded px-2 py-1 text-sm">
-                        </div>
-                    </div>
-                </div>
-                <div class="grid grid-cols-1 sm:grid-cols-[110px_1fr] gap-2 sm:gap-4 sm:items-center">
-                    <label class="text-xs font-semibold text-gray-600">狀態</label>
-                    <select id="blk-status" class="ui-select"><option value="true">啟用</option><option value="false">停用</option></select>
-                </div>
-            </form>
-            <div class="flex justify-end gap-2.5 px-6 py-4 bg-gray-50 border-t border-gray-100 flex-shrink-0">
-                <button onclick="closeBlockModal()" class="ui-btn ui-btn-secondary">取消</button>
-                <button onclick="saveBlock()" class="ui-btn ui-btn-primary">儲存</button>
+            </div>
+            <div class="flex justify-end gap-2.5 px-6 py-4 bg-gray-50 border-t border-gray-100">
+                <button onclick="closeModal()" class="ui-btn ui-btn-secondary">取消</button>
+                <button onclick="saveRecord()" class="ui-btn ui-btn-primary">儲存</button>
             </div>
         </div>
     </div>
@@ -128,114 +128,166 @@
     </div>
 
     <script>
-        let blocks = [
-            { id: 1, type: 'IP 位址', target: '203.0.113.9',  reason: '多次密碼錯誤，疑似暴力破解', period: '永久',     from: '', to: '',                 active: true },
-            { id: 2, type: '帳號',    target: 'EMP301',       reason: '離職員工帳號，暫停存取',     period: '指定期間', from: '2026-06-15', to: '2026-12-31', active: true },
-            { id: 3, type: '裝置',    target: 'DEV-8842-AC',  reason: '非公司核可裝置',             period: '永久',     from: '', to: '',                 active: false },
-            { id: 4, type: 'IP 位址', target: '198.51.100.24', reason: '境外異常登入來源',           period: '指定期間', from: '2026-07-01', to: '2026-07-31', active: true }
+        // 三個 Tab
+        const CATEGORIES = [
+            { key: 'region',  label: '地區' },
+            { key: 'ip',      label: 'IP' },
+            { key: 'country', label: '國家' }
         ];
-        let editBlockId = null;
 
-        const typeBadge = (t) => {
-            const map = { 'IP 位址': 'ui-badge-info', '帳號': 'ui-badge-purple', '裝置': 'ui-badge-warning' };
-            return `<span class="ui-badge ${map[t] || 'ui-badge-gray'}">${t}</span>`;
+        // 各 Tab 的封鎖清單（value = 該類型的值；note = 備註）
+        const dataStore = {
+            region: [
+                { value: 'T 區', note: '境外異常存取來源，暫時封鎖' },
+                { value: 'U 區', note: '' },
+                { value: 'S 區', note: '安全事件調查期間封鎖' }
+            ],
+            ip: [
+                { value: '203.0.113.9', note: '多次密碼錯誤，疑似暴力破解' },
+                { value: '198.51.100.24', note: '境外異常登入來源' },
+                { value: '192.0.2.55', note: '' }
+            ],
+            country: [
+                { value: '未知來源', note: '無法辨識國家的連線' },
+                { value: '高風險地區', note: '依資安政策封鎖' }
+            ]
         };
-        const periodText = (b) => b.period === '永久'
-            ? '<span class="ui-badge ui-badge-danger">永久</span>'
-            : `<span class="text-gray-600">${b.from || '—'} ~ ${b.to || '—'}</span>`;
 
-        function renderBlocks() {
-            const kw = (document.getElementById('blk-search').value || '').trim().toLowerCase();
-            const ft = document.getElementById('blk-filter-type').value;
-            const list = blocks.filter(b => (!kw || `${b.target} ${b.reason}`.toLowerCase().includes(kw)) && (!ft || b.type === ft));
-            const tbody = document.getElementById('blk-tbody');
-            tbody.innerHTML = list.map(b => {
-                const badge = b.active ? '<span class="ui-badge ui-badge-success">啟用</span>' : '<span class="ui-badge bg-gray-100 text-gray-500">停用</span>';
-                const toggle = b.active
-                    ? `<button onclick="toggleBlock(${b.id})" class="ui-btn ui-btn-sm text-amber-600 border border-amber-200 hover:bg-amber-50"><i class="fa-solid fa-unlock"></i> 解除</button>`
-                    : `<button onclick="toggleBlock(${b.id})" class="ui-btn ui-btn-sm text-emerald-600 border border-emerald-200 hover:bg-emerald-50"><i class="fa-solid fa-lock"></i> 啟用</button>`;
-                return '<tr class="hover:bg-gray-50/70 transition-colors">' +
-                    '<td class="text-center">' + typeBadge(b.type) + '</td>' +
-                    '<td class="text-left font-mono font-semibold text-gray-800">' + b.target + '</td>' +
-                    '<td class="text-left text-gray-600 whitespace-normal">' + (b.reason || '<span class="text-gray-300">—</span>') + '</td>' +
-                    '<td class="text-left">' + periodText(b) + '</td>' +
-                    '<td class="text-center">' + badge + '</td>' +
-                    '<td class="text-center"><div class="flex items-center justify-center gap-2">' +
-                        '<button onclick="openBlockEdit(' + b.id + ')" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-pen-to-square"></i> 編輯</button>' + toggle +
-                    '</div></td>' +
-                    '</tr>';
-            }).join('');
-            document.getElementById('blk-count-badge').innerText = list.length + ' 筆';
-            document.getElementById('blk-no-data').classList.toggle('hidden', list.length > 0);
-            tbody.parentElement.classList.toggle('hidden', list.length === 0);
-        }
+        let activeCat = 'region';
+        let editIndex = -1;
 
-        function toggleBlkPeriod() {
-            const sel = document.querySelector('input[name="blk-period"]:checked');
-            const custom = sel && sel.dataset.label === '指定期間';
-            document.getElementById('blk-period-range').classList.toggle('hidden', !custom);
-        }
+        // 國家清單（供「國家」Tab 的下拉使用）
+        const COUNTRIES = [
+            '台灣', '中國', '香港', '澳門', '日本', '韓國', '北韓', '蒙古', '新加坡', '馬來西亞', '泰國', '越南', '菲律賓', '印尼', '柬埔寨', '寮國', '緬甸', '汶萊', '東帝汶',
+            '印度', '巴基斯坦', '孟加拉', '斯里蘭卡', '尼泊爾', '不丹', '馬爾地夫', '阿富汗',
+            '哈薩克', '烏茲別克', '土庫曼', '吉爾吉斯', '塔吉克',
+            '土耳其', '沙烏地阿拉伯', '阿聯', '卡達', '科威特', '巴林', '阿曼', '葉門', '伊拉克', '伊朗', '以色列', '約旦', '黎巴嫩', '敘利亞', '巴勒斯坦', '喬治亞', '亞美尼亞', '亞塞拜然',
+            '英國', '愛爾蘭', '法國', '德國', '荷蘭', '比利時', '盧森堡', '瑞士', '奧地利', '西班牙', '葡萄牙', '義大利', '希臘', '瑞典', '挪威', '丹麥', '芬蘭', '冰島', '波蘭', '捷克', '斯洛伐克', '匈牙利', '羅馬尼亞', '保加利亞', '烏克蘭', '白俄羅斯', '俄羅斯', '克羅埃西亞', '塞爾維亞', '斯洛維尼亞', '波士尼亞', '阿爾巴尼亞', '北馬其頓', '愛沙尼亞', '拉脫維亞', '立陶宛', '馬爾他', '賽普勒斯',
+            '美國', '加拿大', '墨西哥', '巴西', '阿根廷', '智利', '哥倫比亞', '秘魯', '委內瑞拉', '厄瓜多', '玻利維亞', '巴拉圭', '烏拉圭', '古巴', '巴拿馬', '哥斯大黎加', '瓜地馬拉',
+            '埃及', '南非', '奈及利亞', '肯亞', '摩洛哥', '阿爾及利亞', '突尼西亞', '衣索比亞', '迦納', '坦尚尼亞', '烏干達', '安哥拉', '莫三比克', '辛巴威', '尚比亞',
+            '澳洲', '紐西蘭', '斐濟', '巴布亞紐幾內亞',
+            '未知來源', '高風險地區'
+        ];
 
-        function openBlockCreate() {
-            editBlockId = null;
-            document.getElementById('blk-modal-title').innerText = '新增封鎖';
-            document.getElementById('blk-form').reset();
-            toggleBlkPeriod();
-            document.getElementById('blk-modal').classList.remove('hidden');
-        }
-        function openBlockEdit(id) {
-            const b = blocks.find(x => x.id === id);
-            if (!b) return;
-            editBlockId = id;
-            document.getElementById('blk-modal-title').innerText = '編輯封鎖';
-            document.getElementById('blk-form').reset();
-            document.getElementById('blk-type').value = b.type;
-            document.getElementById('blk-target').value = b.target;
-            document.getElementById('blk-reason').value = b.reason || '';
-            const pr = document.querySelector(`input[name="blk-period"][data-label="${b.period}"]`);
-            if (pr) pr.checked = true;
-            document.getElementById('blk-from').value = b.from || '';
-            document.getElementById('blk-to').value = b.to || '';
-            document.getElementById('blk-status').value = String(b.active);
-            toggleBlkPeriod();
-            document.getElementById('blk-modal').classList.remove('hidden');
-        }
-        function closeBlockModal() { document.getElementById('blk-modal').classList.add('hidden'); }
-
-        function saveBlock() {
-            const target = document.getElementById('blk-target').value.trim();
-            if (!target) { showToast('error', '請填寫封鎖對象'); return; }
-            const period = document.querySelector('input[name="blk-period"]:checked');
-            const isCustom = period && period.dataset.label === '指定期間';
-            const data = {
-                type: document.getElementById('blk-type').value,
-                target,
-                reason: document.getElementById('blk-reason').value.trim(),
-                period: isCustom ? '指定期間' : '永久',
-                from: isCustom ? document.getElementById('blk-from').value : '',
-                to: isCustom ? document.getElementById('blk-to').value : '',
-                active: document.getElementById('blk-status').value === 'true'
-            };
-            if (editBlockId === null) {
-                const nextId = blocks.length ? Math.max(...blocks.map(b => b.id)) + 1 : 1;
-                blocks.push({ id: nextId, ...data });
-                showToast('success', `已新增封鎖「${target}」`);
+        // 依當前 Tab 渲染「值」欄位控制項（國家 → 下拉；其餘 → 輸入框）
+        function renderValueControl(val) {
+            const wrap = document.getElementById('field-value-wrap');
+            if (activeCat === 'country') {
+                wrap.innerHTML = '<select id="field-value" class="ui-select"><option value="">請選擇國家</option>' +
+                    COUNTRIES.map(c => `<option${c === val ? ' selected' : ''}>${c}</option>`).join('') + '</select>';
             } else {
-                const b = blocks.find(x => x.id === editBlockId);
-                if (b) Object.assign(b, data);
-                showToast('success', `已更新封鎖「${target}」`);
+                wrap.innerHTML = `<input type="text" id="field-value" placeholder="請輸入" class="ui-input" value="${(val || '').replace(/"/g, '&quot;')}">`;
             }
-            closeBlockModal();
-            renderBlocks();
-        }
-        function toggleBlock(id) {
-            const b = blocks.find(x => x.id === id);
-            if (!b) return;
-            b.active = !b.active;
-            renderBlocks();
-            showToast(b.active ? 'success' : 'info', `已${b.active ? '啟用' : '解除'}封鎖「${b.target}」`);
         }
 
+        function currentLabel() { return CATEGORIES.find(c => c.key === activeCat).label; }
+
+        // 渲染左側 Tab
+        function renderTabs() {
+            const bar = document.getElementById('tab-bar');
+            const onCls = 'w-full text-left px-3 py-2 rounded-lg text-sm font-semibold text-primary bg-primary-light transition-colors';
+            const offCls = 'w-full text-left px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors';
+            bar.innerHTML = CATEGORIES.map(c =>
+                `<button onclick="switchCat('${c.key}')" class="${c.key === activeCat ? onCls : offCls}">${c.label}</button>`
+            ).join('');
+        }
+
+        function switchCat(key) {
+            activeCat = key;
+            document.getElementById('search-input').value = '';
+            renderTabs();
+            document.getElementById('list-title').innerText = `${currentLabel()}封鎖清單`;
+            document.getElementById('col-value').innerText = currentLabel();
+            render();
+        }
+
+        // 渲染清單（套用搜尋）
+        function render() {
+            const tbody = document.getElementById('blk-tbody');
+            const noData = document.getElementById('no-data-view');
+            const kw = document.getElementById('search-input').value.trim().toLowerCase();
+            const list = dataStore[activeCat];
+            const rows = list.map((r, i) => ({ r, i }))
+                .filter(({ r }) => !kw || r.value.toLowerCase().includes(kw) || (r.note || '').toLowerCase().includes(kw));
+
+            tbody.innerHTML = '';
+
+            if (rows.length === 0) {
+                tbody.parentElement.classList.add('hidden');
+                noData.classList.remove('hidden');
+                document.getElementById('count-badge').innerText = '0 筆資料';
+                document.getElementById('pagination-info').innerText = '顯示第 0 到 0 筆，共 0 筆記錄';
+                return;
+            }
+            tbody.parentElement.classList.remove('hidden');
+            noData.classList.add('hidden');
+
+            rows.forEach(({ r, i }) => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-50/70 transition-colors';
+                tr.innerHTML = `
+                    <td class="text-left font-medium text-gray-800">${r.value}</td>
+                    <td class="text-left text-gray-600 whitespace-normal break-words">${r.note || '<span class="text-gray-300">—</span>'}</td>
+                    <td>
+                        <div class="flex items-center justify-center gap-2">
+                            <button onclick="openEdit(${i})" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-pen-to-square"></i> 編輯</button>
+                            <button onclick="removeRecord(${i})" class="ui-btn ui-btn-sm text-rose-600 border border-rose-200 hover:bg-rose-50"><i class="fa-solid fa-trash"></i> 刪除</button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('count-badge').innerText = `${rows.length} 筆資料`;
+            document.getElementById('pagination-info').innerText = `顯示第 1 到 ${rows.length} 筆，共 ${rows.length} 筆記錄`;
+        }
+
+        /* ============ 新增 / 編輯 彈窗 ============ */
+        function openCreate() {
+            editIndex = -1;
+            document.getElementById('modal-title').innerText = `新增${currentLabel()}`;
+            document.getElementById('field-value-label').innerHTML = `${currentLabel()} <span class="text-rose-500">*</span>`;
+            renderValueControl('');
+            document.getElementById('field-note').value = '';
+            document.getElementById('blk-modal').classList.remove('hidden');
+        }
+        function openEdit(i) {
+            editIndex = i;
+            const rec = dataStore[activeCat][i];
+            document.getElementById('modal-title').innerText = `編輯${currentLabel()}`;
+            document.getElementById('field-value-label').innerHTML = `${currentLabel()} <span class="text-rose-500">*</span>`;
+            renderValueControl(rec.value);
+            document.getElementById('field-note').value = rec.note || '';
+            document.getElementById('blk-modal').classList.remove('hidden');
+        }
+        function closeModal() { document.getElementById('blk-modal').classList.add('hidden'); }
+
+        function saveRecord() {
+            const value = document.getElementById('field-value').value.trim();
+            const note = document.getElementById('field-note').value.trim();
+            if (!value) { showToast('error', `請填寫${currentLabel()}`); return; }
+            const list = dataStore[activeCat];
+            const dup = list.some((r, idx) => r.value === value && idx !== editIndex);
+            if (dup) { showToast('error', `「${value}」已存在`); return; }
+            if (editIndex === -1) {
+                list.push({ value, note });
+                showToast('success', `已新增${currentLabel()}「${value}」`);
+            } else {
+                list[editIndex] = { value, note };
+                showToast('success', `已更新${currentLabel()}「${value}」`);
+            }
+            closeModal();
+            render();
+        }
+        function removeRecord(i) {
+            const rec = dataStore[activeCat][i];
+            if (!confirm(`確定要刪除「${rec.value}」嗎？`)) return;
+            dataStore[activeCat].splice(i, 1);
+            showToast('info', `已刪除「${rec.value}」`);
+            render();
+        }
+
+        /* ============ Toast ============ */
         function showToast(type, text) {
             const toast = document.getElementById('toast');
             const icon = document.getElementById('toast-icon');
@@ -248,8 +300,13 @@
             clearTimeout(window.__t); window.__t = setTimeout(() => { toast.style.transform = 'translateY(5rem)'; toast.style.opacity = '0'; }, 2600);
         }
 
-        document.getElementById('blk-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeBlockModal(); });
-        renderBlocks();
+        document.getElementById('blk-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
+
+        // 初始化
+        renderTabs();
+        document.getElementById('list-title').innerText = `${currentLabel()}封鎖清單`;
+        document.getElementById('col-value').innerText = currentLabel();
+        render();
     </script>
 </body>
 </html>

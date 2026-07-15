@@ -32,24 +32,36 @@
         </header>
 
         <section class="ui-card p-4 sm:p-6 space-y-4">
-            <!-- 工具列 -->
-            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 flex-1">
-                    <div class="ui-search w-full sm:w-72">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                        <input type="text" id="log-search" oninput="renderLogs()" placeholder="搜尋操作人 / 模組 / 說明 / IP..." class="ui-input ui-search-input">
-                    </div>
+            <!-- 工具列（篩選：時間區間 / 頁面 / 操作 / 異動者） -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">時間區間</label>
                     <div class="flex items-center gap-2">
-                        <input type="date" id="log-date-from" onchange="renderLogs()" class="ui-input w-40">
+                        <input type="date" id="log-date-from" class="ui-input">
                         <span class="text-gray-400 text-sm">~</span>
-                        <input type="date" id="log-date-to" onchange="renderLogs()" class="ui-input w-40">
+                        <input type="date" id="log-date-to" class="ui-input">
                     </div>
-                    <select id="log-type" onchange="renderLogs()" class="ui-select w-full sm:w-32">
-                        <option value="">全部類型</option>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">頁面</label>
+                    <select id="log-page" class="ui-select"><option value="">全部頁面</option></select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">操作</label>
+                    <select id="log-type" class="ui-select">
+                        <option value="">全部操作</option>
                         <option>登入</option><option>登出</option><option>新增</option><option>修改</option><option>刪除</option><option>審核</option><option>匯出</option>
                     </select>
                 </div>
-                <button onclick="exportLogs()" class="ui-btn ui-btn-secondary w-full lg:w-auto"><i class="fa-solid fa-file-export"></i> 匯出</button>
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">操作者</label>
+                    <input type="text" id="log-user" placeholder="姓名 / 工號" class="ui-input">
+                </div>
+            </div>
+            <div class="flex justify-end gap-2">
+                <button onclick="resetLogFilters()" class="ui-btn ui-btn-secondary"><i class="fa-solid fa-arrows-rotate"></i> 重置</button>
+                <button onclick="renderLogs()" class="ui-btn ui-btn-primary"><i class="fa-solid fa-magnifying-glass"></i> 查詢</button>
+                <button onclick="exportLogs()" class="ui-btn ui-btn-secondary"><i class="fa-solid fa-file-export"></i> 匯出</button>
             </div>
 
             <div class="flex items-center gap-2">
@@ -61,13 +73,14 @@
                 <table class="ui-table whitespace-nowrap">
                     <thead>
                         <tr>
-                            <th class="text-left w-44">操作時間</th>
-                            <th class="text-left w-40">操作人</th>
-                            <th class="text-left w-32">模組 / 頁面</th>
-                            <th class="text-center w-24">操作類型</th>
-                            <th class="text-left min-w-[240px]">操作說明</th>
-                            <th class="text-left w-36">IP 位址</th>
-                            <th class="text-center w-20">結果</th>
+                            <th class="text-left w-44">日期</th>
+                            <th class="text-left w-32">操作者</th>
+                            <th class="text-left w-28">工號</th>
+                            <th class="text-left w-36">IP</th>
+                            <th class="text-left w-32">頁面</th>
+                            <th class="text-center w-24">操作</th>
+                            <th class="text-left min-w-[240px]">詳細信息</th>
+                            <th class="text-center w-24">詳情</th>
                         </tr>
                     </thead>
                     <tbody id="log-tbody"></tbody>
@@ -80,6 +93,31 @@
         </section>
     </div>
 
+    <!-- 詳情彈窗 -->
+    <div id="log-detail-modal" class="fixed inset-0 z-50 hidden">
+        <div class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm" onclick="closeLogDetail()"></div>
+        <div class="fixed inset-0 z-10 flex items-center justify-center p-4">
+            <div class="relative bg-white w-full max-w-3xl rounded-2xl shadow-modal overflow-hidden">
+                <div class="px-6 py-4 flex items-center justify-between border-b border-gray-100">
+                    <h3 class="text-base font-bold text-gray-900">日誌詳情</h3>
+                    <button onclick="closeLogDetail()" class="text-gray-400 hover:text-gray-600 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <div class="px-6 py-5 grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                    <div><div class="text-xs font-semibold text-text-muted mb-1">日期</div><div id="ld-time" class="font-mono text-gray-800"></div></div>
+                    <div><div class="text-xs font-semibold text-text-muted mb-1">操作者</div><div id="ld-user" class="text-gray-800"></div></div>
+                    <div><div class="text-xs font-semibold text-text-muted mb-1">IP</div><div id="ld-ip" class="font-mono text-gray-800"></div></div>
+                    <div><div class="text-xs font-semibold text-text-muted mb-1">頁面</div><div id="ld-mod" class="text-gray-800"></div></div>
+                    <div><div class="text-xs font-semibold text-text-muted mb-1">操作</div><div id="ld-type"></div></div>
+                    <div><div class="text-xs font-semibold text-text-muted mb-1">結果</div><div id="ld-result"></div></div>
+                    <div class="sm:col-span-2"><div class="text-xs font-semibold text-text-muted mb-1">詳細信息</div><div id="ld-desc" class="text-gray-800 bg-gray-50 border border-gray-100 rounded-lg p-3 whitespace-pre-wrap break-all font-mono text-xs"></div></div>
+                </div>
+                <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-end">
+                    <button onclick="closeLogDetail()" class="ui-btn ui-btn-secondary">關閉</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div id="toast" class="fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
         <i id="toast-icon" class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
         <span id="toast-text" class="text-sm font-medium">操作成功！</span>
@@ -87,16 +125,16 @@
 
     <script>
         const logs = [
-            { time: '2026-07-02 09:12:35', empId: 'EMP001', name: 'Logan',   mod: '打卡規則',     type: '修改', desc: '編輯打卡規則「打卡規則1」', ip: '10.20.1.15',  result: '成功' },
-            { time: '2026-07-02 09:05:02', empId: 'EMP042', name: 'Jackson', mod: '登入',         type: '登入', desc: '帳號登入系統',           ip: '10.20.3.88',  result: '成功' },
-            { time: '2026-07-02 08:58:41', empId: 'EMP089', name: 'Levi',    mod: '假期管理',     type: '新增', desc: '新增休假規則「MIS DEPT」', ip: '10.20.2.31',  result: '成功' },
-            { time: '2026-07-01 18:22:10', empId: 'EMP201', name: 'Luna',    mod: '員工管理',     type: '修改', desc: '設定 EMP156 之考勤屬性',   ip: '10.20.1.07',  result: '成功' },
-            { time: '2026-07-01 17:40:55', empId: 'EMP156', name: 'Mia',     mod: '申請',         type: '新增', desc: '提交差旅申請單 PTA-THQ-000021', ip: '10.20.5.44', result: '成功' },
-            { time: '2026-07-01 15:03:27', empId: 'EMP042', name: 'Jackson', mod: '文件庫管理',   type: '刪除', desc: '刪除資料夾「舊版合約」',    ip: '10.20.3.88',  result: '成功' },
-            { time: '2026-07-01 11:19:03', empId: 'EMP301', name: 'Ethan',   mod: '登入',         type: '登入', desc: '密碼錯誤，登入失敗',        ip: '203.0.113.9', result: '失敗' },
-            { time: '2026-07-01 10:47:18', empId: 'EMP001', name: 'Logan',   mod: '簽核',         type: '審核', desc: '核准請購單 PU-THQ-000018',  ip: '10.20.1.15',  result: '成功' },
-            { time: '2026-06-30 16:31:52', empId: 'EMP201', name: 'Luna',    mod: '月初匯率管理', type: '修改', desc: '更新 2026-07 匯率（15 種幣別）', ip: '10.20.1.07', result: '成功' },
-            { time: '2026-06-30 14:08:09', empId: 'EMP089', name: 'Levi',    mod: '系統日誌',     type: '匯出', desc: '匯出系統日誌（CSV）',       ip: '10.20.2.31',  result: '成功' }
+            { time: '2026-07-02 09:12:35', empId: 'EMP001', name: 'Logan',   mod: '打卡規則',     type: '修改', desc: 'PUT /api/attendance/rules/1 {"name":"打卡規則1","enabled":true}', ip: '10.20.1.15',  result: '成功' },
+            { time: '2026-07-02 09:05:02', empId: 'EMP042', name: 'Jackson', mod: '登入',         type: '登入', desc: 'POST /api/auth/login {"account":"jackson","result":"success"}', ip: '10.20.3.88',  result: '成功' },
+            { time: '2026-07-02 08:58:41', empId: 'EMP089', name: 'Levi',    mod: '假期管理',     type: '新增', desc: 'POST /api/leave/rules {"name":"MIS DEPT","dept":"MIS","days":14}', ip: '10.20.2.31',  result: '成功' },
+            { time: '2026-07-01 18:22:10', empId: 'EMP201', name: 'Luna',    mod: '員工管理',     type: '修改', desc: 'PUT /api/employees/EMP156/attendance {"workStart":"09:00","workEnd":"18:00","gpsExempt":false}', ip: '10.20.1.07',  result: '成功' },
+            { time: '2026-07-01 17:40:55', empId: 'EMP156', name: 'Mia',     mod: '申請',         type: '新增', desc: 'POST /api/forms/pta {"docNo":"PTA-THQ-000021","destination":"T2","days":2}', ip: '10.20.5.44', result: '成功' },
+            { time: '2026-07-01 15:03:27', empId: 'EMP042', name: 'Jackson', mod: '文件庫管理',   type: '刪除', desc: 'DELETE /api/documents/folders/88 {"name":"舊版合約","force":true}', ip: '10.20.3.88',  result: '成功' },
+            { time: '2026-07-01 11:19:03', empId: 'EMP301', name: 'Ethan',   mod: '登入',         type: '登入', desc: 'POST /api/auth/login {"account":"ethan","result":"fail","reason":"invalid_password"}', ip: '203.0.113.9', result: '失敗' },
+            { time: '2026-07-01 10:47:18', empId: 'EMP001', name: 'Logan',   mod: '簽核',         type: '審核', desc: 'POST /api/approvals/PU-THQ-000018/approve {"decision":"approve","comment":""}', ip: '10.20.1.15',  result: '成功' },
+            { time: '2026-06-30 16:31:52', empId: 'EMP201', name: 'Luna',    mod: '月初匯率管理', type: '修改', desc: 'PUT /api/fx-rates/2026-07 {"currencies":15,"source":"manual"}', ip: '10.20.1.07', result: '成功' },
+            { time: '2026-06-30 14:08:09', empId: 'EMP089', name: 'Levi',    mod: '系統日誌',     type: '匯出', desc: 'GET /api/logs/export {"format":"csv","range":"2026-06"}', ip: '10.20.2.31',  result: '成功' }
         ];
 
         const typeBadge = (t) => {
@@ -104,37 +142,69 @@
             return `<span class="ui-badge ${map[t] || 'ui-badge-gray'}">${t}</span>`;
         };
 
+        // 以頁面（模組）唯一值填入「頁面」下拉
+        function populatePages() {
+            const sel = document.getElementById('log-page');
+            [...new Set(logs.map(l => l.mod))].sort().forEach(m => {
+                const o = document.createElement('option'); o.value = m; o.textContent = m; sel.appendChild(o);
+            });
+        }
+
         function renderLogs() {
-            const kw = (document.getElementById('log-search').value || '').trim().toLowerCase();
+            const page = document.getElementById('log-page').value;
             const type = document.getElementById('log-type').value;
             const df = document.getElementById('log-date-from').value;
             const dt = document.getElementById('log-date-to').value;
-            const list = logs.filter(l => {
+            const user = (document.getElementById('log-user').value || '').trim().toLowerCase();
+            const tbody = document.getElementById('log-tbody');
+            tbody.innerHTML = logs.map((l, i) => ({ l, i })).filter(({ l }) => {
                 const d = l.time.slice(0, 10);
-                if (kw && !(`${l.empId} ${l.name} ${l.mod} ${l.desc} ${l.ip}`.toLowerCase().includes(kw))) return false;
+                if (page && l.mod !== page) return false;
                 if (type && l.type !== type) return false;
                 if (df && d < df) return false;
                 if (dt && d > dt) return false;
+                if (user && !(`${l.empId} ${l.name}`.toLowerCase().includes(user))) return false;
                 return true;
-            });
-            const tbody = document.getElementById('log-tbody');
-            tbody.innerHTML = list.map(l => {
-                const res = l.result === '成功'
-                    ? '<span class="ui-badge ui-badge-success">成功</span>'
-                    : '<span class="ui-badge ui-badge-danger">失敗</span>';
-                return '<tr class="hover:bg-gray-50/70 transition-colors">' +
+            }).map(({ l, i }) =>
+                '<tr class="hover:bg-gray-50/70 transition-colors">' +
                     '<td class="text-left font-mono text-gray-600">' + l.time + '</td>' +
-                    '<td class="text-left"><span class="font-semibold text-gray-800">' + l.name + '</span> <span class="text-xs text-gray-400">' + l.empId + '</span></td>' +
+                    '<td class="text-left font-semibold text-gray-800">' + l.name + '</td>' +
+                    '<td class="text-left font-mono text-gray-500">' + l.empId + '</td>' +
+                    '<td class="text-left font-mono text-gray-500">' + l.ip + '</td>' +
                     '<td class="text-left text-gray-600">' + l.mod + '</td>' +
                     '<td class="text-center">' + typeBadge(l.type) + '</td>' +
-                    '<td class="text-left text-gray-600 whitespace-normal">' + l.desc + '</td>' +
-                    '<td class="text-left font-mono text-gray-500">' + l.ip + '</td>' +
-                    '<td class="text-center">' + res + '</td>' +
-                    '</tr>';
-            }).join('');
-            document.getElementById('log-count-badge').innerText = list.length + ' 筆';
-            document.getElementById('log-no-data').classList.toggle('hidden', list.length > 0);
-            tbody.parentElement.classList.toggle('hidden', list.length === 0);
+                    '<td class="text-left text-gray-600 whitespace-normal break-all font-mono text-xs">' + l.desc + '</td>' +
+                    '<td class="text-center"><button onclick="openLogDetail(' + i + ')" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-eye"></i> 詳情</button></td>' +
+                '</tr>'
+            ).join('');
+            const shown = tbody.children.length;
+            document.getElementById('log-count-badge').innerText = shown + ' 筆';
+            document.getElementById('log-no-data').classList.toggle('hidden', shown > 0);
+            tbody.parentElement.classList.toggle('hidden', shown === 0);
+        }
+
+        function openLogDetail(i) {
+            const l = logs[i]; if (!l) return;
+            document.getElementById('ld-time').textContent = l.time;
+            document.getElementById('ld-user').textContent = l.name + '（' + l.empId + '）';
+            document.getElementById('ld-ip').textContent = l.ip;
+            document.getElementById('ld-mod').textContent = l.mod;
+            document.getElementById('ld-type').innerHTML = typeBadge(l.type);
+            document.getElementById('ld-result').innerHTML = l.result === '成功'
+                ? '<span class="ui-badge ui-badge-success">成功</span>'
+                : '<span class="ui-badge ui-badge-danger">失敗</span>';
+            document.getElementById('ld-desc').textContent = l.desc;
+            document.getElementById('log-detail-modal').classList.remove('hidden');
+        }
+        function closeLogDetail() { document.getElementById('log-detail-modal').classList.add('hidden'); }
+
+        function resetLogFilters() {
+            document.getElementById('log-date-from').value = '';
+            document.getElementById('log-date-to').value = '';
+            document.getElementById('log-page').value = '';
+            document.getElementById('log-type').value = '';
+            document.getElementById('log-user').value = '';
+            renderLogs();
         }
 
         function exportLogs() { showToast('success', '已匯出系統日誌（示範）'); }
@@ -151,6 +221,7 @@
             clearTimeout(window.__t); window.__t = setTimeout(() => { toast.style.transform = 'translateY(5rem)'; toast.style.opacity = '0'; }, 2600);
         }
 
+        populatePages();
         renderLogs();
     </script>
 </body>

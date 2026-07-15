@@ -204,6 +204,62 @@
     </div>
 
     <!-- 提示消息 (Toast) -->
+    <!-- 資產詳情彈窗 -->
+    <div id="asset-detail-modal" class="fixed inset-0 z-50 hidden">
+        <div class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm" onclick="closeAssetDetail()"></div>
+        <div class="fixed inset-0 z-10 flex items-center justify-center p-4">
+            <div class="relative bg-white w-full max-w-4xl max-h-[90vh] rounded-2xl shadow-modal flex flex-col overflow-hidden">
+                <div class="px-6 py-4 flex items-center justify-between border-b border-gray-100 flex-shrink-0">
+                    <h3 class="text-base font-bold text-gray-900">資產詳情 <span id="ad-no" class="text-primary font-mono ml-1"></span></h3>
+                    <button onclick="closeAssetDetail()" class="text-gray-400 hover:text-gray-600 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <div class="px-6 py-5 overflow-y-auto">
+                    <div id="asset-detail-grid" class="space-y-6"></div>
+                </div>
+                <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-end flex-shrink-0">
+                    <div id="ad-view-btns" class="flex gap-2">
+                        <button onclick="closeAssetDetail()" class="ui-btn ui-btn-secondary">關閉</button>
+                        <button onclick="toggleAssetEdit(true)" class="ui-btn ui-btn-primary"><i class="fa-solid fa-pen"></i> 編輯</button>
+                    </div>
+                    <div id="ad-edit-btns" class="flex gap-2 hidden">
+                        <button onclick="toggleAssetEdit(false)" class="ui-btn ui-btn-secondary">取消</button>
+                        <button onclick="saveAssetDetail()" class="ui-btn ui-btn-primary"><i class="fa-solid fa-check"></i> 儲存</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 電子表單檢視彈窗（由關聯單據查閱開啟）-->
+    <div id="form-view-modal" class="fixed inset-0 z-[60] hidden">
+        <div class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm" onclick="closeFormView()"></div>
+        <div class="fixed inset-0 z-10 flex items-center justify-center p-4">
+            <div class="relative bg-white w-full max-w-2xl max-h-[88vh] rounded-md shadow-2xl flex flex-col overflow-hidden">
+                <div class="bg-[#EAF2FC] flex justify-between items-center px-5 py-3 border-b border-blue-100 flex-shrink-0">
+                    <h2 id="fv-title" class="text-[#2b3b84] font-bold text-[16px]">電子表單檢視</h2>
+                    <button onclick="closeFormView()" class="bg-blue-500 hover:bg-blue-600 text-white rounded p-1.5 transition-colors"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <div class="flex-1 overflow-y-auto p-5 bg-[#f4f5f8] space-y-4">
+                    <div class="bg-white border border-gray-300 rounded-md shadow-sm">
+                        <div class="px-4 py-2.5 border-b border-gray-200"><h3 class="text-[#2b3b84] font-bold text-[15px]">基本資訊</h3></div>
+                        <div class="p-4 grid grid-cols-2 gap-x-5 gap-y-4 text-sm">
+                            <div><div class="text-xs text-text-muted mb-1">文件編號</div><div id="fv-docno" class="font-mono text-gray-800"></div></div>
+                            <div><div class="text-xs text-text-muted mb-1">表單類型</div><div id="fv-type" class="text-gray-800"></div></div>
+                            <div><div class="text-xs text-text-muted mb-1">申請人</div><div class="text-gray-800">Nick（100258）</div></div>
+                            <div><div class="text-xs text-text-muted mb-1">申請日期</div><div class="text-gray-800">2026-05-30</div></div>
+                            <div><div class="text-xs text-text-muted mb-1">狀態</div><div><span class="ui-badge ui-badge-success">簽核完成</span></div></div>
+                            <div><div class="text-xs text-text-muted mb-1">金額</div><div class="text-gray-800">CNY 2,137.09</div></div>
+                        </div>
+                    </div>
+                    <div class="text-center text-xs text-gray-400">— 電子表單檢視（示意）—</div>
+                </div>
+                <div class="bg-gray-50 px-5 py-3 border-t border-gray-100 flex justify-end flex-shrink-0">
+                    <button onclick="closeFormView()" class="ui-btn ui-btn-secondary">關閉</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div id="toast" class="fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
         <i id="toast-icon" class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
         <span id="toast-text" class="text-sm font-medium">操作成功！</span>
@@ -288,6 +344,83 @@
 
         // 千分位格式化
         function fmt(n) { return Number(n).toLocaleString('en-US'); }
+
+        // 資產詳情彈窗（可切換檢視 / 編輯）；欄位含未於清單顯示者，以示範值帶出
+        let _assetFields = [];
+        let _assetEdit = false;
+        const _assetRO = new Set(['资产编号', '价格', '残值', '数量', '型号', '序列号', '资产名称', '资产类型']); // 唯讀欄位
+        const _assetOptions = {
+            '状态': ['使用中', '项目闲置', '行政闲置', '项目保管', '行政保管', '外借', '待出售', '已出售', '已赔付', '已销毁'],
+            '类别': ['资产', '列管品', '软资产', '暂无类别'],
+            '区域': ['T1', 'T2', 'U', 'J', 'S'],
+            '币种': ['CNY', 'TWD', 'USD']
+        };
+        function openAssetDetail(no) {
+            const r = listDb.find(x => x.no === no);
+            if (!r) return;
+            const h = (no.replace(/\D/g, '').split('').reduce((a, c) => a + (+c || 0), 0)) || 1;
+            const pick = (arr) => arr[h % arr.length];
+            const price = r.residual ? r.residual * 4 : (h * 1000 + 5000);
+            const groups = [
+                ['基本資訊', [['资产类型', r.type], ['状态', r.status || pick(_assetOptions['状态'])], ['类别', r.category || pick(_assetOptions['类别'])], ['区域', r.region || pick(_assetOptions['区域'])], ['项目', r.project], ['部门', r.dept]]],
+                ['資產識別', [['资产编号', r.no], ['型号', (r.name.split(' ')[0] || '-')], ['序列号', r.serial], ['历史资产编号', '-'], ['资产名称', r.name], ['规格', '標準規格'], ['数量', '1']]],
+                ['採購 / 財務', [['购买日期', '2024-0' + (h % 9 + 1) + '-15'], ['币种', 'CNY'], ['价格', '¥ ' + fmt(price)], ['残值', '¥ ' + fmt(r.residual)], ['收据号码', 'RC-' + no.slice(-6)], ['文件编号', 'DOC-' + no.slice(-4)]]],
+                ['使用 / 保管', [['使用人', r.user + '（' + (r.userId || '-') + '）'], ['部门资产保管人', r.owner]]],
+                ['關聯單據', [['物品购买申请号(PU单)', 'PU-THQ-0000' + (h % 90 + 10)], ['请款单号(A单/B单)', 'B-THQ-0000' + (h % 90 + 10)], ['报销单号(C单)', 'C-THQ-0000' + (h % 90 + 10)], ['维修记录(维修单号)', '-']]],
+                ['費用歸屬', [['原采购单位(原费用项目)', r.project + ' / ' + r.dept], ['现资产所有权单位(现费用项目)', r.project + ' / ' + r.dept]]],
+            ];
+            _assetFields = [];
+            groups.forEach(([g, items]) => items.forEach(([k, v]) => _assetFields.push({ k, v, g })));
+            _assetEdit = false;
+            document.getElementById('ad-no').textContent = r.no;
+            renderAssetDetail();
+            document.getElementById('asset-detail-modal').classList.remove('hidden');
+        }
+        function renderAssetDetail() {
+            const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+            const cell = (f, i) => {
+                let ctrl;
+                if (_assetEdit && !_assetRO.has(f.k)) {
+                    if (_assetOptions[f.k]) {
+                        ctrl = `<select data-i="${i}" class="w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-primary">` +
+                            _assetOptions[f.k].map(o => `<option${o === f.v ? ' selected' : ''}>${o}</option>`).join('') + `</select>`;
+                    } else {
+                        ctrl = `<input data-i="${i}" value="${esc(f.v)}" class="w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-primary">`;
+                    }
+                } else {
+                    const isDoc = f.g === '關聯單據' && f.v && f.v !== '-';
+                    const viewBtn = isDoc ? ` <button type="button" onclick="openFormView('${esc(f.v)}')" title="查閱電子表單" class="text-primary hover:text-blue-700 ml-1"><i class="fa-solid fa-arrow-up-right-from-square text-xs"></i></button>` : '';
+                    ctrl = `<div class="text-sm text-gray-800 break-words flex items-center">${esc(f.v)}${viewBtn}</div>`;
+                }
+                return `<div><div class="text-xs font-semibold text-text-muted mb-1">${f.k}</div>${ctrl}</div>`;
+            };
+            const groupTitles = [...new Set(_assetFields.map(f => f.g))];
+            document.getElementById('asset-detail-grid').innerHTML = groupTitles.map(g => {
+                const cells = _assetFields.map((f, i) => ({ f, i })).filter(x => x.f.g === g)
+                    .map(({ f, i }) => cell(f, i)).join('');
+                return `<div class="border border-gray-200 rounded-lg overflow-hidden shadow-sm"><div class="bg-gray-50 px-4 py-2.5 border-b border-gray-200 text-sm font-bold text-primary flex items-center gap-2"><span class="w-1.5 h-4 bg-primary rounded-full"></span>${g}</div><div class="p-4 grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-4">${cells}</div></div>`;
+            }).join('');
+            document.getElementById('ad-view-btns').classList.toggle('hidden', _assetEdit);
+            document.getElementById('ad-edit-btns').classList.toggle('hidden', !_assetEdit);
+        }
+        function toggleAssetEdit(on) { _assetEdit = on; renderAssetDetail(); }
+        function saveAssetDetail() {
+            document.querySelectorAll('#asset-detail-grid [data-i]').forEach(el => { _assetFields[+el.dataset.i].v = el.value; });
+            _assetEdit = false;
+            renderAssetDetail();
+            showToast('success', '已儲存資產資料（示範）');
+        }
+        function closeAssetDetail() { _assetEdit = false; document.getElementById('asset-detail-modal').classList.add('hidden'); }
+        // 電子表單檢視（由關聯單據查閱 icon 開啟）
+        function openFormView(docNo) {
+            const typeMap = { PU: '請購單 (PU)', B: '費用申請單 (B)', C: '費用報銷單 (C)', A: '請款單 (A)', RP: '維修單' };
+            const prefix = (String(docNo).split('-')[0] || '').toUpperCase();
+            document.getElementById('fv-title').textContent = (typeMap[prefix] || '電子表單') + '　' + docNo;
+            document.getElementById('fv-docno').textContent = docNo;
+            document.getElementById('fv-type').textContent = typeMap[prefix] || '-';
+            document.getElementById('form-view-modal').classList.remove('hidden');
+        }
+        function closeFormView() { document.getElementById('form-view-modal').classList.add('hidden'); }
 
         // 以固定的資產類型順序填入清單頁的「類型」下拉選單
         function populateTypeFilter() {
@@ -398,7 +531,7 @@
                 const tr = document.createElement('tr');
                 tr.className = 'hover:bg-gray-50/70 transition-colors';
                 tr.innerHTML = `
-                    <td class="text-left font-mono font-semibold text-gray-500">${r.no}</td>
+                    <td class="text-left"><button type="button" onclick="openAssetDetail('${r.no}')" class="font-mono font-semibold text-primary hover:underline">${r.no}</button></td>
                     <td><span class="px-2 py-0.5 bg-blue-50 text-primary rounded text-xs font-semibold">${r.type}</span></td>
                     <td class="text-left font-medium text-gray-800">${r.name}</td>
                     <td class="text-left font-mono text-gray-500 text-xs">${r.serial}</td>
@@ -436,7 +569,7 @@
                 card.className = 'border border-gray-200 rounded-xl overflow-hidden';
                 const rows = g.assets.map(a => `
                     <tr class="hover:bg-gray-50/70 transition-colors">
-                        <td class="text-left font-mono font-semibold text-gray-500">${a.no}</td>
+                        <td class="text-left"><button type="button" onclick="openAssetDetail('${a.no}')" class="font-mono font-semibold text-primary hover:underline">${a.no}</button></td>
                         <td><span class="px-2 py-0.5 bg-blue-50 text-primary rounded text-xs font-semibold">${a.type}</span></td>
                         <td class="text-left font-medium text-gray-800">${a.name}</td>
                         <td class="text-left font-mono text-gray-500 text-xs">${a.serial}</td>
