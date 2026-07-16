@@ -433,9 +433,9 @@
 
       // 提取共用的篩選列渲染函數
       const renderFilterBar = (configs) => (
-        <div className="bg-[#F8F9FB] p-3 rounded border border-gray-200 flex flex-wrap gap-4 items-center">
+        <div className="bg-[#F8F9FB] p-3 rounded border border-gray-200 flex flex-wrap gap-x-1.5 gap-y-3 items-center">
           {configs.map((filter) => (
-            <div key={filter.id} className={`flex items-center gap-2 flex-1 min-w-[180px] ${filter.id === 'docType' || filter.id === 'status' || filter.id === 'ltStatus' ? 'md:col-span-2 lg:min-w-[280px]' : ''}`}>
+            <div key={filter.id} className={`flex items-center gap-2 ${filter.id === 'docType' ? 'basis-full' : 'flex-1 min-w-[180px]'}`}>
               <span className="whitespace-nowrap text-xs text-gray-600 font-medium w-16 text-right">{filter.label}</span>
               <div className="relative flex-1 group">
                 <button
@@ -627,6 +627,19 @@
         'C-THQ-000002': 'PU-THQ-000002',
       };
 
+      // 關聯單號可能不止一張，模擬部分單據關聯多張
+      const relatedDocsExtra = {
+        'PU-THQ-000001': ['B-THQ-000011'],
+        'PU-THQ-000002': ['C-THQ-000021', 'B-THQ-000022'],
+        'B-THQ-000003': ['C-THQ-000031'],
+        'C-THQ-000001': ['IC-THQ-000041'],
+      };
+      const relatedDocsOf = (docNo) => {
+        const base = relatedDocMap[docNo];
+        if (!base) return [];
+        return [base, ...(relatedDocsExtra[docNo] || [])];
+      };
+
       // C-THQ-000001 進度追蹤（依「進度追蹤C」文件）：審批節點 + 抄送
       const progressCSteps = [
         { seq: '1', status: '已審批', cond: '—',  level: '—',       title: '提交申請',   sign: 'Oliver', id: 'aaa123', time: '2026-04-15 18:30:00' },
@@ -775,16 +788,24 @@
                                 <span className="text-xs text-gray-400">{row.date.slice(11)}</span>
                               </div>
                             </td>
-                            <td>{row.approver}</td>
+                            <td>{({ 財務: '財務負責人', 商務: '部門主管', 合同: '法務審核', 行政: '行政主管', PMO: '專案經理' })[row.oa] || '直屬主管'}</td>
                             <td className="text-gray-400">
-                              {relatedDocMap[row.docNo] ? (
-                                <button
-                                  onClick={() => { const t = mockData.find(r => r.docNo === relatedDocMap[row.docNo]); if (t) openDocModal(t); }}
-                                  className="text-[#4A90E2] hover:underline font-medium"
-                                >
-                                  {relatedDocMap[row.docNo]}
-                                </button>
-                              ) : '-'}
+                              {(() => {
+                                const docs = relatedDocsOf(row.docNo);
+                                return docs.length ? (
+                                  <div className="flex flex-col items-center gap-0.5">
+                                    {docs.map((dn, i) => (
+                                      <button
+                                        key={i}
+                                        onClick={() => { const t = mockData.find(r => r.docNo === dn); if (t) openDocModal(t); }}
+                                        className="text-[#4A90E2] hover:underline font-medium whitespace-nowrap"
+                                      >
+                                        {dn}
+                                      </button>
+                                    ))}
+                                  </div>
+                                ) : '-';
+                              })()}
                             </td>
                             <td>
                               <div className="flex items-center justify-center gap-3">
