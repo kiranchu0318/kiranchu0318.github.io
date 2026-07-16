@@ -609,6 +609,7 @@
 
       const mockData = [
         ...storedApps,
+        { oa: '行政', location: 'THQ', type: 'HR', docNo: 'HR_THQ-000001', label: 'HR_THQ-000001_員工帳號申請/換發/刪除', applicant: 'Oliver', signature: 'Oliver', amounts: ['-'], date: '2026-06-01 09:15:00', approver: 'James', refNo: '-', status: '待我簽核', isGreen: false, workStatus: '未派工' },
         { oa: '財務', location: 'THQ', type: 'B',  docNo: 'B-THQ-000003',  applicant: 'Oliver', signature: 'Oliver', amounts: ['TWD 8,000', 'CNY 2137.09'],        date: '2026-05-30 15:36:45', approver: 'James', refNo: '-', status: '待我簽核', isGreen: false, workStatus: '未派工' },
         { oa: '合同', location: 'THQ', type: 'IC', docNo: 'IC-THQ-000002', applicant: 'Oliver', signature: 'Oliver', amounts: ['TWD 2,000,000', 'CNY 427407.40'], date: '2026-05-20 15:36:45', approver: 'James', refNo: '-', status: '簽核完成', isGreen: true, workStatus: '已完成' },
         { oa: '行政', location: 'THQ', type: 'PU', docNo: 'PU-THQ-000003', applicant: 'Oliver', signature: 'Oliver', amounts: ['TWD 8,000', 'CNY 2137.09'],        date: '2026-05-12 15:36:45', approver: 'James', refNo: '-', status: '未簽核', isGreen: false, workStatus: '未派工', urgent: true },
@@ -1206,7 +1207,7 @@
 
                 {/* 彈窗標題與關閉按鈕 */}
                 <div className="bg-[#EEF2F6] px-6 py-3.5 flex items-center justify-between border-b border-gray-200 flex-shrink-0">
-                  <span className="font-bold text-gray-800 text-base">{`${({ B: '費用申請單', C: '費用報銷單', IC: '內部合同審批單', PU: '請購申請單' })[modalRow?.type] || '費用申請單'}(${modalRow?.type || 'B'})`}</span>
+                  <span className="font-bold text-gray-800 text-base">{`${({ B: '費用申請單', C: '費用報銷單', IC: '內部合同審批單', PU: '請購申請單', HR: '員工帳號異動申請單' })[modalRow?.type] || '費用申請單'}(${modalRow?.type || 'B'})`}</span>
                   <button
                     onClick={closeOrBackModal}
                     className="bg-[#3F51B5] hover:bg-blue-800 text-white p-1 rounded transition-colors"
@@ -1260,6 +1261,56 @@
                           </div>
                         </div>
                       </div>
+
+                      {/* 人員帳號異動明細（HR 專用；由員工管理「提交異動申請」帶入）*/}
+                      {modalRow?.type === 'HR' && (
+                      <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-5">
+                        <div className="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2">人員帳號異動明細</div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                          <div>
+                            <label className="block text-gray-700 text-xs mb-1.5 font-medium">異動對象</label>
+                            <input type="text" disabled value="Gibson Yang（100258）" className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed" />
+                          </div>
+                          <div>
+                            <label className="block text-gray-700 text-xs mb-1.5 font-medium">所屬部門</label>
+                            <input type="text" disabled value="研發事業部 (RD BU) / GT" className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed" />
+                          </div>
+                          <div>
+                            <label className="block text-gray-700 text-xs mb-1.5 font-medium">申請類型</label>
+                            <input type="text" disabled value="人員帳號 增 / 改 / 刪" className="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-sm text-gray-800" />
+                          </div>
+                        </div>
+                        <div className="overflow-x-auto border border-gray-100 rounded-lg">
+                          <table className="w-full text-left text-xs border-collapse whitespace-nowrap">
+                            <thead>
+                              <tr className="border-b border-gray-200 bg-gray-50 text-gray-700 font-bold">
+                                <th className="px-3 py-1.5">欄位</th>
+                                <th className="px-3 py-1.5">目前值</th>
+                                <th className="px-3 py-1.5 w-20 text-center">異動類型</th>
+                                <th className="px-3 py-1.5">異動內容 / 刪除方式</th>
+                                <th className="px-3 py-1.5">備註</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-100 font-medium">
+                              {[
+                                { field: 'Mobile / WhatsApp', cur: '「T2」601114372701', chg: '修改', detail: '「T2」602233445566', note: '門號更換' },
+                                { field: 'E-mail', cur: 'gibsonyang@roycetechnology.com', chg: '刪除', detail: '離職停用（保留 30 天）', note: '轉調前先停用' },
+                                { field: 'Apple ID', cur: '（未綁定）', chg: '新增', detail: 'gibson.apple@icloud.com', note: '公務設備綁定' },
+                                { field: 'Jira', cur: '（未綁定）', chg: '新增', detail: 'gibson.yang', note: '專案協作需求' },
+                              ].map((r, i) => (
+                                <tr key={i}>
+                                  <td className="px-3 py-1.5 text-gray-800">{r.field}</td>
+                                  <td className="px-3 py-1.5 text-gray-600 font-mono">{r.cur}</td>
+                                  <td className="px-3 py-1.5 text-center"><span className={`ui-badge ${r.chg === '刪除' ? 'ui-badge-danger' : r.chg === '新增' ? 'ui-badge-success' : 'ui-badge-info'}`}>{r.chg}</span></td>
+                                  <td className="px-3 py-1.5 text-gray-800 font-mono">{r.detail}</td>
+                                  <td className="px-3 py-1.5 text-gray-500">{r.note}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                      )}
 
                       {/* 費用報銷卡片（C-THQ-000001 專用） */}
                       {['C-THQ-000001', 'C-THQ-000002'].includes(modalRow?.docNo) && (
@@ -1331,7 +1382,8 @@
                       </div>
                       )}
 
-                      {/* 費用申請明細 / 費用報銷明細卡片 */}
+                      {/* 費用申請明細 / 費用報銷明細卡片（HR 不顯示）*/}
+                      {modalRow?.type !== 'HR' && (
                       <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-5">
                         <div className="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2">{['C-THQ-000001', 'C-THQ-000002'].includes(modalRow?.docNo) ? '費用報銷明細' : '費用申請明細'}</div>
                         {['C-THQ-000001', 'C-THQ-000002'].includes(modalRow?.docNo) ? (
@@ -1387,6 +1439,7 @@
                           </div>
                         )}
                       </div>
+                      )}
 
                       {/* 說明卡片（C-THQ-000001 專用：內嵌文字編輯器 + 上傳附件） */}
                       {['C-THQ-000001', 'C-THQ-000002'].includes(modalRow?.docNo) && (

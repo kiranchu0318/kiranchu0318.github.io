@@ -748,18 +748,51 @@
                             </div>
                           </div>
 
-                          {/* 員工帳號申請詳情 */}
+                          {/* 人員帳號異動明細（比照電子表單簽核 USER_DATA）*/}
                           <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-5">
-                            <div className="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2">員工帳號申請詳情</div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                            <div className="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2">人員帳號異動明細</div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                               <div>
-                                <label className="block text-gray-700 text-xs mb-1.5 font-medium">帳號類型</label>
-                                <input type="text" disabled value="一般員工帳號（OA / Mail / 門禁）" className="w-full bg-white border border-gray-200 rounded px-3 py-2 text-sm text-gray-800" />
+                                <label className="block text-gray-700 text-xs mb-1.5 font-medium">異動對象</label>
+                                <input type="text" disabled value="Benjamin（100139）" className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 cursor-not-allowed" />
+                              </div>
+                              <div>
+                                <label className="block text-gray-700 text-xs mb-1.5 font-medium">所屬部門</label>
+                                <input type="text" disabled value="研發中心 RD-2 / GT" className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 cursor-not-allowed" />
+                              </div>
+                              <div>
+                                <label className="block text-gray-700 text-xs mb-1.5 font-medium">申請類型</label>
+                                <input type="text" disabled value="人員帳號 增 / 改 / 刪" className="w-full bg-white border border-gray-200 rounded px-3 py-2 text-sm text-gray-800" />
                               </div>
                             </div>
-                            <div>
-                              <label className="block text-gray-700 text-xs mb-1.5 font-medium">申請說明</label>
-                              <textarea disabled rows={3} value="因配合網域整併與門禁系統汰換，申請調整 E-mail、Jira、門禁卡片、指紋、OA 等相關帳號。" className="w-full border border-gray-200 rounded-lg p-3 text-sm text-gray-700 bg-white resize-none focus:outline-none" />
+                            <div className="overflow-x-auto border border-gray-100 rounded-lg">
+                              <table className="w-full text-left text-xs border-collapse whitespace-nowrap">
+                                <thead>
+                                  <tr className="border-b border-gray-200 bg-gray-50 text-gray-700 font-bold">
+                                    <th className="px-3 py-1.5">欄位</th>
+                                    <th className="px-3 py-1.5">目前值</th>
+                                    <th className="px-3 py-1.5 w-20 text-center">異動類型</th>
+                                    <th className="px-3 py-1.5">異動內容 / 刪除方式</th>
+                                    <th className="px-3 py-1.5">備註</th>
+                                  </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-100 font-medium">
+                                  {[
+                                    { field: 'Mobile / WhatsApp', cur: '「T2」601114372701', chg: '修改', detail: '「T2」602233445566', note: '門號更換' },
+                                    { field: 'E-mail', cur: 'benjamin@roycetechnology.com', chg: '刪除', detail: '離職停用（保留 30 天）', note: '轉調前先停用' },
+                                    { field: 'Apple ID', cur: '（未綁定）', chg: '新增', detail: 'benjamin.apple@icloud.com', note: '公務設備綁定' },
+                                    { field: 'Jira', cur: '（未綁定）', chg: '新增', detail: 'benjamin.tw', note: '專案協作需求' },
+                                  ].map((r, i) => (
+                                    <tr key={i}>
+                                      <td className="px-3 py-1.5 text-gray-800">{r.field}</td>
+                                      <td className="px-3 py-1.5 text-gray-600 font-mono">{r.cur}</td>
+                                      <td className="px-3 py-1.5 text-center"><span className={`ui-badge ${r.chg === '刪除' ? 'ui-badge-danger' : r.chg === '新增' ? 'ui-badge-success' : 'ui-badge-info'}`}>{r.chg}</span></td>
+                                      <td className="px-3 py-1.5 text-gray-800 font-mono">{r.detail}</td>
+                                      <td className="px-3 py-1.5 text-gray-500">{r.note}</td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
                             </div>
                           </div>
 
