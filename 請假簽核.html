@@ -370,7 +370,7 @@
           {configs.map((filter) => (
             <div key={filter.id} className={`flex items-center gap-2 flex-1 min-w-[180px] ${filter.id === 'docType' || filter.id === 'status' || filter.id === 'ltStatus' ? 'md:col-span-2 lg:min-w-[280px]' : ''}`}>
               <span className="whitespace-nowrap text-xs text-gray-600 font-medium w-16 text-right">{filter.label}</span>
-              <div className="relative flex-1">
+              <div className="relative flex-1 group">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -380,21 +380,26 @@
                     openDropdown === filter.id ? 'border-[#4A90E2] ring-1 ring-[#4A90E2]' : 'border-gray-300 hover:border-[#4A90E2]'
                   }`}
                 >
-                  <div className="flex-1 flex flex-wrap gap-1 items-center overflow-hidden">
+                  <div className="flex-1 flex flex-wrap gap-1 items-center overflow-hidden" title={filter.type !== 'single' && selectedFilters[filter.id].length > 0 ? selectedFilters[filter.id].join('、') : undefined}>
                     {filter.type === 'single' ? (
                       <span className="text-gray-700 truncate">{selectedFilters[filter.id]}</span>
                     ) : selectedFilters[filter.id].length > 0 ? (
-                      selectedFilters[filter.id].map(opt => (
-                        <span key={opt} className="inline-flex items-center gap-1 bg-[#F0F2F5] text-gray-700 px-1.5 py-0.5 rounded-sm text-[11px] border border-gray-200 max-w-full">
-                          <span className="truncate">{opt}</span>
-                          <div 
-                            onClick={(e) => removeFilterOption(filter.id, opt, e)} 
-                            className="hover:text-red-500 hover:bg-gray-200 rounded-full p-0.5 transition-colors cursor-pointer flex-shrink-0"
-                          >
-                            <X size={10} strokeWidth={2} />
-                          </div>
-                        </span>
-                      ))
+                      <>
+                        {selectedFilters[filter.id].slice(0, 3).map(opt => (
+                          <span key={opt} className="inline-flex items-center gap-1 bg-[#F0F2F5] text-gray-700 px-1.5 py-0.5 rounded-sm text-[11px] border border-gray-200 max-w-full">
+                            <span className="truncate">{opt}</span>
+                            <div
+                              onClick={(e) => removeFilterOption(filter.id, opt, e)}
+                              className="hover:text-red-500 hover:bg-gray-200 rounded-full p-0.5 transition-colors cursor-pointer flex-shrink-0"
+                            >
+                              <X size={10} strokeWidth={2} />
+                            </div>
+                          </span>
+                        ))}
+                        {selectedFilters[filter.id].length > 3 && (
+                          <span className="inline-flex items-center bg-[#E8EEF9] text-[#4A90E2] px-1.5 py-0.5 rounded-sm text-[11px] border border-[#cddcf5] font-medium flex-shrink-0">+{selectedFilters[filter.id].length - 3}</span>
+                        )}
+                      </>
                     ) : (
                       <span className="text-gray-700">全部</span>
                     )}
@@ -402,6 +407,12 @@
                   <ChevronDown size={14} className={`text-gray-400 transition-transform flex-shrink-0 ml-1.5 ${openDropdown === filter.id ? 'rotate-180' : ''}`} />
                 </button>
 
+                {/* Hover 顯示所有已選項目 */}
+                {filter.type !== 'single' && selectedFilters[filter.id].length > 0 && openDropdown !== filter.id && (
+                  <div className="pointer-events-none absolute bottom-full left-0 mb-1 hidden group-hover:block z-[60] bg-gray-800 text-white text-[11px] leading-relaxed rounded px-2.5 py-1.5 shadow-lg max-w-xs whitespace-normal">
+                    {selectedFilters[filter.id].join('、')}
+                  </div>
+                )}
                 {/* 下拉選單內容 */}
                 {openDropdown === filter.id && (
                   <div 
