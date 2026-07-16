@@ -288,13 +288,19 @@
                     <!-- 假期種類 -->
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">假期種類 <span class="text-status-text-rejected">*</span></label>
-                        <div class="w-48">
-                            <select required class="ui-select">
-                                <option value="" disabled selected>請選擇假別</option>
-                                <option value="特休假">特休假</option>
-                                <option value="事假">事假</option>
-                                <option value="病假">病假</option>
-                            </select>
+                        <div class="flex items-center gap-2">
+                            <div class="w-48">
+                                <select id="leaveTypeSelect" required onchange="updateLeaveNote()" class="ui-select">
+                                    <option value="" disabled selected>請選擇假別</option>
+                                    <option value="特休假">特休假</option>
+                                    <option value="事假">事假</option>
+                                    <option value="病假">病假</option>
+                                </select>
+                            </div>
+                            <span class="relative inline-flex items-center leave-note-anchor">
+                                <button type="button" onclick="toggleLeaveNote(event)" class="text-gray-400 hover:text-primary transition-colors" title="說明"><i data-lucide="info" class="w-4 h-4"></i></button>
+                                <div id="leaveNotePop" class="hidden absolute left-6 top-1/2 -translate-y-1/2 z-40 w-[400px] max-h-72 overflow-y-auto custom-scrollbar bg-white border border-gray-200 rounded-lg shadow-xl p-4 text-xs leading-relaxed text-gray-600 font-normal whitespace-pre-line"></div>
+                            </span>
                         </div>
                     </div>
 
@@ -309,8 +315,16 @@
 
                     <!-- 職務代理人 (Checkbox) -->
                     <div class="flex items-start gap-2 pt-1">
-                        <input type="checkbox" id="needDeputy" class="mt-1 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer w-4 h-4">
-                        <label for="needDeputy" class="text-sm text-gray-700 cursor-pointer select-none">請選擇是否須要設定您的職務代理人進行審批工作</label>
+                        <input type="checkbox" id="needDeputy" onchange="toggleDeputy(this)" class="mt-1 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer w-4 h-4">
+                        <label for="needDeputy" class="text-sm text-gray-700 cursor-pointer select-none">設定職務代理人進行審批工作</label>
+                    </div>
+                    <!-- 職務代理人下拉（勾選後顯示，可輸入工號或姓名查找） -->
+                    <div id="deputyWrap" class="hidden pl-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">職務代理人 <span class="text-status-text-rejected">*</span></label>
+                        <div class="relative max-w-sm deputy-combo">
+                            <input type="text" id="deputyInput" autocomplete="off" oninput="deputyFilter(this)" onfocus="deputyFilter(this)" onblur="setTimeout(deputyHide, 150)" placeholder="輸入工號或姓名查找" class="ui-input">
+                            <div id="deputyList" class="hidden absolute z-30 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto text-sm"></div>
+                        </div>
                     </div>
 
                     <!-- 申請說明 -->
@@ -404,7 +418,89 @@
             if(document.getElementById('dateListContainer')) {
                 document.getElementById('dateListContainer').innerHTML = ''; // 清空動態日期列表
             }
+            // 重置職務代理人下拉
+            const dw = document.getElementById('deputyWrap');
+            if (dw) dw.classList.add('hidden');
+            const di = document.getElementById('deputyInput');
+            if (di) di.value = '';
         }
+
+        // ===== 職務代理人下拉（可輸入工號或姓名查找）=====
+        const DEPUTY_PEOPLE = [
+            { name: 'James', id: '100344' }, { name: 'Matthew', id: '101383' }, { name: 'Henry', id: '100423' },
+            { name: 'William', id: '100645' }, { name: 'Emma', id: '101210' }, { name: 'Alexander', id: '101334' },
+            { name: 'Samuel', id: '101312' }, { name: 'Isabella', id: '101502' }, { name: 'Daniel', id: '101122' },
+            { name: 'Nick', id: '101372' }, { name: 'Stella', id: '101436' }, { name: 'Miles', id: '100962' }
+        ];
+        function toggleDeputy(cb) {
+            const wrap = document.getElementById('deputyWrap');
+            if (wrap) wrap.classList.toggle('hidden', !cb.checked);
+            if (!cb.checked) { const i = document.getElementById('deputyInput'); if (i) i.value = ''; deputyHide(); }
+        }
+        function deputyFilter(input) {
+            const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+            const box = document.getElementById('deputyList');
+            if (!box) return;
+            const q = (input.value || '').trim().toLowerCase();
+            const matches = DEPUTY_PEOPLE.filter(p => !q || p.name.toLowerCase().includes(q) || p.id.includes(q)).slice(0, 50);
+            box.innerHTML = matches.length
+                ? matches.map(p => `<div class="px-3 py-2 hover:bg-primary-light cursor-pointer flex justify-between gap-3" data-name="${esc(p.name)}" data-id="${p.id}" onmousedown="deputyPick(this)"><span>${esc(p.name)}</span><span class="text-gray-400 font-mono text-xs">${p.id}</span></div>`).join('')
+                : '<div class="px-3 py-2 text-gray-400">查無人員</div>';
+            box.classList.remove('hidden');
+        }
+        function deputyPick(el) {
+            const input = document.getElementById('deputyInput');
+            if (input) input.value = el.dataset.name + '（' + el.dataset.id + '）';
+            deputyHide();
+        }
+        function deputyHide() {
+            const box = document.getElementById('deputyList');
+            if (box) box.classList.add('hidden');
+        }
+
+        // ===== 假期種類「說明」泡泡彈窗（內容隨假別改變）=====
+        const LEAVE_NOTES = {
+            '': '請先選擇假別，以查看該假別的相關說明。',
+            '特休假': `※Note :
+2.10.9.1 帶薪年假/特休:
+2.10.9.1.1 通過試用期後至年資未滿一年者,享十日特別休假。但若未滿一年離職者,將依勞動基準法第 38 條規定,年資六個月以上一年未滿者僅給予三日特別休假,未達年資比例之特別休假將以事假計算之。
+2.10.9.1.2 年資一年至未滿三年者,每年享十日特休假。
+2.10.9.1.3 年資三年至未滿六年者,每年享十五日特休假。
+2.10.9.1.4 年資六年以上者,享每滿一年加一日,加至三十日止。
+2.10.9.1.5 特休到期延展申請說明:
+2.10.9.1.6 相關特休依據個人到職日週年制計算,到職日期為特休起始期限,請同仁逕行利用休假。例:2020/10/1 到職,三個月試用期通過後(2021/1/1)將給予特休十天,特休截止日為 2021/9/30, 第二年特休有效期為 2021/10/1~2022/9/30,相關特休須於到期前逕行安排。
+2.10.9.1.7 配合相關規定實施,請同仁多加利用特別休假,相關特別休假,於每年度截止到期日前三個月,人資組將提醒相關同仁剩餘未休時數。
+2.10.9.1.8 若需延長休假申請,請填寫「特別休假遞延同意書」,使得遞延到期之特別休假(表單請與人資組索取)。
+2.10.9.1.9 相關特休未休完畢之時數,若到期前一個月無相關遞延申請,未休時數換薪於截止日隔月計入薪資發放。`,
+            '事假': `※Note :
+2.10.9.2 事假:
+2.10.9.2.1 事假應於事前提出申請,並經主管核准後始得休假;如遇突發狀況,應於當日儘速補辦申請。
+2.10.9.2.2 全年事假合計不得超過十四日,事假期間不給付工資。
+2.10.9.2.3 未依規定請假或未經核准而擅離職守者,以曠職論處。`,
+            '病假': `※Note :
+2.10.9.3 病假:
+2.10.9.3.1 普通傷病假一年內未住院者合計不得超過三十日;住院者兩年內合計不得超過一年。
+2.10.9.3.2 未超過三十日之普通傷病假,工資折半發給;超過部分不給付工資。
+2.10.9.3.3 請病假三日(含)以上者,應檢附醫療機構或醫師開立之證明文件。`
+        };
+        function updateLeaveNote() {
+            const sel = document.getElementById('leaveTypeSelect');
+            const pop = document.getElementById('leaveNotePop');
+            if (!sel || !pop) return;
+            pop.textContent = LEAVE_NOTES[sel.value] || LEAVE_NOTES[''];
+        }
+        function toggleLeaveNote(e) {
+            e.stopPropagation();
+            const pop = document.getElementById('leaveNotePop');
+            if (!pop) return;
+            updateLeaveNote();
+            pop.classList.toggle('hidden');
+        }
+        document.addEventListener('click', function (e) {
+            const pop = document.getElementById('leaveNotePop');
+            if (!pop || pop.classList.contains('hidden')) return;
+            if (!e.target.closest('.leave-note-anchor')) pop.classList.add('hidden');
+        });
 
         // 點擊背景關閉
         modal.addEventListener('click', function(e) {
@@ -628,7 +724,12 @@
                                         <td class="px-3 py-2 text-gray-700">${reason}</td>
                                         <td class="px-3 py-2 text-center text-gray-700">${amount}</td>
                                         <td class="px-3 py-2 text-center"><span class="ui-badge ui-badge-warning">審批中</span></td>
-                                        <td class="px-3 py-2 text-center"><button class="ui-btn ui-btn-secondary ui-btn-sm" onclick="withdrawCancel(this)">撤回</button></td>
+                                        <td class="px-3 py-2 text-center">
+                                            <div class="flex items-center justify-center gap-2">
+                                                <button class="ui-btn ui-btn-secondary ui-btn-sm" onclick="openCancelViewModal(this)">檢視</button>
+                                                <button class="ui-btn ui-btn-secondary ui-btn-sm" onclick="withdrawCancel(this)">撤回</button>
+                                            </div>
+                                        </td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -686,18 +787,177 @@
             return `<div class="flex items-start min-w-[380px]">${n1}${conn(true)}${n2}${c2}${n3}</div>`;
         }
 
-        function openViewModal(btn) {
-            const tr = btn.closest('tr');
+        // 檢視彈窗（比照 請假簽核.html 請假申請單）
+        const LV_APPLICANT = 'Dev（100258）';
+        let lvOpinionsOn = false;
+        function lvSegOf(hrs) {
+            const start = 9 * 60;
+            let end = start + hrs * 60;
+            if (start < 12 * 60 && end > 12 * 60) end += 60; // 含午休
+            const f = (mm) => String(Math.floor(mm / 60)).padStart(2, '0') + ':' + String(Math.round(mm % 60)).padStart(2, '0');
+            return f(start) + ' – ' + f(end);
+        }
+        function lvSteps(status) {
+            const submit = { seq: '1', title: '提交申請', status: '已審批', sign: LV_APPLICANT };
+            if (/完成/.test(status)) return [submit, { seq: '2', title: '直屬主管', status: '已審批', sign: 'James' }, { seq: '3', title: '人資審核', status: '已審批', sign: 'Emma' }];
+            if (/審批中/.test(status)) return [submit, { seq: '2', title: '直屬主管', status: '審批中', sign: '-' }, { seq: '3', title: '人資審核', status: '待審批', sign: '-' }];
+            return [submit, { seq: '2', title: '直屬主管', status: '待審批', sign: '-' }, { seq: '3', title: '人資審核', status: '待審批', sign: '-' }];
+        }
+        function lvBadgeClass(s) { return s === '審批中' ? 'ui-badge-info' : s === '待審批' ? 'ui-badge-gray' : 'ui-badge-success'; }
+        function lvToggleOpinions() {
+            lvOpinionsOn = !lvOpinionsOn;
+            document.getElementById('lv-opinions').classList.toggle('hidden', !lvOpinionsOn);
+            const tgl = document.getElementById('lv-op-toggle');
+            tgl.classList.toggle('bg-[#3F51B5]', lvOpinionsOn); tgl.classList.toggle('bg-gray-300', !lvOpinionsOn);
+            const knob = document.getElementById('lv-op-knob');
+            knob.classList.toggle('translate-x-6', lvOpinionsOn); knob.classList.toggle('translate-x-1', !lvOpinionsOn);
+        }
+        function openViewModal(btn) { openViewFromRow(btn.closest('tr'), '請假申請單'); }
+        function openCancelViewModal(btn) {
+            const innerRow = btn.closest('tr');
+            const sub = btn.closest('tr.cancel-subrow');
+            const row = sub ? sub.previousElementSibling : null;
+            const cancelReason = (innerRow && innerRow.children[2]) ? innerRow.children[2].innerText.trim() : '';
+            if (row) openViewFromRow(row, '銷假申請單', { reason: cancelReason });
+        }
+        function openViewFromRow(tr, titleText, cancelInfo) {
+            const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+            document.getElementById('lv-modal-title').textContent = titleText || '請假申請單';
             const c = tr.children;
             const t = (i) => (c[i] ? c[i].innerText.trim() : '');
-            document.getElementById('lv-apply').textContent = t(0);
-            document.getElementById('lv-type').textContent = t(1);
-            document.getElementById('lv-reason').textContent = t(2);
-            document.getElementById('lv-period').textContent = t(3);
-            document.getElementById('lv-amount').textContent = t(4);
-            const status = t(5);
-            document.getElementById('lv-status').textContent = status;
-            document.getElementById('lv-flow').innerHTML = approvalFlowHTML(status, '申請人', '直屬主管');
+            const applyDate = t(0), leaveType = t(1), reason = t(2), period = t(3), amount = t(4), status = t(5);
+            // 解析起訖時間
+            const parts = period.split(' - ');
+            const L = (parts[0] || '').split(' '), R = (parts[1] || '').split(' ');
+            const startDate = L[0] || '', startTime = L[1] || '09:00';
+            const endDate = R[0] || startDate, endTime = R[1] || '18:00';
+            const isMulti = startDate && endDate && startDate !== endDate;
+            // 時數
+            let totalHours = 0;
+            const mH = amount.match(/([\d.]+)\s*小時/), mD = amount.match(/([\d.]+)\s*天/);
+            if (mH) totalHours = parseFloat(mH[1]); else if (mD) totalHours = parseFloat(mD[1]) * 8;
+            // 天列表
+            const days = [];
+            if (isMulti) {
+                const s = new Date(startDate.replace(/-/g, '/')), e = new Date(endDate.replace(/-/g, '/'));
+                for (let x = new Date(s); x <= e; x.setDate(x.getDate() + 1)) {
+                    days.push(x.getFullYear() + '/' + String(x.getMonth() + 1).padStart(2, '0') + '/' + String(x.getDate()).padStart(2, '0'));
+                }
+            }
+            const perDay = days.length ? totalHours / days.length : 0;
+            // 基本資訊
+            document.getElementById('lv-docno').value = 'A-RD-100258-' + applyDate.replace(/\D/g, '');
+            document.getElementById('lv-applytime').value = applyDate;
+            document.getElementById('lv-name').value = LV_APPLICANT;
+            document.getElementById('lv-empno').value = '100258';
+            document.getElementById('lv-project').value = 'GT';
+            document.getElementById('lv-dept').value = 'RD';
+            // 每日請假明細 rows（多日）
+            const dailyRows = isMulti
+                ? (days.map((d, i) => `<tr>
+                        <td class="px-3 py-1.5 text-center font-bold text-gray-800">${i + 1}</td>
+                        <td class="px-3 py-1.5 text-gray-800">${d}</td>
+                        <td class="px-3 py-1.5 text-gray-600">${lvSegOf(perDay)}</td>
+                        <td class="px-3 py-1.5 text-right text-gray-800">${perDay.toFixed(1)} 小時</td></tr>`).join('')
+                    + `<tr class="bg-gray-50 font-bold"><td class="px-3 py-1.5" colspan="3">合計</td><td class="px-3 py-1.5 text-right text-[#1A237E]">${totalHours.toFixed(1)} 小時</td></tr>`)
+                : '';
+            // 請假資訊 grid
+            const field = (label, val, muted, span) => `<div${span ? ` class="${span}"` : ''}><label class="block text-gray-700 text-xs mb-1.5 font-medium">${label}</label><input type="text" disabled value="${esc(val || '-')}" class="w-full border rounded px-3 py-1.5 text-sm cursor-not-allowed ${muted ? 'bg-[#EAECEF] border-gray-300 text-gray-700' : 'bg-white border-gray-200 text-gray-800'}"></div>`;
+            const dailyWrap = document.getElementById('lv-daily-wrap');
+            const origWrap = document.getElementById('lv-orig-leave');
+            const isCancel = !!cancelInfo;
+            const reasonBlock = document.getElementById('lv-reason-block');
+            const attachBlock = document.getElementById('lv-attach-block');
+            if (isCancel) {
+                // 銷假原因（加寬加高兩倍）→ 職務代理人 / 申請說明 / 附件 併入原請假資訊
+                document.getElementById('lv-detail-grid').innerHTML = `<div class="lg:col-span-4">
+                        <label class="block text-gray-700 text-xs mb-1.5 font-medium">銷假原因</label>
+                        <textarea disabled class="w-full bg-white border border-gray-200 rounded px-3 py-2 text-sm text-gray-800 h-20 resize-none cursor-not-allowed">${esc(cancelInfo.reason || '-')}</textarea>
+                    </div>`;
+                dailyWrap.classList.add('hidden');
+                reasonBlock.classList.add('hidden');
+                attachBlock.classList.add('hidden');
+                origWrap.classList.remove('hidden');
+                origWrap.innerHTML = `<div class="rounded-lg border border-gray-200 bg-gray-50 p-4 space-y-4">
+                        <div class="text-xs font-bold text-gray-500 flex items-center gap-1.5"><span class="w-1.5 h-3.5 bg-gray-400 rounded-full"></span>原請假資訊</div>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-2 text-sm">
+                            <div><span class="text-gray-400 text-xs">假期種類：</span><span class="text-gray-800">${esc(leaveType)}</span></div>
+                            <div><span class="text-gray-400 text-xs">開始時間：</span><span class="text-gray-800">${esc(startDate + ' ' + startTime)}</span></div>
+                            <div><span class="text-gray-400 text-xs">結束時間：</span><span class="text-gray-800">${esc(endDate + ' ' + endTime)}</span></div>
+                            <div><span class="text-gray-400 text-xs">總時數：</span><span class="text-gray-800">${totalHours.toFixed(1)} 小時</span></div>
+                            <div><span class="text-gray-400 text-xs">職務代理人：</span><span class="text-gray-800">-</span></div>
+                        </div>
+                        ${isMulti ? `<div class="overflow-x-auto border border-gray-200 rounded-lg bg-white">
+                            <table class="w-full text-left text-xs border-collapse whitespace-nowrap">
+                                <thead><tr class="border-b border-gray-200 bg-gray-100 text-gray-600 font-bold"><th class="px-3 py-1.5 text-center w-12">序號</th><th class="px-3 py-1.5">日期</th><th class="px-3 py-1.5">時間區段</th><th class="px-3 py-1.5 text-right w-24">時數</th></tr></thead>
+                                <tbody class="divide-y divide-gray-100 font-medium">${dailyRows}</tbody>
+                            </table></div>` : ''}
+                        <div>
+                            <div class="text-gray-400 text-xs mb-1">申請說明</div>
+                            <div class="bg-white border border-gray-200 rounded px-3 py-2 text-sm text-gray-700 whitespace-pre-line min-h-[3rem]">${esc(reason || '依個人需求提出請假申請，相關證明文件如附件。')}</div>
+                        </div>
+                        <div>
+                            <div class="text-gray-400 text-xs mb-1">附件</div>
+                            <ul class="space-y-1">
+                                <li class="flex items-center gap-2 bg-white border border-gray-100 rounded px-3 py-1.5 text-xs text-gray-700"><span class="text-gray-400">📎</span><span class="truncate">請假證明.pdf</span></li>
+                                <li class="flex items-center gap-2 bg-white border border-gray-100 rounded px-3 py-1.5 text-xs text-gray-700"><span class="text-gray-400">📎</span><span class="truncate">相關文件.jpg</span></li>
+                            </ul>
+                        </div>
+                    </div>`;
+            } else {
+                let gridHtml = '';
+                if (!isMulti) {
+                    gridHtml += field('開始時間', startDate + ' ' + startTime);
+                    gridHtml += field('結束時間', endDate + ' ' + endTime);
+                }
+                gridHtml += field('假期種類', leaveType);
+                gridHtml += field('職務代理人', '-');
+                document.getElementById('lv-detail-grid').innerHTML = gridHtml;
+                origWrap.classList.add('hidden');
+                origWrap.innerHTML = '';
+                reasonBlock.classList.remove('hidden');
+                attachBlock.classList.remove('hidden');
+                if (isMulti) {
+                    dailyWrap.classList.remove('hidden');
+                    document.getElementById('lv-days').textContent = days.length;
+                    document.getElementById('lv-daily-body').innerHTML = dailyRows;
+                } else {
+                    dailyWrap.classList.add('hidden');
+                }
+            }
+            // 申請說明
+            document.getElementById('lv-reason-ta').value = reason || '依個人需求提出請假申請，相關證明文件如附件。';
+            // 進度追蹤 + 審批流程
+            const steps = lvSteps(status);
+            document.getElementById('lv-progress-body').innerHTML = steps.map(s => `<tr>
+                    <td class="px-3 py-1.5 text-center font-bold text-gray-800">${s.seq}</td>
+                    <td class="px-3 py-1.5 text-center"><span class="ui-badge ${lvBadgeClass(s.status)}">${s.status}</span></td>
+                    <td class="px-3 py-1.5 text-center text-gray-500">${s.seq === '1' ? '—' : '串聯'}</td>
+                    <td class="px-3 py-1.5 text-gray-800">${s.title}</td>
+                    <td class="px-3 py-1.5 text-gray-800">${esc(s.sign)}</td>
+                    <td class="px-3 py-1.5 text-gray-600 font-mono">${s.seq === '1' ? '100258' : '-'}</td>
+                    <td class="px-3 py-1.5 text-gray-400">${s.status === '已審批' ? esc(applyDate) + ' 10:00' : '-'}</td></tr>`).join('');
+            // 審批意見與附件
+            document.getElementById('lv-opinions-body').innerHTML = steps.map(s => {
+                const body = s.seq === '1'
+                    ? `${esc(reason || '依個人需求提出請假申請。')}<ul class="mt-2 space-y-1"><li class="flex items-center gap-2 bg-white border border-gray-100 rounded px-3 py-1.5 text-xs text-gray-700"><span class="text-gray-400">📎</span><span class="truncate">請假證明.pdf</span></li></ul>`
+                    : (s.status === '已審批' ? '已確認，同意本次請假。' : '<span class="italic text-gray-400">尚未審批</span>');
+                return `<div class="flex items-start gap-3"><div class="w-20 shrink-0 text-xs font-bold text-gray-700">${s.title}<div class="font-normal text-gray-400 mt-0.5">${s.sign !== '-' ? esc(s.sign) : '—'}</div></div><div class="flex-1 text-sm text-gray-700 bg-gray-50 border border-gray-100 rounded-lg p-3">${body}</div></div>`;
+            }).join('');
+            // 右側審批流程 stepper
+            document.getElementById('lv-flow').innerHTML = steps.map((s, i, arr) => {
+                const done = s.status === '已審批', active = s.status === '審批中';
+                const line = i < arr.length - 1 ? `<span class="absolute left-[15px] top-8 -bottom-0 w-0.5 ${done ? 'bg-emerald-300' : 'bg-gray-200'}"></span>` : '';
+                const circle = done ? 'bg-emerald-500 text-white' : active ? 'bg-[#4A90E2] text-white ring-4 ring-blue-100' : 'bg-gray-200 text-gray-500';
+                const sub = (s.sign && s.sign !== '-') ? esc(s.sign) : '—';
+                const tag = done ? '<span class="ml-1 text-emerald-600 font-medium">· 已審批</span>' : active ? '<span class="ml-1 text-[#4A90E2] font-medium">· 審批中</span>' : '';
+                return `<div class="relative flex gap-3 pb-6 last:pb-0">${line}<div class="relative z-10 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${circle}">${done ? '✓' : s.seq}</div><div class="pt-1 min-w-0"><div class="text-sm font-bold text-gray-800 whitespace-nowrap">${s.title}</div><div class="text-xs text-gray-400 mt-0.5 whitespace-nowrap">${sub}${tag}</div></div></div>`;
+            }).join('');
+            // 重置審批意見 toggle
+            lvOpinionsOn = false;
+            document.getElementById('lv-opinions').classList.add('hidden');
+            const tgl = document.getElementById('lv-op-toggle'); tgl.classList.remove('bg-[#3F51B5]'); tgl.classList.add('bg-gray-300');
+            const knob = document.getElementById('lv-op-knob'); knob.classList.remove('translate-x-6'); knob.classList.add('translate-x-1');
             document.getElementById('leaveViewModal').classList.remove('hidden');
             document.body.style.overflow = 'hidden';
             if (window.lucide) lucide.createIcons();
@@ -711,36 +971,110 @@
         });
     </script>
 
-    <!-- ============ 檢視彈窗（參考 申請.html 表單彈窗樣式）============ -->
+    <!-- ============ 檢視彈窗（比照 請假簽核.html 請假申請單）============ -->
     <div id="leaveViewModal" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true">
-        <div class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm" onclick="closeLeaveViewModal()"></div>
+        <div class="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm" onclick="closeLeaveViewModal()"></div>
         <div class="fixed inset-0 z-10 flex items-center justify-center p-4">
-            <div class="relative bg-white w-full max-w-2xl max-h-[92vh] rounded-md shadow-2xl flex flex-col overflow-hidden">
-                <div class="bg-[#EAF2FC] flex justify-between items-center px-5 py-3 border-b border-blue-100 flex-shrink-0">
-                    <h2 class="text-[#2b3b84] font-bold text-[16px]">請假申請詳情</h2>
-                    <button onclick="closeLeaveViewModal()" class="bg-blue-500 hover:bg-blue-600 text-white rounded p-1.5 transition-colors"><i data-lucide="x" class="w-4 h-4"></i></button>
+            <div class="bg-[#F0F2F5] rounded-xl shadow-2xl w-full max-w-[1430px] h-[90vh] flex flex-col overflow-hidden text-left">
+                <!-- 標題列 -->
+                <div class="bg-[#EEF2F6] px-6 py-3.5 flex items-center justify-between border-b border-gray-200 flex-shrink-0">
+                    <span id="lv-modal-title" class="font-bold text-gray-800 text-base">請假申請單</span>
+                    <button onclick="closeLeaveViewModal()" class="bg-[#3F51B5] hover:bg-blue-800 text-white p-1 rounded transition-colors"><i data-lucide="x" class="w-4 h-4"></i></button>
                 </div>
-                <div class="flex-1 overflow-y-auto p-5 bg-[#f4f5f8] space-y-5">
-                    <div class="bg-white border border-gray-300 rounded-md shadow-sm">
-                        <div class="px-4 py-2.5 border-b border-gray-200"><h3 class="text-[#2b3b84] font-bold text-[15px]">基本資訊</h3></div>
-                        <div class="p-4 grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-4">
-                            <div><label class="block mb-1.5 text-[13px] text-gray-700">申請日期</label><div id="lv-apply" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] bg-[#f8f9fa] text-gray-700 min-h-[34px]"></div></div>
-                            <div><label class="block mb-1.5 text-[13px] text-gray-700">假別</label><div id="lv-type" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] bg-[#f8f9fa] text-gray-700 min-h-[34px]"></div></div>
-                            <div><label class="block mb-1.5 text-[13px] text-gray-700">時數 / 天數</label><div id="lv-amount" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] bg-[#f8f9fa] text-gray-700 min-h-[34px]"></div></div>
-                            <div><label class="block mb-1.5 text-[13px] text-gray-700">狀態</label><div id="lv-status" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] bg-[#f8f9fa] text-gray-700 min-h-[34px]"></div></div>
-                            <div class="sm:col-span-2"><label class="block mb-1.5 text-[13px] text-gray-700">起訖時間</label><div id="lv-period" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] bg-[#f8f9fa] text-gray-700 min-h-[34px]"></div></div>
-                            <div class="sm:col-span-2"><label class="block mb-1.5 text-[13px] text-gray-700">事由</label><div id="lv-reason" class="w-full border border-gray-300 rounded px-3 py-2 text-[13px] bg-[#f8f9fa] text-gray-700 min-h-[60px] whitespace-pre-wrap"></div></div>
+                <div class="flex-1 flex flex-col lg:flex-row overflow-hidden">
+                    <!-- 左側 -->
+                    <div class="flex-1 min-w-0 flex flex-col overflow-hidden">
+                        <div class="flex-1 overflow-y-auto p-6 space-y-6">
+                            <!-- 基本資訊 -->
+                            <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-5">
+                                <div class="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2">基本資訊</div>
+                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                                    <div><label class="block text-gray-700 text-xs mb-1.5 font-medium">文件編號</label><input id="lv-docno" type="text" disabled class="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed font-mono"></div>
+                                    <div><label class="block text-gray-700 text-xs mb-1.5 font-medium">申請時間</label><input id="lv-applytime" type="text" disabled class="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed"></div>
+                                    <div class="lg:col-start-1"><label class="block text-gray-700 text-xs mb-1.5 font-medium">申請人</label><input id="lv-name" type="text" disabled class="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-sm text-gray-800 cursor-not-allowed"></div>
+                                    <div><label class="block text-gray-700 text-xs mb-1.5 font-medium">工號</label><input id="lv-empno" type="text" disabled class="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed"></div>
+                                    <div><label class="block text-gray-700 text-xs mb-1.5 font-medium">項目</label><input id="lv-project" type="text" disabled class="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed"></div>
+                                    <div><label class="block text-gray-700 text-xs mb-1.5 font-medium">部門</label><input id="lv-dept" type="text" disabled class="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed"></div>
+                                </div>
+                            </div>
+                            <!-- 請假資訊 -->
+                            <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-5">
+                                <div class="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2">請假資訊</div>
+                                <div id="lv-detail-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"></div>
+                                <div id="lv-daily-wrap" class="hidden">
+                                    <label class="block text-gray-700 text-xs mb-1.5 font-medium">請假明細（共 <span id="lv-days">0</span> 天）</label>
+                                    <div class="overflow-x-auto border border-gray-100 rounded-lg">
+                                        <table class="w-full text-left text-xs border-collapse whitespace-nowrap">
+                                            <thead>
+                                                <tr class="border-b border-gray-200 bg-gray-50 text-gray-700 font-bold">
+                                                    <th class="px-3 py-1.5 text-center w-12">序號</th>
+                                                    <th class="px-3 py-1.5">日期</th>
+                                                    <th class="px-3 py-1.5">時間區段</th>
+                                                    <th class="px-3 py-1.5 text-right w-24">時數</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="lv-daily-body" class="divide-y divide-gray-100 font-medium"></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <div id="lv-orig-leave" class="hidden"></div>
+                                <div id="lv-reason-block">
+                                    <label id="lv-reason-label" class="block text-gray-700 text-xs mb-1.5 font-medium">申請說明</label>
+                                    <textarea id="lv-reason-ta" disabled class="w-full bg-white border border-gray-200 rounded px-3 py-2 text-sm text-gray-800 h-20 resize-none cursor-not-allowed"></textarea>
+                                </div>
+                                <div id="lv-attach-block">
+                                    <label class="block text-gray-700 text-xs mb-1.5 font-medium">附件</label>
+                                    <ul class="space-y-1">
+                                        <li class="flex items-center gap-2 bg-gray-50 border border-gray-100 rounded px-3 py-1.5 text-xs text-gray-700"><span class="text-gray-400">📎</span><span class="truncate">請假證明.pdf</span></li>
+                                        <li class="flex items-center gap-2 bg-gray-50 border border-gray-100 rounded px-3 py-1.5 text-xs text-gray-700"><span class="text-gray-400">📎</span><span class="truncate">相關文件.jpg</span></li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <!-- 審批進度追蹤 -->
+                            <div class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+                                <div class="bg-[#EEF2F6] px-6 py-3.5 flex items-center justify-between border-b border-gray-200">
+                                    <span class="font-bold text-[#1A237E] text-[15px]">審批進度追蹤</span>
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-xs font-semibold text-[#1A237E]">顯示審批意見與附件</span>
+                                        <button id="lv-op-toggle" onclick="lvToggleOpinions()" class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none bg-gray-300">
+                                            <span id="lv-op-knob" class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform translate-x-1"></span>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="p-6 space-y-6">
+                                    <div class="overflow-x-auto border border-gray-100 rounded-lg">
+                                        <table class="w-full text-left text-xs border-collapse whitespace-nowrap">
+                                            <thead>
+                                                <tr class="border-b border-gray-200 bg-gray-50 text-gray-700 font-bold">
+                                                    <th class="px-3 py-1.5 text-center w-12">序號</th>
+                                                    <th class="px-3 py-1.5 text-center w-20">審批狀態</th>
+                                                    <th class="px-3 py-1.5 text-center w-14">條件</th>
+                                                    <th class="px-3 py-1.5">職稱</th>
+                                                    <th class="px-3 py-1.5">簽名</th>
+                                                    <th class="px-3 py-1.5">ID</th>
+                                                    <th class="px-3 py-1.5 w-40">審批時間</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="lv-progress-body" class="divide-y divide-gray-100 font-medium"></tbody>
+                                        </table>
+                                    </div>
+                                    <div id="lv-opinions" class="hidden space-y-2.5 border-t border-gray-100 pt-4">
+                                        <div class="text-xs font-semibold text-gray-500">審批意見與附件</div>
+                                        <div id="lv-opinions-body" class="space-y-2.5"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- 底部按鈕 -->
+                        <div class="bg-[#F8F9FA] border-t border-gray-200 px-6 py-4 flex justify-center gap-3 flex-shrink-0 shadow-[0_-2px_8px_rgba(0,0,0,0.04)]">
+                            <button onclick="closeLeaveViewModal()" class="ui-btn ui-btn-secondary">關閉</button>
                         </div>
                     </div>
-                    <div class="bg-white border border-gray-300 rounded-md shadow-sm">
-                        <div class="px-4 py-2.5 border-b border-gray-200"><h3 class="text-[#2b3b84] font-bold text-[15px]">審批流程</h3></div>
-                        <div class="p-4 overflow-x-auto">
-                            <div id="lv-flow"></div>
-                        </div>
+                    <!-- 右側：審批流程 -->
+                    <div class="w-full lg:w-[320px] bg-white border-t lg:border-t-0 lg:border-l border-gray-200 overflow-y-auto flex flex-col flex-shrink-0">
+                        <div class="bg-[#0097A7] text-white px-4 py-3.5 font-bold text-sm tracking-wide">審批流程</div>
+                        <div id="lv-flow" class="p-4 flex-1 overflow-y-auto"></div>
                     </div>
-                </div>
-                <div class="bg-gray-50 px-5 py-3 flex justify-end gap-3 border-t border-gray-100 flex-shrink-0">
-                    <button onclick="closeLeaveViewModal()" class="ui-btn ui-btn-secondary">關閉</button>
                 </div>
             </div>
         </div>
