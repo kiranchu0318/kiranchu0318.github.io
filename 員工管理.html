@@ -2597,8 +2597,15 @@
             { label: 'OA (Office Automation)', values: [] },
             { label: 'Apple ID', values: [] },
             { label: 'Jira', values: [] },
-            { label: 'MM', values: [] }
+            { label: 'MM', values: [] },
+            { label: '門禁卡', values: ['THQ-3F'] },
+            { label: '指紋', values: ['THQ-3F'] }
         ];
+        // 門禁卡 / 指紋：異動內容以「辦公室」下拉呈現
+        const OFFICE_FIELDS = ['門禁卡', '指紋'];
+        const OFFICES = ['THQ-1F', 'THQ-2F', 'THQ-3F', 'THQ-B1', 'T1', 'T2'];
+        const officeSelectHtml = () => '<select class="w-full border border-gray-300 rounded-md px-2 py-1.5 text-sm bg-white cursor-pointer">' +
+            OFFICES.map(o => '<option>' + o + '</option>').join('') + '</select>';
 
         // 人員帳號分頁：以表格呈現（欄位 / 目前值），比照異動申請彈窗前兩欄
         function renderAccountTab() {
@@ -2652,6 +2659,7 @@
                 // 每一個目前值 → 獨立一列，可各自修改 / 刪除
                 curVals.forEach((v, idx) => {
                     const tr = document.createElement('tr');
+                    tr.setAttribute('data-field', label);
                     tr.innerHTML =
                         (idx === 0 ? labelCell : '') +
                         '<td class="px-4 py-2.5 text-gray-700 align-top font-mono">' + v + '</td>' +
@@ -2664,14 +2672,16 @@
                 // 「新增」列：可新增多筆全新值（未綁定欄位僅有此列）
                 const addTr = document.createElement('tr');
                 addTr.className = 'bg-gray-50/40';
+                addTr.setAttribute('data-field', label);
+                const addDetail = OFFICE_FIELDS.includes(label)
+                    ? officeSelectHtml()
+                    : '<div class="acc-add-list space-y-1.5">' + accAddItemHtml() + '</div>' +
+                      '<button type="button" onclick="addAccAddItem(this)" class="mt-1.5 inline-flex items-center gap-1 text-xs text-primary font-medium hover:underline"><i class="fa-solid fa-plus text-[10px]"></i>新增一筆</button>';
                 addTr.innerHTML =
                     (curVals.length === 0 ? labelCell : '') +
                     '<td class="px-4 py-2.5 align-top ' + (curVals.length ? 'text-gray-300' : 'text-gray-400') + '">' + (curVals.length ? '—' : '（未綁定）') + '</td>' +
                     '<td class="px-4 py-2.5 align-top"><span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold bg-emerald-50 text-emerald-600"><i class="fa-solid fa-plus text-[10px]"></i>新增</span></td>' +
-                    '<td class="px-4 py-2.5 align-top">' +
-                        '<div class="acc-add-list space-y-1.5">' + accAddItemHtml() + '</div>' +
-                        '<button type="button" onclick="addAccAddItem(this)" class="mt-1.5 inline-flex items-center gap-1 text-xs text-primary font-medium hover:underline"><i class="fa-solid fa-plus text-[10px]"></i>新增一筆</button>' +
-                    '</td>' +
+                    '<td class="px-4 py-2.5 align-top">' + addDetail + '</td>' +
                     noteCell + fileCell;
                 tbody.appendChild(addTr);
             });
@@ -2709,7 +2719,9 @@
                     '<div class="acc-add-list space-y-1.5">' + accAddItemHtml() + '</div>' +
                     '<button type="button" onclick="addAccAddItem(this)" class="mt-1.5 inline-flex items-center gap-1 text-xs text-primary font-medium hover:underline"><i class="fa-solid fa-plus text-[10px]"></i>新增一筆</button>';
             } else if (v === 'edit') {
-                cell.innerHTML = '<input type="text" placeholder="輸入修改後的值" class="w-full border border-gray-300 rounded-md px-2 py-1.5 text-sm">';
+                cell.innerHTML = OFFICE_FIELDS.includes(row.dataset.field)
+                    ? officeSelectHtml()
+                    : '<input type="text" placeholder="輸入修改後的值" class="w-full border border-gray-300 rounded-md px-2 py-1.5 text-sm">';
             } else if (v === 'del') {
                 cell.innerHTML = '<select class="w-full border border-rose-300 rounded-md px-2 py-1.5 text-sm bg-rose-50 text-rose-700 cursor-pointer">' +
                     '<option value="immediate">立即刪除</option><option value="transfer">資料轉移</option><option value="hold">暫時保留</option>' +
