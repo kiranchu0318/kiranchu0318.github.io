@@ -416,6 +416,28 @@
                             </div>
                         </div>
 
+                        <!-- 門禁卡 -->
+                        <div class="py-3.5 flex items-start gap-4 hover:bg-slate-50/60 transition-colors">
+                            <div class="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 shrink-0">
+                                <i class="fa-solid fa-id-card text-lg"></i>
+                            </div>
+                            <div class="min-w-0">
+                                <h4 class="font-bold text-slate-800 text-sm mb-1.5">門禁卡</h4>
+                                <div class="flex items-center gap-2 text-sm"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span><span class="text-xs text-slate-400">辦公室</span><span class="font-medium text-slate-700 font-mono">THQ-3F</span></div>
+                            </div>
+                        </div>
+
+                        <!-- 指紋 -->
+                        <div class="py-3.5 flex items-start gap-4 hover:bg-slate-50/60 transition-colors">
+                            <div class="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 shrink-0">
+                                <i class="fa-solid fa-fingerprint text-lg"></i>
+                            </div>
+                            <div class="min-w-0">
+                                <h4 class="font-bold text-slate-800 text-sm mb-1.5">指紋</h4>
+                                <div class="flex items-center gap-2 text-sm"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span><span class="text-xs text-slate-400">辦公室</span><span class="font-medium text-slate-700 font-mono">THQ-3F</span></div>
+                            </div>
+                        </div>
+
                     </div>
 
                     <div class="flex justify-start pt-2">
@@ -779,8 +801,15 @@
             { label: 'OA (Office Automation)', values: ['nora.chen'] },
             { label: 'Apple ID', values: ['nora.chen0812@icloud.com'] },
             { label: 'Jira', values: [] },
-            { label: 'MM', values: ['nora.chen'] }
+            { label: 'MM', values: ['nora.chen'] },
+            { label: '門禁卡', values: ['THQ-3F'] },
+            { label: '指紋', values: ['THQ-3F'] }
         ];
+        // 門禁卡 / 指紋：異動內容以「辦公室」下拉呈現
+        const OFFICE_FIELDS = ['門禁卡', '指紋'];
+        const OFFICES = ['THQ-1F', 'THQ-2F', 'THQ-3F', 'THQ-B1', 'T1', 'T2'];
+        const officeSelectHtml = () => '<select class="w-full border border-gray-300 rounded-md px-2 py-1.5 text-sm bg-white cursor-pointer">' +
+            OFFICES.map(o => '<option>' + o + '</option>').join('') + '</select>';
 
         function openAccountChangeModal() {
             const tbody = document.getElementById('acc-change-tbody');
@@ -802,6 +831,7 @@
 
                 curVals.forEach((v, idx) => {
                     const tr = document.createElement('tr');
+                    tr.setAttribute('data-field', label);
                     tr.innerHTML =
                         (idx === 0 ? labelCell : '') +
                         '<td class="px-4 py-2.5 text-gray-700 align-top font-mono">' + v + '</td>' +
@@ -813,14 +843,16 @@
 
                 const addTr = document.createElement('tr');
                 addTr.className = 'bg-gray-50/40';
+                addTr.setAttribute('data-field', label);
+                const addDetail = OFFICE_FIELDS.includes(label)
+                    ? officeSelectHtml()
+                    : '<div class="acc-add-list space-y-1.5">' + accAddItemHtml() + '</div>' +
+                      '<button type="button" onclick="addAccAddItem(this)" class="mt-1.5 inline-flex items-center gap-1 text-xs text-primary font-medium hover:underline"><i class="fa-solid fa-plus text-[10px]"></i>新增一筆</button>';
                 addTr.innerHTML =
                     (curVals.length === 0 ? labelCell : '') +
                     '<td class="px-4 py-2.5 align-top ' + (curVals.length ? 'text-gray-300' : 'text-gray-400') + '">' + (curVals.length ? '—' : '（未綁定）') + '</td>' +
                     '<td class="px-4 py-2.5 align-top"><span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold bg-emerald-50 text-emerald-600"><i class="fa-solid fa-plus text-[10px]"></i>新增</span></td>' +
-                    '<td class="px-4 py-2.5 align-top">' +
-                        '<div class="acc-add-list space-y-1.5">' + accAddItemHtml() + '</div>' +
-                        '<button type="button" onclick="addAccAddItem(this)" class="mt-1.5 inline-flex items-center gap-1 text-xs text-primary font-medium hover:underline"><i class="fa-solid fa-plus text-[10px]"></i>新增一筆</button>' +
-                    '</td>' +
+                    '<td class="px-4 py-2.5 align-top">' + addDetail + '</td>' +
                     noteCell + fileCell;
                 tbody.appendChild(addTr);
             });
@@ -852,7 +884,9 @@
                     '<div class="acc-add-list space-y-1.5">' + accAddItemHtml() + '</div>' +
                     '<button type="button" onclick="addAccAddItem(this)" class="mt-1.5 inline-flex items-center gap-1 text-xs text-primary font-medium hover:underline"><i class="fa-solid fa-plus text-[10px]"></i>新增一筆</button>';
             } else if (v === 'edit') {
-                cell.innerHTML = '<input type="text" placeholder="輸入修改後的值" class="w-full border border-gray-300 rounded-md px-2 py-1.5 text-sm">';
+                cell.innerHTML = OFFICE_FIELDS.includes(row.dataset.field)
+                    ? officeSelectHtml()
+                    : '<input type="text" placeholder="輸入修改後的值" class="w-full border border-gray-300 rounded-md px-2 py-1.5 text-sm">';
             } else if (v === 'del') {
                 cell.innerHTML = '<select class="w-full border border-rose-300 rounded-md px-2 py-1.5 text-sm bg-rose-50 text-rose-700 cursor-pointer">' +
                     '<option value="immediate">立即刪除</option><option value="transfer">資料轉移</option><option value="hold">暫時保留</option>' +
