@@ -338,7 +338,7 @@
                             <div class="px-4 pt-4 grid grid-cols-5 gap-x-5 gap-y-5 mb-4">
                                 <div class="col-span-2"><label class="block mb-1.5 text-[13px] text-gray-700">文件編號</label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed" value="自動生成" disabled></div>
                                 <div><label class="block mb-1.5 text-[13px] text-gray-700">申請日期</label><div class="border border-gray-300 rounded px-3 py-1.5 bg-white flex items-center"><i data-lucide="calendar" class="w-4 h-4 text-gray-400"></i><input type="text" class="w-full ml-2 text-[13px] outline-none" disabled></div></div>
-                                <div><label class="block mb-1 text-[13px] text-gray-700">主旨</label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none" placeholder="填寫後串接於文件編號後作為標題"></div>
+                                <div><label class="block mb-1 text-[13px] text-gray-700">主旨</label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"></div>
                                 <div><label class="block mb-1 text-[13px] text-gray-700">費用類型 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option value="">請選擇</option><option>一般费用</option><option>人力成本及猎头费</option><option>佣金返点</option><option>其他壞帳審批</option><option>區域備用金（僅限資金部使用）</option><option>员工福利及團建費</option><option>子表單B（申請費用）</option><option>差旅報銷線</option><option>應收壞帳</option><option>私帳</option><option>私帳項目審批線</option><option>績效審批線</option></select></div>
                                 <div class="col-start-1"><label class="block mb-1 text-[13px] text-gray-700">申請人 <span class="text-red-500">*</span></label><div class="relative applicant-combo" id="b-applicant-combo"><input type="text" autocomplete="off" placeholder="搜尋人名 / 工號" class="applicant-input w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><div class="applicant-list hidden absolute z-30 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto text-[13px]"></div></div></div>
                                 <div><label class="block mb-1 text-[13px] text-gray-700">區域 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option>請選擇</option></select></div>
@@ -353,33 +353,64 @@
                         <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5">
                             <div class="px-4 py-2.5 border-b border-gray-200"><h3 class="text-[#2b3b84] font-bold text-[15px]">費用申請</h3></div>
                             <div class="p-4 space-y-5">
-                                <!-- 關聯單號（選填，勾選後展開） -->
-                                <div class="flex items-center gap-2">
-                                    <input type="checkbox" id="link-other-form-b" class="w-4 h-4 rounded border-gray-300 text-blue-600 cursor-pointer">
-                                    <label class="text-[13px] text-gray-700">是否關聯其他單號</label>
-                                </div>
-                                <div id="related-form-container-b" class="hidden max-w-xl">
-                                    <label class="block mb-1 text-[13px] font-semibold text-gray-700">關聯的單號 <span class="text-red-500">*</span></label>
-                                    <div class="flex h-[38px]"><input type="text" class="flex-1 border border-gray-300 rounded-l px-3 text-[13px] focus:border-blue-500 outline-none" placeholder="請輸入關聯單號"><button class="bg-[#4A90E2] text-white px-5 rounded-r hover:bg-blue-600 transition-colors"><i data-lucide="search" class="w-4 h-4"></i></button></div>
+                                <!-- 關聯單號（直接填寫）-->
+                                <div class="grid grid-cols-2 sm:grid-cols-5 gap-x-5">
+                                    <div class="sm:col-span-2">
+                                        <label class="block mb-1 text-[13px] text-gray-700">關聯單號</label>
+                                        <div class="flex h-[38px]"><input type="text" class="flex-1 min-w-0 border border-gray-300 rounded-l px-3 text-[13px] focus:border-blue-500 outline-none" placeholder="請輸入關聯單號"><button class="bg-[#4A90E2] text-white px-3 rounded-r hover:bg-blue-600 transition-colors"><i data-lucide="search" class="w-4 h-4"></i></button></div>
+                                    </div>
                                 </div>
                                 <!-- 公司／部門 + 收款銀行：統一 3 欄對齊 -->
-                                <div class="grid grid-cols-12 gap-x-6 gap-y-4">
-                                    <div class="col-span-6 md:col-span-3"><label class="block mb-1 text-[13px] text-gray-700">公司別 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option>請選擇</option></select></div>
-                                    <div class="col-span-6 md:col-span-3"><label class="block mb-1 text-[13px] text-gray-700">部門主管 <span class="text-red-500">*</span></label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"></div>
-                                    <div class="col-span-6 md:col-span-3"><label class="block mb-1 text-[13px] text-gray-700">開戶行姓名</label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"></div>
-                                    <div class="col-span-6 md:col-span-3"><label class="block mb-1 text-[13px] text-gray-700">開戶銀行</label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"></div>
-                                    <div class="col-span-6 md:col-span-3"><label class="block mb-1 text-[13px] text-gray-700">銀行賬號</label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"></div>
-                                    <div class="col-span-6 md:col-span-3"><label class="block mb-1 text-[13px] text-gray-700">貨幣</label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option>CNY</option></select></div>
+                                <div class="grid grid-cols-2 sm:grid-cols-5 gap-x-5 gap-y-4">
+                                    <div><label class="block mb-1 text-[13px] text-gray-700">公司別 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option>請選擇</option></select></div>
+                                    <div><label class="block mb-1 text-[13px] text-gray-700">部門主管 <span class="text-red-500">*</span></label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"></div>
+                                    <div><label class="block mb-1 text-[13px] text-gray-700">貨幣</label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option>CNY</option></select></div>
+                                    <div class="sm:col-start-1"><label class="block mb-1 text-[13px] text-gray-700">開戶行姓名</label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"></div>
+                                    <div><label class="block mb-1 text-[13px] text-gray-700">開戶銀行</label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"></div>
+                                    <div><label class="block mb-1 text-[13px] text-gray-700">銀行賬號</label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"></div>
                                 </div>
-                                <div class="flex items-center border-t border-gray-100 pt-3"><label class="inline-flex items-center gap-2 text-[13px] text-gray-700"><input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-blue-600 cursor-pointer">此單有特批</label></div>
+                                <label class="flex items-center gap-2 cursor-pointer select-none bg-amber-50 border border-amber-200 rounded-md px-4 py-2.5">
+                                    <input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    <span class="text-[13px] font-medium text-gray-700">此單有特批</span>
+                                </label>
                             </div>
                         </div>
                         <!-- 3. 費用申請明細 -->
                         <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5">
                             <div class="px-4 py-2.5 border-b border-gray-200 flex justify-between items-center"><h3 class="text-[#2b3b84] font-bold text-[15px]">費用申請明細</h3><button type="button" onclick="blockAdd(this)" class="text-[12px] text-blue-600 border border-blue-200 rounded px-2.5 py-1 hover:bg-blue-50 flex items-center gap-1"><i data-lucide="plus" class="w-3.5 h-3.5"></i>添加項目</button></div>
-                            <div class="p-4"><div class="grid grid-cols-12 gap-4"><div class="col-span-8"><span class="block mb-1 text-[13px] font-bold">內容</span><input type="text" class="w-full border rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"></div><div class="col-span-4"><span class="block mb-1 text-[13px] font-bold">金額</span><div class="flex items-center"><div class="flex-1 flex border rounded-l overflow-hidden"><span class="bg-gray-100 border-r px-3 py-1.5 text-[13px] text-gray-500">CNY</span><input type="number" class="w-full px-3 py-1.5 text-[13px] outline-none text-right" value="0"></div><button class="bg-[#818cf8] text-white px-3 py-[7px] rounded-r"><i data-lucide="x" class="w-4 h-4"></i></button></div></div></div></div>
+                            <div class="p-4"><div class="space-y-3">
+                                <div class="grid grid-cols-12 gap-4 items-end border border-gray-200 rounded-md p-3 bg-gray-50/40">
+                                    <div class="col-span-7"><span class="block mb-1 text-[13px] font-bold">內容</span><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"></div>
+                                    <div class="col-span-3"><span class="block mb-1 text-[13px] font-bold">金額</span><div class="flex border border-gray-300 rounded overflow-hidden"><span class="bg-gray-100 border-r px-3 py-1.5 text-[13px] text-gray-500">CNY</span><input type="number" class="w-full px-3 py-1.5 text-[13px] outline-none text-right" value="0"></div></div>
+                                    <div class="col-span-2 flex justify-center"><button type="button" onclick="blockRemove(this)" class="text-[12px] text-rose-600 border border-rose-200 rounded px-2.5 py-1 hover:bg-rose-50 inline-flex items-center gap-1 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i>移除</button></div>
+                                </div>
+                            </div></div>
                         </div>
                     <!-- 底部提交 -->
+
+                    <!-- 備註（參考 用印流程 SE）-->
+                    <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5">
+                        <div class="px-4 py-2.5 border-b border-gray-200"><h3 class="text-[#2b3b84] font-bold text-[15px]">備註</h3></div>
+                        <div class="p-4">
+                            <div class="border border-gray-300 rounded-md overflow-hidden focus-within:border-blue-500">
+                                <!-- 文字編輯器工具列（示意） -->
+                                <div class="flex items-center gap-0.5 flex-wrap bg-gray-50 border-b border-gray-200 px-2 py-1.5">
+                                    <button type="button" title="粗體" class="w-7 h-7 flex items-center justify-center rounded text-gray-500 hover:bg-gray-200 hover:text-gray-700"><i data-lucide="bold" class="w-4 h-4"></i></button>
+                                    <button type="button" title="斜體" class="w-7 h-7 flex items-center justify-center rounded text-gray-500 hover:bg-gray-200 hover:text-gray-700"><i data-lucide="italic" class="w-4 h-4"></i></button>
+                                    <button type="button" title="底線" class="w-7 h-7 flex items-center justify-center rounded text-gray-500 hover:bg-gray-200 hover:text-gray-700"><i data-lucide="underline" class="w-4 h-4"></i></button>
+                                    <button type="button" title="刪除線" class="w-7 h-7 flex items-center justify-center rounded text-gray-500 hover:bg-gray-200 hover:text-gray-700"><i data-lucide="strikethrough" class="w-4 h-4"></i></button>
+                                    <span class="w-px h-5 bg-gray-300 mx-1"></span>
+                                    <button type="button" title="項目符號" class="w-7 h-7 flex items-center justify-center rounded text-gray-500 hover:bg-gray-200 hover:text-gray-700"><i data-lucide="list" class="w-4 h-4"></i></button>
+                                    <button type="button" title="編號清單" class="w-7 h-7 flex items-center justify-center rounded text-gray-500 hover:bg-gray-200 hover:text-gray-700"><i data-lucide="list-ordered" class="w-4 h-4"></i></button>
+                                    <span class="w-px h-5 bg-gray-300 mx-1"></span>
+                                    <button type="button" title="插入圖片" class="w-7 h-7 flex items-center justify-center rounded text-gray-500 hover:bg-gray-200 hover:text-gray-700"><i data-lucide="image" class="w-4 h-4"></i></button>
+                                    <button type="button" title="插入連結" class="w-7 h-7 flex items-center justify-center rounded text-gray-500 hover:bg-gray-200 hover:text-gray-700"><i data-lucide="link" class="w-4 h-4"></i></button>
+                                    <button type="button" title="插入表格" class="w-7 h-7 flex items-center justify-center rounded text-gray-500 hover:bg-gray-200 hover:text-gray-700"><i data-lucide="table" class="w-4 h-4"></i></button>
+                                </div>
+                                <textarea class="w-full min-h-[120px] px-3 py-2 outline-none resize-y text-[13px]" placeholder="請輸入備註…"></textarea>
+                            </div>
+                        </div>
+                    </div>
 
                     <!-- 附件 -->
                     <div class="mb-5 file-upload">
@@ -460,29 +491,30 @@
                         <!-- 2. 費用報銷 -->
                         <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5">
                             <div class="px-4 py-2.5 border-b border-gray-200"><h3 class="text-[#2b3b84] font-bold text-[15px]">費用報銷</h3></div>
-                            <div class="p-4 grid grid-cols-2 gap-x-10 gap-y-4">
-                                <div><label class="block mb-1 text-[13px] font-medium">部門主管 *</label><input type="text" class="w-full border border-red-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><span class="text-red-500 text-[11px] mt-1 block">請輸入部門主管</span></div>
-                                <div>
-                                    <label class="block mb-1 text-[13px]">B單單號</label>
-                                    <div class="flex h-[38px] w-full"><input type="text" class="flex-1 border border-gray-300 rounded-l px-3 text-[13px] focus:border-blue-500 outline-none" placeholder="請輸入BC單單號"><button class="bg-[#4A90E2] hover:bg-blue-600 text-white px-5 rounded-r transition-colors"><i data-lucide="search" class="w-4 h-4"></i></button></div>
-                                </div>
-                                <div>
-                                    <label class="block mb-1 text-[13px]">是否關聯其他單號</label>
-                                    <input type="checkbox" id="link-other-form-c" class="w-4 h-4 rounded border-gray-300 text-blue-600 cursor-pointer">
-                                    <div id="related-form-container-c" class="hidden mt-3 w-full">
-                                        <label class="block mb-1.5 text-[13px] font-semibold">關聯的單號 *</label>
-                                        <div class="flex h-[38px]"><input type="text" class="flex-1 border border-gray-300 rounded-l px-3 text-[13px] focus:border-blue-500 outline-none" placeholder="請輸入關聯單號"><button class="bg-[#4A90E2] hover:bg-blue-600 text-white px-5 rounded-r transition-colors"><i data-lucide="search" class="w-4 h-4"></i></button></div>
-                                        <span class="text-red-500 text-[11px] mt-1 block">請輸入關聯單號</span>
+                            <div class="p-4 space-y-5">
+                                <!-- B單單號 + 關聯單號（同一行）-->
+                                <div class="grid grid-cols-2 sm:grid-cols-5 gap-x-5 gap-y-4">
+                                    <div class="sm:col-span-2">
+                                        <label class="block mb-1 text-[13px] text-gray-700">B單單號</label>
+                                        <div class="flex h-[38px]"><input type="text" class="flex-1 min-w-0 border border-gray-300 rounded-l px-3 text-[13px] focus:border-blue-500 outline-none" placeholder="請輸入B單單號"><button class="bg-[#4A90E2] hover:bg-blue-600 text-white px-3 rounded-r transition-colors"><i data-lucide="search" class="w-4 h-4"></i></button></div>
+                                    </div>
+                                    <div class="sm:col-span-2">
+                                        <label class="block mb-1 text-[13px] text-gray-700">關聯單號</label>
+                                        <div class="flex h-[38px]"><input type="text" class="flex-1 min-w-0 border border-gray-300 rounded-l px-3 text-[13px] focus:border-blue-500 outline-none" placeholder="請輸入關聯單號"><button class="bg-[#4A90E2] text-white px-3 rounded-r hover:bg-blue-600 transition-colors"><i data-lucide="search" class="w-4 h-4"></i></button></div>
                                     </div>
                                 </div>
-                                <div><label class="block mb-1 text-[13px]">公司別 *</label><select class="w-full border border-red-300 rounded px-3 py-1.5 text-[13px] focus:border-red-500 outline-none"><option>請選擇</option></select><span class="text-red-500 text-[11px] mt-1 block">請選擇公司。</span></div>
-                                <div class="grid grid-cols-3 gap-4">
-                                    <div><label class="block mb-1 text-[13px]">開戶行姓名</label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"></div>
-                                    <div><label class="block mb-1 text-[13px]">開戶銀行</label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"></div>
-                                    <div><label class="block mb-1 text-[13px]">銀行賬號</label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"></div>
+                                <div class="grid grid-cols-2 sm:grid-cols-5 gap-x-5 gap-y-4">
+                                    <div><label class="block mb-1 text-[13px] text-gray-700">公司別 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option>請選擇</option></select></div>
+                                    <div><label class="block mb-1 text-[13px] text-gray-700">部門主管 <span class="text-red-500">*</span></label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"></div>
+                                    <div><label class="block mb-1 text-[13px] text-gray-700">貨幣</label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option>CNY</option></select></div>
+                                    <div class="sm:col-start-1"><label class="block mb-1 text-[13px] text-gray-700">開戶行姓名</label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"></div>
+                                    <div><label class="block mb-1 text-[13px] text-gray-700">開戶銀行</label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"></div>
+                                    <div><label class="block mb-1 text-[13px] text-gray-700">銀行賬號</label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"></div>
                                 </div>
-                                <div><label class="block mb-1 text-[13px]">貨幣</label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option>CNY</option></select></div>
-                                <div><label class="inline-flex items-center gap-2 text-[13px]"><input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-blue-600 cursor-pointer">此單有特批</label></div>
+                                <label class="flex items-center gap-2 cursor-pointer select-none bg-amber-50 border border-amber-200 rounded-md px-4 py-2.5">
+                                    <input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    <span class="text-[13px] font-medium text-gray-700">此單有特批</span>
+                                </label>
                             </div>
                         </div>
 
@@ -492,30 +524,61 @@
                                 <h3 class="text-[#2b3b84] font-bold text-[15px]">費用報銷明細</h3>
                                 <button type="button" onclick="blockAdd(this)" class="text-[12px] text-blue-600 border border-blue-200 rounded px-2.5 py-1 hover:bg-blue-50 flex items-center gap-1"><i data-lucide="plus" class="w-3.5 h-3.5"></i>添加項目</button>
                             </div>
-                            <div class="p-4 overflow-x-auto">
-                                <table class="ui-table w-full text-left min-w-[800px]">
-                                    <thead><tr><th class="w-32">項目</th><th class="w-32">部門</th><th>目的</th><th class="w-48">金額</th><th>其他意見</th><th class="w-16 text-center">操作</th></tr></thead>
-                                    <tbody>
-                                        <tr>
-                                            <td><select class="w-full border border-gray-300 rounded px-2 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option>請選擇</option></select></td>
-                                            <td><select class="w-full border border-gray-300 rounded px-2 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option>請選擇</option></select></td>
-                                            <td><input type="text" class="w-full border border-gray-300 rounded px-2 py-1.5 text-[13px] focus:border-blue-500 outline-none"></td>
-                                            <td><div class="flex items-center border border-gray-300 rounded overflow-hidden"><span class="bg-gray-100 border-r border-gray-300 px-3 py-1.5 text-[13px] text-gray-500">CNY</span><input type="number" class="w-full px-2 py-1.5 text-[13px] outline-none text-right" value="0"></div></td>
-                                            <td><input type="text" class="w-full border border-gray-300 rounded px-2 py-1.5 text-[13px] focus:border-blue-500 outline-none"></td>
-                                            <td class="text-center"><button type="button" onclick="blockRemove(this)" class="text-[12px] text-rose-600 border border-rose-200 rounded px-2.5 py-1 hover:bg-rose-50 inline-flex items-center gap-1 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i>移除</button></td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+                            <div class="p-4">
+                                <div class="overflow-x-auto border border-gray-100 rounded-lg">
+                                    <table class="w-full text-left text-sm border-collapse whitespace-nowrap">
+                                        <thead>
+                                            <tr class="border-b border-gray-200 bg-gray-50 text-gray-700 font-bold text-xs">
+                                                <th class="px-3 py-2 w-28">項目</th>
+                                                <th class="px-3 py-2 w-28">部門</th>
+                                                <th class="px-3 py-2">目的</th>
+                                                <th class="px-3 py-2 w-40">金額</th>
+                                                <th class="px-3 py-2">其他意見</th>
+                                                <th class="px-3 py-2 w-20 text-center">操作</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-gray-100">
+                                            <tr>
+                                                <td class="px-3 py-1.5"><select class="w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2]"><option>請選擇</option></select></td>
+                                                <td class="px-3 py-1.5"><select class="w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2]"><option>請選擇</option></select></td>
+                                                <td class="px-3 py-1.5"><input type="text" class="w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2]"></td>
+                                                <td class="px-3 py-1.5">
+                                                    <div class="flex items-center border border-gray-300 rounded overflow-hidden">
+                                                        <span class="bg-gray-50 border-r border-gray-300 px-2 py-1 text-xs text-gray-500 select-none">¥</span>
+                                                        <input type="text" class="w-full px-2 py-1 text-sm text-right outline-none" value="0">
+                                                    </div>
+                                                </td>
+                                                <td class="px-3 py-1.5"><input type="text" class="w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2]"></td>
+                                                <td class="px-3 py-1.5 text-center"><button type="button" onclick="blockRemove(this)" class="text-[12px] text-rose-600 border border-rose-200 rounded px-2.5 py-1 hover:bg-rose-50 inline-flex items-center gap-1 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i>移除</button></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
 
-                        <!-- 4. 備註 -->
+                        <!-- 4. 備註（參考 用印流程 SE）-->
                         <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5">
                             <div class="px-4 py-2.5 border-b border-gray-200"><h3 class="text-[#2b3b84] font-bold text-[15px]">備註</h3></div>
-                            <div class="p-0 border-b border-gray-200 bg-white flex items-center px-4 py-2 gap-3 text-gray-600">
-                                <i data-lucide="heading" class="w-4 h-4"></i><span class="text-gray-300">|</span><i data-lucide="list" class="w-4 h-4"></i>
+                            <div class="p-4">
+                                <div class="border border-gray-300 rounded-md overflow-hidden focus-within:border-blue-500">
+                                    <!-- 文字編輯器工具列（示意） -->
+                                    <div class="flex items-center gap-0.5 flex-wrap bg-gray-50 border-b border-gray-200 px-2 py-1.5">
+                                        <button type="button" title="粗體" class="w-7 h-7 flex items-center justify-center rounded text-gray-500 hover:bg-gray-200 hover:text-gray-700"><i data-lucide="bold" class="w-4 h-4"></i></button>
+                                        <button type="button" title="斜體" class="w-7 h-7 flex items-center justify-center rounded text-gray-500 hover:bg-gray-200 hover:text-gray-700"><i data-lucide="italic" class="w-4 h-4"></i></button>
+                                        <button type="button" title="底線" class="w-7 h-7 flex items-center justify-center rounded text-gray-500 hover:bg-gray-200 hover:text-gray-700"><i data-lucide="underline" class="w-4 h-4"></i></button>
+                                        <button type="button" title="刪除線" class="w-7 h-7 flex items-center justify-center rounded text-gray-500 hover:bg-gray-200 hover:text-gray-700"><i data-lucide="strikethrough" class="w-4 h-4"></i></button>
+                                        <span class="w-px h-5 bg-gray-300 mx-1"></span>
+                                        <button type="button" title="項目符號" class="w-7 h-7 flex items-center justify-center rounded text-gray-500 hover:bg-gray-200 hover:text-gray-700"><i data-lucide="list" class="w-4 h-4"></i></button>
+                                        <button type="button" title="編號清單" class="w-7 h-7 flex items-center justify-center rounded text-gray-500 hover:bg-gray-200 hover:text-gray-700"><i data-lucide="list-ordered" class="w-4 h-4"></i></button>
+                                        <span class="w-px h-5 bg-gray-300 mx-1"></span>
+                                        <button type="button" title="插入圖片" class="w-7 h-7 flex items-center justify-center rounded text-gray-500 hover:bg-gray-200 hover:text-gray-700"><i data-lucide="image" class="w-4 h-4"></i></button>
+                                        <button type="button" title="插入連結" class="w-7 h-7 flex items-center justify-center rounded text-gray-500 hover:bg-gray-200 hover:text-gray-700"><i data-lucide="link" class="w-4 h-4"></i></button>
+                                        <button type="button" title="插入表格" class="w-7 h-7 flex items-center justify-center rounded text-gray-500 hover:bg-gray-200 hover:text-gray-700"><i data-lucide="table" class="w-4 h-4"></i></button>
+                                    </div>
+                                    <textarea class="w-full min-h-[120px] px-3 py-2 outline-none resize-y text-[13px]" placeholder="請輸入備註…"></textarea>
+                                </div>
                             </div>
-                            <div class="p-4"><textarea class="w-full min-h-[120px] outline-none resize-y text-[13px] text-gray-700"></textarea></div>
                         </div>
 
                         <!-- 5. 附件 -->
@@ -584,7 +647,7 @@
                             <div class="p-4 grid grid-cols-5 gap-x-5 gap-y-3.5">
                                 <div class="col-span-2"><label class="block mb-1.5 text-[13px] text-gray-700">文件編號</label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed" value="自動生成" disabled></div>
                                 <div><label class="block mb-1.5 text-[13px] text-gray-700">申請日期</label><div class="border border-gray-300 rounded px-3 py-1.5 bg-white flex items-center"><i data-lucide="calendar" class="w-4 h-4 text-gray-400"></i><input type="text" class="w-full ml-2 text-[13px] outline-none" disabled></div></div>
-                                <div><label class="block mb-1 text-[13px]">主旨 *</label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none" placeholder="選定「長駐區域」和「項目」後自動生成主旨"></div>
+                                <div><label class="block mb-1 text-[13px]">主旨 *</label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"></div>
                                 <div><label class="block mb-1 text-[13px]">出差類型 *</label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option value="" disabled selected>請選擇</option><option>商務出差</option><option>內務出差</option><option>新員工入職</option><option>人員轉移</option><option>簽證事宜</option></select></div>
                                 <div class="col-start-1"><label class="block mb-1 text-[13px]">申請人 *</label><div class="relative applicant-combo" id="pta-applicant-combo"><input type="text" autocomplete="off" placeholder="搜尋人名 / 工號" class="applicant-input w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><div class="applicant-list hidden absolute z-30 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto text-[13px]"></div></div></div>
                                 <div><label class="block mb-1 text-[13px]">項目 *</label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option>請選擇</option></select></div>
@@ -2487,16 +2550,25 @@
                             <button type="button" onclick="blockAdd(this)" class="text-[12px] text-blue-600 border border-blue-200 rounded px-2.5 py-1 hover:bg-blue-50 flex items-center gap-1"><i data-lucide="plus" class="w-3.5 h-3.5"></i>添加</button>
                         </div>
                         <div class="p-4">
-                            <div class="border border-gray-300 rounded mb-3">
-                                <div class="bg-[#f8f9fa] border-b border-gray-300 px-3 py-2 flex justify-between items-center">
-                                    <span class="text-[13px] font-bold text-gray-700">#1</span>
-                                    <button type="button" onclick="blockRemove(this)" class="text-[12px] text-rose-600 border border-rose-200 rounded px-2.5 py-1 hover:bg-rose-50 inline-flex items-center gap-1 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i>移除</button>
-                                </div>
-                                <div class="p-4 grid grid-cols-3 gap-x-10 gap-y-5">
-                                    <div><label class="block mb-1.5 text-[13px] text-gray-700">階段</label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500" value="準備"></div>
-                                    <div><label class="block mb-1.5 text-[13px] text-gray-700">日期</label><div class="border border-gray-300 rounded px-3 py-1.5 bg-white flex items-center"><i data-lucide="calendar" class="w-4 h-4 text-gray-400"></i><input type="date" onclick="this.showPicker && this.showPicker()" class="w-full ml-2 text-[13px] outline-none bg-transparent cursor-pointer"></div></div>
-                                    <div><label class="block mb-1.5 text-[13px] text-gray-700">目標</label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"></div>
-                                </div>
+                            <div class="overflow-x-auto border border-gray-100 rounded-lg">
+                                <table class="w-full text-left text-sm border-collapse whitespace-nowrap">
+                                    <thead>
+                                        <tr class="border-b border-gray-200 bg-gray-50 text-gray-700 font-bold text-xs">
+                                            <th class="px-3 py-2 w-40">階段</th>
+                                            <th class="px-3 py-2 w-48">日期</th>
+                                            <th class="px-3 py-2">目標</th>
+                                            <th class="px-3 py-2 w-20 text-center">操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-100">
+                                        <tr>
+                                            <td class="px-3 py-1.5"><input type="text" class="w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2]" value="準備"></td>
+                                            <td class="px-3 py-1.5"><div class="flex items-center border border-gray-300 rounded px-2 py-1 bg-white"><i data-lucide="calendar" class="w-4 h-4 text-gray-400"></i><input type="date" onclick="this.showPicker && this.showPicker()" class="w-full ml-1.5 text-sm outline-none bg-transparent cursor-pointer"></div></td>
+                                            <td class="px-3 py-1.5"><input type="text" class="w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2]"></td>
+                                            <td class="px-3 py-1.5 text-center"><button type="button" onclick="blockRemove(this)" class="text-[12px] text-rose-600 border border-rose-200 rounded px-2.5 py-1 hover:bg-rose-50 inline-flex items-center gap-1 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i>移除</button></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
@@ -2505,7 +2577,7 @@
                     <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5">
                         <div class="px-4 py-2.5 border-b border-gray-200"><h3 class="text-[#2b3b84] font-bold text-[15px]">投資信息</h3></div>
                         <div class="p-4 grid grid-cols-2 gap-x-10 gap-y-5">
-                            <div><label class="block mb-1.5 text-[13px] text-gray-700">目標投資幣種</label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option></select></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">目標投資貨幣</label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option></select></div>
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">投資金額</label><div class="flex items-center border border-gray-300 rounded px-3 py-1.5 bg-white"><span class="text-gray-500 text-[13px] mr-2">¥</span><input type="text" class="w-full text-[13px] outline-none bg-transparent" value="0"></div></div>
                         </div>
                     </div>
@@ -2517,29 +2589,58 @@
                             <button type="button" onclick="blockAdd(this)" class="text-[12px] text-blue-600 border border-blue-200 rounded px-2.5 py-1 hover:bg-blue-50 flex items-center gap-1"><i data-lucide="plus" class="w-3.5 h-3.5"></i>添加</button>
                         </div>
                         <div class="p-4">
-                            <div class="border border-gray-300 rounded mb-3">
-                                <div class="bg-[#f8f9fa] border-b border-gray-300 px-3 py-2 flex justify-between items-center">
-                                    <span class="text-[13px] font-bold text-gray-700">#1</span>
-                                    <button type="button" onclick="blockRemove(this)" class="text-[12px] text-rose-600 border border-rose-200 rounded px-2.5 py-1 hover:bg-rose-50 inline-flex items-center gap-1 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i>移除</button>
-                                </div>
-                                <div class="p-4 grid grid-cols-3 gap-x-10 gap-y-5">
-                                    <div><label class="block mb-1.5 text-[13px] text-gray-700">股東角色</label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500" value="集團"></div>
-                                    <div><label class="block mb-1.5 text-[13px] text-gray-700">股東名稱</label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"></div>
-                                    <div><label class="block mb-1.5 text-[13px] text-gray-700">股東類型</label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option><option>控股</option><option>運營公司</option></select></div>
-                                    <div><label class="block mb-1.5 text-[13px] text-gray-700">利潤分配</label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"></div>
-                                    <div><label class="block mb-1.5 text-[13px] text-gray-700">出資比例</label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"></div>
-                                    <div><label class="block mb-1.5 text-[13px] text-gray-700">出資金額</label><div class="flex items-center border border-gray-300 rounded px-3 py-1.5 bg-white"><span class="text-gray-500 text-[13px] mr-2">¥</span><input type="text" class="w-full text-[13px] outline-none bg-transparent" value="0"></div></div>
-                                    <div><label class="block mb-1.5 text-[13px] text-gray-700">描述</label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"></div>
-                                </div>
+                            <div class="overflow-x-auto border border-gray-100 rounded-lg">
+                                <table class="w-full text-left text-sm border-collapse whitespace-nowrap">
+                                    <thead>
+                                        <tr class="border-b border-gray-200 bg-gray-50 text-gray-700 font-bold text-xs">
+                                            <th class="px-3 py-2 w-28">股東角色</th>
+                                            <th class="px-3 py-2 w-32">股東名稱</th>
+                                            <th class="px-3 py-2 w-28">股東類型</th>
+                                            <th class="px-3 py-2 w-28">利潤分配</th>
+                                            <th class="px-3 py-2 w-28">出資比例</th>
+                                            <th class="px-3 py-2 w-36">出資金額</th>
+                                            <th class="px-3 py-2">描述</th>
+                                            <th class="px-3 py-2 w-20 text-center">操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-100">
+                                        <tr>
+                                            <td class="px-3 py-1.5"><input type="text" class="w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2]" value="集團"></td>
+                                            <td class="px-3 py-1.5"><input type="text" class="w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2]"></td>
+                                            <td class="px-3 py-1.5"><select class="w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2]"><option>請選擇</option><option>控股</option><option>運營公司</option></select></td>
+                                            <td class="px-3 py-1.5"><input type="text" class="w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2]"></td>
+                                            <td class="px-3 py-1.5"><input type="text" class="w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2]"></td>
+                                            <td class="px-3 py-1.5"><div class="flex items-center border border-gray-300 rounded overflow-hidden"><span class="bg-gray-50 border-r border-gray-300 px-2 py-1 text-xs text-gray-500 select-none">¥</span><input type="text" class="w-full px-2 py-1 text-sm text-right outline-none" value="0"></div></td>
+                                            <td class="px-3 py-1.5"><input type="text" class="w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2]"></td>
+                                            <td class="px-3 py-1.5 text-center"><button type="button" onclick="blockRemove(this)" class="text-[12px] text-rose-600 border border-rose-200 rounded px-2.5 py-1 hover:bg-rose-50 inline-flex items-center gap-1 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i>移除</button></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
 
-                    <!-- 區塊：描述 -->
+                    <!-- 區塊：描述（參考 用印流程 SE）-->
                     <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5">
                         <div class="px-4 py-2.5 border-b border-gray-200"><h3 class="text-[#2b3b84] font-bold text-[15px]">描述</h3></div>
                         <div class="p-4">
-                            <textarea class="w-full min-h-[120px] outline-none resize-y text-[13px] border border-gray-300 rounded px-3 py-2"></textarea>
+                            <div class="border border-gray-300 rounded-md overflow-hidden focus-within:border-blue-500">
+                                <!-- 文字編輯器工具列（示意） -->
+                                <div class="flex items-center gap-0.5 flex-wrap bg-gray-50 border-b border-gray-200 px-2 py-1.5">
+                                    <button type="button" title="粗體" class="w-7 h-7 flex items-center justify-center rounded text-gray-500 hover:bg-gray-200 hover:text-gray-700"><i data-lucide="bold" class="w-4 h-4"></i></button>
+                                    <button type="button" title="斜體" class="w-7 h-7 flex items-center justify-center rounded text-gray-500 hover:bg-gray-200 hover:text-gray-700"><i data-lucide="italic" class="w-4 h-4"></i></button>
+                                    <button type="button" title="底線" class="w-7 h-7 flex items-center justify-center rounded text-gray-500 hover:bg-gray-200 hover:text-gray-700"><i data-lucide="underline" class="w-4 h-4"></i></button>
+                                    <button type="button" title="刪除線" class="w-7 h-7 flex items-center justify-center rounded text-gray-500 hover:bg-gray-200 hover:text-gray-700"><i data-lucide="strikethrough" class="w-4 h-4"></i></button>
+                                    <span class="w-px h-5 bg-gray-300 mx-1"></span>
+                                    <button type="button" title="項目符號" class="w-7 h-7 flex items-center justify-center rounded text-gray-500 hover:bg-gray-200 hover:text-gray-700"><i data-lucide="list" class="w-4 h-4"></i></button>
+                                    <button type="button" title="編號清單" class="w-7 h-7 flex items-center justify-center rounded text-gray-500 hover:bg-gray-200 hover:text-gray-700"><i data-lucide="list-ordered" class="w-4 h-4"></i></button>
+                                    <span class="w-px h-5 bg-gray-300 mx-1"></span>
+                                    <button type="button" title="插入圖片" class="w-7 h-7 flex items-center justify-center rounded text-gray-500 hover:bg-gray-200 hover:text-gray-700"><i data-lucide="image" class="w-4 h-4"></i></button>
+                                    <button type="button" title="插入連結" class="w-7 h-7 flex items-center justify-center rounded text-gray-500 hover:bg-gray-200 hover:text-gray-700"><i data-lucide="link" class="w-4 h-4"></i></button>
+                                    <button type="button" title="插入表格" class="w-7 h-7 flex items-center justify-center rounded text-gray-500 hover:bg-gray-200 hover:text-gray-700"><i data-lucide="table" class="w-4 h-4"></i></button>
+                                </div>
+                                <textarea class="w-full min-h-[120px] px-3 py-2 outline-none resize-y text-[13px]" placeholder="請輸入描述…"></textarea>
+                            </div>
                         </div>
                     </div>
 
