@@ -264,11 +264,11 @@
 
       // 共用：篩選列渲染函數
       const renderFilterBar = (configs) => (
-        <div className="bg-[#F8F9FB] p-3 rounded border border-gray-200 flex flex-wrap gap-4 items-center">
+        <div className="bg-[#F8F9FB] p-3 rounded border border-gray-200 flex flex-wrap gap-x-0 gap-y-2 items-center">
           {configs.map((filter) => (
-            <div key={filter.id} className={`flex items-center gap-2 flex-1 min-w-[180px] ${filter.id === 'docType' || filter.id === 'status' || filter.id === 'ltStatus' ? 'md:col-span-2 lg:min-w-[280px]' : ''}`}>
-              <span className="whitespace-nowrap text-xs text-gray-600 font-medium w-16 text-right">{filter.label}</span>
-              <div className="relative flex-1">
+            <div key={filter.id} className={`flex items-center gap-2 relative hover:z-[70] ${filter.id === 'docType' ? 'basis-full min-w-0' : ['status', 'oa', 'project', 'location'].includes(filter.id) ? 'basis-1/4 min-w-0' : 'flex-1 min-w-[180px]'}`}>
+              <span className={`whitespace-nowrap text-xs text-gray-600 font-medium ${(filter.id === 'status' || filter.id === 'docType') ? 'w-10 text-left' : 'w-16 text-right'}`}>{filter.label}</span>
+              <div className="relative flex-1 group">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -278,27 +278,39 @@
                     openDropdown === filter.id ? 'border-[#4A90E2] ring-1 ring-[#4A90E2]' : 'border-gray-300 hover:border-[#4A90E2]'
                   }`}
                 >
-                  <div className="flex-1 flex items-center gap-1 overflow-hidden min-w-0">
+                  <div className="flex-1 flex flex-wrap gap-1 items-center overflow-hidden" title={filter.type !== 'single' && selectedFilters[filter.id].length > 0 ? selectedFilters[filter.id].join('、') : undefined}>
                     {filter.type === 'single' ? (
                       <span className="text-gray-700 truncate">{selectedFilters[filter.id]}</span>
-                    ) : selectedFilters[filter.id].length === 0 ? (
-                      <span className="text-gray-700">全部</span>
-                    ) : selectedFilters[filter.id].length === 1 ? (
-                      <span className="inline-flex items-center gap-1 bg-[#F0F2F5] text-gray-700 px-1.5 py-0.5 rounded-sm text-[11px] border border-gray-200 max-w-full">
-                        <span className="truncate">{selectedFilters[filter.id][0]}</span>
-                        <div
-                          onClick={(e) => removeFilterOption(filter.id, selectedFilters[filter.id][0], e)}
-                          className="hover:text-red-500 hover:bg-gray-200 rounded-full p-0.5 transition-colors cursor-pointer flex-shrink-0"
-                        >
-                          <X size={10} strokeWidth={2} />
-                        </div>
-                      </span>
+                    ) : selectedFilters[filter.id].length > 0 ? (
+                      <>
+                        {selectedFilters[filter.id].slice(0, 3).map(opt => (
+                          <span key={opt} className="inline-flex items-center gap-1 bg-[#F0F2F5] text-gray-700 px-1.5 py-0.5 rounded-sm text-[11px] border border-gray-200 max-w-full">
+                            <span className="truncate">{opt}</span>
+                            <div
+                              onClick={(e) => removeFilterOption(filter.id, opt, e)}
+                              className="hover:text-red-500 hover:bg-gray-200 rounded-full p-0.5 transition-colors cursor-pointer flex-shrink-0"
+                            >
+                              <X size={10} strokeWidth={2} />
+                            </div>
+                          </span>
+                        ))}
+                        {selectedFilters[filter.id].length > 3 && (
+                          <span className="inline-flex items-center bg-[#E8EEF9] text-[#4A90E2] px-1.5 py-0.5 rounded-sm text-[11px] border border-[#cddcf5] font-medium flex-shrink-0">+{selectedFilters[filter.id].length - 3}</span>
+                        )}
+                      </>
                     ) : (
-                      <span className="inline-flex items-center bg-[#E8F0FE] text-[#4A90E2] px-2 py-0.5 rounded-sm text-[11px] font-medium border border-[#c9ddfb] whitespace-nowrap flex-shrink-0">已選 {selectedFilters[filter.id].length} 項</span>
+                      <span className="text-gray-700">全部</span>
                     )}
                   </div>
                   <ChevronDown size={14} className={`text-gray-400 transition-transform flex-shrink-0 ml-1.5 ${openDropdown === filter.id ? 'rotate-180' : ''}`} />
                 </button>
+
+                {/* Hover 顯示所有已選項目 */}
+                {filter.type !== 'single' && selectedFilters[filter.id].length > 0 && openDropdown !== filter.id && (
+                  <div className="pointer-events-none absolute top-full left-0 mt-1 hidden group-hover:block z-[60] bg-gray-800 text-white text-[11px] leading-relaxed rounded px-2.5 py-1.5 shadow-lg max-w-xs whitespace-normal">
+                    {selectedFilters[filter.id].join('、')}
+                  </div>
+                )}
 
                 {/* 下拉選單內容 */}
                 {openDropdown === filter.id && (
@@ -342,6 +354,9 @@
                               <span className="text-[13px] text-gray-700">{opt}</span>
                             </label>
                           ))}
+                        </div>
+                        <div className="p-1.5 border-t border-gray-100 mt-1">
+                          <input type="text" placeholder="請輸入關鍵字" className="w-full border border-gray-300 rounded p-1 text-[13px] focus:outline-none focus:border-[#4A90E2] focus:ring-1 focus:ring-[#4A90E2]" />
                         </div>
                       </div>
                     )}

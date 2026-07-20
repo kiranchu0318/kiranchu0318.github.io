@@ -230,7 +230,7 @@
                                     <button onclick="setAllApprove(false)" class="text-xs text-gray-500 font-semibold hover:underline">清除</button>
                                 </div>
                             </div>
-                            <div id="approve-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2"><!-- 動態渲染 --></div>
+                            <div id="approve-list" class="grid grid-cols-3 sm:grid-cols-6 gap-2"><!-- 動態渲染 --></div>
                         </div>
 
                     </div>
@@ -331,6 +331,15 @@
         const DATA_ACTIONS = ['檢視', '編輯'];
         // 頁面清單依 index.html 選單；ops 為該頁的特殊操作（category_list 中非單純檢視/編輯的權限併入此欄）
         const DATA_PAGES = [
+            // 個人
+            { key: 'pg_home',        name: '首頁',     group: '個人', actions: ['檢視'], ops: [] },
+            { key: 'pg_punch',       name: '打卡',     group: '個人', ops: [] },
+            { key: 'pg_attrecord',   name: '出勤紀錄', group: '個人', actions: ['檢視'], ops: [] },
+            { key: 'pg_makeupapply', name: '補卡申請', group: '個人', ops: [] },
+            { key: 'pg_leaveapply',  name: '假期申請', group: '個人', ops: [] },
+            { key: 'pg_otapply',     name: '加班申請', group: '個人', ops: [] },
+            { key: 'pg_personal',    name: '個人資訊', group: '個人', ops: [] },
+            { key: 'pg_doclib',      name: '文件庫',   group: '個人', ops: [] },
             // 電子表單
             { key: 'pg_myapply',  name: '我的申請', group: '電子表單', ops: [] },
             { key: 'pg_tempsave', name: '臨時保存', group: '電子表單', ops: [] },
@@ -358,10 +367,10 @@
             { key: 'pg_assetorder', name: '資產單統計',   group: '行政管理', actions: ['檢視'], ops: [] },
             { key: 'pg_assetcheck', name: '資產盤點',     group: '行政管理', ops: [] },
             { key: 'pg_assetspot',  name: '資產抽查',     group: '行政管理', ops: [] },
+            { key: 'pg_assettype',  name: '資產類型設定', group: '行政管理', ops: [] },
             { key: 'pg_empno',      name: '工號創建管理', group: '行政管理', ops: [] },
             // 系統設定
             { key: 'pg_apprvacct',  name: '審批帳號',     group: '系統設定', ops: [] },
-            { key: 'pg_apprvrole',  name: '審批角色',     group: '系統設定', ops: [] },
             { key: 'pg_apprvperm',  name: '審批角色權限', group: '系統設定', ops: [] },
             { key: 'pg_apprvflow',  name: '審批流管理',   group: '系統設定', ops: [] },
             { key: 'pg_group',      name: '分組管理',     group: '系統設定', ops: [] },

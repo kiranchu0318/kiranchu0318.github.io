@@ -365,8 +365,8 @@
         { id: 'oa', label: 'OA 類型', type: 'multi', options: ['商務', '合同', '財務', '行政', 'PMO'] },
         { id: 'project', label: '項目', type: 'multi', options: ['GT'] },
         { id: 'location', label: '地點', type: 'multi', options: ['T1', 'T2', 'THQ', 'T3', 'T4'] },
-        { id: 'title', label: '職稱', type: 'multi', options: ['行政負責代表', '人力資源中心', '記帳', '財務總監', '費用會計'] },
         { id: 'docType', label: '單據類型', type: 'multi', options: ['新增資產申請 (ASSETS)', '費用申請單 (B)', '商務公告(BU)', '費用報銷單 (C)', '內部合同審批單 (IC)'] },
+        { id: 'title', label: '職稱', type: 'multi', options: ['行政負責代表', '人力資源中心', '記帳', '財務總監', '費用會計'] },
       ];
 
       // 請假/補卡簽核：專屬篩選器設定
@@ -433,10 +433,10 @@
 
       // 提取共用的篩選列渲染函數
       const renderFilterBar = (configs) => (
-        <div className="bg-[#F8F9FB] p-3 rounded border border-gray-200 flex flex-wrap gap-x-1.5 gap-y-3 items-center">
+        <div className="bg-[#F8F9FB] p-3 rounded border border-gray-200 flex flex-wrap gap-x-0 gap-y-2 items-center">
           {configs.map((filter) => (
-            <div key={filter.id} className={`flex items-center gap-2 ${filter.id === 'docType' ? 'basis-full' : 'flex-1 min-w-[180px]'}`}>
-              <span className="whitespace-nowrap text-xs text-gray-600 font-medium w-16 text-right">{filter.label}</span>
+            <div key={filter.id} className={`flex items-center gap-2 relative hover:z-[70] ${(filter.id === 'docType' || filter.id === 'title') ? 'basis-1/2 min-w-0' : ['status', 'oa', 'project', 'location'].includes(filter.id) ? 'basis-1/4 min-w-0' : 'flex-1 min-w-[180px]'}`}>
+              <span className={`whitespace-nowrap text-xs text-gray-600 font-medium ${(filter.id === 'status' || filter.id === 'docType') ? 'w-10 text-left' : 'w-16 text-right'}`}>{filter.label}</span>
               <div className="relative flex-1 group">
                 <button
                   onClick={(e) => {
@@ -476,7 +476,7 @@
 
                 {/* Hover 顯示所有已選項目 */}
                 {filter.type !== 'single' && selectedFilters[filter.id].length > 0 && openDropdown !== filter.id && (
-                  <div className="pointer-events-none absolute bottom-full left-0 mb-1 hidden group-hover:block z-[60] bg-gray-800 text-white text-[11px] leading-relaxed rounded px-2.5 py-1.5 shadow-lg max-w-xs whitespace-normal">
+                  <div className="pointer-events-none absolute top-full left-0 mt-1 hidden group-hover:block z-[60] bg-gray-800 text-white text-[11px] leading-relaxed rounded px-2.5 py-1.5 shadow-lg max-w-xs whitespace-normal">
                     {selectedFilters[filter.id].join('、')}
                   </div>
                 )}
