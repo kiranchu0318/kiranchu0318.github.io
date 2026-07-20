@@ -721,76 +721,88 @@
                       {/* ===== 人員帳號異動申請（kind === 'account'） ===== */}
                       {modalRow?.kind === 'account' && (
                         <>
-                          {/* 基本資訊 */}
+                          {/* 基本資訊（比照電子表單簽核 HR）*/}
                           <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-5">
                             <div className="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2">基本資訊</div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4">
-                              {[
-                                ['標題', '人員帳號異動申請'],
-                                ['文件編號', 'HR-THQ-000007'],
-                                ['工號', '100139'],
-                                ['姓名', 'Benjamin'],
-                                ['分部', 'T2（總部）-研發中心 RD-2'],
-                                ['職位信息', '資深工程師'],
-                                ['生效日期', '2026-06-20'],
-                                ['主體', 'Royce Technology'],
-                                ['部門', 'RD'],
-                                ['職位', '資深工程師'],
-                                ['直屬上司', 'James'],
-                                ['生效日期', '2026-06-20'],
-                                ['項目', 'GT'],
-                              ].map(([k, v], idx) => (
-                                <div key={idx}>
-                                  <label className="block text-gray-700 text-xs mb-1.5 font-medium">{k}</label>
-                                  <input type="text" disabled value={v} className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 cursor-not-allowed" />
+                            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-x-5 gap-y-4">
+                              <div className="lg:col-span-2">
+                                <label className="block text-gray-700 text-xs mb-1.5 font-medium">文件編號</label>
+                                <input type="text" disabled value={modalRow?.docNo || ''} className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed font-mono" />
+                              </div>
+                              <div>
+                                <label className="block text-gray-700 text-xs mb-1.5 font-medium">申請日期</label>
+                                <div className="flex items-center bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700">
+                                  <Calendar size={14} className="mr-2 text-gray-500" />
+                                  <span>{(modalRow?.date || '').slice(0, 10) || '—'}</span>
                                 </div>
-                              ))}
+                              </div>
+                              <div>
+                                <label className="block text-gray-700 text-xs mb-1.5 font-medium">主旨</label>
+                                <input type="text" disabled value={`${modalRow?.oa || ''}申請單`} className="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-sm text-gray-800 font-medium" />
+                              </div>
+                              <div className="lg:col-start-1">
+                                <label className="block text-gray-700 text-xs mb-1.5 font-medium">申請人</label>
+                                <input type="text" disabled value={modalRow?.applicant || ''} className="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-sm text-gray-800" />
+                              </div>
+                              <div>
+                                <label className="block text-gray-700 text-xs mb-1.5 font-medium">區域</label>
+                                <input type="text" disabled value={modalRow?.location || ''} className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed" />
+                              </div>
+                              <div>
+                                <label className="block text-gray-700 text-xs mb-1.5 font-medium">項目</label>
+                                <input type="text" disabled value={modalRow?.project || 'GT'} className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed" />
+                              </div>
+                              <div>
+                                <label className="block text-gray-700 text-xs mb-1.5 font-medium">部門</label>
+                                <input type="text" disabled value={modalRow?.dept || 'RD'} className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed" />
+                              </div>
                             </div>
                           </div>
 
-                          {/* 人員帳號異動明細（比照電子表單簽核 USER_DATA）*/}
+                          {/* 人員帳號異動明細（比照電子表單簽核 HR）*/}
                           <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-5">
-                            <div className="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2">人員帳號異動明細</div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <div className="text-[#2b3b84] font-bold text-[15px] border-b border-gray-100 pb-2">人員帳號異動明細</div>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-x-5 gap-y-4">
                               <div>
-                                <label className="block text-gray-700 text-xs mb-1.5 font-medium">異動對象</label>
-                                <input type="text" disabled value="Benjamin（100139）" className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 cursor-not-allowed" />
+                                <label className="block text-gray-700 text-[13px] mb-1.5">異動對象</label>
+                                <input type="text" disabled value="Gibson Yang（100258）" className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-[13px] text-gray-700 cursor-not-allowed" />
                               </div>
                               <div>
-                                <label className="block text-gray-700 text-xs mb-1.5 font-medium">所屬部門</label>
-                                <input type="text" disabled value="研發中心 RD-2 / GT" className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 cursor-not-allowed" />
-                              </div>
-                              <div>
-                                <label className="block text-gray-700 text-xs mb-1.5 font-medium">申請類型</label>
-                                <input type="text" disabled value="人員帳號 增 / 改 / 刪" className="w-full bg-white border border-gray-200 rounded px-3 py-2 text-sm text-gray-800" />
+                                <label className="block text-gray-700 text-[13px] mb-1.5">所屬部門</label>
+                                <input type="text" disabled value="研發事業部 (RD BU) / GT" className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-[13px] text-gray-700 cursor-not-allowed" />
                               </div>
                             </div>
                             <div className="overflow-x-auto border border-gray-100 rounded-lg">
-                              <table className="w-full text-left text-xs border-collapse whitespace-nowrap">
+                              <table className="w-full text-left text-sm border-collapse whitespace-nowrap">
                                 <thead>
-                                  <tr className="border-b border-gray-200 bg-gray-50 text-gray-700 font-bold">
-                                    <th className="px-3 py-1.5">欄位</th>
-                                    <th className="px-3 py-1.5">目前值</th>
-                                    <th className="px-3 py-1.5 w-20 text-center">異動類型</th>
-                                    <th className="px-3 py-1.5">異動內容 / 刪除方式</th>
-                                    <th className="px-3 py-1.5">備註</th>
+                                  <tr className="border-b border-gray-200 bg-gray-50 text-gray-700 font-bold text-xs">
+                                    <th className="px-3 py-2">欄位</th>
+                                    <th className="px-3 py-2">目前值</th>
+                                    <th className="px-3 py-2 w-20 text-center">異動類型</th>
+                                    <th className="px-3 py-2">異動內容 / 刪除方式</th>
+                                    <th className="px-3 py-2">備註</th>
                                   </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-100 font-medium">
                                   {[
-                                    { field: 'Mobile / WhatsApp', cur: '「T2」601114372701', chg: '修改', detail: '「T2」602233445566', note: '門號更換' },
-                                    { field: 'E-mail', cur: 'benjamin@roycetechnology.com', chg: '刪除', detail: '離職停用（保留 30 天）', note: '轉調前先停用' },
-                                    { field: 'Apple ID', cur: '（未綁定）', chg: '新增', detail: 'benjamin.apple@icloud.com', note: '公務設備綁定' },
-                                    { field: 'Jira', cur: '（未綁定）', chg: '新增', detail: 'benjamin.tw', note: '專案協作需求' },
-                                  ].map((r, i) => (
-                                    <tr key={i}>
-                                      <td className="px-3 py-1.5 text-gray-800">{r.field}</td>
+                                    { field: 'Mobile / WhatsApp', rows: [{ cur: '「T2」601114372701', chg: '修改', detail: '「T2」602233445566', note: '門號更換' }] },
+                                    { field: 'E-mail', rows: [
+                                        { cur: 'gibsonyang@roycetechnology.com', chg: '刪除', detail: '離職停用（保留 30 天）', note: '轉調前先停用' },
+                                        { cur: 'gibson.y@roycetech.com', chg: '刪除', detail: '停用備援信箱', note: '整併信箱後移除' },
+                                    ] },
+                                    { field: 'Apple ID', rows: [{ cur: '（未綁定）', chg: '新增', detail: 'gibson.apple@icloud.com', note: '公務設備綁定' }] },
+                                    { field: 'Jira', rows: [{ cur: '（未綁定）', chg: '新增', detail: 'gibson.yang', note: '專案協作需求' }] },
+                                    { field: '門禁卡', rows: [{ cur: 'THQ-3F', chg: '修改', detail: 'THQ-5F', note: '辦公室搬遷' }] },
+                                    { field: '指紋', rows: [{ cur: 'THQ-3F', chg: '修改', detail: 'THQ-5F', note: '辦公室搬遷' }] },
+                                  ].flatMap((f, fi) => f.rows.map((r, ri) => (
+                                    <tr key={`${fi}-${ri}`}>
+                                      {ri === 0 && <td className="px-3 py-1.5 text-gray-800 align-top border-r border-gray-100" rowSpan={f.rows.length}>{f.field}</td>}
                                       <td className="px-3 py-1.5 text-gray-600 font-mono">{r.cur}</td>
                                       <td className="px-3 py-1.5 text-center"><span className={`ui-badge ${r.chg === '刪除' ? 'ui-badge-danger' : r.chg === '新增' ? 'ui-badge-success' : 'ui-badge-info'}`}>{r.chg}</span></td>
                                       <td className="px-3 py-1.5 text-gray-800 font-mono">{r.detail}</td>
                                       <td className="px-3 py-1.5 text-gray-500">{r.note}</td>
                                     </tr>
-                                  ))}
+                                  )))}
                                 </tbody>
                               </table>
                             </div>
@@ -800,15 +812,6 @@
                           <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-3">
                             <div className="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2">附件</div>
                             <AttachmentPreview files={[{ name: '異動申請表.pdf' }, { name: '門禁卡遺失聲明.jpg' }]} />
-                          </div>
-
-                          {/* 審批意見 */}
-                          <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-3">
-                            <div className="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2">審批意見</div>
-                            <div className="flex items-start gap-3">
-                              <div className="w-16 pt-0.5 font-mono font-bold text-sm text-gray-600 shrink-0">James</div>
-                              <div className="flex-1 text-sm text-gray-700 bg-gray-50 border border-gray-100 rounded-lg p-3 leading-relaxed">已確認異動內容，待資訊安全覆核後執行。</div>
-                            </div>
                           </div>
                         </>
                       )}
@@ -1126,7 +1129,7 @@
                       {/* 審批線詳情表格區塊 */}
                       <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
                         <div className="bg-[#EEF2F6] px-6 py-3.5 flex items-center justify-between border-b border-gray-200">
-                          <span className="font-bold text-[#1A237E] text-[15px]">進度追蹤</span>
+                          <span className="font-bold text-[#1A237E] text-[15px]">審批進度追蹤</span>
                           
                           {/* 右側：顯示審批意見與附件開關（草稿不顯示） */}
                           {modalRow?.status !== '草稿' && (
@@ -1147,7 +1150,46 @@
                         </div>
 
                         <div className="p-6 space-y-6">
-                          {modalRow?.docNo === 'C-THQ-000001' ? (
+                          {modalRow?.kind === 'account' ? (
+                            /* 人員帳號異動（HR）：比照電子表單簽核 HR 審批進度追蹤 */
+                            <div className="overflow-x-auto border border-gray-100 rounded-lg">
+                              <table className="w-full text-left text-xs border-collapse whitespace-nowrap">
+                                <thead>
+                                  <tr className="border-b border-gray-200 bg-gray-50 text-gray-700 font-bold">
+                                    <th className="px-3 py-1.5 text-center w-12">序號</th>
+                                    <th className="px-3 py-1.5 text-center w-20">審批狀態</th>
+                                    <th className="px-3 py-1.5 text-center w-14">條件</th>
+                                    <th className="px-3 py-1.5">職稱</th>
+                                    <th className="px-3 py-1.5">簽名</th>
+                                    <th className="px-3 py-1.5">ID</th>
+                                    <th className="px-3 py-1.5 w-40">審批時間</th>
+                                  </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-100 font-medium">
+                                  {[
+                                    { seq: '1', status: '已審批', cond: '—',  title: '提交申請',       sign: modalRow?.applicant || 'Nick', id: '100258', time: '2026-05-30 15:36:45' },
+                                    { seq: '2', status: '已審批', cond: '串聯', title: '部門主管',       sign: 'James', id: '100423', time: '2026-06-01 11:20:00' },
+                                    { seq: '3', status: '審批中', cond: '串聯', title: 'MM帳號管理人',      sign: '-', id: '-', time: '' },
+                                    { seq: '4', status: '待審批', cond: '串聯', title: 'Apple ID帳號管理人', sign: '-', id: '-', time: '' },
+                                    { seq: '5', status: '待審批', cond: '串聯', title: 'Jira帳號管理人',    sign: '-', id: '-', time: '' },
+                                    { seq: '6', status: '待審批', cond: '串聯', title: 'E-mail帳號管理人',  sign: '-', id: '-', time: '' },
+                                    { seq: '7', status: '待審批', cond: '串聯', title: '手機號碼管理人',    sign: '-', id: '-', time: '' },
+                                    { seq: '8', status: '待審批', cond: '串聯', title: '行政管理人',       sign: '-', id: '-', time: '' },
+                                  ].map((s) => (
+                                    <tr key={s.seq}>
+                                      <td className="px-3 py-1.5 text-center font-bold text-gray-800">{s.seq}</td>
+                                      <td className="px-3 py-1.5 text-center"><span className={`ui-badge ${s.status === '審批中' ? 'ui-badge-info' : s.status === '待審批' ? 'ui-badge-gray' : 'ui-badge-success'}`}>{s.status}</span></td>
+                                      <td className="px-3 py-1.5 text-center text-gray-500">{s.cond}</td>
+                                      <td className="px-3 py-1.5 text-gray-800">{s.title}</td>
+                                      <td className="px-3 py-1.5 text-gray-800">{s.sign}</td>
+                                      <td className="px-3 py-1.5 text-gray-600 font-mono">{s.id}</td>
+                                      <td className="px-3 py-1.5 text-gray-400">{s.time || '-'}</td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          ) : modalRow?.docNo === 'C-THQ-000001' ? (
                             /* C-THQ-000001：依「進度追蹤C」文件呈現審批節點表格 */
                             <div className="overflow-x-auto border border-gray-100 rounded-lg">
                               <table className="w-full text-left text-xs border-collapse whitespace-nowrap">
@@ -1304,7 +1346,8 @@
 
                     </div>
 
-                    {/* 底部總額顯示區 */}
+                    {/* 底部總額顯示區（人員帳號異動申請單不涉及金額，故不顯示） */}
+                    {modalRow?.kind !== 'account' && (
                     <div className="bg-[#F8F9FA] border-t border-gray-200 px-6 py-4 flex flex-col items-end gap-3 flex-shrink-0 shadow-[0_-2px_8px_rgba(0,0,0,0.04)]">
                       <div className="flex flex-col items-end text-sm text-gray-800 font-medium space-y-1 w-full">
                         <div className="flex justify-end gap-12 w-full">
@@ -1313,6 +1356,7 @@
                         </div>
                       </div>
                     </div>
+                    )}
 
                   </div>
 
@@ -1323,9 +1367,20 @@
                     </div>
 
                     <div className="p-4 flex-1 overflow-y-auto">
-                      {(modalRow?.docNo === 'C-THQ-000001'
-                        ? progressCSteps
-                        : [{ seq: '1', title: '部門主管' }, { seq: '2', title: '項目負責人' }, { seq: '3', title: '費用會計' }, { seq: '4', title: '財務負責人' }, { seq: '5', title: '資金專員' }]
+                      {(modalRow?.kind === 'account'
+                        ? [
+                            { seq: '1', title: '提交申請', status: '已審批', sign: modalRow?.applicant || 'Benjamin' },
+                            { seq: '2', title: '部門主管', status: '已審批', sign: 'James' },
+                            { seq: '3', title: 'MM帳號管理人', status: '審批中' },
+                            { seq: '4', title: 'Apple ID帳號管理人', status: '待審批' },
+                            { seq: '5', title: 'Jira帳號管理人', status: '待審批' },
+                            { seq: '6', title: 'E-mail帳號管理人', status: '待審批' },
+                            { seq: '7', title: '手機號碼管理人', status: '待審批' },
+                            { seq: '8', title: '行政管理人', status: '待審批' },
+                          ]
+                        : modalRow?.docNo === 'C-THQ-000001'
+                          ? progressCSteps
+                          : [{ seq: '1', title: '部門主管' }, { seq: '2', title: '項目負責人' }, { seq: '3', title: '費用會計' }, { seq: '4', title: '財務負責人' }, { seq: '5', title: '資金專員' }]
                       ).map((s, i, arr) => {
                         const isDraft = modalRow?.status === '草稿';
                         const done = !isDraft && s.status === '已審批';
