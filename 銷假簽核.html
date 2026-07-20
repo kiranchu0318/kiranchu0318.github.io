@@ -245,6 +245,7 @@
       const [selectedTimesheet, setSelectedTimesheet] = useState([]);
       const [selectedCancel, setSelectedCancel] = useState([]);
       const [batchApproveModal, setBatchApproveModal] = useState(null); // 'leave' | 'timesheet' | 'cancel' | null
+      const [batchMode, setBatchMode] = useState(null); // 批量選取模式：'leave' | 'timesheet' | 'cancel' | null（開啟後才顯示勾選欄）
 
       const mockLeaveData = [
         { id: 'L1', project: 'GT', dept: 'RD', empNo: '101372', applyTime: '2026-05-28 10:00:00', name: 'Nick', startDate: '2026-06-01', endDate: '2026-06-02', leaveType: '年假', hours: '16', status: '待我簽核' },
@@ -793,19 +794,38 @@
                     setLtEndDate(getFormattedDate(0));
                   })}
                   <div className="space-y-4">
-                    <div className="flex justify-start">
-                      <button
-                        onClick={() => setBatchApproveModal('leave')}
-                        disabled={selectedLeave.length === 0}
-                        className="ui-btn ui-btn-success"
-                      >
-                        一鍵審批
-                      </button>
+                    <div className="flex justify-start items-center gap-3">
+                      {batchMode === 'leave' ? (
+                        <>
+                          <span className="text-sm text-gray-600">已選 <span className="font-bold text-[#4A90E2]">{selectedLeave.length}</span> 項</span>
+                          <button
+                            onClick={() => setBatchApproveModal('leave')}
+                            disabled={selectedLeave.length === 0}
+                            className="ui-btn ui-btn-success"
+                          >
+                            全部通過
+                          </button>
+                          <button
+                            onClick={() => { setBatchMode(null); setSelectedLeave([]); }}
+                            className="ui-btn ui-btn-secondary"
+                          >
+                            取消
+                          </button>
+                        </>
+                      ) : (
+                        <button
+                          onClick={() => setBatchMode('leave')}
+                          className="ui-btn ui-btn-success"
+                        >
+                          一鍵審批
+                        </button>
+                      )}
                     </div>
                     <div className="border border-gray-200 rounded overflow-x-auto">
                       <table className="ui-table text-center whitespace-nowrap">
                         <thead>
                           <tr>
+                            {batchMode === 'leave' && (
                             <th className="w-12 text-center">
                               <input
                                 type="checkbox"
@@ -815,6 +835,7 @@
                                 className="w-4 h-4 rounded border-gray-300 text-[#4A90E2] focus:ring-[#4A90E2] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                               />
                             </th>
+                            )}
                             <th className="text-left">項目</th>
                             <th className="text-left">部門</th>
                             <th className="text-left">工號</th>
@@ -831,9 +852,10 @@
                         <tbody>
                           {filteredLeaveData.length > 0 ? filteredLeaveData.map((row) => (
                             <tr key={row.id}>
+                              {batchMode === 'leave' && (
                               <td className="text-center">
                                 {row.status === '待我簽核' && (
-                                  <input 
+                                  <input
                                     type="checkbox"
                                     checked={selectedLeave.includes(row.id)}
                                     onChange={(e) => {
@@ -844,6 +866,7 @@
                                   />
                                 )}
                               </td>
+                              )}
                               <td className="text-left">{row.project}</td>
                               <td className="text-left">{row.dept}</td>
                               <td className="text-left">{row.empNo}</td>
@@ -877,7 +900,7 @@
                             </tr>
                           )) : (
                             <tr>
-                              <td colSpan="12" className="py-8 text-center text-gray-400 bg-white">
+                              <td colSpan={batchMode === 'leave' ? 12 : 11} className="py-8 text-center text-gray-400 bg-white">
                                 目前沒有待簽核項目
                               </td>
                             </tr>
@@ -897,19 +920,38 @@
                     setLtEndDate(getFormattedDate(0));
                   })}
                   <div className="space-y-4">
-                    <div className="flex justify-start">
-                      <button
-                        onClick={() => setBatchApproveModal('timesheet')}
-                        disabled={selectedTimesheet.length === 0}
-                        className="ui-btn ui-btn-success"
-                      >
-                        一鍵審批
-                      </button>
+                    <div className="flex justify-start items-center gap-3">
+                      {batchMode === 'timesheet' ? (
+                        <>
+                          <span className="text-sm text-gray-600">已選 <span className="font-bold text-[#4A90E2]">{selectedTimesheet.length}</span> 項</span>
+                          <button
+                            onClick={() => setBatchApproveModal('timesheet')}
+                            disabled={selectedTimesheet.length === 0}
+                            className="ui-btn ui-btn-success"
+                          >
+                            全部通過
+                          </button>
+                          <button
+                            onClick={() => { setBatchMode(null); setSelectedTimesheet([]); }}
+                            className="ui-btn ui-btn-secondary"
+                          >
+                            取消
+                          </button>
+                        </>
+                      ) : (
+                        <button
+                          onClick={() => setBatchMode('timesheet')}
+                          className="ui-btn ui-btn-success"
+                        >
+                          一鍵審批
+                        </button>
+                      )}
                     </div>
                     <div className="border border-gray-200 rounded overflow-x-auto">
                       <table className="ui-table text-center whitespace-nowrap">
                         <thead>
                           <tr>
+                            {batchMode === 'timesheet' && (
                             <th className="w-12 text-center">
                               <input
                                 type="checkbox"
@@ -919,6 +961,7 @@
                                 className="w-4 h-4 rounded border-gray-300 text-[#4A90E2] focus:ring-[#4A90E2] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                               />
                             </th>
+                            )}
                             <th className="text-left">項目</th>
                             <th className="text-left">部門</th>
                             <th className="text-left">工號</th>
@@ -933,9 +976,10 @@
                         <tbody>
                           {mockTimesheetData.length > 0 ? mockTimesheetData.map((row) => (
                             <tr key={row.id}>
+                              {batchMode === 'timesheet' && (
                               <td className="text-center">
                                 {row.status === '待我簽核' && (
-                                  <input 
+                                  <input
                                     type="checkbox"
                                     checked={selectedTimesheet.includes(row.id)}
                                     onChange={(e) => {
@@ -946,6 +990,7 @@
                                   />
                                 )}
                               </td>
+                              )}
                               <td className="text-left">{row.project}</td>
                               <td className="text-left">{row.dept}</td>
                               <td className="text-left">{row.empNo}</td>
@@ -977,7 +1022,7 @@
                             </tr>
                           )) : (
                             <tr>
-                              <td colSpan="10" className="py-8 text-center text-gray-400 bg-white">
+                              <td colSpan={batchMode === 'timesheet' ? 10 : 9} className="py-8 text-center text-gray-400 bg-white">
                                 目前沒有待簽核項目
                               </td>
                             </tr>
@@ -996,19 +1041,38 @@
                     setLtEndDate(getFormattedDate(0));
                   })}
                   <div className="space-y-4">
-                    <div className="flex justify-start">
-                      <button
-                        onClick={() => setBatchApproveModal('cancel')}
-                        disabled={selectedCancel.length === 0}
-                        className="ui-btn ui-btn-success"
-                      >
-                        一鍵審批
-                      </button>
+                    <div className="flex justify-start items-center gap-3">
+                      {batchMode === 'cancel' ? (
+                        <>
+                          <span className="text-sm text-gray-600">已選 <span className="font-bold text-[#4A90E2]">{selectedCancel.length}</span> 項</span>
+                          <button
+                            onClick={() => setBatchApproveModal('cancel')}
+                            disabled={selectedCancel.length === 0}
+                            className="ui-btn ui-btn-success"
+                          >
+                            全部通過
+                          </button>
+                          <button
+                            onClick={() => { setBatchMode(null); setSelectedCancel([]); }}
+                            className="ui-btn ui-btn-secondary"
+                          >
+                            取消
+                          </button>
+                        </>
+                      ) : (
+                        <button
+                          onClick={() => setBatchMode('cancel')}
+                          className="ui-btn ui-btn-success"
+                        >
+                          一鍵審批
+                        </button>
+                      )}
                     </div>
                     <div className="border border-gray-200 rounded overflow-x-auto">
                       <table className="ui-table text-center whitespace-nowrap">
                         <thead>
                           <tr>
+                            {batchMode === 'cancel' && (
                             <th className="w-12 text-center">
                               <input
                                 type="checkbox"
@@ -1018,6 +1082,7 @@
                                 className="w-4 h-4 rounded border-gray-300 text-[#4A90E2] focus:ring-[#4A90E2] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                               />
                             </th>
+                            )}
                             <th className="text-left">項目</th>
                             <th className="text-left">部門</th>
                             <th className="text-left">工號</th>
@@ -1034,6 +1099,7 @@
                         <tbody>
                           {filteredCancelData.length > 0 ? filteredCancelData.map((row) => (
                             <tr key={row.id}>
+                              {batchMode === 'cancel' && (
                               <td className="text-center">
                                 {row.status === '待我簽核' && (
                                   <input
@@ -1047,6 +1113,7 @@
                                   />
                                 )}
                               </td>
+                              )}
                               <td className="text-left">{row.project}</td>
                               <td className="text-left">{row.dept}</td>
                               <td className="text-left">{row.empNo}</td>
@@ -1080,7 +1147,7 @@
                             </tr>
                           )) : (
                             <tr>
-                              <td colSpan="12" className="py-8 text-center text-gray-400 bg-white">
+                              <td colSpan={batchMode === 'cancel' ? 12 : 11} className="py-8 text-center text-gray-400 bg-white">
                                 目前沒有待簽核項目
                               </td>
                             </tr>
@@ -2207,6 +2274,7 @@
                         if (batchApproveModal === 'leave') setSelectedLeave([]);
                         if (batchApproveModal === 'timesheet') setSelectedTimesheet([]);
                         if (batchApproveModal === 'cancel') setSelectedCancel([]);
+                        setBatchMode(null);
                         setBatchApproveModal(null);
                       }}
                       className="ui-btn ui-btn-success"
