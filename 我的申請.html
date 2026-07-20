@@ -660,6 +660,7 @@
                             </div>
                           </td>
                           <td>
+                            {['待簽核', '草稿', '模板'].includes(row.status) ? (
                             <div className="flex items-center justify-center gap-2">
                               {row.status === '待簽核' && (
                                 <button
@@ -685,6 +686,9 @@
                                 </>
                               )}
                             </div>
+                            ) : (
+                              <div className="flex items-center justify-center text-gray-400">-</div>
+                            )}
                           </td>
                         </tr>
                       ))}

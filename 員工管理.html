@@ -715,6 +715,32 @@
         </div>
     </div>
 
+    <!-- 取消入職確認彈窗 -->
+    <div id="cancelOnboardingModal" class="fixed inset-0 z-[70] hidden" role="dialog" aria-modal="true">
+        <div class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm" onclick="closeCancelOnboardingModal()"></div>
+        <div class="fixed inset-0 z-10 flex items-center justify-center p-4">
+            <div class="relative bg-white rounded-2xl shadow-modal w-full max-w-md flex flex-col overflow-hidden">
+                <div class="px-6 py-4 flex items-center justify-between border-b border-gray-100">
+                    <h3 class="text-base font-bold text-gray-900">取消入職</h3>
+                    <button onclick="closeCancelOnboardingModal()" class="text-gray-400 hover:text-gray-600 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <div class="px-6 py-5">
+                    <div class="flex items-start gap-3">
+                        <span class="w-10 h-10 rounded-full bg-rose-50 text-rose-500 flex items-center justify-center shrink-0"><i class="fa-solid fa-user-xmark"></i></span>
+                        <div class="text-sm text-gray-700 leading-relaxed">
+                            確定要取消 <span id="cancelOnboardingTarget" class="font-bold text-gray-900"></span> 的入職嗎？
+                            <p class="mt-2 text-xs text-gray-500 leading-relaxed">適用於：人員資料已建立、但尚未報到，且已通知不來報到。取消後將標記為「已取消入職」。</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex justify-end gap-2.5 px-6 py-4 bg-gray-50 border-t border-gray-100">
+                    <button onclick="closeCancelOnboardingModal()" class="ui-btn ui-btn-secondary">取消</button>
+                    <button onclick="confirmCancelOnboarding()" class="ui-btn ui-btn-danger">確定取消入職</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div id="resignAuditModal" class="fixed inset-0 z-[70] hidden" role="dialog" aria-modal="true">
         <div class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm" onclick="closeResignAudit()"></div>
         <div class="fixed inset-0 z-10 flex items-center justify-center p-4">
@@ -789,7 +815,6 @@
                                 <div><label class="block text-xs text-slate-500 mb-1">E-mail</label><input type="text" disabled value="nora.chen@company.com" class="ui-input bg-slate-100 text-slate-500 cursor-not-allowed"></div>
                                 <div><label class="block text-xs text-slate-500 mb-1">Jira</label><input type="text" disabled value="nora.chen" class="ui-input bg-slate-100 text-slate-500 cursor-not-allowed"></div>
                                 <div><label class="block text-xs text-slate-500 mb-1">Apple ID</label><input type="text" disabled value="nora@icloud.com" class="ui-input bg-slate-100 text-slate-500 cursor-not-allowed"></div>
-                                <div><label class="block text-xs text-slate-500 mb-1">OA</label><input type="text" disabled value="nora.chen" class="ui-input bg-slate-100 text-slate-500 cursor-not-allowed"></div>
                             </div>
                         </div>
 
@@ -2594,7 +2619,6 @@
         const ACCOUNT_FIELDS = [
             { label: 'Mobile / WhatsApp', values: ['「T2」601114372701', '「T1」0912-345-678', '「J」81-90-1234-5678', '「T2」602233445566'] },
             { label: 'E-mail', values: ['gibsonyang@roycetechnology.com'] },
-            { label: 'OA (Office Automation)', values: [] },
             { label: 'Apple ID', values: [] },
             { label: 'Jira', values: [] },
             { label: 'MM', values: [] },
@@ -3102,14 +3126,27 @@
             closeQFlow();
         }
 
-        // 取消入職：人員資料已建立但尚未報到、且通知不來報到時，由人資取消入職
+        // 取消入職：人員資料已建立但尚未報到、且通知不來報到時，由人資取消入職（改用網頁彈窗確認）
+        let pendingCancelOnboarding = null;
         function cancelOnboarding(btn, empno, name) {
-            if (!confirm(`確定要取消「${name}（${empno}）」的入職嗎？\n\n適用於：人員資料已建立、但尚未報到，且已通知不來報到。\n取消後將標記為「已取消入職」。`)) return;
-            const tr = btn.closest('tr');
-            if (tr && tr.children[2]) {
-                tr.children[2].innerHTML = '<span class="ui-badge ui-badge-gray">已取消入職</span>';
+            pendingCancelOnboarding = { btn, empno, name };
+            document.getElementById('cancelOnboardingTarget').textContent = `「${name}（${empno}）」`;
+            document.getElementById('cancelOnboardingModal').classList.remove('hidden');
+        }
+        function closeCancelOnboardingModal() {
+            document.getElementById('cancelOnboardingModal').classList.add('hidden');
+            pendingCancelOnboarding = null;
+        }
+        function confirmCancelOnboarding() {
+            const p = pendingCancelOnboarding;
+            if (p && p.btn) {
+                const tr = p.btn.closest('tr');
+                if (tr && tr.children[2]) {
+                    tr.children[2].innerHTML = '<span class="ui-badge ui-badge-gray">已取消入職</span>';
+                }
+                p.btn.remove();   // 已取消，移除按鈕避免重複操作
             }
-            btn.remove();   // 已取消，移除按鈕避免重複操作
+            closeCancelOnboardingModal();
         }
 
         /* -----------------------
