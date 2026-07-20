@@ -46,6 +46,7 @@
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
         .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .asset-remark-editor:empty:before { content: attr(data-ph); color: #9ca3af; }
     </style>
     <link rel="stylesheet" href="shared-ui.css">
 </head>
@@ -58,7 +59,7 @@
             <h1 class="ui-page-title">資產盤點</h1>
             <div class="flex flex-wrap items-center gap-2">
                 <button onclick="startAll()" class="ui-btn ui-btn-primary ui-btn-sm"><i class="fa-solid fa-play"></i> 全部盤點開始</button>
-                <button onclick="startAssetOnly()" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-boxes-stacked"></i> 僅資產盤點開始</button>
+                <button onclick="startAssetOnly()" class="ui-btn ui-btn-primary ui-btn-sm"><i class="fa-solid fa-play"></i> 僅資產盤點開始</button>
                 <button onclick="endInventory()" class="ui-btn ui-btn-sm text-amber-600 border border-amber-200 hover:bg-amber-50"><i class="fa-solid fa-flag-checkered"></i> 盤點結束</button>
                 <button onclick="exportExcel()" class="ui-btn ui-btn-sm text-emerald-600 border border-emerald-200 hover:bg-emerald-50"><i class="fa-solid fa-file-excel"></i> 匯出Excel</button>
             </div>
@@ -118,6 +119,117 @@
                 </div>
             </div>
         </section>
+    </div>
+
+    <!-- 資產詳情彈窗 -->
+    <div id="asset-detail-modal" class="fixed inset-0 z-50 hidden">
+        <div class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm" onclick="closeAssetDetail()"></div>
+        <div class="fixed inset-0 z-10 flex items-center justify-center p-4">
+            <div class="relative bg-white w-full max-w-[1165px] max-h-[90vh] rounded-2xl shadow-modal flex flex-col overflow-hidden">
+                <div class="px-6 py-4 flex items-center justify-between border-b border-gray-100 flex-shrink-0">
+                    <h3 class="text-base font-bold text-gray-900">資產詳情 <span id="ad-no" class="text-primary font-mono ml-1"></span></h3>
+                    <button onclick="closeAssetDetail()" class="text-gray-400 hover:text-gray-600 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <div class="px-6 py-5 overflow-y-auto">
+                    <div id="asset-detail-grid" class="space-y-6"></div>
+                    <!-- 備註（可輸入多個）-->
+                    <div class="border border-gray-200 rounded-lg overflow-hidden shadow-sm mt-6">
+                        <div class="bg-gray-50 px-4 py-2.5 border-b border-gray-200 flex items-center justify-between">
+                            <div class="text-sm font-bold text-primary flex items-center gap-2"><span class="w-1.5 h-4 bg-primary rounded-full"></span>備註</div>
+                            <button type="button" id="asset-remark-add" onclick="assetAddRemark()" class="ui-btn ui-btn-primary ui-btn-sm hidden"><i class="fa-solid fa-plus"></i> 添加備註</button>
+                        </div>
+                        <div class="p-4"><div id="asset-remark-list" class="space-y-3"></div></div>
+                    </div>
+                    <!-- 附件（可上傳多個；直接預覽檔案內容示意）-->
+                    <div class="border border-gray-200 rounded-lg overflow-hidden shadow-sm mt-6">
+                        <div class="bg-gray-50 px-4 py-2.5 border-b border-gray-200 text-sm font-bold text-primary flex items-center gap-2"><span class="w-1.5 h-4 bg-primary rounded-full"></span>附件</div>
+                        <div class="p-4">
+                            <label id="asset-attach-upload" class="block mb-3 cursor-pointer hidden">
+                                <input type="file" multiple class="hidden" onchange="assetAddFiles(this)">
+                                <div class="border-2 border-dashed border-gray-300 rounded-lg py-4 flex flex-col items-center justify-center gap-1.5 text-gray-400 hover:border-primary hover:text-primary transition-colors">
+                                    <i class="fa-solid fa-cloud-arrow-up text-2xl"></i>
+                                    <div class="text-sm"><span class="text-primary font-medium">點擊上傳</span> 或將檔案拖曳至此</div>
+                                    <div class="text-xs text-gray-400">支援多檔上傳（示意）</div>
+                                </div>
+                            </label>
+                            <div id="asset-attach-list" class="space-y-4"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-between items-center flex-shrink-0">
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="openAssetHistory()" class="ui-btn ui-btn-secondary"><i class="fa-solid fa-clock-rotate-left"></i> 歷史紀錄</button>
+                        <button onclick="showToast('success', '已下載所有附件（示範）')" class="ui-btn ui-btn-secondary"><i class="fa-solid fa-images"></i> 下載所有附件</button>
+                    </div>
+                    <div class="flex gap-2">
+                        <div id="ad-view-btns" class="flex gap-2">
+                            <button onclick="closeAssetDetail()" class="ui-btn ui-btn-secondary">關閉</button>
+                            <button onclick="toggleAssetEdit(true)" class="ui-btn ui-btn-primary"><i class="fa-solid fa-pen"></i> 編輯</button>
+                        </div>
+                        <div id="ad-edit-btns" class="flex gap-2 hidden">
+                            <button onclick="toggleAssetEdit(false)" class="ui-btn ui-btn-secondary">取消</button>
+                            <button onclick="saveAssetDetail()" class="ui-btn ui-btn-primary"><i class="fa-solid fa-check"></i> 儲存</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 資產歷史紀錄彈窗 -->
+    <div id="asset-history-modal" class="fixed inset-0 z-[60] hidden">
+        <div class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm" onclick="closeAssetHistory()"></div>
+        <div class="fixed inset-0 z-10 flex items-center justify-center p-4">
+            <div class="relative bg-white w-full max-w-[1228px] max-h-[88vh] rounded-2xl shadow-modal flex flex-col overflow-hidden">
+                <div class="px-6 py-4 flex items-center justify-between border-b border-gray-100 flex-shrink-0">
+                    <h3 class="text-base font-bold text-gray-900">歷史紀錄 <span id="ah-no" class="text-primary font-mono ml-1"></span></h3>
+                    <button onclick="closeAssetHistory()" class="text-gray-400 hover:text-gray-600 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <div class="px-6 py-5 overflow-auto">
+                    <table class="ui-table w-full text-sm">
+                        <thead>
+                            <tr>
+                                <th>資產編號</th><th>修改來源</th><th>修改項</th><th>修改前的內容</th><th>修改後的內容</th><th>修改者</th><th>修改時間</th>
+                            </tr>
+                        </thead>
+                        <tbody id="asset-history-tbody"></tbody>
+                    </table>
+                </div>
+                <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-end flex-shrink-0">
+                    <button onclick="closeAssetHistory()" class="ui-btn ui-btn-secondary">關閉</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 電子表單檢視彈窗（由關聯單據查閱開啟）-->
+    <div id="form-view-modal" class="fixed inset-0 z-[60] hidden">
+        <div class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm" onclick="closeFormView()"></div>
+        <div class="fixed inset-0 z-10 flex items-center justify-center p-4">
+            <div class="relative bg-white w-full max-w-2xl max-h-[88vh] rounded-md shadow-2xl flex flex-col overflow-hidden">
+                <div class="bg-[#EAF2FC] flex justify-between items-center px-5 py-3 border-b border-blue-100 flex-shrink-0">
+                    <h2 id="fv-title" class="text-[#2b3b84] font-bold text-[16px]">電子表單檢視</h2>
+                    <button onclick="closeFormView()" class="bg-blue-500 hover:bg-blue-600 text-white rounded p-1.5 transition-colors"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <div class="flex-1 overflow-y-auto p-5 bg-[#f4f5f8] space-y-4">
+                    <div class="bg-white border border-gray-300 rounded-md shadow-sm">
+                        <div class="px-4 py-2.5 border-b border-gray-200"><h3 class="text-[#2b3b84] font-bold text-[15px]">基本資訊</h3></div>
+                        <div class="p-4 grid grid-cols-2 gap-x-5 gap-y-4 text-sm">
+                            <div><div class="text-xs text-text-muted mb-1">文件編號</div><div id="fv-docno" class="font-mono text-gray-800"></div></div>
+                            <div><div class="text-xs text-text-muted mb-1">表單類型</div><div id="fv-type" class="text-gray-800"></div></div>
+                            <div><div class="text-xs text-text-muted mb-1">申請人</div><div class="text-gray-800">Nick（100258）</div></div>
+                            <div><div class="text-xs text-text-muted mb-1">申請日期</div><div class="text-gray-800">2026-05-30</div></div>
+                            <div><div class="text-xs text-text-muted mb-1">狀態</div><div><span class="ui-badge ui-badge-success">簽核完成</span></div></div>
+                            <div><div class="text-xs text-text-muted mb-1">金額</div><div class="text-gray-800">CNY 2,137.09</div></div>
+                        </div>
+                    </div>
+                    <div class="text-center text-xs text-gray-400">— 電子表單檢視（示意）—</div>
+                </div>
+                <div class="bg-gray-50 px-5 py-3 border-t border-gray-100 flex justify-end flex-shrink-0">
+                    <button onclick="closeFormView()" class="ui-btn ui-btn-secondary">關閉</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- 提示消息 (Toast) -->
@@ -185,7 +297,7 @@
                 const tr = document.createElement('tr');
                 tr.className = 'hover:bg-gray-50/70 transition-colors';
                 tr.innerHTML = `
-                    <td class="text-left font-mono font-semibold text-gray-500">${r.no}</td>
+                    <td class="text-left"><button type="button" onclick="openAssetDetail('${r.no}')" class="font-mono font-semibold text-primary hover:underline">${r.no}</button></td>
                     <td class="font-mono text-gray-600 text-xs">${r.model}</td>
                     <td class="text-left font-mono text-gray-500 text-xs">${r.serial}</td>
                     <td><span class="px-2 py-0.5 bg-violet-50 text-violet-600 rounded text-xs font-semibold">${r.project}</span></td>
@@ -220,6 +332,247 @@
         function exportExcel() { showToast('success', '盤點清單已開始匯出 Excel，請稍候下載。'); }
 
         /* ============ Toast 提示控制 ============ */
+        /* ============ 資產詳情彈窗（比照資產清單）============ */
+        const fmt = (n) => Number(n || 0).toLocaleString('en-US');
+        let _assetFields = [];
+        let _assetEdit = false;
+        const _assetRO = new Set();
+        const _assetOptions = {
+            '状态': ['使用中', '项目闲置', '行政闲置', '项目保管', '行政保管', '外借', '待出售', '已出售', '已赔付', '已销毁'],
+            '类别': ['资产', '列管品', '软资产', '暂无类别'],
+            '区域': ['T1', 'T2', 'U', 'J', 'S'],
+            '币种': ['CNY', 'TWD', 'USD']
+        };
+        function openAssetDetail(no) {
+            const r = inventoryDb.find(x => x.no === no);
+            if (!r) return;
+            const h = (no.replace(/\D/g, '').split('').reduce((a, c) => a + (+c || 0), 0)) || 1;
+            const pick = (arr) => arr[h % arr.length];
+            const price = h * 1000 + 5000;
+            const residual = Math.round(price * 0.3);
+            const TYPES = ['笔电-蘋果笔电', '手机-蘋果手机', '顯示器', '主机-非蘋果主機', '網路設備', '記憶體設備', '辦公家具'];
+            const groups = [
+                ['基本資訊', [['资产类型', pick(TYPES)], ['状态', pick(_assetOptions['状态'])], ['类别', pick(_assetOptions['类别'])], ['区域', pick(_assetOptions['区域'])], ['项目', r.project], ['部门', r.dept]]],
+                ['資產識別', [['资产编号', r.no], ['型号', r.model], ['序列号', r.serial], ['历史资产编号', '-'], ['资产名称', r.model], ['规格', '標準規格'], ['数量', '1']]],
+                ['採購 / 財務', [['购买日期', '2024-0' + (h % 9 + 1) + '-15'], ['币种', 'CNY'], ['价格', '¥ ' + fmt(price)], ['残值', '¥ ' + fmt(residual)], ['收据号码', 'RC-' + no.slice(-6)], ['文件编号', 'DOC-' + no.slice(-4)]]],
+                ['使用 / 負責', [['使用人', r.user], ['負責人', r.keeper]]],
+                ['關聯單據', [['物品购买申请号(PU单)', 'PU-THQ-0000' + (h % 90 + 10)], ['请款单号(A单/B单)', 'B-THQ-0000' + (h % 90 + 10)], ['报销单号(C单)', 'C-THQ-0000' + (h % 90 + 10)], ['维修记录(维修单号)', '-']]],
+                ['費用歸屬', [['原采购单位(原费用项目)', r.project + ' / ' + r.dept], ['现资产所有权单位(现费用项目)', r.project + ' / ' + r.dept]]],
+            ];
+            _assetFields = [];
+            groups.forEach(([g, items]) => items.forEach(([k, v]) => _assetFields.push({ k, v, g })));
+            _assetEdit = false;
+            document.getElementById('ad-no').textContent = r.no;
+            _assetAttachments = [{ name: '採購發票.pdf' }, { name: '資產照片.jpg' }, { name: '保固證明.png' }];
+            _assetRemarks = r.note ? [r.note] : ['2024-08-15 由行政部完成入庫驗收，配件齊全。'];
+            renderAssetDetail();
+            renderAssetAttachments();
+            renderAssetRemarks();
+            document.getElementById('asset-detail-modal').classList.remove('hidden');
+        }
+        function assetPeopleDir() {
+            if (window._peopleDir) return window._peopleDir;
+            const arr = [];
+            inventoryDb.forEach(r => { if (r.user && !arr.some(p => p.name === r.user)) arr.push({ name: r.user, id: '' }); });
+            inventoryDb.forEach(r => { if (r.keeper && !arr.some(p => p.name === r.keeper)) arr.push({ name: r.keeper, id: '' }); });
+            window._peopleDir = arr.sort((a, b) => a.name.localeCompare(b.name));
+            return window._peopleDir;
+        }
+
+        // 備註（可輸入多個；編輯時為嵌入式文字編輯器）
+        let _assetRemarks = [];
+        const _remarkTextEmpty = (html) => !String(html || '').replace(/<[^>]*>/g, '').replace(/&nbsp;/g, '').trim();
+        function assetSyncRemarks() {
+            const items = [...document.querySelectorAll('#asset-remark-list [data-r]')];
+            if (items.length) _assetRemarks = items.map(el => el.innerHTML);
+        }
+        function assetRemarkToolbar() {
+            const btns = [
+                ['bold', 'B', 'font-bold', '粗體'],
+                ['italic', 'I', 'italic font-serif', '斜體'],
+                ['underline', 'U', 'underline', '底線'],
+                ['strikeThrough', 'S', 'line-through', '刪除線'],
+                ['|'],
+                ['insertUnorderedList', '•—', '', '項目符號'],
+                ['insertOrderedList', '1.', '', '編號清單'],
+            ];
+            return btns.map(b => b[0] === '|'
+                ? '<span class="w-px h-5 bg-gray-300 mx-1"></span>'
+                : `<button type="button" title="${b[3]}" onmousedown="event.preventDefault();document.execCommand('${b[0]}',false,null)" class="min-w-7 h-7 px-1.5 flex items-center justify-center rounded text-gray-600 hover:bg-gray-200 hover:text-gray-800 text-sm ${b[2]}">${b[1]}</button>`
+            ).join('');
+        }
+        function assetAddRemark() { assetSyncRemarks(); _assetRemarks.push(''); renderAssetRemarks(); }
+        function assetRemoveRemark(i) { assetSyncRemarks(); _assetRemarks.splice(i, 1); renderAssetRemarks(); }
+        function renderAssetRemarks() {
+            const list = document.getElementById('asset-remark-list');
+            if (!list) return;
+            const addBtn = document.getElementById('asset-remark-add');
+            if (addBtn) addBtn.classList.toggle('hidden', !_assetEdit);
+            if (_assetEdit) {
+                list.innerHTML = (_assetRemarks.length ? _assetRemarks : ['']).map((v, i) => `<div class="flex gap-2 items-start">
+                        <div class="flex-1 border border-gray-300 rounded overflow-hidden focus-within:border-primary">
+                            <div class="flex flex-wrap items-center gap-0.5 px-2 py-1.5 border-b border-gray-200 bg-gray-50">${assetRemarkToolbar()}</div>
+                            <div contenteditable data-r="${i}" data-ph="請輸入備註…" class="asset-remark-editor min-h-[80px] px-3 py-2 text-sm text-gray-800 focus:outline-none">${v}</div>
+                        </div>
+                        <button type="button" onclick="assetRemoveRemark(${i})" class="text-gray-400 hover:text-red-500 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 shrink-0 mt-0.5"><i class="fa-solid fa-trash-can"></i></button>
+                    </div>`).join('');
+            } else {
+                const shown = _assetRemarks.filter(v => !_remarkTextEmpty(v));
+                list.innerHTML = shown.length
+                    ? shown.map(v => `<div class="asset-remark-view text-sm text-gray-800 border border-gray-200 rounded px-3 py-2 bg-gray-50/60 break-words">${v}</div>`).join('')
+                    : '<div class="text-center text-xs text-gray-400 py-2">尚無備註</div>';
+            }
+        }
+        // 附件（可上傳多個；直接預覽檔案內容示意）
+        let _assetAttachments = [];
+        const _isImage = (n) => /\.(png|jpe?g|gif|bmp|webp|svg)$/i.test(n || '');
+        function assetAddFiles(input) {
+            [...(input.files || [])].forEach(f => _assetAttachments.push({ name: f.name }));
+            input.value = '';
+            renderAssetAttachments();
+        }
+        function assetRemoveAttach(i) { _assetAttachments.splice(i, 1); renderAssetAttachments(); }
+        function renderAssetAttachments() {
+            const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+            const wrap = document.getElementById('asset-attach-list');
+            if (!wrap) return;
+            const up = document.getElementById('asset-attach-upload');
+            if (up) up.classList.toggle('hidden', !_assetEdit);
+            if (!_assetAttachments.length) {
+                wrap.innerHTML = '<div class="text-center text-xs text-gray-400 py-4">尚無附件</div>';
+                return;
+            }
+            wrap.innerHTML = _assetAttachments.map((f, i) => {
+                const img = _isImage(f.name);
+                const viewer = img
+                    ? `<div class="w-full max-w-[420px] self-start bg-white shadow-lg p-2"><div class="h-64 rounded flex flex-col items-center justify-center gap-2 text-gray-400 bg-gradient-to-br from-gray-100 to-gray-200"><i class="fa-solid fa-image text-5xl"></i><span class="text-xs">圖片預覽 · ${esc(f.name)}（示意）</span></div></div>`
+                    : `<div class="bg-white w-full max-w-[520px] shadow-lg px-8 py-7 self-start">
+                            <div class="h-5 w-2/3 bg-gray-800/80 rounded mb-5"></div>
+                            <div class="space-y-2.5">
+                                <div class="h-2.5 bg-gray-200 rounded w-full"></div>
+                                <div class="h-2.5 bg-gray-200 rounded w-11/12"></div>
+                                <div class="h-2.5 bg-gray-200 rounded w-full"></div>
+                                <div class="h-2.5 bg-gray-200 rounded w-4/5"></div>
+                            </div>
+                            <div class="h-28 bg-gray-100 border border-gray-200 rounded my-5 flex items-center justify-center text-gray-400 text-sm">表格 / 圖示區</div>
+                            <div class="space-y-2.5">
+                                <div class="h-2.5 bg-gray-200 rounded w-full"></div>
+                                <div class="h-2.5 bg-gray-200 rounded w-10/12"></div>
+                                <div class="h-2.5 bg-gray-200 rounded w-9/12"></div>
+                            </div>
+                            <div class="mt-6 text-center text-[11px] text-gray-400">— PDF 預覽（示意）· ${esc(f.name)} —</div>
+                        </div>`;
+                return `<div class="border border-gray-300 rounded-lg overflow-hidden bg-white shadow-sm">
+                        <div class="flex items-center justify-between px-3 py-2 bg-[#323639] text-gray-200 text-xs">
+                            <span class="truncate flex items-center gap-1.5">${img ? '🖼️' : '📄'} ${esc(f.name)}</span>
+                            <div class="flex items-center gap-4 shrink-0">
+                                <span class="text-gray-400 hidden sm:inline">${img ? '圖片檢視器' : 'PDF 檢視器 · 1 / 1'}</span>
+                                <a href="#" onclick="return false" class="hover:text-white inline-flex items-center gap-1"><i class="fa-solid fa-download"></i> 下載</a>
+                                ${_assetEdit ? `<button type="button" onclick="assetRemoveAttach(${i})" class="hover:text-white inline-flex items-center gap-1"><i class="fa-solid fa-trash-can"></i> 刪除</button>` : ''}
+                            </div>
+                        </div>
+                        <div class="bg-[#525659] px-4 py-5 h-72 overflow-auto flex justify-center">${viewer}</div>
+                    </div>`;
+            }).join('');
+        }
+        function renderAssetDetail() {
+            const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+            const cell = (f, i) => {
+                let ctrl;
+                if (_assetEdit && (f.k === '使用人' || f.k === '負責人')) {
+                    ctrl = `<div class="relative asset-people-combo"><input data-i="${i}" value="${esc(f.v)}" autocomplete="off" oninput="assetPeopleFilter(this)" onfocus="assetPeopleFilter(this)" onblur="setTimeout(()=>assetPeopleHide(this),150)" placeholder="輸入姓名或工號" class="w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-primary"><div class="asset-people-list hidden absolute z-30 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto text-sm"></div></div>`;
+                } else if (_assetEdit && !_assetRO.has(f.k)) {
+                    if (_assetOptions[f.k]) {
+                        ctrl = `<select data-i="${i}" class="w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-primary">` +
+                            _assetOptions[f.k].map(o => `<option${o === f.v ? ' selected' : ''}>${o}</option>`).join('') + `</select>`;
+                    } else {
+                        ctrl = `<input data-i="${i}" value="${esc(f.v)}" class="w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-primary">`;
+                    }
+                } else {
+                    const isDoc = f.g === '關聯單據' && f.v && f.v !== '-';
+                    const viewBtn = isDoc ? ` <button type="button" onclick="openFormView('${esc(f.v)}')" title="查閱電子表單" class="text-primary hover:text-blue-700 ml-1"><i class="fa-solid fa-arrow-up-right-from-square text-xs"></i></button>` : '';
+                    ctrl = `<div class="text-sm text-gray-800 break-words flex items-center">${esc(f.v)}${viewBtn}</div>`;
+                }
+                return `<div><div class="text-xs font-semibold text-text-muted mb-1">${f.k}</div>${ctrl}</div>`;
+            };
+            const groupTitles = [...new Set(_assetFields.map(f => f.g))];
+            document.getElementById('asset-detail-grid').innerHTML = groupTitles.map(g => {
+                const cells = _assetFields.map((f, i) => ({ f, i })).filter(x => x.f.g === g)
+                    .map(({ f, i }) => cell(f, i)).join('');
+                return `<div class="border border-gray-200 rounded-lg shadow-sm"><div class="bg-gray-50 px-4 py-2.5 border-b border-gray-200 text-sm font-bold text-primary flex items-center gap-2 rounded-t-lg"><span class="w-1.5 h-4 bg-primary rounded-full"></span>${g}</div><div class="p-4 grid grid-cols-2 sm:grid-cols-4 gap-x-6 gap-y-4">${cells}</div></div>`;
+            }).join('');
+            document.getElementById('ad-view-btns').classList.toggle('hidden', _assetEdit);
+            document.getElementById('ad-edit-btns').classList.toggle('hidden', !_assetEdit);
+        }
+        function toggleAssetEdit(on) { _assetEdit = on; renderAssetDetail(); renderAssetAttachments(); renderAssetRemarks(); }
+        function saveAssetDetail() {
+            document.querySelectorAll('#asset-detail-grid [data-i]').forEach(el => { _assetFields[+el.dataset.i].v = el.value; });
+            assetSyncRemarks();
+            _assetRemarks = _assetRemarks.filter(v => !_remarkTextEmpty(v));
+            _assetEdit = false;
+            renderAssetDetail();
+            renderAssetRemarks();
+            showToast('success', '已儲存資產資料（示範）');
+        }
+        function closeAssetDetail() { _assetEdit = false; document.getElementById('asset-detail-modal').classList.add('hidden'); }
+        function assetPeopleFilter(input) {
+            const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+            const box = input.parentElement.querySelector('.asset-people-list');
+            if (!box) return;
+            const q = (input.value || '').trim().toLowerCase();
+            const matches = assetPeopleDir().filter(p => !q || p.name.toLowerCase().includes(q) || (p.id || '').includes(q)).slice(0, 50);
+            box.innerHTML = matches.length
+                ? matches.map(p => `<div class="px-3 py-2 hover:bg-primary-light cursor-pointer flex justify-between gap-3" data-name="${esc(p.name)}" data-id="${esc(p.id)}" onmousedown="assetPeoplePick(this)"><span>${esc(p.name)}</span><span class="text-gray-400 font-mono text-xs">${esc(p.id)}</span></div>`).join('')
+                : '<div class="px-3 py-2 text-gray-400">查無人員</div>';
+            box.classList.remove('hidden');
+        }
+        function assetPeoplePick(el) {
+            const name = el.dataset.name, id = el.dataset.id;
+            const combo = el.closest('.asset-people-combo');
+            const input = combo.querySelector('input');
+            input.value = id ? name + '（' + id + '）' : name;
+            combo.querySelector('.asset-people-list').classList.add('hidden');
+        }
+        function assetPeopleHide(input) {
+            const box = input.parentElement.querySelector('.asset-people-list');
+            if (box) box.classList.add('hidden');
+        }
+        // 歷史紀錄
+        function openAssetHistory() {
+            const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+            const no = document.getElementById('ad-no').textContent || '-';
+            const h = (no.replace(/\D/g, '').split('').reduce((a, c) => a + (+c || 0), 0)) || 1;
+            const rows = [
+                { src: '資產登記', item: '資產名稱', before: '-', after: '（初次登記）', by: 'System', at: '2024-0' + (h % 9 + 1) + '-15 09:12' },
+                { src: '資產調撥單 (AT-THQ-00' + (h % 90 + 10) + ')', item: '使用人', before: 'James（100344）', after: 'Matthew（101383）', by: 'Henry', at: '2024-11-03 14:27' },
+                { src: '手動編輯', item: '狀態', before: '使用中', after: '項目閒置', by: 'William', at: '2025-01-20 10:05' },
+                { src: '資產維修單 (RP-THQ-00' + (h % 90 + 10) + ')', item: '殘值', before: '¥ 15,000', after: '¥ 12,000', by: 'Audrey', at: '2025-03-08 16:41' },
+                { src: '手動編輯', item: '部門', before: 'RD', after: 'HR', by: 'Emma', at: '2025-06-12 11:33' },
+            ];
+            document.getElementById('ah-no').textContent = no;
+            document.getElementById('asset-history-tbody').innerHTML = rows.map(r => `<tr>
+                    <td class="font-mono">${esc(no)}</td>
+                    <td>${esc(r.src)}</td>
+                    <td>${esc(r.item)}</td>
+                    <td class="text-gray-500">${esc(r.before)}</td>
+                    <td class="text-gray-800">${esc(r.after)}</td>
+                    <td>${esc(r.by)}</td>
+                    <td class="whitespace-nowrap text-gray-500">${esc(r.at)}</td>
+                </tr>`).join('');
+            document.getElementById('asset-history-modal').classList.remove('hidden');
+        }
+        function closeAssetHistory() { document.getElementById('asset-history-modal').classList.add('hidden'); }
+        // 電子表單檢視（由關聯單據查閱 icon 開啟）
+        function openFormView(docNo) {
+            const typeMap = { PU: '請購單 (PU)', B: '費用申請單 (B)', C: '費用報銷單 (C)', A: '請款單 (A)', RP: '維修單' };
+            const prefix = (String(docNo).split('-')[0] || '').toUpperCase();
+            document.getElementById('fv-title').textContent = (typeMap[prefix] || '電子表單') + '　' + docNo;
+            document.getElementById('fv-docno').textContent = docNo;
+            document.getElementById('fv-type').textContent = typeMap[prefix] || '-';
+            document.getElementById('form-view-modal').classList.remove('hidden');
+        }
+        function closeFormView() { document.getElementById('form-view-modal').classList.add('hidden'); }
+
         function showToast(type, text) {
             const toast = document.getElementById('toast');
             const toastIcon = document.getElementById('toast-icon');

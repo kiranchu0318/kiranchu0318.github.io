@@ -46,6 +46,7 @@
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
         .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .asset-remark-editor:empty:before { content: attr(data-ph); color: #9ca3af; }
     </style>
     <link rel="stylesheet" href="shared-ui.css">
 </head>
@@ -56,224 +57,216 @@
         <!-- 頁面標題區塊 -->
         <header class="ui-page-header flex items-center justify-between">
             <h1 class="ui-page-title">資產抽查</h1>
-            <button onclick="openNewCheck()" class="ui-btn ui-btn-primary ui-btn-sm"><i class="fa-solid fa-plus"></i> 建立抽查任務</button>
+            <div class="flex items-center gap-2">
+                <button onclick="showToast('success', '抽查已開始。')" class="ui-btn ui-btn-primary ui-btn-sm"><i class="fa-solid fa-play"></i> 開始抽查</button>
+                <button onclick="showToast('success', '抽查已結束。')" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-flag-checkered"></i> 結束抽查</button>
+                <button onclick="showToast('success', '抽查報表已開始匯出，請稍候下載。')" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-file-export"></i> 匯出報表</button>
+            </div>
         </header>
 
-        <!-- 統計摘要卡 -->
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <div class="ui-card p-4 flex items-center gap-3">
-                <div class="w-11 h-11 rounded-lg bg-blue-50 text-primary flex items-center justify-center shrink-0"><i class="fa-solid fa-clipboard-check text-lg"></i></div>
-                <div><div class="text-xs text-text-muted">抽查任務</div><div id="kpi-tasks" class="text-xl font-bold text-gray-900">0</div></div>
+        <!-- 資產抽查列表 -->
+        <section class="ui-card p-4 sm:p-6 space-y-4">
+            <!-- 篩選 -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                <div class="relative">
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">搜尋 (負責人/資產編號)</label>
+                    <div class="relative ui-search">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="asset-search" oninput="applyFilters()" placeholder="輸入負責人或資產編號" class="ui-input ui-search-input">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">類型</label>
+                    <select id="asset-type" onchange="applyFilters()" class="ui-select">
+                        <option value="all">全部類型</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">狀態</label>
+                    <select id="asset-status" onchange="applyFilters()" class="ui-select">
+                        <option value="all">全部狀態</option>
+                        <option value="待抽查">待抽查</option>
+                        <option value="相符">相符</option>
+                        <option value="異常">異常</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">項目</label>
+                    <select id="asset-project" onchange="applyFilters()" class="ui-select">
+                        <option value="all">全部項目</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">部門</label>
+                    <select id="asset-dept" onchange="applyFilters()" class="ui-select">
+                        <option value="all">全部部門</option>
+                        <option value="RD">研發部 (RD)</option>
+                        <option value="HR">人資部 (HR)</option>
+                        <option value="IA1">內稽部 (IA1)</option>
+                        <option value="FIN">財務部 (FIN)</option>
+                        <option value="MKT">行銷部 (MKT)</option>
+                    </select>
+                </div>
             </div>
-            <div class="ui-card p-4 flex items-center gap-3">
-                <div class="w-11 h-11 rounded-lg bg-violet-50 text-violet-500 flex items-center justify-center shrink-0"><i class="fa-solid fa-list-check text-lg"></i></div>
-                <div><div class="text-xs text-text-muted">抽查樣本</div><div id="kpi-samples" class="text-xl font-bold text-gray-900">0</div></div>
+            <div class="flex flex-wrap items-center justify-end pt-2 gap-2">
+                <button onclick="applyFilters()" class="ui-btn ui-btn-primary ui-btn-sm"><i class="fa-solid fa-magnifying-glass"></i> 查詢</button>
+                <button onclick="resetFilters()" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-arrows-rotate"></i> 重置</button>
             </div>
-            <div class="ui-card p-4 flex items-center gap-3">
-                <div class="w-11 h-11 rounded-lg bg-emerald-50 text-emerald-500 flex items-center justify-center shrink-0"><i class="fa-solid fa-thumbs-up text-lg"></i></div>
-                <div><div class="text-xs text-text-muted">相符樣本</div><div id="kpi-match" class="text-xl font-bold text-gray-900">0</div></div>
-            </div>
-            <div class="ui-card p-4 flex items-center gap-3">
-                <div class="w-11 h-11 rounded-lg bg-rose-50 text-rose-500 flex items-center justify-center shrink-0"><i class="fa-solid fa-circle-exclamation text-lg"></i></div>
-                <div><div class="text-xs text-text-muted">異常樣本</div><div id="kpi-abnormal" class="text-xl font-bold text-gray-900">0</div></div>
-            </div>
-        </div>
 
-        <!-- 頁籤 -->
-        <div class="flex items-center gap-1 border-b border-gray-200">
-            <button id="tab-btn-task" onclick="switchTab('task')" class="px-4 py-2.5 text-sm font-semibold text-primary border-b-2 border-primary -mb-px transition-colors">抽查任務</button>
-            <button id="tab-btn-detail" onclick="switchTab('detail')" class="px-4 py-2.5 text-sm font-medium text-gray-500 border-b-2 border-transparent -mb-px hover:text-gray-700 transition-colors">抽查明細</button>
-        </div>
+            <div class="flex items-center gap-2">
+                <h2 class="text-lg font-bold text-gray-900 whitespace-nowrap">資產抽查列表</h2>
+                <span id="asset-count-badge" class="bg-blue-50 text-primary text-xs px-2.5 py-1 rounded-md font-bold">0 筆資料</span>
+            </div>
 
-        <!-- ============================================================ -->
-        <!-- 頁籤 1：抽查任務 -->
-        <!-- ============================================================ -->
-        <div id="panel-task" class="space-y-6">
-            <!-- 篩選台 -->
-            <div class="ui-card p-5 space-y-4">
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div class="relative">
-                        <label class="block text-xs font-semibold text-text-muted mb-1.5">搜尋 (單號/名稱/抽查人)</label>
-                        <div class="relative ui-search">
-                            <i class="fa-solid fa-magnifying-glass"></i>
-                            <input type="text" id="task-search" oninput="applyTaskFilters()" placeholder="輸入抽查單號、名稱或抽查人..." class="ui-input ui-search-input">
+            <div class="overflow-x-auto rounded-lg border border-gray-100 custom-scrollbar">
+                <table class="ui-table text-center whitespace-nowrap">
+                    <thead>
+                        <tr>
+                            <th scope="col">ID</th>
+                            <th scope="col">類型</th>
+                            <th scope="col" class="text-left">資產名稱</th>
+                            <th scope="col">狀態</th>
+                            <th scope="col" class="text-left">資產編號</th>
+                            <th scope="col" class="text-left">序列號</th>
+                            <th scope="col">項目</th>
+                            <th scope="col">部門</th>
+                            <th scope="col">使用人（工號）</th>
+                            <th scope="col">對接人/負責人</th>
+                            <th scope="col">附件數量</th>
+                            <th scope="col">添加附件</th>
+                        </tr>
+                    </thead>
+                    <tbody id="asset-tbody"><!-- 動態由 JavaScript 渲染 --></tbody>
+                </table>
+            </div>
+
+            <div id="asset-no-data-view" class="hidden py-16 text-center space-y-3">
+                <div class="inline-flex p-4 bg-gray-50 text-gray-400 rounded-full"><i class="fa-solid fa-box-open text-3xl"></i></div>
+                <p class="text-sm text-text-muted font-medium">查無符合條件的資產</p>
+                <button onclick="resetFilters()" class="text-xs text-primary font-semibold hover:underline">清除篩選條件</button>
+            </div>
+
+            <div class="flex items-center justify-between pt-4 border-t border-gray-100">
+                <span id="asset-pagination-info" class="text-sm text-gray-500">顯示第 0 到 0 筆，共 0 筆記錄</span>
+                <div class="flex gap-1">
+                    <button class="ui-page-btn"><i class="fa-solid fa-chevron-left text-xs"></i></button>
+                    <button class="ui-page-btn is-active">1</button>
+                    <button class="ui-page-btn"><i class="fa-solid fa-chevron-right text-xs"></i></button>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- 資產詳情彈窗 -->
+    <div id="asset-detail-modal" class="fixed inset-0 z-50 hidden">
+        <div class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm" onclick="closeAssetDetail()"></div>
+        <div class="fixed inset-0 z-10 flex items-center justify-center p-4">
+            <div class="relative bg-white w-full max-w-[1165px] max-h-[90vh] rounded-2xl shadow-modal flex flex-col overflow-hidden">
+                <div class="px-6 py-4 flex items-center justify-between border-b border-gray-100 flex-shrink-0">
+                    <h3 class="text-base font-bold text-gray-900">資產詳情 <span id="ad-no" class="text-primary font-mono ml-1"></span></h3>
+                    <button onclick="closeAssetDetail()" class="text-gray-400 hover:text-gray-600 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <div class="px-6 py-5 overflow-y-auto">
+                    <div id="asset-detail-grid" class="space-y-6"></div>
+                    <!-- 備註（可輸入多個）-->
+                    <div class="border border-gray-200 rounded-lg overflow-hidden shadow-sm mt-6">
+                        <div class="bg-gray-50 px-4 py-2.5 border-b border-gray-200 flex items-center justify-between">
+                            <div class="text-sm font-bold text-primary flex items-center gap-2"><span class="w-1.5 h-4 bg-primary rounded-full"></span>備註</div>
+                            <button type="button" id="asset-remark-add" onclick="assetAddRemark()" class="ui-btn ui-btn-primary ui-btn-sm hidden"><i class="fa-solid fa-plus"></i> 添加備註</button>
+                        </div>
+                        <div class="p-4"><div id="asset-remark-list" class="space-y-3"></div></div>
+                    </div>
+                    <!-- 附件（可上傳多個；直接預覽檔案內容示意）-->
+                    <div class="border border-gray-200 rounded-lg overflow-hidden shadow-sm mt-6">
+                        <div class="bg-gray-50 px-4 py-2.5 border-b border-gray-200 text-sm font-bold text-primary flex items-center gap-2"><span class="w-1.5 h-4 bg-primary rounded-full"></span>附件</div>
+                        <div class="p-4">
+                            <label id="asset-attach-upload" class="block mb-3 cursor-pointer hidden">
+                                <input type="file" multiple class="hidden" onchange="assetAddFiles(this)">
+                                <div class="border-2 border-dashed border-gray-300 rounded-lg py-4 flex flex-col items-center justify-center gap-1.5 text-gray-400 hover:border-primary hover:text-primary transition-colors">
+                                    <i class="fa-solid fa-cloud-arrow-up text-2xl"></i>
+                                    <div class="text-sm"><span class="text-primary font-medium">點擊上傳</span> 或將檔案拖曳至此</div>
+                                    <div class="text-xs text-gray-400">支援多檔上傳（示意）</div>
+                                </div>
+                            </label>
+                            <div id="asset-attach-list" class="space-y-4"></div>
                         </div>
                     </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-text-muted mb-1.5">狀態</label>
-                        <select id="task-status" onchange="applyTaskFilters()" class="ui-select">
-                            <option value="all">全部狀態</option>
-                            <option value="draft">草稿</option>
-                            <option value="ongoing">進行中</option>
-                            <option value="done">已完成</option>
-                        </select>
+                </div>
+                <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-between items-center flex-shrink-0">
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="openAssetHistory()" class="ui-btn ui-btn-secondary"><i class="fa-solid fa-clock-rotate-left"></i> 歷史紀錄</button>
+                        <button onclick="showToast('success', '已下載所有附件（示範）')" class="ui-btn ui-btn-secondary"><i class="fa-solid fa-images"></i> 下載所有附件</button>
                     </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-text-muted mb-1.5">抽查方式</label>
-                        <select id="task-method" onchange="applyTaskFilters()" class="ui-select">
-                            <option value="all">全部方式</option>
-                            <option value="random">隨機抽樣</option>
-                            <option value="type">依類型抽樣</option>
-                            <option value="dept">依部門抽樣</option>
-                            <option value="value">高價值抽樣</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-text-muted mb-1.5">抽查日期(起)</label>
-                        <input type="date" id="task-date" onchange="applyTaskFilters()" class="ui-input">
-                    </div>
-                </div>
-                <div class="flex flex-wrap items-center justify-end pt-2 gap-2">
-                    <button onclick="applyTaskFilters()" class="ui-btn ui-btn-primary ui-btn-sm"><i class="fa-solid fa-magnifying-glass"></i> 查詢</button>
-                    <button onclick="resetTaskFilters()" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-arrows-rotate"></i> 重置</button>
-                </div>
-            </div>
-
-            <!-- 列表 -->
-            <section class="ui-card p-4 sm:p-6">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
-                    <div class="flex items-center gap-2">
-                        <h2 class="text-lg font-bold text-gray-900 whitespace-nowrap">抽查任務列表</h2>
-                        <span id="task-count-badge" class="bg-blue-50 text-primary text-xs px-2.5 py-1 rounded-md font-bold">0 筆資料</span>
-                    </div>
-                </div>
-
-                <div class="overflow-x-auto rounded-lg border border-gray-100 custom-scrollbar">
-                    <table class="ui-table text-center whitespace-nowrap">
-                        <thead>
-                            <tr>
-                                <th scope="col" class="text-left">抽查單號</th>
-                                <th scope="col" class="text-left">抽查名稱</th>
-                                <th scope="col">抽查方式</th>
-                                <th scope="col">抽查日期</th>
-                                <th scope="col">抽查人</th>
-                                <th scope="col">樣本數</th>
-                                <th scope="col">已查</th>
-                                <th scope="col">異常</th>
-                                <th scope="col">符合率</th>
-                                <th scope="col">狀態</th>
-                                <th scope="col">操作</th>
-                            </tr>
-                        </thead>
-                        <tbody id="task-tbody"><!-- 動態由 JavaScript 渲染 --></tbody>
-                    </table>
-                </div>
-
-                <div id="task-no-data-view" class="hidden py-16 text-center space-y-3">
-                    <div class="inline-flex p-4 bg-gray-50 text-gray-400 rounded-full"><i class="fa-solid fa-clipboard-check text-3xl"></i></div>
-                    <p class="text-sm text-text-muted font-medium">查無符合條件的抽查任務</p>
-                    <button onclick="resetTaskFilters()" class="text-xs text-primary font-semibold hover:underline">清除篩選條件</button>
-                </div>
-
-                <div class="flex items-center justify-between mt-6 pt-4 border-t border-gray-100">
-                    <span id="task-pagination-info" class="text-sm text-gray-500">顯示第 0 到 0 筆，共 0 筆記錄</span>
-                    <div class="flex gap-1">
-                        <button class="ui-page-btn"><i class="fa-solid fa-chevron-left text-xs"></i></button>
-                        <button class="ui-page-btn is-active">1</button>
-                        <button class="ui-page-btn"><i class="fa-solid fa-chevron-right text-xs"></i></button>
-                    </div>
-                </div>
-            </section>
-        </div>
-
-        <!-- ============================================================ -->
-        <!-- 頁籤 2：抽查明細 -->
-        <!-- ============================================================ -->
-        <div id="panel-detail" class="space-y-6 hidden">
-            <!-- 篩選台 -->
-            <div class="ui-card p-5 space-y-4">
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div class="relative">
-                        <label class="block text-xs font-semibold text-text-muted mb-1.5">搜尋 (編號/名稱/使用人)</label>
-                        <div class="relative ui-search">
-                            <i class="fa-solid fa-magnifying-glass"></i>
-                            <input type="text" id="detail-search" oninput="applyDetailFilters()" placeholder="輸入資產編號、名稱或使用人..." class="ui-input ui-search-input">
+                    <div class="flex gap-2">
+                        <div id="ad-view-btns" class="flex gap-2">
+                            <button onclick="closeAssetDetail()" class="ui-btn ui-btn-secondary">關閉</button>
+                            <button onclick="toggleAssetEdit(true)" class="ui-btn ui-btn-primary"><i class="fa-solid fa-pen"></i> 編輯</button>
+                        </div>
+                        <div id="ad-edit-btns" class="flex gap-2 hidden">
+                            <button onclick="toggleAssetEdit(false)" class="ui-btn ui-btn-secondary">取消</button>
+                            <button onclick="saveAssetDetail()" class="ui-btn ui-btn-primary"><i class="fa-solid fa-check"></i> 儲存</button>
                         </div>
                     </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-text-muted mb-1.5">所屬抽查單</label>
-                        <select id="detail-task" onchange="applyDetailFilters()" class="ui-select">
-                            <option value="all">全部抽查單</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-text-muted mb-1.5">抽查結果</label>
-                        <select id="detail-result" onchange="applyDetailFilters()" class="ui-select">
-                            <option value="all">全部結果</option>
-                            <option value="pending">待抽查</option>
-                            <option value="match">相符</option>
-                            <option value="location">位置不符</option>
-                            <option value="user">使用人不符</option>
-                            <option value="missing">找不到</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-text-muted mb-1.5">部門</label>
-                        <select id="detail-dept" onchange="applyDetailFilters()" class="ui-select">
-                            <option value="all">全部部門</option>
-                            <option value="RD">研發部 (RD)</option>
-                            <option value="HR">人資部 (HR)</option>
-                            <option value="IA1">內稽部 (IA1)</option>
-                            <option value="FIN">財務部 (FIN)</option>
-                            <option value="MKT">行銷部 (MKT)</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="flex flex-wrap items-center justify-end pt-2 gap-2">
-                    <button onclick="applyDetailFilters()" class="ui-btn ui-btn-primary ui-btn-sm"><i class="fa-solid fa-magnifying-glass"></i> 查詢</button>
-                    <button onclick="resetDetailFilters()" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-arrows-rotate"></i> 重置</button>
                 </div>
             </div>
+        </div>
+    </div>
 
-            <!-- 列表 -->
-            <section class="ui-card p-4 sm:p-6">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
-                    <div class="flex items-center gap-2">
-                        <h2 class="text-lg font-bold text-gray-900 whitespace-nowrap">抽查明細</h2>
-                        <span id="detail-count-badge" class="bg-blue-50 text-primary text-xs px-2.5 py-1 rounded-md font-bold">0 筆資料</span>
-                    </div>
-                    <button onclick="showToast('success', '抽查明細已開始匯出，請稍候下載。')" class="ui-btn ui-btn-secondary ui-btn-sm">
-                        <i class="fa-solid fa-download"></i> 匯出明細
-                    </button>
+    <!-- 資產歷史紀錄彈窗 -->
+    <div id="asset-history-modal" class="fixed inset-0 z-[60] hidden">
+        <div class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm" onclick="closeAssetHistory()"></div>
+        <div class="fixed inset-0 z-10 flex items-center justify-center p-4">
+            <div class="relative bg-white w-full max-w-[1228px] max-h-[88vh] rounded-2xl shadow-modal flex flex-col overflow-hidden">
+                <div class="px-6 py-4 flex items-center justify-between border-b border-gray-100 flex-shrink-0">
+                    <h3 class="text-base font-bold text-gray-900">歷史紀錄 <span id="ah-no" class="text-primary font-mono ml-1"></span></h3>
+                    <button onclick="closeAssetHistory()" class="text-gray-400 hover:text-gray-600 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"><i class="fa-solid fa-xmark"></i></button>
                 </div>
-
-                <div class="overflow-x-auto rounded-lg border border-gray-100 custom-scrollbar">
-                    <table class="ui-table text-center whitespace-nowrap">
+                <div class="px-6 py-5 overflow-auto">
+                    <table class="ui-table w-full text-sm">
                         <thead>
                             <tr>
-                                <th scope="col" class="text-left">資產編號</th>
-                                <th scope="col">類型</th>
-                                <th scope="col" class="text-left">資產名稱</th>
-                                <th scope="col">部門</th>
-                                <th scope="col">帳面位置</th>
-                                <th scope="col">實查位置</th>
-                                <th scope="col">使用人</th>
-                                <th scope="col">抽查結果</th>
-                                <th scope="col">抽查人</th>
-                                <th scope="col">抽查時間</th>
+                                <th>資產編號</th><th>修改來源</th><th>修改項</th><th>修改前的內容</th><th>修改後的內容</th><th>修改者</th><th>修改時間</th>
                             </tr>
                         </thead>
-                        <tbody id="detail-tbody"><!-- 動態由 JavaScript 渲染 --></tbody>
+                        <tbody id="asset-history-tbody"></tbody>
                     </table>
                 </div>
-
-                <div id="detail-no-data-view" class="hidden py-16 text-center space-y-3">
-                    <div class="inline-flex p-4 bg-gray-50 text-gray-400 rounded-full"><i class="fa-solid fa-box-open text-3xl"></i></div>
-                    <p class="text-sm text-text-muted font-medium">查無符合條件的抽查明細</p>
-                    <button onclick="resetDetailFilters()" class="text-xs text-primary font-semibold hover:underline">清除篩選條件</button>
+                <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-end flex-shrink-0">
+                    <button onclick="closeAssetHistory()" class="ui-btn ui-btn-secondary">關閉</button>
                 </div>
-
-                <div class="flex items-center justify-between mt-6 pt-4 border-t border-gray-100">
-                    <span id="detail-pagination-info" class="text-sm text-gray-500">顯示第 0 到 0 筆，共 0 筆記錄</span>
-                    <div class="flex gap-1">
-                        <button class="ui-page-btn"><i class="fa-solid fa-chevron-left text-xs"></i></button>
-                        <button class="ui-page-btn is-active">1</button>
-                        <button class="ui-page-btn"><i class="fa-solid fa-chevron-right text-xs"></i></button>
-                    </div>
-                </div>
-            </section>
+            </div>
         </div>
+    </div>
 
+    <!-- 電子表單檢視彈窗（由關聯單據查閱開啟）-->
+    <div id="form-view-modal" class="fixed inset-0 z-[60] hidden">
+        <div class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm" onclick="closeFormView()"></div>
+        <div class="fixed inset-0 z-10 flex items-center justify-center p-4">
+            <div class="relative bg-white w-full max-w-2xl max-h-[88vh] rounded-md shadow-2xl flex flex-col overflow-hidden">
+                <div class="bg-[#EAF2FC] flex justify-between items-center px-5 py-3 border-b border-blue-100 flex-shrink-0">
+                    <h2 id="fv-title" class="text-[#2b3b84] font-bold text-[16px]">電子表單檢視</h2>
+                    <button onclick="closeFormView()" class="bg-blue-500 hover:bg-blue-600 text-white rounded p-1.5 transition-colors"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <div class="flex-1 overflow-y-auto p-5 bg-[#f4f5f8] space-y-4">
+                    <div class="bg-white border border-gray-300 rounded-md shadow-sm">
+                        <div class="px-4 py-2.5 border-b border-gray-200"><h3 class="text-[#2b3b84] font-bold text-[15px]">基本資訊</h3></div>
+                        <div class="p-4 grid grid-cols-2 gap-x-5 gap-y-4 text-sm">
+                            <div><div class="text-xs text-text-muted mb-1">文件編號</div><div id="fv-docno" class="font-mono text-gray-800"></div></div>
+                            <div><div class="text-xs text-text-muted mb-1">表單類型</div><div id="fv-type" class="text-gray-800"></div></div>
+                            <div><div class="text-xs text-text-muted mb-1">申請人</div><div class="text-gray-800">Nick（100258）</div></div>
+                            <div><div class="text-xs text-text-muted mb-1">申請日期</div><div class="text-gray-800">2026-05-30</div></div>
+                            <div><div class="text-xs text-text-muted mb-1">狀態</div><div><span class="ui-badge ui-badge-success">簽核完成</span></div></div>
+                            <div><div class="text-xs text-text-muted mb-1">金額</div><div class="text-gray-800">CNY 2,137.09</div></div>
+                        </div>
+                    </div>
+                    <div class="text-center text-xs text-gray-400">— 電子表單檢視（示意）—</div>
+                </div>
+                <div class="bg-gray-50 px-5 py-3 border-t border-gray-100 flex justify-end flex-shrink-0">
+                    <button onclick="closeFormView()" class="ui-btn ui-btn-secondary">關閉</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- 提示消息 (Toast) -->
@@ -283,233 +276,362 @@
     </div>
 
     <script>
-        // 抽查任務資料庫
-        const taskDb = [
-            { no: 'CC-2026-0001', name: '2026Q2高價值資產抽查', method: 'value',  date: '2026-06-18', owner: 'Emma',    samples: 30, done: 30, abnormal: 4, status: 'done' },
-            { no: 'CC-2026-0002', name: '研發部設備隨機抽查',   method: 'random', date: '2026-06-25', owner: 'Samuel',  samples: 20, done: 12, abnormal: 2, status: 'ongoing' },
-            { no: 'CC-2026-0003', name: '筆電類型專項抽查',     method: 'type',   date: '2026-07-02', owner: 'James',   samples: 15, done: 0,  abnormal: 0, status: 'draft' },
-            { no: 'CC-2026-0004', name: '各部門月度抽查',       method: 'dept',   date: '2026-06-05', owner: 'William', samples: 25, done: 25, abnormal: 1, status: 'done' },
-            { no: 'CC-2026-0005', name: '行銷部資產隨機抽查',   method: 'random', date: '2026-06-28', owner: 'Henry',   samples: 10, done: 6,  abnormal: 1, status: 'ongoing' }
+        // 資產抽查清單（示意資料）
+        const assetDb = [
+            { id: 1,  type: '車輛',             name: 'Toyota Corolla Altis',     status: '相符',   assetNo: 'ZC-24-0005', serial: 'SN-CAR-240005',  project: 'GT', dept: 'HR',  user: 'William',   userNo: '100231', contact: 'Nora',   attachments: 2 },
+            { id: 2,  type: '雲端空間(伺服器)', name: 'AWS EC2 m6i.large',        status: '相符',   assetNo: 'ZC-24-0011', serial: 'SN-SRV-240011',  project: 'GT', dept: 'IA1', user: 'Emma',      userNo: '100108', contact: 'Oscar',  attachments: 1 },
+            { id: 3,  type: '主机-非蘋果主機', name: 'Lenovo ThinkCentre M90',   status: '異常',   assetNo: 'ZC-24-0004', serial: 'SN-PC-240004',   project: 'GT', dept: 'FIN', user: 'Audrey',    userNo: '100455', contact: 'Stella', attachments: 3 },
+            { id: 4,  type: '笔电-蘋果笔电',   name: 'MacBook Pro 14"',          status: '相符',   assetNo: 'ZC-24-0001', serial: 'SN-MBP-240001',  project: 'GT', dept: 'RD',  user: 'Matthew',   userNo: '100077', contact: 'Felix',  attachments: 0 },
+            { id: 5,  type: '手机-蘋果手机',   name: 'iPhone 15 Pro',            status: '異常',   assetNo: 'ZC-24-0002', serial: 'SN-IP-240002',   project: 'GT', dept: 'RD',  user: 'Alexander', userNo: '100512', contact: 'Felix',  attachments: 1 },
+            { id: 6,  type: '主机-蘋果主機',   name: 'Mac mini M2',              status: '相符',   assetNo: 'ZC-24-0006', serial: 'SN-MAC-240006',  project: 'GT', dept: 'RD',  user: 'Alexander', userNo: '100512', contact: 'Felix',  attachments: 2 },
+            { id: 7,  type: '記憶體設備',       name: 'Kingston 32GB DDR5',       status: '異常',   assetNo: 'ZC-24-0010', serial: 'SN-RAM-240010',  project: 'GT', dept: 'RD',  user: 'Matthew',   userNo: '100077', contact: 'Felix',  attachments: 0 },
+            { id: 8,  type: '網路設備',         name: 'Cisco Catalyst 9200',      status: '相符',   assetNo: 'ZC-24-0007', serial: 'SN-NET-240007',  project: 'GT', dept: 'IA1', user: 'Samuel',    userNo: '100303', contact: 'Oscar',  attachments: 1 },
+            { id: 9,  type: '顯示器',           name: 'Dell U2723QE 27"',         status: '相符',   assetNo: 'ZC-24-0003', serial: 'SN-MON-240003',  project: 'GT', dept: 'HR',  user: 'Henry',     userNo: '100260', contact: 'Nora',   attachments: 2 },
+            { id: 10, type: '辦公家具',         name: '人體工學椅 Herman Miller', status: '相符',   assetNo: 'ZC-24-0009', serial: 'SN-FUR-240009',  project: 'GT', dept: 'HR',  user: 'Daniel',    userNo: '100388', contact: 'Nora',   attachments: 0 },
+            { id: 11, type: '電話卡',           name: '中華電信企業門號',         status: '相符',   assetNo: 'ZC-24-0008', serial: 'SN-SIM-240008',  project: 'GT', dept: 'MKT', user: 'Isabella',  userNo: '100199', contact: 'Cora',   attachments: 1 },
+            { id: 12, type: '收納設備',         name: '鋼製文件櫃',               status: '待抽查', assetNo: 'ZC-24-0012', serial: 'SN-STO-240012',  project: 'GT', dept: 'FIN', user: 'Audrey',    userNo: '100455', contact: 'Stella', attachments: 0 }
         ];
-
-        // 抽查明細資料庫
-        const detailDb = [
-            { taskNo: 'CC-2026-0001', no: 'ZC-24-0005', type: '車輛',             name: 'Toyota Corolla Altis',   dept: 'HR',  bookLoc: '台北總部-車庫',   realLoc: '台北總部-車庫',   user: 'William', result: 'match',    checker: 'Emma',   time: '2026-06-18 09:30' },
-            { taskNo: 'CC-2026-0001', no: 'ZC-24-0011', type: '雲端空間(伺服器)', name: 'AWS EC2 m6i.large',      dept: 'IA1', bookLoc: '雲端-AWS',        realLoc: '雲端-AWS',        user: 'Emma',    result: 'match',    checker: 'Emma',   time: '2026-06-18 09:45' },
-            { taskNo: 'CC-2026-0001', no: 'ZC-24-0004', type: '主机-非蘋果主機', name: 'Lenovo ThinkCentre M90', dept: 'FIN', bookLoc: '台北總部-8F',     realLoc: '台北總部-6F',     user: 'Audrey',  result: 'location', checker: 'Emma',   time: '2026-06-18 10:12' },
-            { taskNo: 'CC-2026-0001', no: 'ZC-24-0001', type: '笔电-蘋果笔电',   name: 'MacBook Pro 14"',        dept: 'RD',  bookLoc: '台北總部-9F',     realLoc: '台北總部-9F',     user: 'Matthew', result: 'match',    checker: 'Emma',   time: '2026-06-18 10:30' },
-            { taskNo: 'CC-2026-0002', no: 'ZC-24-0002', type: '手机-蘋果手机',   name: 'iPhone 15 Pro',          dept: 'RD',  bookLoc: '台北總部-9F',     realLoc: '台北總部-9F',     user: 'Alexander', result: 'user',  checker: 'Samuel', time: '2026-06-25 14:05' },
-            { taskNo: 'CC-2026-0002', no: 'ZC-24-0006', type: '主机-蘋果主機',   name: 'Mac mini M2',            dept: 'RD',  bookLoc: '台北總部-9F',     realLoc: '台北總部-9F',     user: 'Alexander', result: 'match', checker: 'Samuel', time: '2026-06-25 14:20' },
-            { taskNo: 'CC-2026-0002', no: 'ZC-24-0010', type: '記憶體設備',       name: 'Kingston 32GB DDR5',     dept: 'RD',  bookLoc: '台北總部-倉庫',   realLoc: '',                user: 'Matthew', result: 'missing',  checker: 'Samuel', time: '2026-06-25 15:00' },
-            { taskNo: 'CC-2026-0002', no: 'ZC-24-0007', type: '網路設備',         name: 'Cisco Catalyst 9200',    dept: 'IA1', bookLoc: '台北總部-機房',   realLoc: '台北總部-機房',   user: 'Samuel',  result: 'match',    checker: 'Samuel', time: '2026-06-25 15:15' },
-            { taskNo: 'CC-2026-0004', no: 'ZC-24-0003', type: '顯示器',           name: 'Dell U2723QE 27"',       dept: 'HR',  bookLoc: '台北總部-7F',     realLoc: '台北總部-7F',     user: 'Henry',   result: 'match',    checker: 'William', time: '2026-06-05 11:00' },
-            { taskNo: 'CC-2026-0004', no: 'ZC-24-0009', type: '辦公家具',         name: '人體工學椅 Herman Miller', dept: 'HR', bookLoc: '台北總部-7F',    realLoc: '台北總部-7F',     user: 'Daniel',  result: 'match',    checker: 'William', time: '2026-06-05 11:20' },
-            { taskNo: 'CC-2026-0005', no: 'ZC-24-0008', type: '電話卡',           name: '中華電信企業門號',        dept: 'MKT', bookLoc: '台北總部-10F',    realLoc: '台北總部-10F',    user: 'Isabella', result: 'match',   checker: 'Henry',  time: '2026-06-28 16:10' },
-            { taskNo: 'CC-2026-0005', no: 'ZC-24-0012', type: '收納設備',         name: '鋼製文件櫃',              dept: 'FIN', bookLoc: '台北總部-8F',     realLoc: '',                user: 'Audrey',  result: 'pending',  checker: '',       time: '' }
-        ];
-
-        let activeTab = 'task';
 
         const STATUS_MAP = {
-            draft:   { label: '草稿',   cls: 'bg-gray-100 text-gray-600' },
-            ongoing: { label: '進行中', cls: 'bg-amber-50 text-amber-600' },
-            done:    { label: '已完成', cls: 'bg-emerald-50 text-emerald-600' }
+            '待抽查': 'bg-gray-100 text-gray-500',
+            '相符':   'bg-emerald-50 text-emerald-600',
+            '異常':   'bg-rose-50 text-rose-600'
         };
-        const METHOD_MAP = {
-            random: { label: '隨機抽樣',   cls: 'bg-violet-50 text-violet-600' },
-            type:   { label: '依類型抽樣', cls: 'bg-blue-50 text-primary' },
-            dept:   { label: '依部門抽樣', cls: 'bg-teal-50 text-teal-600' },
-            value:  { label: '高價值抽樣', cls: 'bg-amber-50 text-amber-600' }
-        };
-        const RESULT_MAP = {
-            pending:  { label: '待抽查',    cls: 'bg-gray-100 text-gray-500' },
-            match:    { label: '相符',      cls: 'bg-emerald-50 text-emerald-600' },
-            location: { label: '位置不符',  cls: 'bg-amber-50 text-amber-600' },
-            user:     { label: '使用人不符', cls: 'bg-orange-50 text-orange-600' },
-            missing:  { label: '找不到',    cls: 'bg-rose-50 text-rose-600' }
-        };
-        const ABNORMAL_RESULTS = ['location', 'user', 'missing'];
-
-        function badge(map, key) {
-            const m = map[key] || { label: key, cls: 'bg-gray-100 text-gray-600' };
-            return `<span class="px-2 py-0.5 ${m.cls} rounded text-xs font-semibold">${m.label}</span>`;
+        function statusBadge(s) {
+            const cls = STATUS_MAP[s] || 'bg-gray-100 text-gray-600';
+            return `<span class="px-2 py-0.5 ${cls} rounded text-xs font-semibold">${s}</span>`;
         }
 
-        // 頁籤切換
-        function switchTab(tab) {
-            activeTab = tab;
-            document.getElementById('panel-task').classList.toggle('hidden', tab !== 'task');
-            document.getElementById('panel-detail').classList.toggle('hidden', tab !== 'detail');
-            const onCls = 'px-4 py-2.5 text-sm font-semibold text-primary border-b-2 border-primary -mb-px transition-colors';
-            const offCls = 'px-4 py-2.5 text-sm font-medium text-gray-500 border-b-2 border-transparent -mb-px hover:text-gray-700 transition-colors';
-            document.getElementById('tab-btn-task').className = tab === 'task' ? onCls : offCls;
-            document.getElementById('tab-btn-detail').className = tab === 'detail' ? onCls : offCls;
-        }
+        function render(data) {
+            const tbody = document.getElementById('asset-tbody');
+            const noData = document.getElementById('asset-no-data-view');
+            tbody.innerHTML = '';
 
-        // 摘要卡計算
-        function renderKpis() {
-            const checked = detailDb.filter(d => d.result !== 'pending');
-            const abnormal = detailDb.filter(d => ABNORMAL_RESULTS.includes(d.result)).length;
-            const match = detailDb.filter(d => d.result === 'match').length;
-            document.getElementById('kpi-tasks').innerText = taskDb.length;
-            document.getElementById('kpi-samples').innerText = detailDb.length;
-            document.getElementById('kpi-match').innerText = match;
-            document.getElementById('kpi-abnormal').innerText = abnormal;
-        }
+            if (data.length === 0) {
+                tbody.parentElement.classList.add('hidden');
+                noData.classList.remove('hidden');
+                document.getElementById('asset-count-badge').innerText = `0 筆資料`;
+                document.getElementById('asset-pagination-info').innerText = `顯示第 0 到 0 筆，共 0 筆記錄`;
+                return;
+            }
+            tbody.parentElement.classList.remove('hidden');
+            noData.classList.add('hidden');
 
-        // 以抽查單填入明細頁的下拉選單
-        function populateTaskFilter() {
-            const sel = document.getElementById('detail-task');
-            taskDb.forEach(t => {
-                const opt = document.createElement('option');
-                opt.value = t.no; opt.textContent = `${t.no}（${t.name}）`;
-                sel.appendChild(opt);
+            data.forEach(r => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-50/70 transition-colors';
+                tr.innerHTML = `
+                    <td class="font-mono text-gray-500">${r.id}</td>
+                    <td><span class="px-2 py-0.5 bg-blue-50 text-primary rounded text-xs font-semibold">${r.type}</span></td>
+                    <td class="text-left font-medium text-gray-800">${r.name}</td>
+                    <td>${statusBadge(r.status)}</td>
+                    <td class="text-left"><button type="button" onclick="openAssetDetail('${r.assetNo}')" class="font-mono font-semibold text-primary hover:underline">${r.assetNo}</button></td>
+                    <td class="text-left font-mono text-gray-500 text-xs">${r.serial}</td>
+                    <td class="text-gray-700">${r.project}</td>
+                    <td><span class="px-2 py-0.5 bg-gray-100 rounded text-xs font-semibold text-gray-700">${r.dept}</span></td>
+                    <td class="text-gray-700">${r.user}（${r.userNo}）</td>
+                    <td class="text-gray-700">${r.contact}</td>
+                    <td class="font-mono text-gray-700"><span id="att-count-${r.id}">${r.attachments}</span></td>
+                    <td><button onclick="addAttachment(${r.id})" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-paperclip"></i> 添加</button></td>
+                `;
+                tbody.appendChild(tr);
             });
+
+            document.getElementById('asset-count-badge').innerText = `${data.length} 筆資料`;
+            document.getElementById('asset-pagination-info').innerText = `顯示第 1 到 ${data.length} 筆，共 ${data.length} 筆記錄`;
+        }
+
+        function applyFilters() {
+            const kw = document.getElementById('asset-search').value.trim().toLowerCase();
+            const typeVal = document.getElementById('asset-type').value;
+            const statusVal = document.getElementById('asset-status').value;
+            const projectVal = document.getElementById('asset-project').value;
+            const deptVal = document.getElementById('asset-dept').value;
+            const filtered = assetDb.filter(r =>
+                (!kw || r.contact.toLowerCase().includes(kw) || r.assetNo.toLowerCase().includes(kw)) &&
+                (typeVal === 'all' || r.type === typeVal) &&
+                (statusVal === 'all' || r.status === statusVal) &&
+                (projectVal === 'all' || r.project === projectVal) &&
+                (deptVal === 'all' || r.dept === deptVal));
+            render(filtered);
+        }
+
+        function resetFilters() {
+            document.getElementById('asset-search').value = '';
+            document.getElementById('asset-type').value = 'all';
+            document.getElementById('asset-status').value = 'all';
+            document.getElementById('asset-project').value = 'all';
+            document.getElementById('asset-dept').value = 'all';
+            showToast('info', '已還原資產抽查的篩選設定');
+            applyFilters();
+        }
+
+        // 依資料動態帶入「類型 / 項目」選項
+        function populateFilters() {
+            const typeSel = document.getElementById('asset-type');
+            [...new Set(assetDb.map(r => r.type))].forEach(t => {
+                const o = document.createElement('option'); o.value = t; o.textContent = t; typeSel.appendChild(o);
+            });
+            const projSel = document.getElementById('asset-project');
+            [...new Set(assetDb.map(r => r.project))].forEach(p => {
+                const o = document.createElement('option'); o.value = p; o.textContent = p; projSel.appendChild(o);
+            });
+        }
+
+        // 添加附件（示意：計數 +1）
+        function addAttachment(id) {
+            const a = assetDb.find(x => x.id === id);
+            if (!a) return;
+            a.attachments++;
+            const el = document.getElementById('att-count-' + id);
+            if (el) el.innerText = a.attachments;
+            showToast('success', `已為「${a.name}」新增附件（目前 ${a.attachments} 個）`);
         }
 
         window.onload = function () {
-            renderKpis();
-            populateTaskFilter();
-            applyTaskFilters();
-            applyDetailFilters();
+            populateFilters();
+            applyFilters();
         };
 
-        /* ============ 抽查任務 ============ */
-        function renderTasks(data) {
-            const tbody = document.getElementById('task-tbody');
-            const noData = document.getElementById('task-no-data-view');
-            tbody.innerHTML = '';
+        /* ============ 資產詳情彈窗（比照資產清單）============ */
+        const fmt = (n) => Number(n || 0).toLocaleString('en-US');
+        let _assetFields = [];
+        let _assetEdit = false;
+        const _assetRO = new Set();
+        const _assetOptions = {
+            '状态': ['使用中', '项目闲置', '行政闲置', '项目保管', '行政保管', '外借', '待出售', '已出售', '已赔付', '已销毁'],
+            '类别': ['资产', '列管品', '软资产', '暂无类别'],
+            '区域': ['T1', 'T2', 'U', 'J', 'S'],
+            '币种': ['CNY', 'TWD', 'USD']
+        };
+        function openAssetDetail(no) {
+            const r = assetDb.find(x => x.assetNo === no);
+            if (!r) return;
+            const h = (no.replace(/\D/g, '').split('').reduce((a, c) => a + (+c || 0), 0)) || 1;
+            const pick = (arr) => arr[h % arr.length];
+            const price = h * 1000 + 5000;
+            const residual = Math.round(price * 0.3);
+            const groups = [
+                ['基本資訊', [['资产类型', r.type], ['状态', pick(_assetOptions['状态'])], ['类别', pick(_assetOptions['类别'])], ['区域', pick(_assetOptions['区域'])], ['项目', r.project], ['部门', r.dept]]],
+                ['資產識別', [['资产编号', r.assetNo], ['型号', (r.name.split(' ')[0] || '-')], ['序列号', r.serial], ['历史资产编号', '-'], ['资产名称', r.name], ['规格', '標準規格'], ['数量', '1']]],
+                ['採購 / 財務', [['购买日期', '2024-0' + (h % 9 + 1) + '-15'], ['币种', 'CNY'], ['价格', '¥ ' + fmt(price)], ['残值', '¥ ' + fmt(residual)], ['收据号码', 'RC-' + no.slice(-6)], ['文件编号', 'DOC-' + no.slice(-4)]]],
+                ['使用 / 負責', [['使用人', r.user + '（' + (r.userNo || '-') + '）'], ['負責人', r.contact]]],
+                ['關聯單據', [['物品购买申请号(PU单)', 'PU-THQ-0000' + (h % 90 + 10)], ['请款单号(A单/B单)', 'B-THQ-0000' + (h % 90 + 10)], ['报销单号(C单)', 'C-THQ-0000' + (h % 90 + 10)], ['维修记录(维修单号)', '-']]],
+                ['費用歸屬', [['原采购单位(原费用项目)', r.project + ' / ' + r.dept], ['现资产所有权单位(现费用项目)', r.project + ' / ' + r.dept]]],
+            ];
+            _assetFields = [];
+            groups.forEach(([g, items]) => items.forEach(([k, v]) => _assetFields.push({ k, v, g })));
+            _assetEdit = false;
+            document.getElementById('ad-no').textContent = r.assetNo;
+            _assetAttachments = [{ name: '採購發票.pdf' }, { name: '資產照片.jpg' }, { name: '保固證明.png' }];
+            _assetRemarks = ['2024-08-15 由行政部完成入庫驗收，配件齊全。', '2025-03-02 使用人回報螢幕偶有閃爍，已列入觀察。'];
+            renderAssetDetail();
+            renderAssetAttachments();
+            renderAssetRemarks();
+            document.getElementById('asset-detail-modal').classList.remove('hidden');
+        }
+        function assetPeopleDir() {
+            if (window._peopleDir) return window._peopleDir;
+            const arr = [];
+            assetDb.forEach(r => { if (r.user && !arr.some(p => p.name === r.user)) arr.push({ name: r.user, id: r.userNo || '' }); });
+            assetDb.forEach(r => { if (r.contact && !arr.some(p => p.name === r.contact)) arr.push({ name: r.contact, id: '' }); });
+            window._peopleDir = arr.sort((a, b) => a.name.localeCompare(b.name));
+            return window._peopleDir;
+        }
 
-            if (data.length === 0) {
-                tbody.parentElement.classList.add('hidden');
-                noData.classList.remove('hidden');
-                document.getElementById('task-count-badge').innerText = `0 筆資料`;
-                document.getElementById('task-pagination-info').innerText = `顯示第 0 到 0 筆，共 0 筆記錄`;
+        // 備註（可輸入多個；編輯時為嵌入式文字編輯器）
+        let _assetRemarks = [];
+        const _remarkTextEmpty = (html) => !String(html || '').replace(/<[^>]*>/g, '').replace(/&nbsp;/g, '').trim();
+        function assetSyncRemarks() {
+            const items = [...document.querySelectorAll('#asset-remark-list [data-r]')];
+            if (items.length) _assetRemarks = items.map(el => el.innerHTML);
+        }
+        function assetRemarkToolbar() {
+            const btns = [
+                ['bold', 'B', 'font-bold', '粗體'],
+                ['italic', 'I', 'italic font-serif', '斜體'],
+                ['underline', 'U', 'underline', '底線'],
+                ['strikeThrough', 'S', 'line-through', '刪除線'],
+                ['|'],
+                ['insertUnorderedList', '•—', '', '項目符號'],
+                ['insertOrderedList', '1.', '', '編號清單'],
+            ];
+            return btns.map(b => b[0] === '|'
+                ? '<span class="w-px h-5 bg-gray-300 mx-1"></span>'
+                : `<button type="button" title="${b[3]}" onmousedown="event.preventDefault();document.execCommand('${b[0]}',false,null)" class="min-w-7 h-7 px-1.5 flex items-center justify-center rounded text-gray-600 hover:bg-gray-200 hover:text-gray-800 text-sm ${b[2]}">${b[1]}</button>`
+            ).join('');
+        }
+        function assetAddRemark() { assetSyncRemarks(); _assetRemarks.push(''); renderAssetRemarks(); }
+        function assetRemoveRemark(i) { assetSyncRemarks(); _assetRemarks.splice(i, 1); renderAssetRemarks(); }
+        function renderAssetRemarks() {
+            const list = document.getElementById('asset-remark-list');
+            if (!list) return;
+            const addBtn = document.getElementById('asset-remark-add');
+            if (addBtn) addBtn.classList.toggle('hidden', !_assetEdit);
+            if (_assetEdit) {
+                list.innerHTML = (_assetRemarks.length ? _assetRemarks : ['']).map((v, i) => `<div class="flex gap-2 items-start">
+                        <div class="flex-1 border border-gray-300 rounded overflow-hidden focus-within:border-primary">
+                            <div class="flex flex-wrap items-center gap-0.5 px-2 py-1.5 border-b border-gray-200 bg-gray-50">${assetRemarkToolbar()}</div>
+                            <div contenteditable data-r="${i}" data-ph="請輸入備註…" class="asset-remark-editor min-h-[80px] px-3 py-2 text-sm text-gray-800 focus:outline-none">${v}</div>
+                        </div>
+                        <button type="button" onclick="assetRemoveRemark(${i})" class="text-gray-400 hover:text-red-500 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 shrink-0 mt-0.5"><i class="fa-solid fa-trash-can"></i></button>
+                    </div>`).join('');
+            } else {
+                const shown = _assetRemarks.filter(v => !_remarkTextEmpty(v));
+                list.innerHTML = shown.length
+                    ? shown.map(v => `<div class="asset-remark-view text-sm text-gray-800 border border-gray-200 rounded px-3 py-2 bg-gray-50/60 break-words">${v}</div>`).join('')
+                    : '<div class="text-center text-xs text-gray-400 py-2">尚無備註</div>';
+            }
+        }
+        // 附件（可上傳多個；直接預覽檔案內容示意）
+        let _assetAttachments = [];
+        const _isImage = (n) => /\.(png|jpe?g|gif|bmp|webp|svg)$/i.test(n || '');
+        function assetAddFiles(input) {
+            [...(input.files || [])].forEach(f => _assetAttachments.push({ name: f.name }));
+            input.value = '';
+            renderAssetAttachments();
+        }
+        function assetRemoveAttach(i) { _assetAttachments.splice(i, 1); renderAssetAttachments(); }
+        function renderAssetAttachments() {
+            const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+            const wrap = document.getElementById('asset-attach-list');
+            if (!wrap) return;
+            const up = document.getElementById('asset-attach-upload');
+            if (up) up.classList.toggle('hidden', !_assetEdit);
+            if (!_assetAttachments.length) {
+                wrap.innerHTML = '<div class="text-center text-xs text-gray-400 py-4">尚無附件</div>';
                 return;
             }
-            tbody.parentElement.classList.remove('hidden');
-            noData.classList.add('hidden');
-
-            data.forEach(r => {
-                // 符合率 = (已查 - 異常) / 已查
-                const rate = r.done ? Math.round((r.done - r.abnormal) / r.done * 100) : 0;
-                const rateCls = r.done === 0 ? 'text-gray-300' : (rate >= 90 ? 'text-emerald-600' : (rate >= 70 ? 'text-amber-600' : 'text-rose-600'));
-                const tr = document.createElement('tr');
-                tr.className = 'hover:bg-gray-50/70 transition-colors';
-                tr.innerHTML = `
-                    <td class="text-left font-mono font-semibold text-gray-500">${r.no}</td>
-                    <td class="text-left font-medium text-gray-800">${r.name}</td>
-                    <td>${badge(METHOD_MAP, r.method)}</td>
-                    <td class="font-mono text-gray-500">${r.date}</td>
-                    <td class="text-gray-700">${r.owner}</td>
-                    <td class="font-mono text-gray-700">${r.samples}</td>
-                    <td class="font-mono text-gray-700">${r.done}</td>
-                    <td class="font-mono ${r.abnormal > 0 ? 'text-rose-600 font-bold' : 'text-gray-300'}">${r.abnormal}</td>
-                    <td class="font-mono font-semibold ${rateCls}">${r.done === 0 ? '—' : rate + '%'}</td>
-                    <td>${badge(STATUS_MAP, r.status)}</td>
-                    <td><button onclick="viewDetail('${r.no}')" class="text-primary hover:underline text-xs font-semibold">明細</button></td>
-                `;
-                tbody.appendChild(tr);
-            });
-
-            document.getElementById('task-count-badge').innerText = `${data.length} 筆資料`;
-            document.getElementById('task-pagination-info').innerText = `顯示第 1 到 ${data.length} 筆，共 ${data.length} 筆記錄`;
+            wrap.innerHTML = _assetAttachments.map((f, i) => {
+                const img = _isImage(f.name);
+                const viewer = img
+                    ? `<div class="w-full max-w-[420px] self-start bg-white shadow-lg p-2"><div class="h-64 rounded flex flex-col items-center justify-center gap-2 text-gray-400 bg-gradient-to-br from-gray-100 to-gray-200"><i class="fa-solid fa-image text-5xl"></i><span class="text-xs">圖片預覽 · ${esc(f.name)}（示意）</span></div></div>`
+                    : `<div class="bg-white w-full max-w-[520px] shadow-lg px-8 py-7 self-start">
+                            <div class="h-5 w-2/3 bg-gray-800/80 rounded mb-5"></div>
+                            <div class="space-y-2.5">
+                                <div class="h-2.5 bg-gray-200 rounded w-full"></div>
+                                <div class="h-2.5 bg-gray-200 rounded w-11/12"></div>
+                                <div class="h-2.5 bg-gray-200 rounded w-full"></div>
+                                <div class="h-2.5 bg-gray-200 rounded w-4/5"></div>
+                            </div>
+                            <div class="h-28 bg-gray-100 border border-gray-200 rounded my-5 flex items-center justify-center text-gray-400 text-sm">表格 / 圖示區</div>
+                            <div class="space-y-2.5">
+                                <div class="h-2.5 bg-gray-200 rounded w-full"></div>
+                                <div class="h-2.5 bg-gray-200 rounded w-10/12"></div>
+                                <div class="h-2.5 bg-gray-200 rounded w-9/12"></div>
+                            </div>
+                            <div class="mt-6 text-center text-[11px] text-gray-400">— PDF 預覽（示意）· ${esc(f.name)} —</div>
+                        </div>`;
+                return `<div class="border border-gray-300 rounded-lg overflow-hidden bg-white shadow-sm">
+                        <div class="flex items-center justify-between px-3 py-2 bg-[#323639] text-gray-200 text-xs">
+                            <span class="truncate flex items-center gap-1.5">${img ? '🖼️' : '📄'} ${esc(f.name)}</span>
+                            <div class="flex items-center gap-4 shrink-0">
+                                <span class="text-gray-400 hidden sm:inline">${img ? '圖片檢視器' : 'PDF 檢視器 · 1 / 1'}</span>
+                                <a href="#" onclick="return false" class="hover:text-white inline-flex items-center gap-1"><i class="fa-solid fa-download"></i> 下載</a>
+                                ${_assetEdit ? `<button type="button" onclick="assetRemoveAttach(${i})" class="hover:text-white inline-flex items-center gap-1"><i class="fa-solid fa-trash-can"></i> 刪除</button>` : ''}
+                            </div>
+                        </div>
+                        <div class="bg-[#525659] px-4 py-5 h-72 overflow-auto flex justify-center">${viewer}</div>
+                    </div>`;
+            }).join('');
         }
-
-        function applyTaskFilters() {
-            const kw = document.getElementById('task-search').value.trim().toLowerCase();
-            const statusVal = document.getElementById('task-status').value;
-            const methodVal = document.getElementById('task-method').value;
-            const dateVal = document.getElementById('task-date').value;
-            const filtered = taskDb.filter(r =>
-                (!kw || r.no.toLowerCase().includes(kw) || r.name.toLowerCase().includes(kw) || r.owner.toLowerCase().includes(kw)) &&
-                (statusVal === 'all' || r.status === statusVal) &&
-                (methodVal === 'all' || r.method === methodVal) &&
-                (!dateVal || r.date >= dateVal));
-            renderTasks(filtered);
+        function renderAssetDetail() {
+            const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+            const cell = (f, i) => {
+                let ctrl;
+                if (_assetEdit && (f.k === '使用人' || f.k === '負責人')) {
+                    ctrl = `<div class="relative asset-people-combo"><input data-i="${i}" value="${esc(f.v)}" autocomplete="off" oninput="assetPeopleFilter(this)" onfocus="assetPeopleFilter(this)" onblur="setTimeout(()=>assetPeopleHide(this),150)" placeholder="輸入姓名或工號" class="w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-primary"><div class="asset-people-list hidden absolute z-30 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto text-sm"></div></div>`;
+                } else if (_assetEdit && !_assetRO.has(f.k)) {
+                    if (_assetOptions[f.k]) {
+                        ctrl = `<select data-i="${i}" class="w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-primary">` +
+                            _assetOptions[f.k].map(o => `<option${o === f.v ? ' selected' : ''}>${o}</option>`).join('') + `</select>`;
+                    } else {
+                        ctrl = `<input data-i="${i}" value="${esc(f.v)}" class="w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-primary">`;
+                    }
+                } else {
+                    const isDoc = f.g === '關聯單據' && f.v && f.v !== '-';
+                    const viewBtn = isDoc ? ` <button type="button" onclick="openFormView('${esc(f.v)}')" title="查閱電子表單" class="text-primary hover:text-blue-700 ml-1"><i class="fa-solid fa-arrow-up-right-from-square text-xs"></i></button>` : '';
+                    ctrl = `<div class="text-sm text-gray-800 break-words flex items-center">${esc(f.v)}${viewBtn}</div>`;
+                }
+                return `<div><div class="text-xs font-semibold text-text-muted mb-1">${f.k}</div>${ctrl}</div>`;
+            };
+            const groupTitles = [...new Set(_assetFields.map(f => f.g))];
+            document.getElementById('asset-detail-grid').innerHTML = groupTitles.map(g => {
+                const cells = _assetFields.map((f, i) => ({ f, i })).filter(x => x.f.g === g)
+                    .map(({ f, i }) => cell(f, i)).join('');
+                return `<div class="border border-gray-200 rounded-lg shadow-sm"><div class="bg-gray-50 px-4 py-2.5 border-b border-gray-200 text-sm font-bold text-primary flex items-center gap-2 rounded-t-lg"><span class="w-1.5 h-4 bg-primary rounded-full"></span>${g}</div><div class="p-4 grid grid-cols-2 sm:grid-cols-4 gap-x-6 gap-y-4">${cells}</div></div>`;
+            }).join('');
+            document.getElementById('ad-view-btns').classList.toggle('hidden', _assetEdit);
+            document.getElementById('ad-edit-btns').classList.toggle('hidden', !_assetEdit);
         }
-
-        function resetTaskFilters() {
-            document.getElementById('task-search').value = '';
-            document.getElementById('task-status').value = 'all';
-            document.getElementById('task-method').value = 'all';
-            document.getElementById('task-date').value = '';
-            showToast('info', '已還原抽查任務的篩選設定');
-            applyTaskFilters();
+        function toggleAssetEdit(on) { _assetEdit = on; renderAssetDetail(); renderAssetAttachments(); renderAssetRemarks(); }
+        function saveAssetDetail() {
+            document.querySelectorAll('#asset-detail-grid [data-i]').forEach(el => { _assetFields[+el.dataset.i].v = el.value; });
+            assetSyncRemarks();
+            _assetRemarks = _assetRemarks.filter(v => !_remarkTextEmpty(v));
+            _assetEdit = false;
+            renderAssetDetail();
+            renderAssetRemarks();
+            showToast('success', '已儲存資產資料（示範）');
         }
-
-        function viewDetail(taskNo) {
-            switchTab('detail');
-            document.getElementById('detail-task').value = taskNo;
-            applyDetailFilters();
+        function closeAssetDetail() { _assetEdit = false; document.getElementById('asset-detail-modal').classList.add('hidden'); }
+        function assetPeopleFilter(input) {
+            const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+            const box = input.parentElement.querySelector('.asset-people-list');
+            if (!box) return;
+            const q = (input.value || '').trim().toLowerCase();
+            const matches = assetPeopleDir().filter(p => !q || p.name.toLowerCase().includes(q) || (p.id || '').includes(q)).slice(0, 50);
+            box.innerHTML = matches.length
+                ? matches.map(p => `<div class="px-3 py-2 hover:bg-primary-light cursor-pointer flex justify-between gap-3" data-name="${esc(p.name)}" data-id="${esc(p.id)}" onmousedown="assetPeoplePick(this)"><span>${esc(p.name)}</span><span class="text-gray-400 font-mono text-xs">${esc(p.id)}</span></div>`).join('')
+                : '<div class="px-3 py-2 text-gray-400">查無人員</div>';
+            box.classList.remove('hidden');
         }
-
-        function openNewCheck() {
-            showToast('info', '建立抽查任務：此為示意頁面，實際串接後端後開啟抽樣設定。');
+        function assetPeoplePick(el) {
+            const name = el.dataset.name, id = el.dataset.id;
+            const combo = el.closest('.asset-people-combo');
+            const input = combo.querySelector('input');
+            input.value = id ? name + '（' + id + '）' : name;
+            combo.querySelector('.asset-people-list').classList.add('hidden');
         }
-
-        /* ============ 抽查明細 ============ */
-        function renderDetails(data) {
-            const tbody = document.getElementById('detail-tbody');
-            const noData = document.getElementById('detail-no-data-view');
-            tbody.innerHTML = '';
-
-            if (data.length === 0) {
-                tbody.parentElement.classList.add('hidden');
-                noData.classList.remove('hidden');
-                document.getElementById('detail-count-badge').innerText = `0 筆資料`;
-                document.getElementById('detail-pagination-info').innerText = `顯示第 0 到 0 筆，共 0 筆記錄`;
-                return;
-            }
-            tbody.parentElement.classList.remove('hidden');
-            noData.classList.add('hidden');
-
-            data.forEach(r => {
-                const realLocCell = r.realLoc
-                    ? `<td class="text-gray-700 text-xs">${r.realLoc}</td>`
-                    : `<td class="text-rose-500 text-xs">未尋獲</td>`;
-                const tr = document.createElement('tr');
-                tr.className = 'hover:bg-gray-50/70 transition-colors';
-                tr.innerHTML = `
-                    <td class="text-left font-mono font-semibold text-gray-500">${r.no}</td>
-                    <td><span class="px-2 py-0.5 bg-blue-50 text-primary rounded text-xs font-semibold">${r.type}</span></td>
-                    <td class="text-left font-medium text-gray-800">${r.name}</td>
-                    <td><span class="px-2 py-0.5 bg-gray-100 rounded text-xs font-semibold text-gray-700">${r.dept}</span></td>
-                    <td class="text-gray-500 text-xs">${r.bookLoc}</td>
-                    ${realLocCell}
-                    <td class="text-gray-700">${r.user}</td>
-                    <td>${badge(RESULT_MAP, r.result)}</td>
-                    <td class="text-gray-500">${r.checker || '—'}</td>
-                    <td class="font-mono text-gray-400 text-xs">${r.time || '—'}</td>
-                `;
-                tbody.appendChild(tr);
-            });
-
-            document.getElementById('detail-count-badge').innerText = `${data.length} 筆資料`;
-            document.getElementById('detail-pagination-info').innerText = `顯示第 1 到 ${data.length} 筆，共 ${data.length} 筆記錄`;
+        function assetPeopleHide(input) {
+            const box = input.parentElement.querySelector('.asset-people-list');
+            if (box) box.classList.add('hidden');
         }
-
-        function applyDetailFilters() {
-            const kw = document.getElementById('detail-search').value.trim().toLowerCase();
-            const taskVal = document.getElementById('detail-task').value;
-            const resultVal = document.getElementById('detail-result').value;
-            const deptVal = document.getElementById('detail-dept').value;
-            const filtered = detailDb.filter(r =>
-                (!kw || r.no.toLowerCase().includes(kw) || r.name.toLowerCase().includes(kw) || r.user.toLowerCase().includes(kw)) &&
-                (taskVal === 'all' || r.taskNo === taskVal) &&
-                (resultVal === 'all' || r.result === resultVal) &&
-                (deptVal === 'all' || r.dept === deptVal));
-            renderDetails(filtered);
+        // 歷史紀錄
+        function openAssetHistory() {
+            const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+            const no = document.getElementById('ad-no').textContent || '-';
+            const h = (no.replace(/\D/g, '').split('').reduce((a, c) => a + (+c || 0), 0)) || 1;
+            const rows = [
+                { src: '資產登記', item: '資產名稱', before: '-', after: '（初次登記）', by: 'System', at: '2024-0' + (h % 9 + 1) + '-15 09:12' },
+                { src: '資產調撥單 (AT-THQ-00' + (h % 90 + 10) + ')', item: '使用人', before: 'James（100344）', after: 'Matthew（101383）', by: 'Henry', at: '2024-11-03 14:27' },
+                { src: '手動編輯', item: '狀態', before: '使用中', after: '項目閒置', by: 'William', at: '2025-01-20 10:05' },
+                { src: '資產維修單 (RP-THQ-00' + (h % 90 + 10) + ')', item: '殘值', before: '¥ 15,000', after: '¥ 12,000', by: 'Audrey', at: '2025-03-08 16:41' },
+                { src: '手動編輯', item: '部門', before: 'RD', after: 'HR', by: 'Emma', at: '2025-06-12 11:33' },
+            ];
+            document.getElementById('ah-no').textContent = no;
+            document.getElementById('asset-history-tbody').innerHTML = rows.map(r => `<tr>
+                    <td class="font-mono">${esc(no)}</td>
+                    <td>${esc(r.src)}</td>
+                    <td>${esc(r.item)}</td>
+                    <td class="text-gray-500">${esc(r.before)}</td>
+                    <td class="text-gray-800">${esc(r.after)}</td>
+                    <td>${esc(r.by)}</td>
+                    <td class="whitespace-nowrap text-gray-500">${esc(r.at)}</td>
+                </tr>`).join('');
+            document.getElementById('asset-history-modal').classList.remove('hidden');
         }
-
-        function resetDetailFilters() {
-            document.getElementById('detail-search').value = '';
-            document.getElementById('detail-task').value = 'all';
-            document.getElementById('detail-result').value = 'all';
-            document.getElementById('detail-dept').value = 'all';
-            showToast('info', '已還原抽查明細的篩選設定');
-            applyDetailFilters();
+        function closeAssetHistory() { document.getElementById('asset-history-modal').classList.add('hidden'); }
+        // 電子表單檢視（由關聯單據查閱 icon 開啟）
+        function openFormView(docNo) {
+            const typeMap = { PU: '請購單 (PU)', B: '費用申請單 (B)', C: '費用報銷單 (C)', A: '請款單 (A)', RP: '維修單' };
+            const prefix = (String(docNo).split('-')[0] || '').toUpperCase();
+            document.getElementById('fv-title').textContent = (typeMap[prefix] || '電子表單') + '　' + docNo;
+            document.getElementById('fv-docno').textContent = docNo;
+            document.getElementById('fv-type').textContent = typeMap[prefix] || '-';
+            document.getElementById('form-view-modal').classList.remove('hidden');
         }
+        function closeFormView() { document.getElementById('form-view-modal').classList.add('hidden'); }
 
         /* ============ Toast 提示控制 ============ */
         function showToast(type, text) {
