@@ -49,12 +49,11 @@
             </div>
 
             <div class="flex items-center gap-2">
-                <h2 class="text-lg font-bold text-gray-900 whitespace-nowrap">月結匯率表</h2>
                 <span id="count-badge" class="bg-blue-50 text-primary text-xs px-2.5 py-1 rounded-md font-bold">0 筆</span>
                 <span class="text-xs text-gray-400">（以 1 外幣 = X 基準幣別 計算）</span>
             </div>
 
-            <div id="rate-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3"></div>
+            <div id="rate-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-10 gap-y-5"></div>
 
             <div id="no-data-view" class="hidden py-16 text-center space-y-3">
                 <div class="inline-flex p-4 bg-gray-50 text-gray-400 rounded-full"><i class="fa-solid fa-money-bill-transfer text-3xl"></i></div>
@@ -70,7 +69,7 @@
 
     <!-- 批量編輯匯率 彈窗（所有幣種一次填寫送出） -->
     <div id="rate-modal" class="fixed inset-0 bg-black/40 z-50 flex justify-center items-center hidden p-4">
-        <div class="bg-white rounded-2xl shadow-modal w-full max-w-xl max-h-[90vh] flex flex-col overflow-hidden">
+        <div class="bg-white rounded-2xl shadow-modal w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
             <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 flex-shrink-0">
                 <h3 id="rate-modal-title" class="text-base font-bold text-gray-900">編輯匯率</h3>
                 <button onclick="closeBatchModal()" class="text-gray-400 hover:text-gray-600 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"><i class="fa-solid fa-xmark"></i></button>
@@ -85,7 +84,7 @@
                         <label class="block text-xs font-semibold text-text-muted">各幣種匯率（1 外幣 = ? CNY）</label>
                         <span class="text-[11px] text-gray-400">留空者不列入</span>
                     </div>
-                    <div class="rounded-lg border border-gray-100 divide-y divide-gray-100" id="batch-list"></div>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3" id="batch-list"></div>
                 </div>
             </div>
             <div class="flex justify-end gap-2.5 px-6 py-4 bg-gray-50 border-t border-gray-100 flex-shrink-0">
@@ -233,13 +232,12 @@
             const grid = document.getElementById('rate-grid');
             // 卡片式呈現，一眼看到所有幣別設定
             grid.innerHTML = list.map(r => `
-                <div class="border border-gray-200 rounded-xl px-4 py-3 hover:border-primary hover:shadow-sm transition-all">
-                    <div class="flex items-center justify-between">
-                        <span class="font-mono font-bold text-gray-800 text-[15px]">${r.code}</span>
-                        <span class="text-[11px] text-gray-400">${r.date}</span>
+                <div class="flex items-center gap-3">
+                    <span class="w-16 shrink-0 text-sm font-semibold text-gray-700 font-mono">${r.code}</span>
+                    <div class="flex-1 flex items-center justify-between border border-gray-300 rounded-md px-3 py-1.5 bg-white hover:border-primary transition-colors">
+                        <span class="font-mono font-semibold text-[#2b3b84] tabular-nums text-[15px]">${r.rate}</span>
+                        <span class="text-[11px] text-gray-400 ml-2 shrink-0">兌 CNY</span>
                     </div>
-                    <div class="mt-2 text-[22px] font-black text-[#2b3b84] tabular-nums leading-tight">${r.rate}</div>
-                    <div class="text-[11px] text-gray-400">兌 CNY</div>
                 </div>
             `).join('');
             document.getElementById('count-badge').innerText = list.length + ' 種幣別';
@@ -255,12 +253,12 @@
             document.getElementById('batch-month').value = period;
             const box = document.getElementById('batch-list');
             if (!list.length) {
-                box.innerHTML = '<div class="px-3 py-6 text-center text-sm text-gray-400">此月份尚無匯率，請改用「新增匯率」</div>';
+                box.innerHTML = '<div class="col-span-full px-3 py-6 text-center text-sm text-gray-400">此月份尚無匯率，請改用「新增匯率」</div>';
             } else {
                 box.innerHTML = list.map(r =>
-                    '<div class="flex items-center gap-3 px-3 py-2">' +
-                    '<div class="w-28 shrink-0"><span class="font-medium font-mono text-gray-800">' + r.code + '</span></div>' +
-                    '<input type="text" inputmode="decimal" data-code="' + r.code + '" data-name="' + r.name + '" value="' + r.rate + '" placeholder="清空可移除此幣別" class="ui-input flex-1 text-right">' +
+                    '<div>' +
+                    '<label class="block text-[11px] font-mono font-semibold text-gray-600 mb-1">' + r.code + '</label>' +
+                    '<input type="text" inputmode="decimal" data-code="' + r.code + '" data-name="' + r.name + '" value="' + r.rate + '" placeholder="清空可移除" class="ui-input text-right">' +
                     '</div>'
                 ).join('');
             }
