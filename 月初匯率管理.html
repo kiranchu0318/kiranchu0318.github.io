@@ -232,8 +232,9 @@
             const grid = document.getElementById('rate-grid');
             // 卡片式呈現，一眼看到所有幣別設定
             grid.innerHTML = list.map(r => `
-                <div class="flex items-center gap-3">
-                    <span class="w-16 shrink-0 text-sm font-semibold text-gray-700 font-mono">${r.code}</span>
+                <div class="flex items-center gap-1.5">
+                    <span class="w-8 shrink-0 text-sm font-semibold text-gray-700 font-mono">${r.code}</span>
+
                     <div class="flex-1 flex items-center justify-between border border-gray-300 rounded-md px-3 py-1.5 bg-white hover:border-primary transition-colors">
                         <span class="font-mono font-semibold text-[#2b3b84] tabular-nums text-[15px]">${r.rate}</span>
                         <span class="text-[11px] text-gray-400 ml-2 shrink-0">兌 CNY</span>
@@ -256,9 +257,9 @@
                 box.innerHTML = '<div class="col-span-full px-3 py-6 text-center text-sm text-gray-400">此月份尚無匯率，請改用「新增匯率」</div>';
             } else {
                 box.innerHTML = list.map(r =>
-                    '<div>' +
-                    '<label class="block text-[11px] font-mono font-semibold text-gray-600 mb-1">' + r.code + '</label>' +
-                    '<input type="text" inputmode="decimal" data-code="' + r.code + '" data-name="' + r.name + '" value="' + r.rate + '" placeholder="清空可移除" class="ui-input text-right">' +
+                    '<div class="flex items-center gap-1.5">' +
+                    '<span class="w-8 shrink-0 text-sm font-semibold text-gray-700 font-mono">' + r.code + '</span>' +
+                    '<input type="text" inputmode="decimal" data-code="' + r.code + '" data-name="' + r.name + '" value="' + r.rate + '" placeholder="清空可移除" class="ui-input flex-1 text-right">' +
                     '</div>'
                 ).join('');
             }
