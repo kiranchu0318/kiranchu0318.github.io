@@ -104,6 +104,14 @@
             <i data-lucide="pen" class="w-4 h-4 mr-3 text-gray-400 group-hover:text-blue-500 transition-colors"></i>
             <span class="text-[14px] group-hover:text-blue-600 transition-colors">用印流程(SE)</span>
         </div>
+        <div data-category="admin" class="app-item bg-white border border-gray-200 hover:border-blue-400 hover:shadow-md cursor-pointer rounded-md px-4 py-2.5 flex items-center text-gray-700 transition-all duration-200 group" data-form="AP">
+            <i data-lucide="pen" class="w-4 h-4 mr-3 text-gray-400 group-hover:text-blue-500 transition-colors"></i>
+            <span class="text-[14px] group-hover:text-blue-600 transition-colors">審批權限異動申請</span>
+        </div>
+        <div data-category="admin" class="app-item bg-white border border-gray-200 hover:border-blue-400 hover:shadow-md cursor-pointer rounded-md px-4 py-2.5 flex items-center text-gray-700 transition-all duration-200 group" data-form="SP">
+            <i data-lucide="pen" class="w-4 h-4 mr-3 text-gray-400 group-hover:text-blue-500 transition-colors"></i>
+            <span class="text-[14px] group-hover:text-blue-600 transition-colors">系統權限異動申請</span>
+        </div>
 
         <!-- 商務 / 合同 -->
         <div data-category="business" class="app-item bg-white border border-gray-200 hover:border-blue-400 hover:shadow-md cursor-pointer rounded-md px-4 py-2.5 flex items-center text-gray-700 transition-all duration-200 group" data-form="BU">
@@ -150,7 +158,7 @@
         <!-- 公告 / 商務公告類 -->
         <div data-category="business" data-form="NR" class="app-item bg-white border border-gray-200 hover:border-blue-400 hover:shadow-md cursor-pointer rounded-md px-4 py-2.5 flex items-center text-gray-700 transition-all duration-200 group">
             <i data-lucide="pen" class="w-4 h-4 mr-3 text-gray-400 group-hover:text-blue-500 transition-colors"></i>
-            <span class="text-[14px] group-hover:text-blue-600 transition-colors">公告發布流程</span>
+            <span class="text-[14px] group-hover:text-blue-600 transition-colors">公告發布申請</span>
         </div>
         <div data-category="business" data-form="BUG" class="app-item hidden bg-white border border-gray-200 hover:border-blue-400 hover:shadow-md cursor-pointer rounded-md px-4 py-2.5 flex items-center text-gray-700 transition-all duration-200 group">
             <i data-lucide="pen" class="w-4 h-4 mr-3 text-gray-400 group-hover:text-blue-500 transition-colors"></i>
@@ -1898,7 +1906,7 @@
 <div id="nr-modal" class="form-modal fixed inset-0 bg-black/40 z-50 flex justify-center items-center hidden">
     <div class="bg-white w-[98vw] max-w-[1400px] h-[95vh] rounded-md shadow-2xl flex flex-col relative overflow-hidden">
         <div class="bg-[#EAF2FC] flex justify-between items-center px-4 py-3 border-b border-blue-100">
-            <h2 class="text-[#2b3b84] font-bold text-[16px]">公告發布流程</h2>
+            <h2 class="text-[#2b3b84] font-bold text-[16px]">公告發布申請</h2>
             <button class="form-modal-close bg-blue-500 hover:bg-blue-600 text-white rounded p-1 transition-colors"><i data-lucide="x" class="w-4 h-4"></i></button>
         </div>
         <div class="flex flex-1 overflow-hidden bg-[#f4f5f8]">
@@ -1912,20 +1920,54 @@
                             <div class="col-span-2"><label class="block mb-1.5 text-[13px] text-gray-700">文件編號</label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed" value="自動生成" disabled></div>
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">申請日期</label><div class="border border-gray-300 rounded px-3 py-1.5 bg-white flex items-center"><i data-lucide="calendar" class="w-4 h-4 text-gray-400"></i><input type="text" class="w-full ml-2 text-[13px] outline-none" disabled></div></div>
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">主旨 <span class="text-red-500">*</span></label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"></div>
-                            <div class="col-start-1"><label class="block mb-1.5 text-[13px] text-gray-700">申請人 <span class="text-red-500">*</span></label><div class="relative applicant-combo" id="nr-applicant-combo"><input type="text" autocomplete="off" placeholder="搜尋人名 / 工號" class="applicant-input w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><div class="applicant-list hidden absolute z-30 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto text-[13px]"></div></div></div>
-                            <div><label class="block mb-1.5 text-[13px] text-gray-700">區域 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option></select></div>
-                            <div><label class="block mb-1.5 text-[13px] text-gray-700">項目 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇項目</option></select></div>
-                        </div>
-                        <div class="px-4 pb-4 grid grid-cols-5 gap-x-5 gap-y-5">
-                            <div><label class="block mb-1.5 text-[13px] text-gray-700">優先級</label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>高</option><option>中</option><option>低</option><option>不緊急</option></select></div>
+                            <div class="col-start-1"><label class="block mb-1.5 text-[13px] text-gray-700">申請人</label><input type="text" value="Nick（100064）" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed" disabled></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">區域</label><input type="text" value="THQ" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed" disabled></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">項目</label><input type="text" value="GT" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed" disabled></div>
                         </div>
                     </div>
 
-                    <!-- 備註 -->
+                    <!-- 撰寫公告（參考公告管理「新增公告」欄位）-->
                     <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5">
-                        <div class="px-4 py-2.5 border-b border-gray-200"><h3 class="text-[#2b3b84] font-bold text-[15px]">備註</h3></div>
-                        <div class="p-4">
-                            <textarea class="w-full min-h-[120px] outline-none resize-y text-[13px] border border-gray-300 rounded p-3"></textarea>
+                        <div class="px-4 py-2.5 border-b border-gray-200"><h3 class="text-[#2b3b84] font-bold text-[15px]">撰寫公告</h3></div>
+                        <div class="p-4 space-y-4">
+                            <!-- 發布對象 / 選擇地區 / 必須已讀 -->
+                            <div class="flex flex-wrap items-center gap-3">
+                                <label class="w-20 shrink-0 text-[13px] font-semibold text-gray-700">發布對象</label>
+                                <select onchange="document.getElementById('nr-region-select').classList.toggle('hidden', this.value !== '地區')" class="border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500">
+                                    <option value="全體">全體</option>
+                                    <option value="地區">地區</option>
+                                </select>
+                                <select id="nr-region-select" class="hidden border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500">
+                                    <option value="" disabled selected>選擇地區</option>
+                                    <option>T1</option><option>T2（总部）</option><option>U</option><option>J</option><option>S（本地）</option><option>T1-T2（总部）</option>
+                                </select>
+                                <label class="flex items-center gap-2 cursor-pointer select-none ml-2 text-[13px] font-semibold text-gray-700"><input type="checkbox" class="w-4 h-4" checked> 必須已讀</label>
+                            </div>
+                            <!-- 標題 -->
+                            <div class="flex items-center gap-3">
+                                <label class="w-20 shrink-0 text-[13px] font-semibold text-gray-700">標題</label>
+                                <input type="text" placeholder="請輸入標題" class="grow border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500">
+                            </div>
+                            <!-- 內文 -->
+                            <div class="flex items-start gap-3">
+                                <label class="w-20 shrink-0 pt-2 text-[13px] font-semibold text-gray-700">內文</label>
+                                <div class="grow border border-gray-300 rounded-md overflow-hidden focus-within:border-blue-500">
+                                    <div class="flex items-center gap-0.5 flex-wrap bg-gray-50 border-b border-gray-200 px-2 py-1.5">
+                                        <button type="button" title="粗體" class="w-7 h-7 flex items-center justify-center rounded text-gray-500 hover:bg-gray-200 hover:text-gray-700"><i data-lucide="bold" class="w-4 h-4"></i></button>
+                                        <button type="button" title="斜體" class="w-7 h-7 flex items-center justify-center rounded text-gray-500 hover:bg-gray-200 hover:text-gray-700"><i data-lucide="italic" class="w-4 h-4"></i></button>
+                                        <button type="button" title="底線" class="w-7 h-7 flex items-center justify-center rounded text-gray-500 hover:bg-gray-200 hover:text-gray-700"><i data-lucide="underline" class="w-4 h-4"></i></button>
+                                        <button type="button" title="刪除線" class="w-7 h-7 flex items-center justify-center rounded text-gray-500 hover:bg-gray-200 hover:text-gray-700"><i data-lucide="strikethrough" class="w-4 h-4"></i></button>
+                                        <span class="w-px h-5 bg-gray-300 mx-1"></span>
+                                        <button type="button" title="項目符號" class="w-7 h-7 flex items-center justify-center rounded text-gray-500 hover:bg-gray-200 hover:text-gray-700"><i data-lucide="list" class="w-4 h-4"></i></button>
+                                        <button type="button" title="編號清單" class="w-7 h-7 flex items-center justify-center rounded text-gray-500 hover:bg-gray-200 hover:text-gray-700"><i data-lucide="list-ordered" class="w-4 h-4"></i></button>
+                                        <span class="w-px h-5 bg-gray-300 mx-1"></span>
+                                        <button type="button" title="插入圖片" class="w-7 h-7 flex items-center justify-center rounded text-gray-500 hover:bg-gray-200 hover:text-gray-700"><i data-lucide="image" class="w-4 h-4"></i></button>
+                                        <button type="button" title="插入連結" class="w-7 h-7 flex items-center justify-center rounded text-gray-500 hover:bg-gray-200 hover:text-gray-700"><i data-lucide="link" class="w-4 h-4"></i></button>
+                                        <button type="button" title="插入表格" class="w-7 h-7 flex items-center justify-center rounded text-gray-500 hover:bg-gray-200 hover:text-gray-700"><i data-lucide="table" class="w-4 h-4"></i></button>
+                                    </div>
+                                    <textarea class="w-full min-h-[160px] px-3 py-2 outline-none resize-y text-[13px]" placeholder="輸入公告內容…"></textarea>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -1946,6 +1988,222 @@
                         <div class="px-4 py-2.5 border-b border-gray-200">
                             <h3 class="text-[#2b3b84] font-bold text-[15px]">審批進度追蹤</h3>
                         </div>
+                        <div class="p-4">
+                            <div class="py-10 text-center text-gray-400 text-[13px] leading-relaxed">
+                                <i data-lucide="git-merge" class="w-7 h-7 mx-auto mb-2 text-gray-300"></i>
+                                尚未產生審批進度追蹤<br>填寫完整單據資訊後，將與「審批流程」一同自動帶出
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-[#f4f5f8] border-t border-gray-200 py-4 flex justify-center shadow-sm"><button type="button" onclick="showSaveToast('已儲存至臨時保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">臨時保存</button><button type="button" onclick="showSaveToast('已儲存至模板保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">模板保存</button><button type="button" onclick="submitApplication(this)" class="ui-btn ui-btn-primary px-12">提交</button></div>
+            </div>
+            <div class="w-[300px] border-l border-gray-300 bg-white hidden md:block overflow-y-auto">
+                <div class="bg-[#17a2b8] text-white px-4 py-2 text-[14px] font-bold sticky top-0">審批流程</div>
+                <div class="px-4 py-12 text-center text-gray-400 text-[12px] leading-relaxed"><i data-lucide="git-merge" class="w-7 h-7 mx-auto mb-2 text-gray-300"></i>尚未產生審批流程<br>填寫完整單據資訊後，<br>系統將自動判斷並帶出該單的審批流程</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- =========== 審批權限異動申請 (AP) Modal =========== -->
+<div id="ap-modal" class="form-modal fixed inset-0 bg-black/40 z-50 flex justify-center items-center hidden">
+    <div class="bg-white w-[98vw] max-w-[1400px] h-[95vh] rounded-md shadow-2xl flex flex-col relative overflow-hidden">
+        <div class="bg-[#EAF2FC] flex justify-between items-center px-4 py-3 border-b border-blue-100">
+            <h2 class="text-[#2b3b84] font-bold text-[16px]">審批權限異動申請</h2>
+            <button class="form-modal-close bg-blue-500 hover:bg-blue-600 text-white rounded p-1 transition-colors"><i data-lucide="x" class="w-4 h-4"></i></button>
+        </div>
+        <div class="flex flex-1 overflow-hidden bg-[#f4f5f8]">
+            <div class="flex-1 flex flex-col overflow-hidden">
+                <div class="flex-1 overflow-y-auto p-5 pb-8">
+
+                    <!-- 基本信息 -->
+                    <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5">
+                        <div class="px-4 py-2.5 border-b border-gray-200"><h3 class="text-[#2b3b84] font-bold text-[15px]">基本信息</h3></div>
+                        <div class="px-4 pt-4 grid grid-cols-5 gap-x-5 gap-y-5 mb-4">
+                            <div class="col-span-2"><label class="block mb-1.5 text-[13px] text-gray-700">文件編號</label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed" value="自動生成" disabled></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">申請日期</label><div class="border border-gray-300 rounded px-3 py-1.5 bg-white flex items-center"><i data-lucide="calendar" class="w-4 h-4 text-gray-400"></i><input type="text" class="w-full ml-2 text-[13px] outline-none" disabled></div></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">主旨 <span class="text-red-500">*</span></label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"></div>
+                            <div class="col-start-1"><label class="block mb-1.5 text-[13px] text-gray-700">申請人</label><input type="text" value="Nick（100064）" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed" disabled></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">區域</label><input type="text" value="THQ" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed" disabled></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">項目</label><input type="text" value="GT" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed" disabled></div>
+                        </div>
+                    </div>
+
+                    <!-- 審批權限異動明細 -->
+                    <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5">
+                        <div class="px-4 py-2.5 border-b border-gray-200"><h3 class="text-[#2b3b84] font-bold text-[15px]">審批權限異動明細</h3></div>
+                        <div class="px-4 pt-4 grid grid-cols-5 gap-x-5 gap-y-5 mb-4">
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">異動對象</label><input type="text" value="Nick（100064）" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed" disabled></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">所屬部門</label><input type="text" value="RD" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed" disabled></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">當前審批角色</label><input type="text" value="財務人員" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed" disabled></div>
+                        </div>
+                        <div class="px-4 pb-4 space-y-3">
+                            <label class="block text-[13px] text-gray-700 font-medium">申請異動的權限項目 <span class="text-red-500">*</span><span class="text-[12px] text-gray-400 font-normal ml-1">（已預帶目前已配置的權限，可再勾選新增或取消）</span></label>
+                            <div class="border border-gray-200 rounded-md">
+                                <div class="px-3 py-2 bg-gray-50 border-b border-gray-200 text-[13px] font-bold text-[#2b3b84]">下載權限</div>
+                                <div class="p-3 grid grid-cols-2 sm:grid-cols-4 gap-2">
+                                    <label class="flex items-center gap-2 text-[13px] text-gray-700"><input type="checkbox" class="w-4 h-4"> 記賬下載</label>
+                                    <label class="flex items-center gap-2 text-[13px] text-gray-700"><input type="checkbox" class="w-4 h-4" checked> 費用會計下載</label>
+                                    <label class="flex items-center gap-2 text-[13px] text-gray-700"><input type="checkbox" class="w-4 h-4"> 文件下載</label>
+                                    <label class="flex items-center gap-2 text-[13px] text-gray-700"><input type="checkbox" class="w-4 h-4" checked> 資金專員下載</label>
+                                </div>
+                            </div>
+                            <div class="border border-gray-200 rounded-md">
+                                <div class="px-3 py-2 bg-gray-50 border-b border-gray-200 text-[13px] font-bold text-[#2b3b84]">付款權限</div>
+                                <div class="p-3 grid grid-cols-2 sm:grid-cols-4 gap-2">
+                                    <label class="flex items-center gap-2 text-[13px] text-gray-700"><input type="checkbox" class="w-4 h-4" checked> 確認付款權限</label>
+                                    <label class="flex items-center gap-2 text-[13px] text-gray-700"><input type="checkbox" class="w-4 h-4" checked> 付款監控</label>
+                                </div>
+                            </div>
+                            <div class="border border-gray-200 rounded-md">
+                                <div class="px-3 py-2 bg-gray-50 border-b border-gray-200 text-[13px] font-bold text-[#2b3b84]">審批流程</div>
+                                <div class="p-3 grid grid-cols-2 sm:grid-cols-4 gap-2">
+                                    <label class="flex items-center gap-2 text-[13px] text-gray-700"><input type="checkbox" class="w-4 h-4"> 實時編輯審批線</label>
+                                    <label class="flex items-center gap-2 text-[13px] text-gray-700"><input type="checkbox" class="w-4 h-4" checked> 提交申請</label>
+                                </div>
+                            </div>
+                            <div class="border border-gray-200 rounded-md">
+                                <div class="px-3 py-2 bg-gray-50 border-b border-gray-200 text-[13px] font-bold text-[#2b3b84]">資產管理</div>
+                                <div class="p-3 grid grid-cols-2 sm:grid-cols-4 gap-2">
+                                    <label class="flex items-center gap-2 text-[13px] text-gray-700"><input type="checkbox" class="w-4 h-4"> 資產管理(檢視)</label>
+                                    <label class="flex items-center gap-2 text-[13px] text-gray-700"><input type="checkbox" class="w-4 h-4"> 資產管理(編輯)</label>
+                                    <label class="flex items-center gap-2 text-[13px] text-gray-700"><input type="checkbox" class="w-4 h-4"> 資產盤點內審</label>
+                                    <label class="flex items-center gap-2 text-[13px] text-gray-700"><input type="checkbox" class="w-4 h-4"> 資產盤點財務</label>
+                                    <label class="flex items-center gap-2 text-[13px] text-gray-700"><input type="checkbox" class="w-4 h-4"> 資產盤點管理員</label>
+                                    <label class="flex items-center gap-2 text-[13px] text-gray-700"><input type="checkbox" class="w-4 h-4"> 資產盤點行政</label>
+                                </div>
+                            </div>
+                            <div class="border border-gray-200 rounded-md">
+                                <div class="px-3 py-2 bg-gray-50 border-b border-gray-200 text-[13px] font-bold text-[#2b3b84]">職能角色</div>
+                                <div class="p-3 grid grid-cols-2 sm:grid-cols-4 gap-2">
+                                    <label class="flex items-center gap-2 text-[13px] text-gray-700"><input type="checkbox" class="w-4 h-4" checked> 費用會計</label>
+                                    <label class="flex items-center gap-2 text-[13px] text-gray-700"><input type="checkbox" class="w-4 h-4" checked> 資金專員</label>
+                                    <label class="flex items-center gap-2 text-[13px] text-gray-700"><input type="checkbox" class="w-4 h-4"> 採購負責人</label>
+                                    <label class="flex items-center gap-2 text-[13px] text-gray-700"><input type="checkbox" class="w-4 h-4"> 查看費用會計</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 申請說明 -->
+                    <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5">
+                        <div class="px-4 py-2.5 border-b border-gray-200"><h3 class="text-[#2b3b84] font-bold text-[15px]">申請說明</h3></div>
+                        <div class="p-4"><textarea class="w-full min-h-[120px] outline-none resize-y text-[13px] border border-gray-300 rounded p-3" placeholder="請說明申請此審批權限的原因…"></textarea></div>
+                    </div>
+
+                    <!-- 附件 -->
+                    <div class="mb-5 file-upload">
+                        <label class="block mb-2 text-[14px] text-gray-700">附件</label>
+                        <input type="file" class="hidden file-input" multiple>
+                        <div class="dropzone border-2 border-dashed border-gray-300 rounded-lg py-4 flex flex-col items-center justify-center gap-2 text-gray-400 cursor-pointer hover:border-blue-400 hover:text-blue-500 transition-colors">
+                            <i data-lucide="upload-cloud" class="w-7 h-7"></i>
+                            <div class="text-[13px]"><span class="text-blue-600 font-medium">點擊上傳</span> 或將檔案拖曳至此</div>
+                            <div class="text-[12px] text-gray-400">支援多檔上傳</div>
+                        </div>
+                        <ul class="file-list mt-2 space-y-1"></ul>
+                    </div>
+
+                    <!-- 區塊：審批進度追蹤（與右側「審批流程」連動；資訊不足時為空） -->
+                    <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5">
+                        <div class="px-4 py-2.5 border-b border-gray-200"><h3 class="text-[#2b3b84] font-bold text-[15px]">審批進度追蹤</h3></div>
+                        <div class="p-4">
+                            <div class="py-10 text-center text-gray-400 text-[13px] leading-relaxed">
+                                <i data-lucide="git-merge" class="w-7 h-7 mx-auto mb-2 text-gray-300"></i>
+                                尚未產生審批進度追蹤<br>填寫完整單據資訊後，將與「審批流程」一同自動帶出
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-[#f4f5f8] border-t border-gray-200 py-4 flex justify-center shadow-sm"><button type="button" onclick="showSaveToast('已儲存至臨時保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">臨時保存</button><button type="button" onclick="showSaveToast('已儲存至模板保存列表')" class="ui-btn px-6 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 mr-3">模板保存</button><button type="button" onclick="submitApplication(this)" class="ui-btn ui-btn-primary px-12">提交</button></div>
+            </div>
+            <div class="w-[300px] border-l border-gray-300 bg-white hidden md:block overflow-y-auto">
+                <div class="bg-[#17a2b8] text-white px-4 py-2 text-[14px] font-bold sticky top-0">審批流程</div>
+                <div class="px-4 py-12 text-center text-gray-400 text-[12px] leading-relaxed"><i data-lucide="git-merge" class="w-7 h-7 mx-auto mb-2 text-gray-300"></i>尚未產生審批流程<br>填寫完整單據資訊後，<br>系統將自動判斷並帶出該單的審批流程</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- =========== 系統權限異動申請 (SP) Modal =========== -->
+<div id="sp-modal" class="form-modal fixed inset-0 bg-black/40 z-50 flex justify-center items-center hidden">
+    <div class="bg-white w-[98vw] max-w-[1400px] h-[95vh] rounded-md shadow-2xl flex flex-col relative overflow-hidden">
+        <div class="bg-[#EAF2FC] flex justify-between items-center px-4 py-3 border-b border-blue-100">
+            <h2 class="text-[#2b3b84] font-bold text-[16px]">系統權限異動申請</h2>
+            <button class="form-modal-close bg-blue-500 hover:bg-blue-600 text-white rounded p-1 transition-colors"><i data-lucide="x" class="w-4 h-4"></i></button>
+        </div>
+        <div class="flex flex-1 overflow-hidden bg-[#f4f5f8]">
+            <div class="flex-1 flex flex-col overflow-hidden">
+                <div class="flex-1 overflow-y-auto p-5 pb-8">
+
+                    <!-- 基本信息 -->
+                    <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5">
+                        <div class="px-4 py-2.5 border-b border-gray-200"><h3 class="text-[#2b3b84] font-bold text-[15px]">基本信息</h3></div>
+                        <div class="px-4 pt-4 grid grid-cols-5 gap-x-5 gap-y-5 mb-4">
+                            <div class="col-span-2"><label class="block mb-1.5 text-[13px] text-gray-700">文件編號</label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed" value="自動生成" disabled></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">申請日期</label><div class="border border-gray-300 rounded px-3 py-1.5 bg-white flex items-center"><i data-lucide="calendar" class="w-4 h-4 text-gray-400"></i><input type="text" class="w-full ml-2 text-[13px] outline-none" disabled></div></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">主旨 <span class="text-red-500">*</span></label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"></div>
+                            <div class="col-start-1"><label class="block mb-1.5 text-[13px] text-gray-700">申請人</label><input type="text" value="Nick（100064）" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed" disabled></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">區域</label><input type="text" value="THQ" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed" disabled></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">項目</label><input type="text" value="GT" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed" disabled></div>
+                        </div>
+                    </div>
+
+                    <!-- 系統權限異動明細 -->
+                    <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5">
+                        <div class="px-4 py-2.5 border-b border-gray-200"><h3 class="text-[#2b3b84] font-bold text-[15px]">系統權限異動明細</h3></div>
+                        <div class="px-4 pt-4 grid grid-cols-5 gap-x-5 gap-y-5 mb-4">
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">異動對象</label><input type="text" value="Nick（100064）" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed" disabled></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">所屬部門</label><input type="text" value="RD" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed" disabled></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">當前套用角色</label><input type="text" value="一般員工" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed" disabled></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">申請套用角色 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option><option>區域管理員</option><option>研發主管</option><option>財務主管</option><option>稽核人員</option><option>稽核主管</option></select></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">申請負責區域</label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>維持現況</option><option>T1</option><option>T2</option><option>U</option><option>S</option></select></div>
+                        </div>
+                        <div class="px-4 pb-4">
+                            <label class="block mb-2 text-[13px] text-gray-700">申請頁面資料權限 <span class="text-red-500">*</span></label>
+                            <div class="overflow-x-auto border border-gray-200 rounded">
+                                <table class="w-full text-[13px]">
+                                    <thead>
+                                        <tr class="bg-gray-50 text-gray-600 border-b border-gray-200">
+                                            <th class="text-left px-3 py-2">頁面</th>
+                                            <th class="px-3 py-2 w-24 text-center">檢視</th>
+                                            <th class="px-3 py-2 w-24 text-center">編輯</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-100">
+                                        <tr><td class="px-3 py-1.5">員工管理</td><td class="text-center"><input type="checkbox" class="w-4 h-4"></td><td class="text-center"><input type="checkbox" class="w-4 h-4"></td></tr>
+                                        <tr><td class="px-3 py-1.5">考勤管理</td><td class="text-center"><input type="checkbox" class="w-4 h-4"></td><td class="text-center"><input type="checkbox" class="w-4 h-4"></td></tr>
+                                        <tr><td class="px-3 py-1.5">假期管理</td><td class="text-center"><input type="checkbox" class="w-4 h-4"></td><td class="text-center"><input type="checkbox" class="w-4 h-4"></td></tr>
+                                        <tr><td class="px-3 py-1.5">薪資管理</td><td class="text-center"><input type="checkbox" class="w-4 h-4"></td><td class="text-center"><input type="checkbox" class="w-4 h-4"></td></tr>
+                                        <tr><td class="px-3 py-1.5">財務設定</td><td class="text-center"><input type="checkbox" class="w-4 h-4"></td><td class="text-center"><input type="checkbox" class="w-4 h-4"></td></tr>
+                                        <tr><td class="px-3 py-1.5">系統日誌</td><td class="text-center"><input type="checkbox" class="w-4 h-4"></td><td class="text-center"><input type="checkbox" class="w-4 h-4"></td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 申請說明 -->
+                    <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5">
+                        <div class="px-4 py-2.5 border-b border-gray-200"><h3 class="text-[#2b3b84] font-bold text-[15px]">申請說明</h3></div>
+                        <div class="p-4"><textarea class="w-full min-h-[120px] outline-none resize-y text-[13px] border border-gray-300 rounded p-3" placeholder="請說明申請此系統權限的原因…"></textarea></div>
+                    </div>
+
+                    <!-- 附件 -->
+                    <div class="mb-5 file-upload">
+                        <label class="block mb-2 text-[14px] text-gray-700">附件</label>
+                        <input type="file" class="hidden file-input" multiple>
+                        <div class="dropzone border-2 border-dashed border-gray-300 rounded-lg py-4 flex flex-col items-center justify-center gap-2 text-gray-400 cursor-pointer hover:border-blue-400 hover:text-blue-500 transition-colors">
+                            <i data-lucide="upload-cloud" class="w-7 h-7"></i>
+                            <div class="text-[13px]"><span class="text-blue-600 font-medium">點擊上傳</span> 或將檔案拖曳至此</div>
+                            <div class="text-[12px] text-gray-400">支援多檔上傳</div>
+                        </div>
+                        <ul class="file-list mt-2 space-y-1"></ul>
+                    </div>
+
+                    <!-- 區塊：審批進度追蹤（與右側「審批流程」連動；資訊不足時為空） -->
+                    <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5">
+                        <div class="px-4 py-2.5 border-b border-gray-200"><h3 class="text-[#2b3b84] font-bold text-[15px]">審批進度追蹤</h3></div>
                         <div class="p-4">
                             <div class="py-10 text-center text-gray-400 text-[13px] leading-relaxed">
                                 <i data-lucide="git-merge" class="w-7 h-7 mx-auto mb-2 text-gray-300"></i>
@@ -4446,12 +4704,12 @@
         // Modal 開關：卡片 data-form 對應彈窗（涵蓋既有與新建表單）
         const formModalMap = {
             AA:'aa-modal', B:'b-modal', C:'c-modal', PTA:'pta-modal', TR:'tr-modal',
-            AM:'am-modal', AR:'ar-modal', SEYIN:'seyin-modal', SE:'sec-modal', VM:'vm-modal', CV:'cv-modal', NR:'nr-modal', ASSETS:'assets-modal', PU:'pu-modal', RPU:'pu-modal', APU:'pu-modal', SA:'sa-modal',
+            AM:'am-modal', AR:'ar-modal', SEYIN:'seyin-modal', SE:'sec-modal', VM:'vm-modal', CV:'cv-modal', NR:'nr-modal', ASSETS:'assets-modal', PU:'pu-modal', RPU:'pu-modal', APU:'pu-modal', SA:'sa-modal', AP:'ap-modal', SP:'sp-modal',
             BU:'bu-modal', IC:'ic-modal', PMO:'pmo-modal', PMOA:'pmoa-modal', PMOS:'pmos-modal',
             HRPC:'hr-pc-modal', HREA:'hr-ea-modal', HRRA:'hr-ra-modal', HRSP:'hr-sp-modal', HRTH:'hr-th-modal'
         };
         // ===== 送出申請 → 寫入共享儲存（localStorage），供「我的申請 / 簽核」讀取 =====
-        const OA_MAP = { PU:'行政', RPU:'行政', APU:'行政', AA:'行政', AM:'行政', AR:'行政', SEYIN:'行政', SE:'行政', VM:'行政', CV:'行政', ASSETS:'行政', SA:'行政', PTA:'行政', TR:'行政', PMO:'PMO', PMOA:'PMO', PMOS:'PMO', BU:'事業部', NR:'事業部', B:'財務', C:'財務', IC:'合同', HRPC:'人事', HREA:'人事', HRRA:'人事', HRSP:'人事', HRTH:'人事' };
+        const OA_MAP = { PU:'行政', RPU:'行政', APU:'行政', AA:'行政', AM:'行政', AR:'行政', SEYIN:'行政', SE:'行政', VM:'行政', CV:'行政', ASSETS:'行政', SA:'行政', PTA:'行政', TR:'行政', AP:'行政', SP:'行政', PMO:'PMO', PMOA:'PMO', PMOS:'PMO', BU:'事業部', NR:'事業部', B:'財務', C:'財務', IC:'合同', HRPC:'人事', HREA:'人事', HRRA:'人事', HRSP:'人事', HRTH:'人事' };
         function submitApplication(btn) {
             const modal = btn.closest('.form-modal');
             if (!modal) return;

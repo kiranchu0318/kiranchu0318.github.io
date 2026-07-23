@@ -207,8 +207,7 @@
                                     <thead>
                                         <tr>
                                             <th scope="col" class="text-left w-[10.08rem] sticky top-0 z-20 bg-gray-100">功能</th>
-                                            <th scope="col" class="w-[4.95rem] sticky top-0 z-20 bg-gray-100">檢視</th>
-                                            <th scope="col" class="w-[4.95rem] sticky top-0 z-20 bg-gray-100">編輯</th>
+                                            <th scope="col" class="w-28 sticky top-0 z-20 bg-gray-100">權限</th>
                                             <th scope="col" class="text-left sticky top-0 z-20 bg-gray-100">特殊操作</th>
                                         </tr>
                                     </thead>
@@ -331,15 +330,6 @@
         const DATA_ACTIONS = ['檢視', '編輯'];
         // 頁面清單依 index.html 選單；ops 為該頁的特殊操作（category_list 中非單純檢視/編輯的權限併入此欄）
         const DATA_PAGES = [
-            // 個人
-            { key: 'pg_home',        name: '首頁',     group: '個人', actions: ['檢視'], ops: [] },
-            { key: 'pg_punch',       name: '打卡',     group: '個人', ops: [] },
-            { key: 'pg_attrecord',   name: '出勤紀錄', group: '個人', actions: ['檢視'], ops: [] },
-            { key: 'pg_makeupapply', name: '補卡申請', group: '個人', ops: [] },
-            { key: 'pg_leaveapply',  name: '假期申請', group: '個人', ops: [] },
-            { key: 'pg_otapply',     name: '加班申請', group: '個人', ops: [] },
-            { key: 'pg_personal',    name: '個人資訊', group: '個人', ops: [] },
-            { key: 'pg_doclib',      name: '文件庫',   group: '個人', ops: [] },
             // 電子表單
             { key: 'pg_myapply',  name: '我的申請', group: '電子表單', ops: [] },
             { key: 'pg_tempsave', name: '臨時保存', group: '電子表單', ops: [] },
@@ -540,13 +530,15 @@
             DATA_PAGES.forEach(p => {
                 if (p.group !== lastGroup) {
                     lastGroup = p.group;
-                    html += `<tr><td colspan="4" class="text-left bg-primary-light text-primary text-sm font-bold py-2.5 border-y border-primary/15"><i class="fa-solid fa-folder-open mr-2"></i>${p.group}</td></tr>`;
+                    html += `<tr><td colspan="3" class="text-left bg-primary-light text-primary text-sm font-bold py-2.5 border-y border-primary/15"><i class="fa-solid fa-folder-open mr-2"></i>${p.group}</td></tr>`;
                 }
-                const cells = DATA_ACTIONS.map(a =>
-                    (p.actions || DATA_ACTIONS).includes(a)
-                        ? `<td class="text-center"><input type="checkbox" class="perm-check" ${permDraft.data[p.key].has(a) ? 'checked' : ''} onchange="togglePerm('${p.key}','${a}',this.checked)"></td>`
-                        : `<td class="text-center text-gray-200">—</td>`
-                ).join('');
+                // 權限：下拉選擇「無 / 檢視 / 編輯」（編輯含檢視）；純檢視頁面僅提供「無 / 檢視」
+                const _set = permDraft.data[p.key];
+                const _level = _set.has('編輯') ? '編輯' : (_set.has('檢視') ? '檢視' : '');
+                const _viewOnly = (p.actions && p.actions.length === 1 && p.actions[0] === '檢視');
+                const _opts = _viewOnly ? [['', '無'], ['檢視', '檢視']] : [['', '無'], ['檢視', '檢視'], ['編輯', '編輯']];
+                const cells = `<td class="text-center"><select onchange="setPageLevel('${p.key}', this.value)" class="border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-primary bg-white">`
+                    + _opts.map(([v, lb]) => `<option value="${v}"${v === _level ? ' selected' : ''}>${lb}</option>`).join('') + `</select></td>`;
                 // 特殊操作：勾選才會於該頁顯示並可使用
                 const ops = p.ops || [];
                 const specialOps = p.specialOps || [];
@@ -584,6 +576,13 @@
 
         function togglePerm(pageKey, action, checked) {
             if (checked) permDraft.data[pageKey].add(action); else permDraft.data[pageKey].delete(action);
+        }
+        // 設定頁面權限層級：無 / 檢視 / 編輯（編輯含檢視）
+        function setPageLevel(pageKey, level) {
+            const set = permDraft.data[pageKey];
+            set.delete('檢視'); set.delete('編輯');
+            if (level === '檢視') set.add('檢視');
+            else if (level === '編輯') { set.add('檢視'); set.add('編輯'); }
         }
         function toggleApprove(formKey, checked) {
             if (checked) permDraft.approve.add(formKey); else permDraft.approve.delete(formKey);

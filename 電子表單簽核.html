@@ -42,6 +42,9 @@
     const Search = (props) => <IconBase {...props}><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></IconBase>;
     const ChevronDown = (props) => <IconBase {...props}><polyline points="6 9 12 15 18 9"></polyline></IconBase>;
     const X = (props) => <IconBase {...props}><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></IconBase>;
+    const Eye = (props) => <IconBase {...props}><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></IconBase>;
+    const UserPlus = (props) => <IconBase {...props}><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></IconBase>;
+    const UserX = (props) => <IconBase {...props}><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="18" y1="8" x2="23" y2="13"></line><line x1="23" y1="8" x2="18" y2="13"></line></IconBase>;
 
     // --- 自訂日期選取器 (DatePicker) 元件 ---
     const DatePickerDropdown = ({ isOpen, onToggle, value, onChange, placeholder }) => {
@@ -199,6 +202,8 @@
 
       // 費用詳情彈窗控制狀態
       const [isModalOpen, setIsModalOpen] = useState(false);
+      const [rowToast, setRowToast] = useState('');
+      const flashToast = (msg) => { setRowToast(msg); setTimeout(() => setRowToast(''), 2200); };
       // 關聯單號導覽堆疊：在彈窗內開啟關聯單時記住來源，關閉時可返回原本的單
       const [modalStack, setModalStack] = useState([]);
       // 從列表開啟（全新）詳情彈窗：清空導覽堆疊
@@ -610,6 +615,8 @@
       const mockData = [
         ...storedApps,
         { oa: '行政', location: 'THQ', type: 'HR', docNo: 'HR_THQ-000001', label: 'HR_THQ-000001_員工帳號申請/換發/刪除', applicant: 'Oliver', signature: 'Oliver', amounts: ['-'], date: '2026-06-01 09:15:00', approver: 'James', refNo: '-', status: '待我簽核', isGreen: false, workStatus: '未派工' },
+        { oa: '行政', location: 'THQ', type: 'HR', docNo: 'HR_THQ-000001', label: 'HR_THQ-000001_招聘需求單', applicant: 'Oliver', signature: 'Oliver', amounts: ['-'], date: '2026-06-02 10:30:00', approver: 'James', refNo: '-', status: '待我簽核', isGreen: false, workStatus: '未派工' },
+        { oa: '行政', location: 'THQ', type: 'HR', docNo: 'HR_THQ-000001', label: 'HR_THQ-000001_錄用審批單', applicant: 'Oliver', signature: 'Oliver', amounts: ['-'], date: '2026-06-03 11:00:00', approver: 'James', refNo: '-', status: '簽核完成', isGreen: true, workStatus: '已完成' },
         { oa: '財務', location: 'THQ', type: 'B',  docNo: 'B-THQ-000003',  applicant: 'Oliver', signature: 'Oliver', amounts: ['TWD 8,000', 'CNY 2137.09'],        date: '2026-05-30 15:36:45', approver: 'James', refNo: '-', status: '待我簽核', isGreen: false, workStatus: '未派工' },
         { oa: '合同', location: 'THQ', type: 'IC', docNo: 'IC-THQ-000002', applicant: 'Oliver', signature: 'Oliver', amounts: ['TWD 2,000,000', 'CNY 427407.40'], date: '2026-05-20 15:36:45', approver: 'James', refNo: '-', status: '簽核完成', isGreen: true, workStatus: '已完成' },
         { oa: '行政', location: 'THQ', type: 'PU', docNo: 'PU-THQ-000003', applicant: 'Oliver', signature: 'Oliver', amounts: ['TWD 8,000', 'CNY 2137.09'],        date: '2026-05-12 15:36:45', approver: 'James', refNo: '-', status: '未簽核', isGreen: false, workStatus: '未派工', urgent: true },
@@ -751,11 +758,12 @@
                           <th>當前審批人</th>
                           <th>關聯單號</th>
                           <th>簽核狀態</th>
+                          <th>操作</th>
                         </tr>
                       </thead>
                       <tbody>
                         {filteredFormData.length === 0 && (
-                          <tr><td colSpan="11" className="py-8 text-center text-gray-400">目前沒有符合條件的資料</td></tr>
+                          <tr><td colSpan="12" className="py-8 text-center text-gray-400">目前沒有符合條件的資料</td></tr>
                         )}
                         {filteredFormData.map((row, idx) => (
                           <tr
@@ -822,6 +830,14 @@
                                     撤回
                                   </button>
                                 )}
+                              </div>
+                            </td>
+                            <td>
+                              <div className="flex items-center justify-center gap-2">
+                                <div className="relative group">
+                                  <button onClick={() => openDocModal(row)} className="w-8 h-8 flex items-center justify-center rounded-md border border-gray-200 text-gray-500 hover:text-[#4A90E2] hover:border-[#4A90E2] hover:bg-blue-50 transition-colors"><Eye size={16} /></button>
+                                  <span className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover:block z-[60] whitespace-nowrap bg-gray-800 text-white text-[11px] rounded px-2 py-1 shadow-lg">檢視</span>
+                                </div>
                               </div>
                             </td>
                           </tr>
@@ -1261,7 +1277,7 @@
                       </div>
 
                       {/* 人員帳號異動明細（HR 專用；由員工管理「提交異動申請」帶入）*/}
-                      {modalRow?.type === 'HR' && (
+                      {modalRow?.type === 'HR' && !(modalRow?.label || '').includes('招聘需求單') && !(modalRow?.label || '').includes('錄用審批單') && (
                       <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-5">
                         <div className="text-[#2b3b84] font-bold text-[15px] border-b border-gray-100 pb-2">人員帳號異動明細</div>
                         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-x-5 gap-y-4">
@@ -1309,6 +1325,107 @@
                           </table>
                         </div>
                       </div>
+                      )}
+
+                      {/* 招聘需求單明細（HR「招聘需求單」專用；內容參照 申請.html 招聘需求單）*/}
+                      {modalRow?.type === 'HR' && (modalRow?.label || '').includes('招聘需求單') && (
+                      <>
+                      <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-5">
+                        <div className="text-[#2b3b84] font-bold text-[15px] border-b border-gray-100 pb-2">招聘資訊</div>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-5 gap-y-4">
+                          {[
+                            ['事業部', '研發事業部 (RD BU)'], ['部門', 'RD'], ['項目', 'GT'], ['其他需求單位', '—'],
+                            ['職位', '資深工程師'], ['招聘人數', '2'], ['下屬人數', '0'], ['職缺原因', '擴編'],
+                            ['部門或項目負責人', 'James'], ['工作地', 'THQ'], ['工作簽證', '無'], ['僱傭類型', '全職'],
+                            ['基礎年薪', 'TWD 1,200,000'], ['其他工資福利', '—'], ['13薪', '有'], ['職級', 'P5'],
+                          ].map(([k, v], i) => (
+                            <div key={i}>
+                              <label className="block text-gray-700 text-[13px] mb-1.5">{k}</label>
+                              <input type="text" disabled value={v} className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-[13px] text-gray-700 cursor-not-allowed" />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-4">
+                        <div className="text-[#2b3b84] font-bold text-[15px] border-b border-gray-100 pb-2">職位內容描述</div>
+                        {[
+                          ['專案發展描述', '負責 GT 專案的核心模組開發與技術規劃，推動系統效能優化。'],
+                          ['主要職責', '設計與實作後端服務、審查程式碼、指導初階工程師。'],
+                          ['六個月目標', '完成核心模組重構並上線，建立自動化測試流程。'],
+                          ['理想候選人條件', '5 年以上後端開發經驗，熟悉分散式系統與雲端架構。'],
+                          ['加分條件', '具備團隊帶領經驗、開源專案貢獻或相關證照。'],
+                        ].map(([k, v], i) => (
+                          <div key={i}>
+                            <div className="text-gray-700 text-[13px] mb-1.5 font-medium">{k}</div>
+                            <div className="text-sm text-gray-700 bg-gray-50 border border-gray-200 rounded-lg p-3 leading-relaxed whitespace-pre-line">{v}</div>
+                          </div>
+                        ))}
+                      </div>
+                      </>
+                      )}
+
+                      {/* 錄用審批單明細（HR「錄用審批單」專用；內容參照 申請.html 錄用審批單）*/}
+                      {modalRow?.type === 'HR' && (modalRow?.label || '').includes('錄用審批單') && (
+                      <>
+                      <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-5">
+                        <div className="text-[#2b3b84] font-bold text-[15px] border-b border-gray-100 pb-2">單據資訊</div>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-5 gap-y-4">
+                          {[
+                            ['文件編號', 'HR_THQ-000001'], ['關聯招聘需求書', 'HR_THQ-000001_招聘需求單'], ['參照文件', '—'],
+                          ].map(([k, v], i) => (
+                            <div key={i}>
+                              <label className="block text-gray-700 text-[13px] mb-1.5">{k}</label>
+                              <input type="text" disabled value={v} className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-[13px] text-gray-700 cursor-not-allowed font-mono" />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-4">
+                        <div className="text-[#2b3b84] font-bold text-[15px] border-b border-gray-100 pb-2">個人資訊</div>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-5 gap-y-4">
+                          {[
+                            ['姓名', 'Gibson Yang'], ['性別', '男'], ['稱謂', '先生'],
+                            ['僱傭類型', '全職'], ['帳號狀態', '在職'], ['履歷來源', '人力銀行'],
+                          ].map(([k, v], i) => (
+                            <div key={i}>
+                              <label className="block text-gray-700 text-[13px] mb-1.5">{k}</label>
+                              <input type="text" disabled value={v} className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-[13px] text-gray-700 cursor-not-allowed" />
+                            </div>
+                          ))}
+                        </div>
+                        <div>
+                          <div className="text-gray-700 text-[13px] mb-1.5 font-medium">入職解釋</div>
+                          <div className="text-sm text-gray-700 bg-gray-50 border border-gray-200 rounded-lg p-3 leading-relaxed whitespace-pre-line">通過三輪面試，技術與文化契合度佳，擬於下月初報到。</div>
+                        </div>
+                      </div>
+                      <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-5">
+                        <div className="text-[#2b3b84] font-bold text-[15px] border-b border-gray-100 pb-2">職位資訊</div>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-x-5 gap-y-4">
+                          {[
+                            ['事業部', '研發事業部 (RD BU)'], ['項目', 'GT'], ['部門', 'RD'], ['職級', 'P5'], ['入職時間', '2026-07-01'],
+                          ].map(([k, v], i) => (
+                            <div key={i}>
+                              <label className="block text-gray-700 text-[13px] mb-1.5">{k}</label>
+                              <input type="text" disabled value={v} className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-[13px] text-gray-700 cursor-not-allowed" />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-5">
+                        <div className="text-[#2b3b84] font-bold text-[15px] border-b border-gray-100 pb-2">薪酬與福利</div>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-5 gap-y-4">
+                          {[
+                            ['發薪日', '每月 25 日'], ['貨幣類型', 'TWD'], ['薪資(月)', '100,000'], ['支付方式', '銀行轉帳'],
+                            ['13薪', '有'], ['獎金類型', '績效獎金'], ['團建分類', 'A 類'], ['福利制度', '標準福利'],
+                          ].map(([k, v], i) => (
+                            <div key={i}>
+                              <label className="block text-gray-700 text-[13px] mb-1.5">{k}</label>
+                              <input type="text" disabled value={v} className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-[13px] text-gray-700 cursor-not-allowed" />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      </>
                       )}
 
                       {/* 費用報銷卡片（C-THQ-000001 專用） */}
@@ -2366,6 +2483,13 @@
                   </div>
                 </div>
               </div>
+            </div>
+          )}
+
+          {/* 操作提示 Toast */}
+          {rowToast && (
+            <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[80] bg-gray-900 text-white text-sm px-5 py-3 rounded-xl shadow-2xl">
+              {rowToast}
             </div>
           )}
 

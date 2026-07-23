@@ -51,8 +51,9 @@
     <div class="mx-auto w-full space-y-6">
 
         <!-- 頁面標題區塊 -->
-        <header class="ui-page-header">
+        <header class="ui-page-header flex items-center justify-between">
             <h1 class="ui-page-title">帳號權限</h1>
+            <button type="button" onclick="openPermChangeModal()" class="ui-btn ui-btn-primary relative"><i class="fa-solid fa-file-signature"></i> 權限異動申請 <span id="permchange-count" class="hidden ml-1 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-rose-500 text-white text-[11px] font-bold leading-none">0</span></button>
         </header>
 
 
@@ -108,9 +109,7 @@
                                 <th scope="col" class="w-20">部門</th>
                                 <th scope="col" class="w-24">工號</th>
                                 <th scope="col" class="w-40">姓名</th>
-                                <th scope="col" class="w-44">套用權限</th>
-                                <th scope="col" class="min-w-[200px]">負責區域</th>
-                                <th scope="col" class="min-w-[160px]">負責項目</th>
+                                <th scope="col" class="min-w-[320px]">權限角色與負責範圍</th>
                                 <th scope="col" class="w-40 text-center">操作</th>
                             </tr>
                         </thead>
@@ -121,9 +120,7 @@
                                 <td><span class="px-2 py-0.5 bg-gray-100 rounded text-xs font-semibold text-gray-700">HR</span></td>
                                 <td>50030</td>
                                 <td>Ellie Nelson</td>
-                                <td class="acct-perm"></td>
-                                <td class="acct-region"><div class="flex flex-wrap gap-1"><span class="px-2 py-0.5 bg-teal-50 text-teal-600 rounded text-xs font-semibold">T1</span></div></td>
-                                <td class="acct-project"><div class="flex flex-wrap gap-1"><span class="px-2 py-0.5 bg-sky-50 text-sky-600 rounded text-xs font-semibold">GT</span></div></td>
+                                <td class="acct-scope"></td>
                                 <td>
                                     <div class="flex items-center justify-center gap-2">
                                         <button onclick="openEditPermModal(this)" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-pen"></i> 編輯權限</button>
@@ -136,9 +133,7 @@
                                 <td><span class="px-2 py-0.5 bg-gray-100 rounded text-xs font-semibold text-gray-700">RD</span></td>
                                 <td>50029</td>
                                 <td>Logan Adams</td>
-                                <td class="acct-perm"></td>
-                                <td class="acct-region"><div class="flex flex-wrap gap-1"><span class="px-2 py-0.5 bg-teal-50 text-teal-600 rounded text-xs font-semibold">T2</span></div></td>
-                                <td class="acct-project"><div class="flex flex-wrap gap-1"><span class="px-2 py-0.5 bg-sky-50 text-sky-600 rounded text-xs font-semibold">GX</span><span class="px-2 py-0.5 bg-sky-50 text-sky-600 rounded text-xs font-semibold">GS</span></div></td>
+                                <td class="acct-scope"></td>
                                 <td>
                                     <div class="flex items-center justify-center gap-2">
                                         <button onclick="openEditPermModal(this)" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-pen"></i> 編輯權限</button>
@@ -151,9 +146,7 @@
                                 <td><span class="px-2 py-0.5 bg-gray-100 rounded text-xs font-semibold text-gray-700">FIN</span></td>
                                 <td>50028</td>
                                 <td>Poppy Baker</td>
-                                <td class="acct-perm"></td>
-                                <td class="acct-region"><div class="flex flex-wrap gap-1"><span class="px-2 py-0.5 bg-teal-50 text-teal-600 rounded text-xs font-semibold">U</span></div></td>
-                                <td class="acct-project"><div class="flex flex-wrap gap-1"><span class="px-2 py-0.5 bg-sky-50 text-sky-600 rounded text-xs font-semibold">GP</span></div></td>
+                                <td class="acct-scope"></td>
                                 <td>
                                     <div class="flex items-center justify-center gap-2">
                                         <button onclick="openEditPermModal(this)" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-pen"></i> 編輯權限</button>
@@ -166,9 +159,7 @@
                                 <td><span class="px-2 py-0.5 bg-gray-100 rounded text-xs font-semibold text-gray-700">OP</span></td>
                                 <td>50027</td>
                                 <td>Grace Turner</td>
-                                <td class="acct-perm"></td>
-                                <td class="acct-region"><div class="flex flex-wrap gap-1"><span class="px-2 py-0.5 bg-teal-50 text-teal-600 rounded text-xs font-semibold">T1</span><span class="px-2 py-0.5 bg-teal-50 text-teal-600 rounded text-xs font-semibold">T2</span><span class="px-2 py-0.5 bg-teal-50 text-teal-600 rounded text-xs font-semibold">U</span><span class="px-2 py-0.5 bg-teal-50 text-teal-600 rounded text-xs font-semibold">S</span></div></td>
-                                <td class="acct-project"><div class="flex flex-wrap gap-1"><span class="px-2 py-0.5 bg-sky-50 text-sky-600 rounded text-xs font-semibold">GT</span><span class="px-2 py-0.5 bg-sky-50 text-sky-600 rounded text-xs font-semibold">GX</span><span class="px-2 py-0.5 bg-sky-50 text-sky-600 rounded text-xs font-semibold">GS</span><span class="px-2 py-0.5 bg-sky-50 text-sky-600 rounded text-xs font-semibold">GF</span></div></td>
+                                <td class="acct-scope"></td>
                                 <td>
                                     <div class="flex items-center justify-center gap-2">
                                         <button onclick="openEditPermModal(this)" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-pen"></i> 編輯權限</button>
@@ -360,31 +351,20 @@
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold text-text-muted mb-1.5">套用權限角色 <span class="text-rose-500">*</span></label>
-                    <select id="account-role" class="ui-select"><!-- 動態帶入權限角色 --></select>
-                    <p class="text-xs text-text-light mt-1.5">帳號將直接套用所選角色的頁面資料權限與可提交申請單。</p>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-text-muted mb-1.5">負責區域 <span class="text-rose-500">*</span><span class="font-normal text-text-light">（可複選）</span></label>
-                    <div id="account-region" class="ms relative">
-                        <button type="button" onclick="msToggle('account-region')" class="ui-select w-full text-left flex items-center justify-between">
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">套用權限角色 <span class="text-rose-500">*</span><span class="font-normal text-text-light">（可複選）</span></label>
+                    <div id="account-role" class="ms relative">
+                        <button type="button" onclick="msToggle('account-role')" class="ui-select w-full text-left flex items-center justify-between">
                             <span class="ms-text text-gray-400">請選擇</span>
                             <i class="fa-solid fa-chevron-down text-gray-400 text-xs ml-2 shrink-0"></i>
                         </button>
-                        <div class="ms-panel hidden mt-1.5 border border-gray-200 rounded-lg p-1.5 grid grid-cols-3 gap-1 bg-white"></div>
+                        <div class="ms-panel hidden mt-1.5 border border-gray-200 rounded-lg p-1.5 grid grid-cols-1 gap-1 bg-white"></div>
                     </div>
+                    <p class="text-xs text-text-light mt-1.5">帳號將套用所選角色的頁面資料權限與可提交申請單，可同時套用多個角色。</p>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold text-text-muted mb-1.5">負責項目 <span class="text-rose-500">*</span><span class="font-normal text-text-light">（可複選）</span></label>
-                    <div id="account-project" class="ms relative">
-                        <button type="button" onclick="msToggle('account-project')" class="ui-select w-full text-left flex items-center justify-between">
-                            <span class="ms-text text-gray-400">請選擇</span>
-                            <i class="fa-solid fa-chevron-down text-gray-400 text-xs ml-2 shrink-0"></i>
-                        </button>
-                        <div class="ms-panel hidden mt-1.5 border border-gray-200 rounded-lg p-1.5 grid grid-cols-3 gap-1 bg-white"></div>
-                    </div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">各角色的負責區域 / 負責項目 <span class="text-rose-500">*</span></label>
+                    <div id="account-scopes" class="space-y-2"></div>
                 </div>
             </div>
             <div class="flex justify-end gap-2.5 px-6 py-4 bg-gray-50 border-t border-gray-100">
@@ -396,7 +376,7 @@
 
     <!-- ============ 編輯權限 彈窗（變更帳號套用的權限角色）============ -->
     <div id="editperm-modal" class="fixed inset-0 bg-black/40 z-50 flex justify-center items-center hidden p-4">
-        <div class="bg-white rounded-2xl shadow-modal w-full max-w-md overflow-hidden">
+        <div class="bg-white rounded-2xl shadow-modal w-full max-w-2xl overflow-hidden">
             <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
                 <h3 class="text-base font-bold text-gray-900">編輯權限</h3>
                 <button onclick="closeEditPermModal()" class="text-gray-400 hover:text-gray-600 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors">
@@ -409,29 +389,10 @@
                     <div id="editperm-empno" class="ui-input bg-gray-50 text-gray-500 flex items-center"></div>
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-text-muted mb-1.5">套用權限角色 <span class="text-rose-500">*</span></label>
-                    <select id="editperm-role" class="ui-select"><!-- 動態帶入權限角色 --></select>
-                    <p class="text-xs text-text-light mt-1.5">變更後帳號將改為套用所選角色的頁面資料權限與可提交申請單。</p>
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-text-muted mb-1.5">負責區域 <span class="text-rose-500">*</span><span class="font-normal text-text-light">（可複選）</span></label>
-                    <div id="editperm-region" class="ms relative">
-                        <button type="button" onclick="msToggle('editperm-region')" class="ui-select w-full text-left flex items-center justify-between">
-                            <span class="ms-text text-gray-400">請選擇</span>
-                            <i class="fa-solid fa-chevron-down text-gray-400 text-xs ml-2 shrink-0"></i>
-                        </button>
-                        <div class="ms-panel hidden mt-1.5 border border-gray-200 rounded-lg p-1.5 grid grid-cols-3 gap-1 bg-white"></div>
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-text-muted mb-1.5">負責項目 <span class="text-rose-500">*</span><span class="font-normal text-text-light">（可複選）</span></label>
-                    <div id="editperm-project" class="ms relative">
-                        <button type="button" onclick="msToggle('editperm-project')" class="ui-select w-full text-left flex items-center justify-between">
-                            <span class="ms-text text-gray-400">請選擇</span>
-                            <i class="fa-solid fa-chevron-down text-gray-400 text-xs ml-2 shrink-0"></i>
-                        </button>
-                        <div class="ms-panel hidden mt-1.5 border border-gray-200 rounded-lg p-1.5 grid grid-cols-3 gap-1 bg-white"></div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">套用權限角色與各角色負責範圍 <span class="text-rose-500">*</span><span class="font-normal text-text-light">（左側勾選角色，右側設定該角色的負責區域／項目）</span></label>
+                    <div class="grid grid-cols-1 sm:grid-cols-[200px_1fr] border border-gray-200 rounded-lg overflow-hidden">
+                        <div id="editperm-role-list" class="sm:border-r border-gray-100 divide-y divide-gray-100 max-h-[340px] overflow-y-auto bg-gray-50/40 custom-scrollbar"></div>
+                        <div id="editperm-scope-panel" class="p-4 max-h-[340px] overflow-y-auto custom-scrollbar"></div>
                     </div>
                 </div>
             </div>
@@ -443,6 +404,135 @@
     </div>
 
     <!-- 提示消息 (Toast) -->
+    <!-- ============ 權限異動申請 彈窗（經申請單提出的權限增添／異動清單）============ -->
+    <div id="permchange-modal" class="fixed inset-0 bg-black/40 z-50 flex justify-center items-center hidden p-4" onclick="if(event.target===this)closePermChangeModal()">
+        <div class="bg-white rounded-2xl shadow-modal w-full max-w-[1400px] max-h-[90vh] flex flex-col overflow-hidden">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 flex-shrink-0">
+                <h3 class="text-base font-bold text-gray-900">權限異動申請</h3>
+                <button onclick="closePermChangeModal()" class="text-gray-400 hover:text-gray-600 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="px-6 py-5 overflow-auto">
+                <div class="text-sm text-text-muted mb-4 space-y-1">
+                    <p><span class="font-semibold text-gray-700">＊角色異動權限</span>：根據申請人提出的權限，為他所屬的角色添加權限，套用該角色的人員也一併擁有增加的權限。</p>
+                    <p><span class="font-semibold text-gray-700">＊創建角色</span>：根據該申請人提出的權限，為他創建新權限角色，並自動將他賦予該角色。</p>
+                </div>
+                <div class="overflow-x-auto rounded-lg border border-gray-100">
+                    <table class="ui-table whitespace-nowrap text-sm">
+                        <thead>
+                            <tr>
+                                <th scope="col">項目</th>
+                                <th scope="col">部門</th>
+                                <th scope="col">工號</th>
+                                <th scope="col">姓名</th>
+                                <th scope="col">當前套用權限</th>
+                                <th scope="col">負責區域</th>
+                                <th scope="col">負責項目</th>
+                                <th scope="col">申請權限</th>
+                                <th scope="col" class="border-l-2 border-blue-200 bg-blue-50/50">申請區域</th>
+                                <th scope="col" class="bg-blue-50/50">申請項目</th>
+                                <th scope="col" class="text-center">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="permchange-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="flex justify-end gap-2.5 px-6 py-4 bg-gray-50 border-t border-gray-100 flex-shrink-0">
+                <button onclick="closePermChangeModal()" class="ui-btn ui-btn-secondary">關閉</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ 檢視異動差異 彈窗（左：舊有權限 / 右：申請的權限）============ -->
+    <div id="permdiff-modal" class="fixed inset-0 bg-black/40 z-[60] flex justify-center items-center hidden p-4" onclick="if(event.target===this)closePermDiff()">
+        <div class="bg-white rounded-2xl shadow-modal w-full max-w-[1100px] max-h-[90vh] flex flex-col overflow-hidden">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 flex-shrink-0">
+                <h3 class="text-base font-bold text-gray-900">檢視異動差異 <span id="permdiff-who" class="text-primary font-normal ml-1"></span></h3>
+                <button onclick="closePermDiff()" class="text-gray-400 hover:text-gray-600 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="px-6 py-5 overflow-auto">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 items-start">
+                    <div id="permdiff-old"></div>
+                    <div id="permdiff-new"></div>
+                </div>
+            </div>
+            <div class="flex justify-end gap-2.5 px-6 py-4 bg-gray-50 border-t border-gray-100 flex-shrink-0">
+                <button onclick="closePermDiff()" class="ui-btn ui-btn-secondary">關閉</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ 重新配置角色 彈窗（可編輯調整權限）============ -->
+    <div id="roleconfig-modal" class="fixed inset-0 bg-black/40 z-[60] flex justify-center items-center hidden p-4" onclick="if(event.target===this)closeRoleConfig()">
+        <div class="bg-white rounded-2xl shadow-modal w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 flex-shrink-0">
+                <h3 class="text-base font-bold text-gray-900">重新配置角色 <span id="roleconfig-who" class="text-primary font-normal ml-1"></span></h3>
+                <button onclick="closeRoleConfig()" class="text-gray-400 hover:text-gray-600 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="px-6 py-5 overflow-auto space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">套用角色</label>
+                    <select id="roleconfig-role" onchange="renderRolePerms()" class="ui-select"></select>
+                    <p class="text-xs text-text-light mt-1.5">切換角色會帶入該角色的預設權限，可再逐項勾選調整。</p>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">頁面資料權限</label>
+                    <div class="overflow-x-auto rounded-lg border border-gray-100">
+                        <table class="ui-table whitespace-nowrap text-sm">
+                            <thead>
+                                <tr>
+                                    <th scope="col" class="text-left">頁面 / 權限項目</th>
+                                    <th scope="col" class="w-24 text-center">檢視</th>
+                                    <th scope="col" class="w-24 text-center">編輯</th>
+                                </tr>
+                            </thead>
+                            <tbody id="roleconfig-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="flex justify-end gap-2.5 px-6 py-4 bg-gray-50 border-t border-gray-100 flex-shrink-0">
+                <button onclick="closeRoleConfig()" class="ui-btn ui-btn-secondary">取消</button>
+                <button onclick="saveRoleConfig()" class="ui-btn ui-btn-primary"><i class="fa-solid fa-check"></i> 儲存配置</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ 創建新角色 彈窗（輸入角色名稱並設定權限）============ -->
+    <div id="newrole-modal" class="fixed inset-0 bg-black/40 z-[60] flex justify-center items-center hidden p-4" onclick="if(event.target===this)closeNewRole()">
+        <div class="bg-white rounded-2xl shadow-modal w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 flex-shrink-0">
+                <h3 class="text-base font-bold text-gray-900">創建角色 <span id="newrole-who" class="text-primary font-normal ml-1"></span></h3>
+                <button onclick="closeNewRole()" class="text-gray-400 hover:text-gray-600 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="px-6 py-5 overflow-auto space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">角色名稱 <span class="text-rose-500">*</span></label>
+                    <input type="text" id="newrole-name" placeholder="請輸入新角色名稱，例如：區域財務主管" class="ui-input">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">頁面資料權限<span class="font-normal text-text-light ml-1">（已依申請內容預帶，可再調整）</span></label>
+                    <div class="overflow-x-auto rounded-lg border border-gray-100">
+                        <table class="ui-table whitespace-nowrap text-sm">
+                            <thead>
+                                <tr>
+                                    <th scope="col" class="text-left">頁面 / 權限項目</th>
+                                    <th scope="col" class="w-24 text-center">檢視</th>
+                                    <th scope="col" class="w-24 text-center">編輯</th>
+                                </tr>
+                            </thead>
+                            <tbody id="newrole-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="flex justify-end gap-2.5 px-6 py-4 bg-gray-50 border-t border-gray-100 flex-shrink-0">
+                <button onclick="closeNewRole()" class="ui-btn ui-btn-secondary">取消</button>
+                <button onclick="saveNewRole()" class="ui-btn ui-btn-primary"><i class="fa-solid fa-check"></i> 建立角色</button>
+            </div>
+        </div>
+    </div>
+
     <div id="toast" class="fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
         <i id="toast-icon" class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
         <span id="toast-text" class="text-sm font-medium">操作成功！</span>
@@ -825,6 +915,9 @@
             const txt = document.querySelector(`#${id} .ms-text`);
             if (vals.length) { txt.textContent = vals.join('、'); txt.classList.remove('text-gray-400'); txt.classList.add('text-gray-800'); }
             else { txt.textContent = '請選擇'; txt.classList.add('text-gray-400'); txt.classList.remove('text-gray-800'); }
+            // 角色多選變動時，同步各角色的負責區域／項目編輯區
+            if (id === 'account-role') renderRoleScopes('account-scopes', vals, null);
+            if (id === 'editperm-role') renderRoleScopes('editperm-scopes', vals, null);
         }
         // 區域徽章（列表用）
         function regionCell(regions) {
@@ -832,6 +925,73 @@
                 + regions.map(r => `<span class="px-2 py-0.5 bg-teal-50 text-teal-600 rounded text-xs font-semibold">${r}</span>`).join('')
                 + `</div>`;
         }
+        // 權限角色徽章（列表用；一人可套用多個角色）
+        const activeRoleNames = () => roles.filter(r => r.active).map(r => r.name);
+        function permCell(names) {
+            return `<div class="flex flex-wrap gap-1">`
+                + names.map(n => `<span class="ui-badge ui-badge-info">${n}</span>`).join('')
+                + `</div>`;
+        }
+        // ===== 每個權限角色各自的負責區域 / 負責項目 =====
+        function renderRoleScopes(containerId, roleNames, existing) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            const cur = readRoleScopes(containerId);
+            const src = existing || cur;
+            if (!roleNames.length) { container.innerHTML = '<p class="text-xs text-text-light">請先於上方選擇套用權限角色</p>'; return; }
+            container.innerHTML = roleNames.map(role => {
+                const rs = src[role] || cur[role] || { regions: [], projects: [] };
+                const regs = new Set(rs.regions || []); const projs = new Set(rs.projects || []);
+                const box = (label, list, attr, chosen) => `
+                    <div class="mt-1.5">
+                        <div class="text-[11px] text-text-muted mb-1">${label}</div>
+                        <div class="flex flex-wrap gap-x-4 gap-y-1">${list.map(v => `<label class="flex items-center gap-1.5 text-sm text-gray-700"><input type="checkbox" class="perm-check" ${attr} value="${v}" ${chosen.has(v) ? 'checked' : ''}> ${v}</label>`).join('')}</div>
+                    </div>`;
+                return `<div class="border border-gray-200 rounded-lg p-3" data-scope-role="${role}">
+                    <div class="text-sm font-semibold text-gray-800 flex items-center gap-2"><span class="w-1.5 h-4 bg-primary rounded-full"></span>${role}</div>
+                    ${box('負責區域', REGION_VALUES, 'data-region', regs)}
+                    ${box('負責項目', PROJECT_VALUES, 'data-project', projs)}
+                </div>`;
+            }).join('');
+        }
+        function readRoleScopes(containerId) {
+            const out = {};
+            document.querySelectorAll(`#${containerId} [data-scope-role]`).forEach(block => {
+                out[block.dataset.scopeRole] = {
+                    regions: Array.from(block.querySelectorAll('input[data-region]:checked')).map(c => c.value),
+                    projects: Array.from(block.querySelectorAll('input[data-project]:checked')).map(c => c.value),
+                };
+            });
+            return out;
+        }
+        // 帳號列：依「角色 + 各自負責區域/項目」渲染三欄並存入資料屬性
+        function applyRowScopes(tr, scopes) {
+            const cell = tr.querySelector('.acct-scope');
+            if (!cell) return;
+            const tags = (arr, cls) => (arr && arr.length) ? arr.map(v => `<span class="px-2 py-0.5 ${cls} rounded text-xs font-semibold">${v}</span>`).join('') : '<span class="text-xs text-gray-400">—</span>';
+            cell.innerHTML = scopes.map((s, i) => `
+                <div class="flex flex-wrap items-center gap-x-2 gap-y-1 py-2 ${i < scopes.length - 1 ? 'border-b border-gray-100' : ''}">
+                    <span class="ui-badge ui-badge-info shrink-0">${s.role}</span>
+                    <span class="text-[11px] text-gray-400 shrink-0">區域</span>${tags(s.regions, 'bg-teal-50 text-teal-600')}
+                    <span class="text-[11px] text-gray-400 shrink-0 ml-1">項目</span>${tags(s.projects, 'bg-sky-50 text-sky-600')}
+                </div>`).join('');
+            tr.dataset.roleScopes = JSON.stringify(scopes);
+        }
+        // 由角色多選＋各角色範圍組出 scopes；缺區域/項目回傳錯誤字串
+        function collectScopes(roleSelId, scopeContainerId) {
+            const roleNames = msGet(roleSelId);
+            if (!roleNames.length) return { error: '請至少選擇一個套用權限角色' };
+            const map = readRoleScopes(scopeContainerId);
+            const scopes = [];
+            for (const role of roleNames) {
+                const rs = map[role] || { regions: [], projects: [] };
+                if (!rs.regions.length) return { error: `請為角色「${role}」選擇負責區域` };
+                if (!rs.projects.length) return { error: `請為角色「${role}」選擇負責項目` };
+                scopes.push({ role, regions: rs.regions, projects: rs.projects });
+            }
+            return { scopes };
+        }
+        function pickSome(arr, n) { return arr.slice().sort(() => Math.random() - 0.5).slice(0, Math.min(n, arr.length)); }
         // 項目徽章（列表用）
         function projectCell(projects) {
             return `<div class="flex flex-wrap gap-1">`
@@ -844,14 +1004,10 @@
         });
 
         function openAccountModal() {
-            // 以現有權限角色填入下拉選單
-            const sel = document.getElementById('account-role');
-            sel.innerHTML = roles.map((r, i) =>
-                `<option value="${i}"${r.active ? '' : ' disabled'}>${r.name}${r.active ? '' : '（停用）'}</option>`
-            ).join('');
+            // 以現有（啟用中）權限角色填入多選清單
+            msInit('account-role', [], activeRoleNames());
             document.getElementById('account-empno').value = '';
-            msInit('account-region', []);
-            msInit('account-project', [], PROJECT_VALUES);
+            renderRoleScopes('account-scopes', [], {});
             clearEmployeeResult();
             document.getElementById('account-modal').classList.remove('hidden');
             setTimeout(() => document.getElementById('account-empno').focus(), 50);
@@ -886,38 +1042,31 @@
 
         function saveAccount() {
             if (!queriedEmployee) { showToast('error', '請先輸入工號並查詢員工'); return; }
-            const roleIdx = parseInt(document.getElementById('account-role').value, 10);
-            if (isNaN(roleIdx) || !roles[roleIdx]) { showToast('error', '請選擇要套用的權限角色'); return; }
-            const regions = msGet('account-region');
-            if (!regions.length) { showToast('error', '請至少選擇一個負責區域'); return; }
-            const projects = msGet('account-project');
-            if (!projects.length) { showToast('error', '請至少選擇一個負責項目'); return; }
+            const res = collectScopes('account-role', 'account-scopes');
+            if (res.error) { showToast('error', res.error); return; }
+            const scopes = res.scopes;
 
             const { empno, name, project, dept, bu } = queriedEmployee;
-            const roleName = roles[roleIdx].name;
-            // 新增一列至帳號清單（事業部/項目/部門/姓名由工號帶出，套用所選權限角色；負責區域、負責項目存於該列資料屬性）
+            // 新增一列至帳號清單（事業部/項目/部門/姓名由工號帶出；各角色的負責區域/項目存於 data-role-scopes）
             const tbody = document.getElementById('account-tbody');
             const tr = document.createElement('tr');
-            tr.dataset.region = regions.join(',');
-            tr.dataset.projects = projects.join(',');
             tr.innerHTML = `
                 <td><span class="px-2 py-0.5 bg-indigo-50 text-indigo-600 rounded text-xs font-semibold">${bu || '—'}</span></td>
                 <td><span class="px-2 py-0.5 bg-violet-50 text-violet-600 rounded text-xs font-semibold">${project}</span></td>
                 <td><span class="px-2 py-0.5 bg-gray-100 rounded text-xs font-semibold text-gray-700">${dept}</span></td>
                 <td>${empno}</td>
                 <td>${name}</td>
-                <td class="acct-perm"><span class="ui-badge ui-badge-info">${roleName}</span></td>
-                <td class="acct-region">${regionCell(regions)}</td>
-                <td class="acct-project">${projectCell(projects)}</td>
+                <td class="acct-scope"></td>
                 <td>
                     <div class="flex items-center justify-center gap-2">
                         <button onclick="openEditPermModal(this)" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-pen"></i> 編輯權限</button>
                     </div>
                 </td>`;
+            applyRowScopes(tr, scopes);
             tbody.insertBefore(tr, tbody.firstElementChild);
             applyAccountFilter();
             closeAccountModal();
-            showToast('success', `已新增帳號「${name}（${empno}）」，套用權限角色「${roleName}」，負責區域：${regions.join('、')}，負責項目：${projects.join('、')}`);
+            showToast('success', `已新增帳號「${name}（${empno}）」，套用 ${scopes.length} 個權限角色（${scopes.map(s => s.role).join('、')}）`);
         }
 
         // 點背景關閉新增帳號彈窗
@@ -926,51 +1075,333 @@
         /* ============ 編輯權限 彈窗（變更帳號套用的權限角色）============ */
         let editPermRow = null;    // 目前正在編輯權限的帳號列
 
+        // 編輯權限彈窗：左側角色清單、右側該角色的負責區域／項目
+        let epRoles = {};   // role -> { regions:[], projects:[] }（已勾選的角色）
+        let epActive = null;
         function openEditPermModal(btn) {
             editPermRow = btn.closest('tr');
             const empno = editPermRow.children[3].innerText.trim();
-            const currentRole = (editPermRow.querySelector('.acct-perm') || {}).innerText;
-            const current = currentRole ? currentRole.trim() : '';
-
-            const sel = document.getElementById('editperm-role');
-            sel.innerHTML = roles.map((r, i) =>
-                `<option value="${i}"${r.active ? '' : ' disabled'}${r.name === current ? ' selected' : ''}>${r.name}${r.active ? '' : '（停用）'}</option>`
-            ).join('');
+            let scopes = [];
+            try { scopes = JSON.parse(editPermRow.dataset.roleScopes || '[]'); } catch (e) { scopes = []; }
+            epRoles = {};
+            scopes.forEach(s => epRoles[s.role] = { regions: (s.regions || []).slice(), projects: (s.projects || []).slice() });
+            epActive = scopes.length ? scopes[0].role : null;
+            epRenderList();
+            epRenderPanel();
             document.getElementById('editperm-empno').innerText = empno;
-            // 帶入該帳號目前的負責區域、負責項目（可複選）
-            msInit('editperm-region', (editPermRow.dataset.region || '').split(',').filter(Boolean));
-            msInit('editperm-project', (editPermRow.dataset.projects || '').split(',').filter(Boolean), PROJECT_VALUES);
             document.getElementById('editperm-modal').classList.remove('hidden');
+        }
+        function epRenderList() {
+            const box = document.getElementById('editperm-role-list');
+            box.innerHTML = activeRoleNames().map(role => {
+                const on = role in epRoles;
+                const active = epActive === role;
+                return `<div class="flex items-center gap-2 px-3 py-2.5 cursor-pointer transition-colors ${active ? 'bg-primary-light' : 'hover:bg-white'}" onclick="epSetActive('${role}')">
+                        <input type="checkbox" class="perm-check" ${on ? 'checked' : ''} onclick="event.stopPropagation(); epToggleRole('${role}', this.checked)">
+                        <span class="text-sm ${active ? 'text-primary font-semibold' : 'text-gray-700'}">${role}</span>
+                    </div>`;
+            }).join('');
+        }
+        function epRenderPanel() {
+            const panel = document.getElementById('editperm-scope-panel');
+            if (!epActive || !(epActive in epRoles)) {
+                panel.innerHTML = '<div class="text-sm text-text-light py-12 text-center">請於左側勾選並點選角色，<br>設定其負責區域／負責項目</div>';
+                return;
+            }
+            const rs = epRoles[epActive]; const regs = new Set(rs.regions || []); const projs = new Set(rs.projects || []);
+            const box = (label, list, attr, chosen) => `<div class="mb-4">
+                    <div class="text-xs font-semibold text-text-muted mb-1.5">${label} <span class="text-rose-500">*</span></div>
+                    <div class="flex flex-wrap gap-x-4 gap-y-1.5">${list.map(v => `<label class="flex items-center gap-1.5 text-sm text-gray-700"><input type="checkbox" class="perm-check" ${attr} value="${v}" ${chosen.has(v) ? 'checked' : ''} onchange="epUpdateScope()"> ${v}</label>`).join('')}</div>
+                </div>`;
+            panel.innerHTML = `<div class="text-sm font-semibold text-gray-800 flex items-center gap-2 mb-3"><span class="w-1.5 h-4 bg-primary rounded-full"></span>${epActive}</div>`
+                + box('負責區域', REGION_VALUES, 'data-region', regs) + box('負責項目', PROJECT_VALUES, 'data-project', projs);
+        }
+        function epUpdateScope() {
+            if (!epActive || !(epActive in epRoles)) return;
+            const panel = document.getElementById('editperm-scope-panel');
+            epRoles[epActive] = {
+                regions: Array.from(panel.querySelectorAll('input[data-region]:checked')).map(c => c.value),
+                projects: Array.from(panel.querySelectorAll('input[data-project]:checked')).map(c => c.value),
+            };
+        }
+        function epToggleRole(role, checked) {
+            epUpdateScope();
+            if (checked) { if (!(role in epRoles)) epRoles[role] = { regions: [], projects: [] }; epActive = role; }
+            else { delete epRoles[role]; if (epActive === role) { const k = Object.keys(epRoles); epActive = k.length ? k[0] : null; } }
+            epRenderList(); epRenderPanel();
+        }
+        function epSetActive(role) {
+            epUpdateScope();
+            if (!(role in epRoles)) epRoles[role] = { regions: [], projects: [] };
+            epActive = role;
+            epRenderList(); epRenderPanel();
         }
 
         function closeEditPermModal() { editPermRow = null; document.getElementById('editperm-modal').classList.add('hidden'); }
 
         function saveEditPerm() {
             if (!editPermRow) return;
-            const roleIdx = parseInt(document.getElementById('editperm-role').value, 10);
-            if (isNaN(roleIdx) || !roles[roleIdx]) { showToast('error', '請選擇要套用的權限角色'); return; }
-            const regions = msGet('editperm-region');
-            if (!regions.length) { showToast('error', '請至少選擇一個負責區域'); return; }
-            const projects = msGet('editperm-project');
-            if (!projects.length) { showToast('error', '請至少選擇一個負責項目'); return; }
+            epUpdateScope();
+            const roleNames = Object.keys(epRoles);
+            if (!roleNames.length) { showToast('error', '請至少勾選一個套用權限角色'); return; }
+            const scopes = [];
+            for (const role of roleNames) {
+                const rs = epRoles[role];
+                if (!rs.regions.length) { showToast('error', `請為角色「${role}」選擇負責區域`); return; }
+                if (!rs.projects.length) { showToast('error', `請為角色「${role}」選擇負責項目`); return; }
+                scopes.push({ role, regions: rs.regions, projects: rs.projects });
+            }
             const empno = editPermRow.children[3].innerText.trim();
-            const roleName = roles[roleIdx].name;
-            const cell = editPermRow.querySelector('.acct-perm');
-            if (cell) cell.innerHTML = `<span class="ui-badge ui-badge-info">${roleName}</span>`;
-            const regionCellEl = editPermRow.querySelector('.acct-region');
-            if (regionCellEl) regionCellEl.innerHTML = regionCell(regions);
-            editPermRow.dataset.region = regions.join(',');
-            const projectCellEl = editPermRow.querySelector('.acct-project');
-            if (projectCellEl) projectCellEl.innerHTML = projectCell(projects);
-            editPermRow.dataset.projects = projects.join(',');
+            applyRowScopes(editPermRow, scopes);
             closeEditPermModal();
-            showToast('success', `已更新帳號「${empno}」：權限角色「${roleName}」，負責區域：${regions.join('、')}，負責項目：${projects.join('、')}`);
+            showToast('success', `已更新帳號「${empno}」的權限角色與各角色的負責區域／項目（${scopes.map(s => s.role).join('、')}）`);
         }
 
         // 點背景關閉編輯權限彈窗
         document.getElementById('editperm-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeEditPermModal(); });
 
         /* ============ Toast 提示控制 ============ */
+        /* ============ 權限異動申請清單 ============ */
+        const PERM_CHANGE_REQUESTS = [
+            { bu: '海外事業部', project: 'GT', dept: 'HR',  empno: '50030', name: 'Ellie Nelson', curPerm: '一般員工', curRegion: ['T1'],       curProject: ['GT'],       reqPerm: '區域管理員', reqRegion: ['T1', 'T2'],  reqProject: ['GT', 'GX'] },
+            { bu: '海外事業部', project: 'GT', dept: 'RD',  empno: '50029', name: 'Logan Adams',  curPerm: '一般員工', curRegion: ['T2'],       curProject: ['GX', 'GS'], reqPerm: '研發主管',   reqRegion: ['T2'],        reqProject: ['GX', 'GS', 'GF'] },
+            { bu: '國內事業部', project: 'GT', dept: 'FIN', empno: '50028', name: 'Poppy Baker',  curPerm: '一般員工', curRegion: ['U'],        curProject: ['GP'],       reqPerm: '財務主管',   reqRegion: ['U', 'S'],    reqProject: ['GP', 'GT'] },
+            { bu: '國內事業部', project: 'GT', dept: 'IA1', empno: '50026', name: 'Grace Turner', curPerm: '稽核人員', curRegion: ['T1', 'T2'], curProject: ['GT', 'GX'], reqPerm: '稽核主管',   reqRegion: ['T1', 'T2', 'U', 'S'], reqProject: ['GT', 'GX', 'GS', 'GF'] },
+        ];
+        // 未處理筆數 → 顯示於「權限異動申請」按鈕上的數字徽章
+        function updatePermChangeCount() {
+            const el = document.getElementById('permchange-count');
+            if (!el) return;
+            const n = PERM_CHANGE_REQUESTS.length;
+            el.textContent = n;
+            el.classList.toggle('hidden', n === 0);
+        }
+        updatePermChangeCount();
+        // 標記為已處理 → 自清單移除該筆並更新徽章
+        function markPermProcessed(i) {
+            const r = PERM_CHANGE_REQUESTS[i];
+            if (!r) return;
+            PERM_CHANGE_REQUESTS.splice(i, 1);
+            renderPermChanges();
+            updatePermChangeCount();
+            showToast('success', '已將「' + r.name + '」的權限異動申請標記為已處理');
+        }
+        function pcTags(arr, cls) {
+            return '<div class="flex flex-wrap gap-1">' + arr.map(x => '<span class="px-2 py-0.5 ' + cls + ' rounded text-xs font-semibold">' + x + '</span>').join('') + '</div>';
+        }
+        function renderPermChanges() {
+            const tb = document.getElementById('permchange-tbody');
+            if (!PERM_CHANGE_REQUESTS.length) { tb.innerHTML = '<tr><td colspan="11" class="py-10 text-center text-gray-400">目前沒有待處理的權限異動申請</td></tr>'; return; }
+            tb.innerHTML = PERM_CHANGE_REQUESTS.map((r, i) => `
+                <tr class="hover:bg-gray-50/70 transition-colors">
+                    <td><span class="px-2 py-0.5 bg-violet-50 text-violet-600 rounded text-xs font-semibold">${r.project}</span></td>
+                    <td><span class="px-2 py-0.5 bg-gray-100 rounded text-xs font-semibold text-gray-700">${r.dept}</span></td>
+                    <td>${r.empno}</td>
+                    <td>${r.name}</td>
+                    <td><span class="px-2 py-0.5 bg-gray-100 text-gray-700 rounded text-xs font-semibold">${r.curPerm}</span></td>
+                    <td>${pcTags(r.curRegion, 'bg-teal-50 text-teal-600')}</td>
+                    <td>${pcTags(r.curProject, 'bg-sky-50 text-sky-600')}</td>
+                    <td><button onclick="openPermDiff(${i})" class="ui-btn ui-btn-secondary ui-btn-sm">檢視異動申請</button></td>
+                    <td class="border-l-2 border-blue-200 bg-blue-50/40">${pcTags(r.reqRegion, 'bg-teal-50 text-teal-600')}</td>
+                    <td class="bg-blue-50/40">${pcTags(r.reqProject, 'bg-sky-50 text-sky-600')}</td>
+                    <td>
+                        <div class="flex items-center justify-center gap-2">
+                            <button onclick="openRoleConfig(${i})" class="ui-btn ui-btn-secondary ui-btn-sm">角色異動權限</button>
+                            <button onclick="openNewRole(${i})" class="ui-btn ui-btn-sm bg-white text-gray-700 border border-gray-300 hover:bg-gray-50">創建角色</button>
+                            <button onclick="markPermProcessed(${i})" class="ui-btn ui-btn-sm text-emerald-600 border border-emerald-200 hover:bg-emerald-50">標記為已處理</button>
+                        </div>
+                    </td>
+                </tr>`).join('');
+        }
+        function openPermChangeModal() { renderPermChanges(); document.getElementById('permchange-modal').classList.remove('hidden'); }
+        function closePermChangeModal() { document.getElementById('permchange-modal').classList.add('hidden'); }
+
+        /* ============ 檢視異動差異（舊有權限 vs 申請的權限）============ */
+        const ROLE_PERMS = {
+            '一般員工':   [{ page: '我的申請', level: '檢視/編輯' }, { page: '考勤管理', level: '檢視' }, { page: '假期管理', level: '檢視' }],
+            '區域管理員': [{ page: '我的申請', level: '檢視/編輯' }, { page: '員工管理', level: '檢視/編輯' }, { page: '考勤管理', level: '檢視/編輯' }, { page: '假期管理', level: '檢視/編輯' }, { page: '員工假期查詢', level: '檢視' }],
+            '研發主管':   [{ page: '我的申請', level: '檢視/編輯' }, { page: '員工管理', level: '檢視' }, { page: '考勤管理', level: '檢視/編輯' }, { page: '假期管理', level: '檢視/編輯' }, { page: '資產清單', level: '檢視' }],
+            '財務主管':   [{ page: '我的申請', level: '檢視/編輯' }, { page: '月初匯率管理', level: '檢視/編輯' }, { page: '薪資管理', level: '檢視/編輯' }, { page: '財務設定', level: '檢視/編輯' }, { page: '考勤管理', level: '檢視' }],
+            '稽核人員':   [{ page: '員工管理', level: '檢視' }, { page: '考勤管理', level: '檢視' }, { page: '假期管理', level: '檢視' }, { page: '系統日誌', level: '檢視' }],
+            '稽核主管':   [{ page: '員工管理', level: '檢視' }, { page: '考勤管理', level: '檢視' }, { page: '假期管理', level: '檢視' }, { page: '薪資管理', level: '檢視' }, { page: '財務設定', level: '檢視' }, { page: '系統日誌', level: '檢視/編輯' }],
+        };
+        // 各角色可提交的申請單
+        const ROLE_FORMS = {
+            '一般員工':   ['行政'],
+            '區域管理員': ['行政', '財務', 'HR'],
+            '研發主管':   ['行政', 'PMO'],
+            '財務主管':   ['財務', '行政'],
+            '稽核人員':   [],
+            '稽核主管':   ['行政', '財務'],
+        };
+        const _levelMap = (perms) => { const m = {}; perms.forEach(p => m[p.page] = p.level); return m; };
+        function buildPermPanel(title, role, regions, projects, perms, other, mode, forms, otherForms) {
+            const om = _levelMap(other);
+            const isNew = mode === 'new';
+            const rows = perms.map(p => {
+                let cls = '', tag = '';
+                if (isNew) {
+                    if (!(p.page in om)) { cls = 'bg-emerald-50'; tag = '<span class="ml-1.5 text-[10px] text-emerald-600 font-bold">新增</span>'; }
+                    else if (om[p.page] !== p.level) { cls = 'bg-amber-50'; tag = '<span class="ml-1.5 text-[10px] text-amber-600 font-bold">調整</span>'; }
+                } else {
+                    if (!(p.page in om)) { cls = 'bg-rose-50'; tag = '<span class="ml-1.5 text-[10px] text-rose-600 font-bold">移除</span>'; }
+                    else if (om[p.page] !== p.level) { cls = 'bg-amber-50'; }
+                }
+                return `<tr class="${cls}"><td class="px-3 py-1.5">${p.page}${tag}</td><td class="px-3 py-1.5 text-gray-600">${p.level}</td></tr>`;
+            }).join('');
+            const of = otherForms || [];
+            const formsHtml = (forms && forms.length)
+                ? forms.map(f => {
+                    let cls = 'bg-gray-100 text-gray-600', tag = '';
+                    if (isNew && !of.includes(f)) { cls = 'bg-emerald-50 text-emerald-600'; tag = '<span class="ml-1 text-[10px] font-bold">新增</span>'; }
+                    if (!isNew && !of.includes(f)) { cls = 'bg-rose-50 text-rose-600'; tag = '<span class="ml-1 text-[10px] font-bold">移除</span>'; }
+                    return `<span class="px-2 py-0.5 ${cls} rounded text-xs font-semibold">${f}${tag}</span>`;
+                }).join('')
+                : '<span class="text-xs text-gray-400">無</span>';
+            return `
+                <div class="border ${isNew ? 'border-blue-200' : 'border-gray-200'} rounded-xl overflow-hidden">
+                    <div class="px-4 py-3 ${isNew ? 'bg-blue-50/60 border-blue-100' : 'bg-gray-50 border-gray-100'} border-b">
+                        <div class="text-sm font-bold ${isNew ? 'text-primary' : 'text-gray-700'}">${title}</div>
+                        <div class="mt-2 flex flex-wrap items-center gap-2 text-xs">
+                            <span class="px-2 py-0.5 ${isNew ? 'bg-amber-50 text-amber-600' : 'bg-gray-100 text-gray-700'} rounded font-semibold">${role}</span>
+                            <span class="text-gray-400 ml-1">負責區域</span>${pcTags(regions, 'bg-teal-50 text-teal-600')}
+                            <span class="text-gray-400 ml-1">負責項目</span>${pcTags(projects, 'bg-sky-50 text-sky-600')}
+                        </div>
+                    </div>
+                    <table class="w-full text-sm">
+                        <thead><tr class="bg-gray-50/60 text-gray-500 text-xs font-bold border-b border-gray-100"><th class="px-3 py-2 text-left">頁面 / 權限項目</th><th class="px-3 py-2 text-left w-28">權限</th></tr></thead>
+                        <tbody class="divide-y divide-gray-100">${rows}</tbody>
+                    </table>
+                    <div class="px-4 py-3 border-t border-gray-100">
+                        <div class="text-xs font-bold text-gray-500 mb-2">可提交的申請單</div>
+                        <div class="flex flex-wrap gap-1.5">${formsHtml}</div>
+                    </div>
+                </div>`;
+        }
+        function openPermDiff(i) {
+            const r = PERM_CHANGE_REQUESTS[i];
+            document.getElementById('permdiff-who').textContent = r.name + '（' + r.empno + '）';
+            const cur = ROLE_PERMS[r.curPerm] || [];
+            const req = ROLE_PERMS[r.reqPerm] || [];
+            const curF = ROLE_FORMS[r.curPerm] || [];
+            const reqF = ROLE_FORMS[r.reqPerm] || [];
+            document.getElementById('permdiff-old').innerHTML = buildPermPanel('舊有權限', r.curPerm, r.curRegion, r.curProject, cur, req, 'old', curF, reqF);
+            document.getElementById('permdiff-new').innerHTML = buildPermPanel('申請的權限', r.reqPerm, r.reqRegion, r.reqProject, req, cur, 'new', reqF, curF);
+            document.getElementById('permdiff-modal').classList.remove('hidden');
+        }
+        function closePermDiff() { document.getElementById('permdiff-modal').classList.add('hidden'); }
+
+        /* ============ 重新配置角色（可編輯調整權限）============ */
+        const ALL_PAGES = ['我的申請', '員工管理', '考勤管理', '假期管理', '員工假期查詢', '薪資管理', '月初匯率管理', '財務設定', '資產清單', '系統日誌'];
+        let _roleconfigWho = '';
+        function openRoleConfig(i) {
+            const r = PERM_CHANGE_REQUESTS[i];
+            _roleconfigWho = r.name + '（' + r.empno + '）';
+            document.getElementById('roleconfig-who').textContent = _roleconfigWho;
+            const sel = document.getElementById('roleconfig-role');
+            sel.innerHTML = Object.keys(ROLE_PERMS).map(role => `<option${role === r.reqPerm ? ' selected' : ''}>${role}</option>`).join('');
+            renderRolePerms();
+            document.getElementById('roleconfig-modal').classList.remove('hidden');
+        }
+        // 權限設置.html 的完整頁面資料權限表（含特殊操作與可提交申請單）
+        const PS_DATA_ACTIONS = ['檢視', '編輯'];
+        const PS_DATA_PAGES = [
+            { name: '首頁',     group: '個人', actions: ['檢視'] },
+            { name: '打卡',     group: '個人' },
+            { name: '出勤紀錄', group: '個人', actions: ['檢視'] },
+            { name: '補卡申請', group: '個人' },
+            { name: '假期申請', group: '個人' },
+            { name: '加班申請', group: '個人' },
+            { name: '個人資訊', group: '個人' },
+            { name: '文件庫',   group: '個人' },
+            { name: '我的申請', group: '電子表單' },
+            { name: '臨時保存', group: '電子表單' },
+            { name: '模板保存', group: '電子表單' },
+            { name: '申請',     group: '電子表單' },
+            { name: '請假簽核',     group: '簽核中心' },
+            { name: '補卡簽核',     group: '簽核中心' },
+            { name: '銷假簽核',     group: '簽核中心' },
+            { name: '電子表單簽核', group: '簽核中心' },
+            { name: '員工管理', group: '人事管理', ops: ['添加新員工', '取消入職', '重置密碼', '離職', '刪除帳號', '檢視個人信息', '檢視職位信息', '檢視人員帳號', '檢視考勤信息', '檢視假期信息', '檢視薪資單', '檢視資產', '修改個人-基礎/個人信息', '修改個人-個人聯絡方式', '修改個人-緊急聯絡人', '修改職位-基本工資', '修改職位-獎金', '修改職位-其他福利', '修改職位-職位信息', '修改職位-事業部', '修改職位-職級', '修改職位-其他項目', '提交人員帳號異動申請', '修改考勤信息', '修改假期信息'], specialOps: ['檢視負責區域項目員工', '檢視下屬員工'] },
+            { name: '考勤管理', group: '人事管理' },
+            { name: '考勤設置', group: '人事管理' },
+            { name: '假期管理', group: '人事管理' },
+            { name: '薪資管理', group: '人事管理' },
+            { name: '員工假期查詢', group: '人事管理' },
+            { name: '月初匯率管理', group: '財務管理' },
+            { name: '公告管理', group: '行政管理' },
+            { name: '文件庫管理', group: '行政管理' },
+            { name: '資產數統計', group: '行政管理', actions: ['檢視'] },
+            { name: '資產清單', group: '行政管理', actions: ['檢視'] },
+            { name: '資產單統計', group: '行政管理', actions: ['檢視'] },
+            { name: '資產盤點', group: '行政管理' },
+            { name: '資產抽查', group: '行政管理' },
+            { name: '資產類型設定', group: '行政管理' },
+            { name: '工號創建管理', group: '行政管理' },
+            { name: '審批帳號', group: '系統設定' },
+            { name: '審批角色權限', group: '系統設定' },
+            { name: '審批流管理', group: '系統設定' },
+            { name: '分組管理', group: '系統設定' },
+            { name: '帳號權限', group: '系統設定' },
+            { name: '權限設置', group: '系統設定' },
+            { name: '組織圖設定', group: '系統設定' },
+            { name: '組織架構管理', group: '系統設定' },
+            { name: '財務設定', group: '系統設定' },
+            { name: '行政設定', group: '系統設定' },
+            { name: '薪資密碼設定', group: '系統設定' },
+            { name: '系統日誌', group: '系統設定', actions: ['檢視'] },
+            { name: '封鎖設定', group: '系統設定' }
+        ];
+        const PS_APPROVAL_FORMS = ['商務', '合同', '財務', '行政', 'PMO', 'HR'];
+        function renderFullPermTable(tbodyId, roleName) {
+            const m = _levelMap(ROLE_PERMS[roleName] || []);
+            let html = '', lastGroup = null;
+            PS_DATA_PAGES.forEach(p => {
+                if (p.group !== lastGroup) {
+                    lastGroup = p.group;
+                    html += `<tr class="bg-primary-light"><td colspan="3" class="px-3 py-2 text-primary text-sm font-bold border-y border-primary/15"><i class="fa-solid fa-folder-open mr-2"></i>${p.group}</td></tr>`;
+                }
+                const actions = p.actions || PS_DATA_ACTIONS;
+                const lvl = m[p.name] || '';
+                const vc = actions.includes('檢視') ? `<input type="checkbox" class="perm-check" ${lvl.includes('檢視') ? 'checked' : ''}>` : '<span class="text-gray-300">—</span>';
+                const ec = actions.includes('編輯') ? `<input type="checkbox" class="perm-check" ${lvl.includes('編輯') ? 'checked' : ''}>` : '<span class="text-gray-300">—</span>';
+                html += `<tr><td class="px-3 py-1.5">${p.name}</td><td class="px-3 py-1.5 text-center">${vc}</td><td class="px-3 py-1.5 text-center">${ec}</td></tr>`;
+                const ops = (p.ops || []).concat(p.specialOps || []);
+                if (ops.length) {
+                    html += `<tr><td colspan="3" class="px-3 pb-2.5 pt-0"><div class="text-[11px] font-semibold text-gray-400 mb-1.5">特殊操作</div><div class="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-1.5">` +
+                        ops.map(op => `<label class="flex items-center gap-1.5 text-xs text-gray-600"><input type="checkbox" class="perm-check">${op}</label>`).join('') + `</div></td></tr>`;
+                }
+            });
+            html += `<tr class="bg-primary-light"><td colspan="3" class="px-3 py-2 text-primary text-sm font-bold border-y border-primary/15"><i class="fa-solid fa-file-signature mr-2"></i>可提交的申請單</td></tr>`;
+            html += `<tr><td colspan="3" class="px-3 py-2.5"><div class="grid grid-cols-3 sm:grid-cols-6 gap-2">` +
+                PS_APPROVAL_FORMS.map(f => `<label class="flex items-center gap-1.5 text-xs text-gray-600"><input type="checkbox" class="perm-check">${f}</label>`).join('') + `</div></td></tr>`;
+            document.getElementById(tbodyId).innerHTML = html;
+        }
+        function renderRolePerms() {
+            renderFullPermTable('roleconfig-tbody', document.getElementById('roleconfig-role').value);
+        }
+        function closeRoleConfig() { document.getElementById('roleconfig-modal').classList.add('hidden'); }
+        function saveRoleConfig() { closeRoleConfig(); showToast('success', '已儲存「' + _roleconfigWho + '」的角色權限配置（示範）'); }
+
+        /* ============ 創建新角色（輸入角色名稱並設定權限）============ */
+        let _newroleWho = '';
+        function openNewRole(i) {
+            const r = PERM_CHANGE_REQUESTS[i];
+            _newroleWho = r.name + '（' + r.empno + '）';
+            document.getElementById('newrole-who').textContent = _newroleWho;
+            document.getElementById('newrole-name').value = '';
+            renderFullPermTable('newrole-tbody', r.reqPerm);
+            document.getElementById('newrole-modal').classList.remove('hidden');
+            setTimeout(() => document.getElementById('newrole-name').focus(), 50);
+        }
+        function closeNewRole() { document.getElementById('newrole-modal').classList.add('hidden'); }
+        function saveNewRole() {
+            const name = (document.getElementById('newrole-name').value || '').trim();
+            if (!name) { showToast('error', '請輸入角色名稱'); return; }
+            closeNewRole();
+            showToast('success', '已建立新角色「' + name + '」（示範）');
+        }
+
         function showToast(type, text) {
             const toast = document.getElementById('toast');
             const toastIcon = document.getElementById('toast-icon');
@@ -1010,11 +1441,18 @@
 
         // 帳號權限分頁：每位員工依「權限設置」的權限隨機配給一項
         function assignAccountPerms() {
-            const names = roles.map(r => r.name);
+            const names = activeRoleNames();
             if (!names.length) return;
-            document.querySelectorAll('.acct-perm').forEach(td => {
-                const name = names[Math.floor(Math.random() * names.length)];
-                td.innerHTML = `<span class="ui-badge ui-badge-info">${name}</span>`;
+            document.querySelectorAll('#account-tbody tr').forEach((tr, idx) => {
+                if (!tr.querySelector('.acct-scope')) return;
+                // 示範：部分帳號同時套用多個角色，且各角色對應不同的負責區域／項目
+                const chosen = pickSome(names, Math.min(1 + (idx % 2), names.length));
+                const scopes = chosen.map(role => ({
+                    role,
+                    regions: pickSome(REGION_VALUES, 1 + Math.floor(Math.random() * 2)),
+                    projects: pickSome(PROJECT_VALUES, 1 + Math.floor(Math.random() * 2)),
+                }));
+                applyRowScopes(tr, scopes);
             });
         }
 

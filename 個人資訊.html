@@ -169,11 +169,15 @@
 
                     <!-- 區塊：核心職位與部門 -->
                     <div class="bg-slate-50/60 border border-slate-100 rounded-xl p-5 md:p-6">
-                        <h3 class="text-sm font-bold text-slate-400 tracking-wider mb-4 border-b border-slate-100 pb-2">編制</h3>
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                        <h3 class="text-sm font-bold text-slate-400 tracking-wider mb-4 border-b border-slate-100 pb-2">主要編制</h3>
+                        <div class="grid grid-cols-2 md:grid-cols-5 gap-6">
+                            <div>
+                                <p class="text-xs text-slate-500 mb-1">區域</p>
+                                <p class="text-sm font-medium text-slate-800">THQ</p>
+                            </div>
                             <div>
                                 <p class="text-xs text-slate-500 mb-1">事業部</p>
-                                <p class="text-sm font-medium text-slate-800">options2</p>
+                                <p class="text-sm font-medium text-slate-800">研發事業部 (RD BU)</p>
                             </div>
                             <div>
                                 <p class="text-xs text-slate-500 mb-1">項目</p>
@@ -182,6 +186,10 @@
                             <div>
                                 <p class="text-xs text-slate-500 mb-1">部門</p>
                                 <p class="text-sm font-medium text-slate-800">options3</p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-slate-500 mb-1">職位</p>
+                                <p class="text-sm font-medium text-slate-800">資深工程師</p>
                             </div>
                         </div>
                     </div>
@@ -213,13 +221,13 @@
 
                     <!-- 區塊：職位信息 -->
                     <div class="bg-slate-50/60 border border-slate-100 rounded-xl p-5 md:p-6">
-                        <h3 class="text-sm font-bold text-slate-400 tracking-wider mb-4 border-b border-slate-100 pb-2">職位信息</h3>
+                        <h3 class="text-sm font-bold text-slate-400 tracking-wider mb-4 border-b border-slate-100 pb-2">職位信息（主要）</h3>
                         <div class="overflow-x-auto rounded-lg border border-slate-100 bg-white">
                             <table class="ui-table whitespace-nowrap">
                                 <thead>
                                     <tr>
                                         <th class="text-left">生效日期</th>
-                                        <th class="text-left">主體</th>
+                                        <th class="text-left">事業部</th>
                                         <th class="text-center">項目</th>
                                         <th class="text-left">部門</th>
                                         <th class="text-left">職位</th>
@@ -229,7 +237,7 @@
                                 <tbody>
                                     <tr class="hover:bg-slate-50/70 transition-colors">
                                         <td class="text-left text-slate-700">2024-06-25</td>
-                                        <td class="text-left text-slate-600">台灣總部 (THQ)</td>
+                                        <td class="text-left text-slate-600">研發事業部 (RD BU)</td>
                                         <td class="text-center"><span class="ui-badge ui-badge-info">GT</span></td>
                                         <td class="text-left text-slate-600">options3</td>
                                         <td class="text-left text-slate-600">options1</td>
@@ -237,11 +245,40 @@
                                     </tr>
                                     <tr class="hover:bg-slate-50/70 transition-colors">
                                         <td class="text-left text-slate-700">2022-04-01</td>
-                                        <td class="text-left text-slate-600">台灣總部 (THQ)</td>
+                                        <td class="text-left text-slate-600">研發事業部 (RD BU)</td>
                                         <td class="text-center"><span class="ui-badge ui-badge-info">GT</span></td>
                                         <td class="text-left text-slate-600">options4</td>
                                         <td class="text-left text-slate-600">初階專員</td>
                                         <td class="text-left text-slate-600">Amy Lin</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- 區塊：職位信息（次要） -->
+                    <div class="bg-slate-50/60 border border-slate-100 rounded-xl p-5 md:p-6">
+                        <h3 class="text-sm font-bold text-slate-400 tracking-wider mb-4 border-b border-slate-100 pb-2">職位信息（次要）</h3>
+                        <div class="overflow-x-auto rounded-lg border border-slate-100 bg-white">
+                            <table class="ui-table whitespace-nowrap">
+                                <thead>
+                                    <tr>
+                                        <th class="text-left">生效日期</th>
+                                        <th class="text-left">事業部</th>
+                                        <th class="text-center">項目</th>
+                                        <th class="text-left">部門</th>
+                                        <th class="text-left">職位</th>
+                                        <th class="text-left">直屬上司</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="hover:bg-slate-50/70 transition-colors">
+                                        <td class="text-left text-slate-700">2024-06-25</td>
+                                        <td class="text-left text-slate-600">項目管理中心 PMO</td>
+                                        <td class="text-center"><span class="ui-badge ui-badge-info">GT</span></td>
+                                        <td class="text-left text-slate-600">PMO</td>
+                                        <td class="text-left text-slate-600">兼任專案協理</td>
+                                        <td class="text-left text-slate-600">Kevin Wang</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -369,17 +406,6 @@
                                     <div class="flex items-center gap-2 text-sm"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span><span class="font-medium text-slate-700">nora.chen@company.com</span><span class="text-xs text-slate-400">公司</span></div>
                                     <div class="flex items-center gap-2 text-sm"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span><span class="font-medium text-slate-700">nora.chen0812@gmail.com</span><span class="text-xs text-slate-400">個人</span></div>
                                 </div>
-                            </div>
-                        </div>
-
-                        <!-- OA -->
-                        <div class="py-3.5 flex items-start gap-4 hover:bg-slate-50/60 transition-colors">
-                            <div class="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 shrink-0">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 16.875h3.375m0 0h3.375m-3.375 0V13.5m0 3.375v3.375M6 10.5h2.25a2.25 2.25 0 0 0 2.25-2.25V6a2.25 2.25 0 0 0-2.25-2.25H6A2.25 2.25 0 0 0 3.75 6v2.25A2.25 2.25 0 0 0 6 10.5Zm0 9.75h2.25A2.25 2.25 0 0 0 10.5 18v-2.25a2.25 2.25 0 0 0-2.25-2.25H6a2.25 2.25 0 0 0-2.25 2.25V18A2.25 2.25 0 0 0 6 20.25Zm9.75-9.75H18a2.25 2.25 0 0 0 2.25-2.25V6A2.25 2.25 0 0 0 18 3.75h-2.25A2.25 2.25 0 0 0 13.5 6v2.25a2.25 2.25 0 0 0 2.25 2.25Z" /></svg>
-                            </div>
-                            <div class="min-w-0">
-                                <h4 class="font-bold text-slate-800 text-sm mb-1.5">OA (Office Automation)</h4>
-                                <div class="flex items-center gap-2 text-sm"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span><span class="font-medium text-slate-700">nora.chen</span></div>
                             </div>
                         </div>
 
@@ -635,7 +661,6 @@
                                 <div><label class="block text-xs text-slate-500 mb-1">E-mail</label><input type="text" disabled value="nora.chen@company.com" class="ui-input bg-slate-100 text-slate-500 cursor-not-allowed"></div>
                                 <div><label class="block text-xs text-slate-500 mb-1">Jira</label><input type="text" disabled value="nora.chen" class="ui-input bg-slate-100 text-slate-500 cursor-not-allowed"></div>
                                 <div><label class="block text-xs text-slate-500 mb-1">Apple ID</label><input type="text" disabled value="nora@icloud.com" class="ui-input bg-slate-100 text-slate-500 cursor-not-allowed"></div>
-                                <div><label class="block text-xs text-slate-500 mb-1">OA</label><input type="text" disabled value="nora.chen" class="ui-input bg-slate-100 text-slate-500 cursor-not-allowed"></div>
                             </div>
                         </div>
 
@@ -798,7 +823,6 @@
         const ACCOUNT_FIELDS = [
             { label: 'Mobile / WhatsApp', values: ['0912-345-678', '0988-111-222'] },
             { label: 'E-mail', values: ['nora.chen@company.com', 'nora.chen0812@gmail.com'] },
-            { label: 'OA (Office Automation)', values: ['nora.chen'] },
             { label: 'Apple ID', values: ['nora.chen0812@icloud.com'] },
             { label: 'Jira', values: [] },
             { label: 'MM', values: ['nora.chen'] },

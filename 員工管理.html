@@ -916,7 +916,7 @@
         <div class="fixed inset-0 z-10 flex items-center justify-center p-4 sm:p-6 pointer-events-none">
             
             <!-- Modal 實體 -->
-            <div id="editModalPanel" class="relative bg-white rounded-xl shadow-modal flex flex-col w-[95vw] max-w-6xl h-[90vh] pointer-events-auto transition-all transform modal-enter">
+            <div id="editModalPanel" class="relative bg-white rounded-xl shadow-modal flex flex-col w-[95vw] max-w-7xl h-[90vh] pointer-events-auto transition-all transform modal-enter">
                 
                 <div class="px-6 pt-5 pb-3 flex justify-between items-center shrink-0 border-b border-gray-100">
                     <div class="flex items-center gap-2.5">
@@ -1152,8 +1152,15 @@
 
                         <!-- （一）編制（事業部 / 項目 / 部門 / 職位）-->
                         <div>
-                            <h4 class="text-base font-bold text-gray-800 mb-4">編制</h4>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-5">
+                            <h4 class="text-base font-bold text-gray-800 mb-4">主要編制</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-x-6 gap-y-5">
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">區域</label>
+                                    <div class="relative">
+                                        <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded-md text-sm outline-none"><option>選擇區域</option><option>T1</option><option>T2</option><option>U</option><option>J</option><option>S</option><option>THQ</option></select>
+                                        <i class="fa-solid fa-caret-down absolute right-3 top-1/2 -translate-y-1/2 text-xs pointer-events-none"></i>
+                                    </div>
+                                </div>
                                 <div>
                                     <label class="block text-xs font-semibold text-gray-500 mb-1.5">事業部</label>
                                     <input type="text" value="研發事業部 (RD BU)" readonly class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded-md text-sm text-gray-800 outline-none">
@@ -1233,13 +1240,25 @@
                         <!-- （六）職位信息 -->
                         <div class="record-section">
                             <div class="flex items-center justify-between mb-4">
-                                <h4 class="text-base font-bold text-gray-800">職位信息</h4>
+                                <h4 class="text-base font-bold text-gray-800">職位信息（主要）<span class="ml-2 text-xs font-medium text-gray-400">（一次僅一筆生效）</span></h4>
+                            </div>
+                            <div class="record-list space-y-3">
+                                <div class="record-row relative border border-gray-200 rounded-lg bg-white p-4">
+                                    <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-x-3 gap-y-3"><div><label class="block text-xs font-semibold text-gray-500 mb-1.5">生效日期</label><input type="text" value="2010/01/01" readonly class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded-md text-sm text-gray-800 outline-none"></div><div><label class="block text-xs font-semibold text-gray-500 mb-1.5">事業部</label><div class="relative"><select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded-md text-sm outline-none"><option>選擇事業部</option><option>研發事業部 (RD BU)</option><option>項目管理中心 PMO</option></select><i class="fa-solid fa-caret-down absolute right-3 top-1/2 -translate-y-1/2 text-xs pointer-events-none"></i></div></div><div><label class="block text-xs font-semibold text-gray-500 mb-1.5">項目</label><div class="relative"><select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded-md text-sm outline-none"><option>選擇項目</option><option>GT</option></select><i class="fa-solid fa-caret-down absolute right-3 top-1/2 -translate-y-1/2 text-xs pointer-events-none"></i></div></div><div><label class="block text-xs font-semibold text-gray-500 mb-1.5">部門</label><div class="relative"><select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded-md text-sm outline-none"><option>選擇</option></select><i class="fa-solid fa-caret-down absolute right-3 top-1/2 -translate-y-1/2 text-xs pointer-events-none"></i></div></div><div><label class="block text-xs font-semibold text-gray-500 mb-1.5">職位</label><div class="relative"><select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded-md text-sm outline-none"><option>選擇</option></select><i class="fa-solid fa-caret-down absolute right-3 top-1/2 -translate-y-1/2 text-xs pointer-events-none"></i></div></div><div><label class="block text-xs font-semibold text-gray-500 mb-1.5">直屬上司</label><div class="relative"><select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded-md text-sm outline-none"><option>選擇</option></select><i class="fa-solid fa-caret-down absolute right-3 top-1/2 -translate-y-1/2 text-xs pointer-events-none"></i></div></div></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 職位信息（次要） -->
+                        <div class="record-section">
+                            <div class="flex items-center justify-between mb-4">
+                                <h4 class="text-base font-bold text-gray-800">職位信息（次要）<span class="ml-2 text-xs font-medium text-gray-400">（可多筆生效，點「新增」可增列）</span></h4>
                                 <button type="button" onclick="addRecordCard(this)" class="js-edit-only hidden px-3 py-1.5 text-sm font-medium text-primary border border-primary rounded-md hover:bg-blue-50 transition-colors whitespace-nowrap"><i class="fa-solid fa-plus mr-1.5"></i>新增</button>
                             </div>
                             <div class="record-list space-y-3">
                                 <div class="record-row relative border border-gray-200 rounded-lg bg-white p-4">
-                                    <button type="button" onclick="removeRecordCard(this)" class="js-edit-only hidden absolute -top-2.5 -right-2.5 w-7 h-7 flex items-center justify-center bg-white text-gray-400 hover:text-red-500 border border-gray-200 hover:border-red-200 shadow-sm rounded-full transition-colors" title="移除"><i class="fa-solid fa-trash-can text-xs"></i></button>
-                                    <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-x-3 gap-y-3"><div><label class="block text-xs font-semibold text-gray-500 mb-1.5">生效日期</label><input type="text" value="2010/01/01" readonly class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded-md text-sm text-gray-800 outline-none"></div><div><label class="block text-xs font-semibold text-gray-500 mb-1.5">主體</label><div class="relative"><select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded-md text-sm outline-none"><option>None</option></select><i class="fa-solid fa-caret-down absolute right-3 top-1/2 -translate-y-1/2 text-xs pointer-events-none"></i></div></div><div><label class="block text-xs font-semibold text-gray-500 mb-1.5">部門</label><div class="relative"><select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded-md text-sm outline-none"><option>選擇</option></select><i class="fa-solid fa-caret-down absolute right-3 top-1/2 -translate-y-1/2 text-xs pointer-events-none"></i></div></div><div><label class="block text-xs font-semibold text-gray-500 mb-1.5">職位</label><div class="relative"><select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded-md text-sm outline-none"><option>選擇</option></select><i class="fa-solid fa-caret-down absolute right-3 top-1/2 -translate-y-1/2 text-xs pointer-events-none"></i></div></div><div><label class="block text-xs font-semibold text-gray-500 mb-1.5">直屬上司</label><div class="relative"><select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded-md text-sm outline-none"><option>選擇</option></select><i class="fa-solid fa-caret-down absolute right-3 top-1/2 -translate-y-1/2 text-xs pointer-events-none"></i></div></div></div>
+                                    <button type="button" onclick="suspendRecord(this)" class="js-edit-only hidden absolute top-2 right-2 px-2.5 py-1 text-xs font-medium text-rose-600 border border-rose-200 rounded-md hover:bg-rose-50 transition-colors">停職</button>
+                                    <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-x-3 gap-y-3"><div><label class="block text-xs font-semibold text-gray-500 mb-1.5">生效日期</label><input type="text" value="2010/01/01" readonly class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded-md text-sm text-gray-800 outline-none"></div><div><label class="block text-xs font-semibold text-gray-500 mb-1.5">事業部</label><div class="relative"><select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded-md text-sm outline-none"><option>選擇事業部</option><option>研發事業部 (RD BU)</option><option>項目管理中心 PMO</option></select><i class="fa-solid fa-caret-down absolute right-3 top-1/2 -translate-y-1/2 text-xs pointer-events-none"></i></div></div><div><label class="block text-xs font-semibold text-gray-500 mb-1.5">項目</label><div class="relative"><select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded-md text-sm outline-none"><option>選擇項目</option><option>GT</option></select><i class="fa-solid fa-caret-down absolute right-3 top-1/2 -translate-y-1/2 text-xs pointer-events-none"></i></div></div><div><label class="block text-xs font-semibold text-gray-500 mb-1.5">部門</label><div class="relative"><select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded-md text-sm outline-none"><option>選擇</option></select><i class="fa-solid fa-caret-down absolute right-3 top-1/2 -translate-y-1/2 text-xs pointer-events-none"></i></div></div><div><label class="block text-xs font-semibold text-gray-500 mb-1.5">職位</label><div class="relative"><select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded-md text-sm outline-none"><option>選擇</option></select><i class="fa-solid fa-caret-down absolute right-3 top-1/2 -translate-y-1/2 text-xs pointer-events-none"></i></div></div><div><label class="block text-xs font-semibold text-gray-500 mb-1.5">直屬上司</label><div class="relative"><select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded-md text-sm outline-none"><option>選擇</option></select><i class="fa-solid fa-caret-down absolute right-3 top-1/2 -translate-y-1/2 text-xs pointer-events-none"></i></div></div></div>
                                 </div>
                             </div>
                         </div>
@@ -1688,7 +1707,7 @@
         <div class="fixed inset-0 z-10 flex items-center justify-center p-4 sm:p-6 pointer-events-none">
             
             <!-- Modal 實體 (修正滾動破版，加上 overflow-hidden) -->
-            <div id="addEmployeeModalPanel" class="relative bg-white rounded-xl shadow-modal flex flex-col w-[95vw] max-w-6xl h-[90vh] pointer-events-auto transition-all transform modal-enter">
+            <div id="addEmployeeModalPanel" class="relative bg-white rounded-xl shadow-modal flex flex-col w-[95vw] max-w-7xl h-[90vh] pointer-events-auto transition-all transform modal-enter">
                 
                 <div class="px-6 pt-4 border-b border-gray-200 shrink-0 flex justify-between items-center bg-white">
                     <div class="overflow-x-auto custom-scrollbar flex-1 mr-4 hide-scrollbar">
@@ -1891,58 +1910,45 @@
                     <!-- ========================================== -->
                     <div id="tab-add-job" class="tab-add-content hidden max-w-5xl mx-auto space-y-8">
 
-                        <!-- 分部（可掛多組分部） -->
+                        <!-- 職位信息（主要） -->
                         <div>
-                            <div class="flex items-center justify-between mb-4">
-                                <h4 class="text-base font-bold text-gray-800">分部 <span class="text-red-500">*</span><span class="ml-2 text-xs font-medium text-gray-400">（可同時掛載多個分部）</span></h4>
-                                <button type="button" onclick="addDivisionCard()" class="px-3 py-1.5 text-sm font-medium text-primary border border-primary rounded-md hover:bg-blue-50 transition-colors whitespace-nowrap"><i class="fa-solid fa-plus mr-1.5"></i>新增分部</button>
-                            </div>
-                            <div id="division-list" class="space-y-3">
-
-                                <!-- 分部卡片（可複製新增） -->
-                                <div class="division-card border border-gray-200 rounded-lg bg-white">
-                                    <div class="flex items-center justify-between gap-2 px-4 py-3 border-b border-gray-100 bg-gray-50/60 rounded-t-lg">
-                                        <div class="flex items-center gap-2 min-w-0">
-                                            <i class="fa-solid fa-sitemap text-primary text-sm shrink-0"></i>
-                                            <span class="font-semibold text-gray-900 text-sm">分部設定</span>
-                                        </div>
-                                        <button type="button" onclick="removeDivisionCard(this)" class="w-7 h-7 flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors" title="移除分部"><i class="fa-solid fa-trash-can text-xs"></i></button>
-                                    </div>
-                                    <div class="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-4">
-                                        <div>
-                                            <label class="block text-xs font-semibold text-gray-500 mb-1.5">Location <span class="text-red-500">*</span></label>
-                                            <div class="relative">
-                                                <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded text-sm outline-none cursor-pointer">
-                                                    <option>選擇地區</option><option>T2 ( 總部 )</option><option>T2 ( LKG, RG )</option><option>BOSS</option>
-                                                </select>
-                                                <i class="fa-solid fa-caret-down text-white absolute right-3 top-1/2 transform -translate-y-1/2 text-xs pointer-events-none"></i>
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <label class="block text-xs font-semibold text-gray-500 mb-1.5">Business <span class="text-red-500">*</span></label>
-                                            <div class="relative">
-                                                <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded text-sm outline-none cursor-pointer">
-                                                    <option>選擇事業部</option><option>研发中心 RD</option><option>项目管理中心 PMO</option><option>BOSS</option>
-                                                </select>
-                                                <i class="fa-solid fa-caret-down text-white absolute right-3 top-1/2 transform -translate-y-1/2 text-xs pointer-events-none"></i>
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <label class="block text-xs font-semibold text-gray-500 mb-1.5">Approval Level <span class="text-red-500">*</span></label>
-                                            <div class="relative">
-                                                <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded text-sm outline-none cursor-pointer">
-                                                    <option>選擇</option><option>1</option><option>2</option><option>3</option>
-                                                </select>
-                                                <i class="fa-solid fa-caret-down text-white absolute right-3 top-1/2 transform -translate-y-1/2 text-xs pointer-events-none"></i>
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <label class="block text-xs font-semibold text-gray-500 mb-1.5">人事經理</label>
-                                            <input type="text" placeholder="系統帶入" class="w-full px-3 py-2 bg-[#f1f3f5] border border-transparent rounded text-sm text-gray-800 outline-none focus:bg-white focus:border-gray-300 transition-colors">
-                                        </div>
+                            <h4 class="text-base font-bold text-gray-800 mb-4">職位信息（主要）</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-x-6 gap-y-4">
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">事業部 <span class="text-red-500">*</span></label>
+                                    <div class="relative">
+                                        <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded text-sm outline-none cursor-pointer"><option>選擇事業部</option><option>研發事業部 (RD BU)</option><option>項目管理中心 PMO</option><option>BOSS</option></select>
+                                        <i class="fa-solid fa-caret-down text-white absolute right-3 top-1/2 transform -translate-y-1/2 text-xs pointer-events-none"></i>
                                     </div>
                                 </div>
-
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">項目 <span class="text-red-500">*</span></label>
+                                    <div class="relative">
+                                        <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded text-sm outline-none cursor-pointer"><option>選擇項目</option><option>GT</option></select>
+                                        <i class="fa-solid fa-caret-down text-white absolute right-3 top-1/2 transform -translate-y-1/2 text-xs pointer-events-none"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">部門 <span class="text-red-500">*</span></label>
+                                    <div class="relative">
+                                        <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded text-sm outline-none cursor-pointer"><option>選擇部門</option><option>RD</option><option>HR</option><option>FIN</option><option>MKT</option><option>IA1</option></select>
+                                        <i class="fa-solid fa-caret-down text-white absolute right-3 top-1/2 transform -translate-y-1/2 text-xs pointer-events-none"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">職位 <span class="text-red-500">*</span></label>
+                                    <div class="relative">
+                                        <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded text-sm outline-none cursor-pointer"><option>選擇職位</option><option>工程師</option><option>資深工程師</option><option>經理</option></select>
+                                        <i class="fa-solid fa-caret-down text-white absolute right-3 top-1/2 transform -translate-y-1/2 text-xs pointer-events-none"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">直屬上司 <span class="text-red-500">*</span></label>
+                                    <div class="relative">
+                                        <select class="w-full appearance-none px-3 py-2 bg-[#4b5563] text-white rounded text-sm outline-none cursor-pointer"><option>選擇</option><option>James</option><option>William</option><option>Henry</option></select>
+                                        <i class="fa-solid fa-caret-down text-white absolute right-3 top-1/2 transform -translate-y-1/2 text-xs pointer-events-none"></i>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -2128,15 +2134,6 @@
                     <div id="tab-add-attendance" class="tab-add-content hidden max-w-4xl mx-auto space-y-8"><!-- 動態複製 --></div>
 
                     <div id="tab-add-leave" class="tab-add-content hidden max-w-5xl mx-auto space-y-8">
-
-                        <!-- 分部資訊 -->
-                        <div>
-                            <h4 class="text-base font-bold text-gray-800 mb-4">分部資訊</h4>
-                            <div>
-                                <label class="block text-xs font-semibold text-gray-500 mb-1.5">已選分部</label>
-                                <input type="text" placeholder="依職位信息所選分部自動帶入" readonly class="w-full sm:max-w-md px-3 py-2 bg-[#e8ecf1] border border-gray-300 rounded text-sm text-gray-800 outline-none cursor-default">
-                            </div>
-                        </div>
 
                         <!-- 假期政策 -->
                         <div>
@@ -2550,6 +2547,17 @@
         }
 
         // 基本工資 / 職位信息 / 事業部 / 職級：移除一筆條目（至少保留一筆，不可刪到空）
+        // 職位信息（次要）：停職 → 該筆紀錄永遠反灰、欄位停用、按鈕鎖定為「已停職」
+        function suspendRecord(btn) {
+            const row = btn.closest('.record-row');
+            if (!row) return;
+            row.classList.add('opacity-50', 'pointer-events-none');
+            row.querySelectorAll('input, select, textarea').forEach(el => { el.disabled = true; });
+            btn.textContent = '已停職';
+            btn.disabled = true;
+            btn.classList.remove('text-rose-600', 'border-rose-200', 'hover:bg-rose-50', 'pointer-events-none');
+            btn.classList.add('text-gray-400', 'border-gray-200', 'bg-gray-50', 'cursor-not-allowed', 'pointer-events-auto');
+        }
         function removeRecordCard(btn) {
             const row = btn.closest('.record-row');
             if (!row) return;
@@ -3048,6 +3056,36 @@
                 }, 200);
             }
         }
+
+        // 依錄用審批單帶入：以欄位標籤比對，自動填入「添加新員工」表單可對應的欄位
+        function fillEmployeeForm(data) {
+            const panel = document.getElementById('addEmployeeModalPanel');
+            if (!panel) return;
+            const norm = (s) => (s || '').replace(/[*＊\s]/g, '').trim();
+            panel.querySelectorAll('label').forEach(lb => {
+                const key = norm(lb.textContent);
+                if (!Object.prototype.hasOwnProperty.call(data, key)) return;
+                const ctrl = lb.parentElement && lb.parentElement.querySelector('input:not([type=file]), select, textarea');
+                if (!ctrl) return;
+                const val = data[key];
+                if (ctrl.tagName === 'SELECT') {
+                    let opt = Array.from(ctrl.options).find(o => o.textContent.trim() === val || o.value === val);
+                    if (!opt) { opt = document.createElement('option'); opt.textContent = val; opt.value = val; ctrl.appendChild(opt); }
+                    ctrl.value = opt.value || val;
+                } else {
+                    ctrl.value = val;
+                }
+            });
+        }
+        // 由其他頁面（我的申請 → 錄用審批單「創建員工資料」）帶資料進來：開啟新增彈窗並自動帶入
+        window.addEventListener('load', function () {
+            let data = null;
+            try { data = JSON.parse(localStorage.getItem('hroa_prefill_employee') || 'null'); } catch (e) { data = null; }
+            if (!data) return;
+            localStorage.removeItem('hroa_prefill_employee');
+            openAddEmployeeModal();
+            setTimeout(() => fillEmployeeForm(data), 60);
+        });
 
         /* -----------------------
            工號申請：問題流程（題庫比照「工號創建管理」，回答是/否自動核發工號）
