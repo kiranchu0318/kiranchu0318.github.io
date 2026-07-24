@@ -427,8 +427,8 @@
                                 <th scope="col">當前套用權限</th>
                                 <th scope="col">負責區域</th>
                                 <th scope="col">負責項目</th>
-                                <th scope="col">申請權限</th>
-                                <th scope="col" class="border-l-2 border-blue-200 bg-blue-50/50">申請區域</th>
+                                <th scope="col" class="border-l-2 border-blue-200 bg-blue-50/50">申請權限</th>
+                                <th scope="col" class="bg-blue-50/50">申請區域</th>
                                 <th scope="col" class="bg-blue-50/50">申請項目</th>
                                 <th scope="col" class="text-center">操作</th>
                             </tr>
@@ -454,6 +454,10 @@
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 items-start">
                     <div id="permdiff-old"></div>
                     <div id="permdiff-new"></div>
+                </div>
+                <div id="permdiff-note-wrap" class="mt-5 border border-amber-200 bg-amber-50/40 rounded-xl overflow-hidden hidden">
+                    <div class="px-4 py-2.5 bg-amber-50 border-b border-amber-100 text-sm font-bold text-amber-700"><i class="fa-solid fa-circle-info mr-1.5"></i>申請人描述的異動需求（未指定申請角色）</div>
+                    <div id="permdiff-note" class="px-4 py-3 text-sm text-gray-700 whitespace-pre-line leading-relaxed"></div>
                 </div>
             </div>
             <div class="flex justify-end gap-2.5 px-6 py-4 bg-gray-50 border-t border-gray-100 flex-shrink-0">
@@ -1170,11 +1174,25 @@
 
         /* ============ Toast 提示控制 ============ */
         /* ============ 權限異動申請清單 ============ */
+        // 一個帳號可套用多個權限角色，每個角色各有負責區域／項目；申請可新增或調整角色
         const PERM_CHANGE_REQUESTS = [
-            { bu: '海外事業部', project: 'GT', dept: 'HR',  empno: '50030', name: 'Ellie Nelson', curPerm: '一般員工', curRegion: ['T1'],       curProject: ['GT'],       reqPerm: '區域管理員', reqRegion: ['T1', 'T2'],  reqProject: ['GT', 'GX'] },
-            { bu: '海外事業部', project: 'GT', dept: 'RD',  empno: '50029', name: 'Logan Adams',  curPerm: '一般員工', curRegion: ['T2'],       curProject: ['GX', 'GS'], reqPerm: '研發主管',   reqRegion: ['T2'],        reqProject: ['GX', 'GS', 'GF'] },
-            { bu: '國內事業部', project: 'GT', dept: 'FIN', empno: '50028', name: 'Poppy Baker',  curPerm: '一般員工', curRegion: ['U'],        curProject: ['GP'],       reqPerm: '財務主管',   reqRegion: ['U', 'S'],    reqProject: ['GP', 'GT'] },
-            { bu: '國內事業部', project: 'GT', dept: 'IA1', empno: '50026', name: 'Grace Turner', curPerm: '稽核人員', curRegion: ['T1', 'T2'], curProject: ['GT', 'GX'], reqPerm: '稽核主管',   reqRegion: ['T1', 'T2', 'U', 'S'], reqProject: ['GT', 'GX', 'GS', 'GF'] },
+            { bu: '海外事業部', project: 'GT', dept: 'HR',  empno: '50030', name: 'Ellie Nelson',
+              curScopes: [{ role: '一般員工', regions: ['T1'], projects: ['GT'] }],
+              reqScopes: [{ role: '一般員工', regions: ['T1'], projects: ['GT'] }, { role: '區域管理員', regions: ['T1', 'T2'], projects: ['GT', 'GX'] }] },
+            { bu: '海外事業部', project: 'GT', dept: 'RD',  empno: '50029', name: 'Logan Adams',
+              curScopes: [{ role: '一般員工', regions: ['T2'], projects: ['GX', 'GS'] }],
+              reqScopes: [{ role: '研發主管', regions: ['T2'], projects: ['GX', 'GS', 'GF'] }] },
+            { bu: '國內事業部', project: 'GT', dept: 'FIN', empno: '50028', name: 'Poppy Baker',
+              curScopes: [{ role: '一般員工', regions: ['U'], projects: ['GP'] }, { role: '稽核人員', regions: ['U'], projects: ['GP'] }],
+              reqScopes: [{ role: '一般員工', regions: ['U'], projects: ['GP'] }, { role: '稽核人員', regions: ['U'], projects: ['GP'] }, { role: '財務主管', regions: ['U', 'S'], projects: ['GP', 'GT'] }] },
+            { bu: '國內事業部', project: 'GT', dept: 'IA1', empno: '50026', name: 'Grace Turner',
+              curScopes: [{ role: '稽核人員', regions: ['T1', 'T2'], projects: ['GT', 'GX'] }],
+              reqScopes: [{ role: '稽核主管', regions: ['T1', 'T2', 'U', 'S'], projects: ['GT', 'GX', 'GS', 'GF'] }] },
+            // 申請人於角色清單中找不到合適角色，故未指定申請角色，改以文字描述異動需求
+            { bu: '國內事業部', project: 'GT', dept: 'FIN', empno: '50027', name: 'Owen Clark',
+              curScopes: [{ role: '一般員工', regions: ['U'], projects: ['GP'] }],
+              reqScopes: [],
+              note: '角色清單中找不到符合需求的角色，故未指定申請角色，改以文字描述：\n需要「可檢視全公司薪資（唯讀）＋可編輯月初匯率＋檢視資產清單」的權限組合。\n負責區域：U、S；負責項目：GP、GT。\n請協助評估新建對應角色或指派等效權限。' },
         ];
         // 未處理筆數 → 顯示於「權限異動申請」按鈕上的數字徽章
         function updatePermChangeCount() {
@@ -1197,29 +1215,44 @@
         function pcTags(arr, cls) {
             return '<div class="flex flex-wrap gap-1">' + arr.map(x => '<span class="px-2 py-0.5 ' + cls + ' rounded text-xs font-semibold">' + x + '</span>').join('') + '</div>';
         }
+        // 角色徽章（新增的角色以綠色＋「新增」標示）
+        function roleBadge(role, isNew) {
+            return `<span class="px-2 py-0.5 ${isNew ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-100 text-gray-700'} rounded text-xs font-semibold">${role}${isNew ? '<span class="ml-1 text-[10px] font-bold">新增</span>' : ''}</span>`;
+        }
+        // 多角色：每個角色渲染成一列（含分隔線），使 角色／負責區域／負責項目 三欄逐列對齊
+        function stackScopes(scopes, render) {
+            if (!scopes || !scopes.length) return '<span class="text-gray-300">—</span>';
+            return scopes.map((s, i) => `<div class="py-1.5 ${i < scopes.length - 1 ? 'border-b border-gray-100' : ''}">${render(s)}</div>`).join('');
+        }
         function renderPermChanges() {
             const tb = document.getElementById('permchange-tbody');
             if (!PERM_CHANGE_REQUESTS.length) { tb.innerHTML = '<tr><td colspan="11" class="py-10 text-center text-gray-400">目前沒有待處理的權限異動申請</td></tr>'; return; }
-            tb.innerHTML = PERM_CHANGE_REQUESTS.map((r, i) => `
-                <tr class="hover:bg-gray-50/70 transition-colors">
+            tb.innerHTML = PERM_CHANGE_REQUESTS.map((r, i) => {
+                const curNames = new Set(r.curScopes.map(s => s.role));
+                return `
+                <tr class="hover:bg-gray-50/70 transition-colors align-top">
                     <td><span class="px-2 py-0.5 bg-violet-50 text-violet-600 rounded text-xs font-semibold">${r.project}</span></td>
                     <td><span class="px-2 py-0.5 bg-gray-100 rounded text-xs font-semibold text-gray-700">${r.dept}</span></td>
                     <td>${r.empno}</td>
                     <td>${r.name}</td>
-                    <td><span class="px-2 py-0.5 bg-gray-100 text-gray-700 rounded text-xs font-semibold">${r.curPerm}</span></td>
-                    <td>${pcTags(r.curRegion, 'bg-teal-50 text-teal-600')}</td>
-                    <td>${pcTags(r.curProject, 'bg-sky-50 text-sky-600')}</td>
-                    <td><button onclick="openPermDiff(${i})" class="ui-btn ui-btn-secondary ui-btn-sm">檢視異動申請</button></td>
-                    <td class="border-l-2 border-blue-200 bg-blue-50/40">${pcTags(r.reqRegion, 'bg-teal-50 text-teal-600')}</td>
-                    <td class="bg-blue-50/40">${pcTags(r.reqProject, 'bg-sky-50 text-sky-600')}</td>
+                    <td>${stackScopes(r.curScopes, s => roleBadge(s.role, false))}</td>
+                    <td>${stackScopes(r.curScopes, s => pcTags(s.regions, 'bg-teal-50 text-teal-600'))}</td>
+                    <td>${stackScopes(r.curScopes, s => pcTags(s.projects, 'bg-sky-50 text-sky-600'))}</td>
+                    <td class="border-l-2 border-blue-200 bg-blue-50/40">${r.reqScopes.length
+                        ? stackScopes(r.reqScopes, s => roleBadge(s.role, !curNames.has(s.role)))
+                        : `<div class="flex flex-col items-start gap-1"><span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-amber-50 text-amber-600 border border-amber-100"><i class="fa-solid fa-circle-info text-[10px]"></i>未指定角色 · 文字描述需求</span><span class="text-[11px] text-gray-400">詳見「檢視異動申請」</span></div>`}</td>
+                    <td class="bg-blue-50/40">${stackScopes(r.reqScopes, s => pcTags(s.regions, 'bg-teal-50 text-teal-600'))}</td>
+                    <td class="bg-blue-50/40">${stackScopes(r.reqScopes, s => pcTags(s.projects, 'bg-sky-50 text-sky-600'))}</td>
                     <td>
-                        <div class="flex items-center justify-center gap-2">
+                        <div class="flex flex-col items-stretch gap-2 min-w-[112px]">
+                            <button onclick="openPermDiff(${i})" class="ui-btn ui-btn-secondary ui-btn-sm">檢視異動申請</button>
                             <button onclick="openRoleConfig(${i})" class="ui-btn ui-btn-secondary ui-btn-sm">角色異動權限</button>
                             <button onclick="openNewRole(${i})" class="ui-btn ui-btn-sm bg-white text-gray-700 border border-gray-300 hover:bg-gray-50">創建角色</button>
                             <button onclick="markPermProcessed(${i})" class="ui-btn ui-btn-sm text-emerald-600 border border-emerald-200 hover:bg-emerald-50">標記為已處理</button>
                         </div>
                     </td>
-                </tr>`).join('');
+                </tr>`;
+            }).join('');
         }
         function openPermChangeModal() { renderPermChanges(); document.getElementById('permchange-modal').classList.remove('hidden'); }
         function closePermChangeModal() { document.getElementById('permchange-modal').classList.add('hidden'); }
@@ -1243,9 +1276,30 @@
             '稽核主管':   ['行政', '財務'],
         };
         const _levelMap = (perms) => { const m = {}; perms.forEach(p => m[p.page] = p.level); return m; };
-        function buildPermPanel(title, role, regions, projects, perms, other, mode, forms, otherForms) {
+        // 多角色：合併各角色的頁面權限（同頁取較高權限：編輯 > 檢視）
+        function mergePerms(scopes) {
+            const map = {};
+            (scopes || []).forEach(s => (ROLE_PERMS[s.role] || []).forEach(p => {
+                if (!(p.page in map) || p.level.includes('編輯')) map[p.page] = p.level;
+            }));
+            return Object.keys(map).map(page => ({ page, level: map[page] }));
+        }
+        // 多角色：合併各角色可提交的申請單
+        function mergeForms(scopes) {
+            const set = new Set();
+            (scopes || []).forEach(s => (ROLE_FORMS[s.role] || []).forEach(f => set.add(f)));
+            return [...set];
+        }
+        function buildPermPanel(title, scopes, perms, other, mode, forms, otherForms) {
             const om = _levelMap(other);
             const isNew = mode === 'new';
+            const rolesHtml = (scopes && scopes.length)
+                ? scopes.map(s => `<div class="flex flex-wrap items-center gap-2 text-xs">
+                        <span class="px-2 py-0.5 ${isNew ? 'bg-amber-50 text-amber-600' : 'bg-gray-100 text-gray-700'} rounded font-semibold">${s.role}</span>
+                        <span class="text-gray-400">負責區域</span>${pcTags(s.regions, 'bg-teal-50 text-teal-600')}
+                        <span class="text-gray-400">負責項目</span>${pcTags(s.projects, 'bg-sky-50 text-sky-600')}
+                    </div>`).join('')
+                : '<span class="text-xs text-gray-400">無角色</span>';
             const rows = perms.map(p => {
                 let cls = '', tag = '';
                 if (isNew) {
@@ -1270,11 +1324,7 @@
                 <div class="border ${isNew ? 'border-blue-200' : 'border-gray-200'} rounded-xl overflow-hidden">
                     <div class="px-4 py-3 ${isNew ? 'bg-blue-50/60 border-blue-100' : 'bg-gray-50 border-gray-100'} border-b">
                         <div class="text-sm font-bold ${isNew ? 'text-primary' : 'text-gray-700'}">${title}</div>
-                        <div class="mt-2 flex flex-wrap items-center gap-2 text-xs">
-                            <span class="px-2 py-0.5 ${isNew ? 'bg-amber-50 text-amber-600' : 'bg-gray-100 text-gray-700'} rounded font-semibold">${role}</span>
-                            <span class="text-gray-400 ml-1">負責區域</span>${pcTags(regions, 'bg-teal-50 text-teal-600')}
-                            <span class="text-gray-400 ml-1">負責項目</span>${pcTags(projects, 'bg-sky-50 text-sky-600')}
-                        </div>
+                        <div class="mt-2 space-y-1.5">${rolesHtml}</div>
                     </div>
                     <table class="w-full text-sm">
                         <thead><tr class="bg-gray-50/60 text-gray-500 text-xs font-bold border-b border-gray-100"><th class="px-3 py-2 text-left">頁面 / 權限項目</th><th class="px-3 py-2 text-left w-28">權限</th></tr></thead>
@@ -1289,12 +1339,16 @@
         function openPermDiff(i) {
             const r = PERM_CHANGE_REQUESTS[i];
             document.getElementById('permdiff-who').textContent = r.name + '（' + r.empno + '）';
-            const cur = ROLE_PERMS[r.curPerm] || [];
-            const req = ROLE_PERMS[r.reqPerm] || [];
-            const curF = ROLE_FORMS[r.curPerm] || [];
-            const reqF = ROLE_FORMS[r.reqPerm] || [];
-            document.getElementById('permdiff-old').innerHTML = buildPermPanel('舊有權限', r.curPerm, r.curRegion, r.curProject, cur, req, 'old', curF, reqF);
-            document.getElementById('permdiff-new').innerHTML = buildPermPanel('申請的權限', r.reqPerm, r.reqRegion, r.reqProject, req, cur, 'new', reqF, curF);
+            const cur = mergePerms(r.curScopes);
+            const req = mergePerms(r.reqScopes);
+            const curF = mergeForms(r.curScopes);
+            const reqF = mergeForms(r.reqScopes);
+            document.getElementById('permdiff-old').innerHTML = buildPermPanel('舊有權限（合併所有角色）', r.curScopes, cur, req, 'old', curF, reqF);
+            document.getElementById('permdiff-new').innerHTML = buildPermPanel(r.reqScopes.length ? '申請的權限（合併所有角色）' : '申請的權限（未指定角色）', r.reqScopes, req, cur, 'new', reqF, curF);
+            const noteWrap = document.getElementById('permdiff-note-wrap');
+            const noteEl = document.getElementById('permdiff-note');
+            if (r.note) { noteEl.innerHTML = r.note.replace(/&/g, '&amp;').replace(/</g, '&lt;'); noteWrap.classList.remove('hidden'); }
+            else { noteWrap.classList.add('hidden'); }
             document.getElementById('permdiff-modal').classList.remove('hidden');
         }
         function closePermDiff() { document.getElementById('permdiff-modal').classList.add('hidden'); }
@@ -1307,7 +1361,8 @@
             _roleconfigWho = r.name + '（' + r.empno + '）';
             document.getElementById('roleconfig-who').textContent = _roleconfigWho;
             const sel = document.getElementById('roleconfig-role');
-            sel.innerHTML = Object.keys(ROLE_PERMS).map(role => `<option${role === r.reqPerm ? ' selected' : ''}>${role}</option>`).join('');
+            const primaryReq = (r.reqScopes[0] || {}).role;
+            sel.innerHTML = Object.keys(ROLE_PERMS).map(role => `<option${role === primaryReq ? ' selected' : ''}>${role}</option>`).join('');
             renderRolePerms();
             document.getElementById('roleconfig-modal').classList.remove('hidden');
         }
@@ -1412,7 +1467,7 @@
             _newroleWho = r.name + '（' + r.empno + '）';
             document.getElementById('newrole-who').textContent = _newroleWho;
             document.getElementById('newrole-name').value = '';
-            renderFullPermTable('newrole-tbody', r.reqPerm);
+            renderFullPermTable('newrole-tbody', (r.reqScopes[0] || {}).role);
             document.getElementById('newrole-modal').classList.remove('hidden');
             setTimeout(() => document.getElementById('newrole-name').focus(), 50);
         }

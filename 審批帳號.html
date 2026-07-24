@@ -103,8 +103,9 @@
     <div class="mx-auto w-full space-y-6">
         
         <!-- 頁面標題區塊 -->
-        <header class="ui-page-header">
+        <header class="ui-page-header flex items-center justify-between">
             <h1 class="ui-page-title">審批帳號</h1>
+            <button type="button" onclick="openPermChangeModal()" class="ui-btn ui-btn-primary relative"><i class="fa-solid fa-file-signature"></i> 權限異動申請 <span id="permchange-count" class="hidden ml-1 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-rose-500 text-white text-[11px] font-bold leading-none">0</span></button>
         </header>
 
         <!-- ============ 分頁 1：帳號角色 ============ -->
@@ -285,6 +286,115 @@
     </div>
 
     <!-- 提示消息 (Toast) -->
+
+    <!-- ====== 權限異動申請（自 帳號權限.html 移植）====== -->
+    <!-- ============ 權限異動申請 彈窗（經申請單提出的權限增添／異動清單）============ -->
+    <div id="permchange-modal" class="fixed inset-0 bg-black/40 z-50 flex justify-center items-center hidden p-4" onclick="if(event.target===this)closePermChangeModal()">
+        <div class="bg-white rounded-2xl shadow-modal w-full max-w-[1400px] max-h-[90vh] flex flex-col overflow-hidden">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 flex-shrink-0">
+                <h3 class="text-base font-bold text-gray-900">權限異動申請</h3>
+                <button onclick="closePermChangeModal()" class="text-gray-400 hover:text-gray-600 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="px-6 py-5 overflow-auto">
+                <div class="text-sm text-text-muted mb-4 space-y-1">
+                    <p><span class="font-semibold text-gray-700">＊角色異動權限</span>：根據申請人提出的權限，為他所屬的角色添加權限，套用該角色的人員也一併擁有增加的權限。</p>
+                    <p><span class="font-semibold text-gray-700">＊創建角色</span>：根據該申請人提出的權限，為他創建新權限角色，並自動將他賦予該角色。</p>
+                </div>
+                <div class="overflow-x-auto rounded-lg border border-gray-100">
+                    <table class="ui-table whitespace-nowrap text-sm">
+                        <thead>
+                            <tr>
+                                <th scope="col">項目</th>
+                                <th scope="col">部門</th>
+                                <th scope="col">工號</th>
+                                <th scope="col">姓名</th>
+                                <th scope="col">目前審批角色<span class="font-normal text-gray-400 ml-1">（含維度）</span></th>
+                                <th scope="col" class="border-l-2 border-blue-200 bg-blue-50/50">申請異動<span class="font-normal text-gray-400 ml-1">（新增／刪除角色）</span></th>
+                                <th scope="col" class="text-center">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="permchange-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="flex justify-end gap-2.5 px-6 py-4 bg-gray-50 border-t border-gray-100 flex-shrink-0">
+                <button onclick="closePermChangeModal()" class="ui-btn ui-btn-secondary">關閉</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ 檢視異動差異 彈窗（左：舊有權限 / 右：申請的權限）============ -->
+    <div id="permdiff-modal" class="fixed inset-0 bg-black/40 z-[60] flex justify-center items-center hidden p-4" onclick="if(event.target===this)closePermDiff()">
+        <div class="bg-white rounded-2xl shadow-modal w-full max-w-[1100px] max-h-[90vh] flex flex-col overflow-hidden">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 flex-shrink-0">
+                <h3 class="text-base font-bold text-gray-900">檢視異動差異 <span id="permdiff-who" class="text-primary font-normal ml-1"></span></h3>
+                <button onclick="closePermDiff()" class="text-gray-400 hover:text-gray-600 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="px-6 py-5 overflow-auto">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 items-start">
+                    <div id="permdiff-old"></div>
+                    <div id="permdiff-new"></div>
+                </div>
+                <div class="mt-5 border border-gray-200 rounded-xl overflow-hidden">
+                    <div class="px-4 py-2.5 bg-gray-50 border-b border-gray-100 text-sm font-bold text-gray-700">申請說明及其他異動需求</div>
+                    <div id="permdiff-note" class="px-4 py-3 text-sm text-gray-700 whitespace-pre-line leading-relaxed"></div>
+                </div>
+            </div>
+            <div class="flex justify-end gap-2.5 px-6 py-4 bg-gray-50 border-t border-gray-100 flex-shrink-0">
+                <button onclick="closePermDiff()" class="ui-btn ui-btn-secondary">關閉</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ 重新配置角色 彈窗（可編輯調整權限）============ -->
+    <div id="roleconfig-modal" class="fixed inset-0 bg-black/40 z-[60] flex justify-center items-center hidden p-4" onclick="if(event.target===this)closeRoleConfig()">
+        <div class="bg-white rounded-2xl shadow-modal w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 flex-shrink-0">
+                <h3 class="text-base font-bold text-gray-900">重新配置角色 <span id="roleconfig-who" class="text-primary font-normal ml-1"></span></h3>
+                <button onclick="closeRoleConfig()" class="text-gray-400 hover:text-gray-600 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="px-6 py-5 overflow-auto space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">套用角色</label>
+                    <select id="roleconfig-role" onchange="renderRolePerms()" class="ui-select"></select>
+                    <p class="text-xs text-text-light mt-1.5">切換角色會帶入該角色的預設權限，可再逐項勾選調整。</p>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">審批權限</label>
+                    <div id="roleconfig-tbody" class="space-y-3"></div>
+                </div>
+            </div>
+            <div class="flex justify-end gap-2.5 px-6 py-4 bg-gray-50 border-t border-gray-100 flex-shrink-0">
+                <button onclick="closeRoleConfig()" class="ui-btn ui-btn-secondary">取消</button>
+                <button onclick="saveRoleConfig()" class="ui-btn ui-btn-primary"><i class="fa-solid fa-check"></i> 儲存配置</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ 創建新角色 彈窗（輸入角色名稱並設定權限）============ -->
+    <div id="newrole-modal" class="fixed inset-0 bg-black/40 z-[60] flex justify-center items-center hidden p-4" onclick="if(event.target===this)closeNewRole()">
+        <div class="bg-white rounded-2xl shadow-modal w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 flex-shrink-0">
+                <h3 class="text-base font-bold text-gray-900">創建角色 <span id="newrole-who" class="text-primary font-normal ml-1"></span></h3>
+                <button onclick="closeNewRole()" class="text-gray-400 hover:text-gray-600 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="px-6 py-5 overflow-auto space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">角色名稱 <span class="text-rose-500">*</span></label>
+                    <input type="text" id="newrole-name" placeholder="請輸入新角色名稱，例如：區域財務主管" class="ui-input">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">審批權限<span class="font-normal text-text-light ml-1">（已依申請內容預帶，可再調整）</span></label>
+                    <div id="newrole-tbody" class="space-y-3"></div>
+                </div>
+            </div>
+            <div class="flex justify-end gap-2.5 px-6 py-4 bg-gray-50 border-t border-gray-100 flex-shrink-0">
+                <button onclick="closeNewRole()" class="ui-btn ui-btn-secondary">取消</button>
+                <button onclick="saveNewRole()" class="ui-btn ui-btn-primary"><i class="fa-solid fa-check"></i> 建立角色</button>
+            </div>
+        </div>
+    </div>
+
     <div id="toast" class="fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
         <i id="toast-icon" class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
         <span id="toast-text" class="text-sm font-medium">操作成功！</span>
@@ -1866,6 +1976,295 @@
 
         // 初始化審批角色清單
         renderApprovalRoles();
+
+        /* ====== 權限異動申請（自 帳號權限.html 移植）====== */
+        /* ============ 權限異動申請清單 ============ */
+        // 一帳號可附加多個審批角色，每個角色有維度（分組類型：指定分組）；申請可新增或刪除角色（比照 申請.html 的審批權限異動申請）
+        const PERM_CHANGE_REQUESTS = [
+            { project: 'GT', dept: 'HR',  empno: '50030', name: 'Ellie Nelson',
+              curRoles: [{ role: '財務人員', type: '公司', group: 'KX' }],
+              changes: [{ action: 'add', role: '財務主管', type: '事業部', group: '第三事業部' }],
+              note: '因接任第三事業部財務主管職務，需新增「財務主管」審批角色以審核該事業部之付款與報銷單據。\n另請協助保留原「財務人員（公司：KX）」角色至月結完成。' },
+            { project: 'GT', dept: 'RD',  empno: '50029', name: 'Logan Adams',
+              curRoles: [{ role: '人事專員', type: '地區', group: '台灣' }],
+              changes: [{ action: 'add', role: '部門主管', type: '部門', group: '研發部' }, { action: 'del', role: '人事專員', type: '地區', group: '台灣' }],
+              note: '轉調研發部主管，申請新增「部門主管（部門：研發部）」，並刪除不再需要的「人事專員（地區：台灣）」角色。' },
+            { project: 'GT', dept: 'FIN', empno: '50028', name: 'Poppy Baker',
+              curRoles: [{ role: '財務人員', type: '公司', group: 'KX' }, { role: '負責人', type: '項目', group: 'GT' }],
+              changes: [{ action: 'add', role: '財務主管', type: '公司', group: 'KX' }],
+              note: '負責 KX 公司整體財務審批，需升級為「財務主管」；現有「財務人員」「負責人」角色維持不變。' },
+            { project: 'GT', dept: 'IA1', empno: '50026', name: 'Grace Turner',
+              curRoles: [{ role: '人事專員', type: '地區', group: '台灣' }],
+              changes: [{ action: 'add', role: '人事主管', type: '地區', group: '台灣' }, { action: 'del', role: '人事專員', type: '地區', group: '台灣' }],
+              note: '晉升台灣區人事主管，申請以「人事主管」取代原「人事專員」角色。' },
+        ];
+        // 未處理筆數 → 顯示於「權限異動申請」按鈕上的數字徽章
+        function updatePermChangeCount() {
+            const el = document.getElementById('permchange-count');
+            if (!el) return;
+            const n = PERM_CHANGE_REQUESTS.length;
+            el.textContent = n;
+            el.classList.toggle('hidden', n === 0);
+        }
+        updatePermChangeCount();
+        // 標記為已處理 → 自清單移除該筆並更新徽章
+        function markPermProcessed(i) {
+            const r = PERM_CHANGE_REQUESTS[i];
+            if (!r) return;
+            PERM_CHANGE_REQUESTS.splice(i, 1);
+            renderPermChanges();
+            updatePermChangeCount();
+            showToast('success', '已將「' + r.name + '」的權限異動申請標記為已處理');
+        }
+        function pcTags(arr, cls) {
+            return '<div class="flex flex-wrap gap-1">' + arr.map(x => '<span class="px-2 py-0.5 ' + cls + ' rounded text-xs font-semibold">' + x + '</span>').join('') + '</div>';
+        }
+        // 角色 + 維度（分組類型：指定分組）
+        function roleWithDim(s, badgeCls) {
+            return `<span class="inline-flex items-center gap-1.5 whitespace-nowrap">`
+                + `<span class="px-2 py-0.5 ${badgeCls || 'bg-blue-50 text-[#4A90E2] border border-blue-100'} rounded text-xs font-semibold">${s.role}</span>`
+                + `<span class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">${s.type}：${s.group}</span></span>`;
+        }
+        // 多筆堆疊（含分隔線）
+        function stackRows(arr, render) {
+            if (!arr || !arr.length) return '<span class="text-gray-300">—</span>';
+            return arr.map((s, i) => `<div class="py-1.5 ${i < arr.length - 1 ? 'border-b border-gray-100' : ''}">${render(s)}</div>`).join('');
+        }
+        function renderPermChanges() {
+            const tb = document.getElementById('permchange-tbody');
+            if (!PERM_CHANGE_REQUESTS.length) { tb.innerHTML = '<tr><td colspan="7" class="py-10 text-center text-gray-400">目前沒有待處理的權限異動申請</td></tr>'; return; }
+            tb.innerHTML = PERM_CHANGE_REQUESTS.map((r, i) => `
+                <tr class="hover:bg-gray-50/70 transition-colors align-top">
+                    <td><span class="px-2 py-0.5 bg-violet-50 text-violet-600 rounded text-xs font-semibold">${r.project}</span></td>
+                    <td><span class="px-2 py-0.5 bg-gray-100 rounded text-xs font-semibold text-gray-700">${r.dept}</span></td>
+                    <td>${r.empno}</td>
+                    <td>${r.name}</td>
+                    <td>${stackRows(r.curRoles, s => roleWithDim(s))}</td>
+                    <td class="border-l-2 border-blue-200 bg-blue-50/40">${stackRows(r.changes, c => `
+                        <span class="inline-flex items-center gap-1.5 whitespace-nowrap">
+                            <span class="px-1.5 py-0.5 rounded text-[11px] font-bold ${c.action === 'add' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}">${c.action === 'add' ? '新增' : '刪除'}</span>
+                            ${roleWithDim(c, c.action === 'add' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-rose-50 text-rose-600 border border-rose-100')}
+                        </span>`)}</td>
+                    <td>
+                        <div class="flex flex-col items-stretch gap-2 min-w-[112px]">
+                            <button onclick="openPermDiff(${i})" class="ui-btn ui-btn-secondary ui-btn-sm">檢視異動申請</button>
+                            <button onclick="openRoleConfig(${i})" class="ui-btn ui-btn-secondary ui-btn-sm">角色異動權限</button>
+                            <button onclick="openNewRole(${i})" class="ui-btn ui-btn-sm bg-white text-gray-700 border border-gray-300 hover:bg-gray-50">創建角色</button>
+                            <button onclick="markPermProcessed(${i})" class="ui-btn ui-btn-sm text-emerald-600 border border-emerald-200 hover:bg-emerald-50">標記為已處理</button>
+                        </div>
+                    </td>
+                </tr>`).join('');
+        }
+        function openPermChangeModal() { renderPermChanges(); document.getElementById('permchange-modal').classList.remove('hidden'); }
+        function closePermChangeModal() { document.getElementById('permchange-modal').classList.add('hidden'); }
+
+        /* ============ 檢視異動差異（舊有權限 vs 申請的權限）============ */
+        const ROLE_PERMS = {
+            '一般員工':   [{ page: '我的申請', level: '檢視/編輯' }, { page: '考勤管理', level: '檢視' }, { page: '假期管理', level: '檢視' }],
+            '區域管理員': [{ page: '我的申請', level: '檢視/編輯' }, { page: '員工管理', level: '檢視/編輯' }, { page: '考勤管理', level: '檢視/編輯' }, { page: '假期管理', level: '檢視/編輯' }, { page: '員工假期查詢', level: '檢視' }],
+            '研發主管':   [{ page: '我的申請', level: '檢視/編輯' }, { page: '員工管理', level: '檢視' }, { page: '考勤管理', level: '檢視/編輯' }, { page: '假期管理', level: '檢視/編輯' }, { page: '資產清單', level: '檢視' }],
+            '財務主管':   [{ page: '我的申請', level: '檢視/編輯' }, { page: '月初匯率管理', level: '檢視/編輯' }, { page: '薪資管理', level: '檢視/編輯' }, { page: '財務設定', level: '檢視/編輯' }, { page: '考勤管理', level: '檢視' }],
+            '稽核人員':   [{ page: '員工管理', level: '檢視' }, { page: '考勤管理', level: '檢視' }, { page: '假期管理', level: '檢視' }, { page: '系統日誌', level: '檢視' }],
+            '稽核主管':   [{ page: '員工管理', level: '檢視' }, { page: '考勤管理', level: '檢視' }, { page: '假期管理', level: '檢視' }, { page: '薪資管理', level: '檢視' }, { page: '財務設定', level: '檢視' }, { page: '系統日誌', level: '檢視/編輯' }],
+        };
+        // 各角色可提交的申請單
+        const ROLE_FORMS = {
+            '一般員工':   ['行政'],
+            '區域管理員': ['行政', '財務', 'HR'],
+            '研發主管':   ['行政', 'PMO'],
+            '財務主管':   ['財務', '行政'],
+            '稽核人員':   [],
+            '稽核主管':   ['行政', '財務'],
+        };
+        const _levelMap = (perms) => { const m = {}; perms.forEach(p => m[p.page] = p.level); return m; };
+        // 檢視異動差異：以「審批權限」分組呈現該角色擁有的權限，並標示新增／移除
+        // 套用申請的異動（新增／刪除角色）到目前角色，回傳異動後的角色清單
+        function applyChanges(cur, changes) {
+            const k = s => `${s.role}|${s.type}|${s.group}`;
+            const map = new Map((cur || []).map(s => [k(s), { role: s.role, type: s.type, group: s.group }]));
+            (changes || []).forEach(c => { if (c.action === 'del') map.delete(k(c)); else map.set(k(c), { role: c.role, type: c.type, group: c.group }); });
+            return [...map.values()];
+        }
+        // 合併多角色的審批權限鍵
+        function rolesKeys(roles) {
+            const set = new Set();
+            (roles || []).forEach(s => (ROLE_PERM_KEYS[s.role] || []).forEach(key => set.add(key)));
+            return [...set];
+        }
+        // 檢視異動差異：標頭列出角色＋維度，下方以審批權限分組呈現，並標示新增／移除
+        function buildPermPanel(title, roles, keys, otherKeys, mode) {
+            const other = new Set(otherKeys || []);
+            const isNew = mode === 'new';
+            const rolesHtml = (roles && roles.length)
+                ? roles.map(s => `<div class="flex flex-wrap items-center gap-2 text-xs">
+                        <span class="px-2 py-0.5 ${isNew ? 'bg-blue-50 text-[#4A90E2] border border-blue-100' : 'bg-gray-100 text-gray-700'} rounded font-semibold">${s.role}</span>
+                        <span class="text-gray-400">維度</span><span class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded font-semibold">${s.type}：${s.group}</span>
+                    </div>`).join('')
+                : '<span class="text-xs text-gray-400">無角色</span>';
+            const groupsHtml = PERM_GROUPS.map(g => {
+                const items = g.items.filter(it => keys.includes(it.key));
+                if (!items.length) return '';
+                const chips = items.map(it => {
+                    let cls = 'bg-gray-100 text-gray-700', tag = '';
+                    if (isNew && !other.has(it.key)) { cls = 'bg-emerald-50 text-emerald-700'; tag = '<span class="ml-1 text-[10px] font-bold">新增</span>'; }
+                    if (!isNew && !other.has(it.key)) { cls = 'bg-rose-50 text-rose-600'; tag = '<span class="ml-1 text-[10px] font-bold">移除</span>'; }
+                    return `<span class="px-2 py-0.5 ${cls} rounded text-xs font-semibold">${it.label}${tag}</span>`;
+                }).join('');
+                return `<div><div class="text-[11px] font-bold text-gray-500 mb-1.5 flex items-center gap-1.5"><i class="fa-solid ${g.icon} text-primary/70 text-[10px]"></i>${g.group}</div><div class="flex flex-wrap gap-1.5">${chips}</div></div>`;
+            }).join('');
+            return `
+                <div class="border ${isNew ? 'border-blue-200' : 'border-gray-200'} rounded-xl overflow-hidden">
+                    <div class="px-4 py-3 ${isNew ? 'bg-blue-50/60 border-blue-100' : 'bg-gray-50 border-gray-100'} border-b">
+                        <div class="text-sm font-bold ${isNew ? 'text-primary' : 'text-gray-700'}">${title}</div>
+                        <div class="mt-2 space-y-1.5">${rolesHtml}</div>
+                    </div>
+                    <div class="px-4 py-3 space-y-3">${groupsHtml || '<span class="text-xs text-gray-400">無權限</span>'}</div>
+                </div>`;
+        }
+        function openPermDiff(i) {
+            const r = PERM_CHANGE_REQUESTS[i];
+            document.getElementById('permdiff-who').textContent = r.name + '（' + r.empno + '）';
+            const after = applyChanges(r.curRoles, r.changes);
+            const oldKeys = rolesKeys(r.curRoles);
+            const newKeys = rolesKeys(after);
+            document.getElementById('permdiff-old').innerHTML = buildPermPanel('目前的審批角色與權限', r.curRoles, oldKeys, newKeys, 'old');
+            document.getElementById('permdiff-new').innerHTML = buildPermPanel('申請後的審批角色與權限', after, newKeys, oldKeys, 'new');
+            const noteEl = document.getElementById('permdiff-note');
+            if (noteEl) noteEl.innerHTML = r.note ? r.note.replace(/&/g, '&amp;').replace(/</g, '&lt;') : '<span class="text-gray-400">（申請人未填寫）</span>';
+            document.getElementById('permdiff-modal').classList.remove('hidden');
+        }
+        function closePermDiff() { document.getElementById('permdiff-modal').classList.add('hidden'); }
+
+        /* ============ 重新配置角色（可編輯調整權限）============ */
+        const ALL_PAGES = ['我的申請', '員工管理', '考勤管理', '假期管理', '員工假期查詢', '薪資管理', '月初匯率管理', '財務設定', '資產清單', '系統日誌'];
+        let _roleconfigWho = '';
+        function openRoleConfig(i) {
+            const r = PERM_CHANGE_REQUESTS[i];
+            _roleconfigWho = r.name + '（' + r.empno + '）';
+            document.getElementById('roleconfig-who').textContent = _roleconfigWho;
+            const sel = document.getElementById('roleconfig-role');
+            const primaryReq = (r.changes.find(c => c.action === 'add') || {}).role;
+            sel.innerHTML = Object.keys(ROLE_PERM_KEYS).map(role => `<option${role === primaryReq ? ' selected' : ''}>${role}</option>`).join('');
+            renderRolePerms();
+            document.getElementById('roleconfig-modal').classList.remove('hidden');
+        }
+        // 權限設置.html 的完整頁面資料權限表（含特殊操作與可提交申請單）
+        const PS_DATA_ACTIONS = ['檢視', '編輯'];
+        const PS_DATA_PAGES = [
+            { name: '首頁',     group: '個人', actions: ['檢視'] },
+            { name: '打卡',     group: '個人' },
+            { name: '出勤紀錄', group: '個人', actions: ['檢視'] },
+            { name: '補卡申請', group: '個人' },
+            { name: '假期申請', group: '個人' },
+            { name: '加班申請', group: '個人' },
+            { name: '個人資訊', group: '個人' },
+            { name: '文件庫',   group: '個人' },
+            { name: '我的申請', group: '電子表單' },
+            { name: '臨時保存', group: '電子表單' },
+            { name: '模板保存', group: '電子表單' },
+            { name: '申請',     group: '電子表單' },
+            { name: '請假簽核',     group: '簽核中心' },
+            { name: '補卡簽核',     group: '簽核中心' },
+            { name: '銷假簽核',     group: '簽核中心' },
+            { name: '電子表單簽核', group: '簽核中心' },
+            { name: '員工管理', group: '人事管理', ops: ['添加新員工', '取消入職', '重置密碼', '離職', '刪除帳號', '檢視個人信息', '檢視職位信息-主要編制', '檢視職位信息-職位', '檢視職位信息-基本工資', '檢視職位信息-獎金', '檢視職位信息-其他福利', '檢視職位信息-職位信息(主要)', '檢視職位信息-職位信息(次要)', '檢視職位信息-事業部', '檢視職位信息-職級', '檢視職位信息-其他項目', '檢視人員帳號', '檢視考勤信息', '檢視假期信息', '檢視薪資單', '檢視資產', '修改個人信息-基礎/個人信息', '修改個人信息-個人聯絡方式', '修改個人信息-緊急聯絡人', '修改職位信息-主要編制', '修改職位信息-職位', '修改職位信息-基本工資', '修改職位信息-獎金', '修改職位信息-其他福利', '修改職位信息-職位信息(主要)', '修改職位信息-職位信息(次要)', '修改職位信息-事業部', '修改職位信息-職級', '修改職位信息-其他項目', '提交人員帳號異動申請', '修改考勤信息', '修改假期信息'], specialOps: ['檢視負責區域項目員工', '檢視下屬員工'] },
+            { name: '考勤管理', group: '人事管理' },
+            { name: '考勤設置', group: '人事管理' },
+            { name: '假期管理', group: '人事管理' },
+            { name: '薪資管理', group: '人事管理' },
+            { name: '員工假期查詢', group: '人事管理' },
+            { name: '月初匯率管理', group: '財務管理' },
+            { name: '公告管理', group: '行政管理' },
+            { name: '文件庫管理', group: '行政管理' },
+            { name: '資產數統計', group: '行政管理', actions: ['檢視'] },
+            { name: '資產清單', group: '行政管理', actions: ['檢視'] },
+            { name: '資產單統計', group: '行政管理', actions: ['檢視'] },
+            { name: '資產盤點', group: '行政管理' },
+            { name: '資產抽查', group: '行政管理' },
+            { name: '資產類型設定', group: '行政管理' },
+            { name: '工號創建管理', group: '行政管理' },
+            { name: '審批帳號', group: '系統設定' },
+            { name: '審批角色權限', group: '系統設定' },
+            { name: '審批流管理', group: '系統設定' },
+            { name: '分組管理', group: '系統設定' },
+            { name: '帳號權限', group: '系統設定' },
+            { name: '權限設置', group: '系統設定' },
+            { name: '組織圖設定', group: '系統設定' },
+            { name: '組織架構管理', group: '系統設定' },
+            { name: '財務設定', group: '系統設定' },
+            { name: '行政設定', group: '系統設定' },
+            { name: '薪資密碼設定', group: '系統設定' },
+            { name: '系統日誌', group: '系統設定', actions: ['檢視'] },
+            { name: '封鎖設定', group: '系統設定' }
+        ];
+        const PS_APPROVAL_FORMS = ['商務', '合同', '財務', '行政', 'PMO', 'HR'];
+        // 審批權限表（比照 審批角色權限.html 的權限分組）
+        const PERM_GROUPS = [
+            { group: '下載權限', icon: 'fa-download', items: [
+                { key: 'p01', label: '記賬下載' }, { key: 'p02', label: '費用會計下載' },
+                { key: 'p03', label: '文件下載' }, { key: 'p04', label: '資金專員下載' } ] },
+            { group: '付款權限', icon: 'fa-money-check-dollar', items: [
+                { key: 'p05', label: '確認付款權限' }, { key: 'p07', label: '付款監控' } ] },
+            { group: '審批流程', icon: 'fa-diagram-project', items: [
+                { key: 'p06', label: '實時編輯審批線' }, { key: 'p08', label: '提交申請' } ] },
+            { group: '資產管理', icon: 'fa-box-archive', items: [
+                { key: 'p09', label: '資產管理(檢視)' }, { key: 'p14', label: '資產管理(編輯)' },
+                { key: 'p10', label: '資產盤點內審' }, { key: 'p11', label: '資產盤點財務' },
+                { key: 'p12', label: '資產盤點管理員' }, { key: 'p13', label: '資產盤點行政' } ] },
+            { group: '職能角色', icon: 'fa-user-tag', items: [
+                { key: 'p15', label: '費用會計' }, { key: 'p16', label: '資金專員' },
+                { key: 'p17', label: '採購負責人' }, { key: 'p18', label: '查看費用會計' } ] }
+        ];
+        const APPROVAL_ALL_KEYS = PERM_GROUPS.flatMap(g => g.items.map(i => i.key));
+        // 審批角色清單與各角色的預設審批權限（比照 審批角色權限.html / 申請.html）
+        const ROLE_LIST = ['申請人直屬主管', '部門主管', '負責人', '人事專員', '人事主管', '財務人員', '財務主管', '執行長', '董事長'];
+        const ROLE_PERM_KEYS = {};
+        ROLE_LIST.forEach((role, ri) => { const arr = []; APPROVAL_ALL_KEYS.forEach((k, pi) => { if (ri === 0 ? true : ((pi + ri) % 3 !== 0)) arr.push(k); }); ROLE_PERM_KEYS[role] = arr; });
+        // 依角色渲染「審批權限」分組卡片（比照 審批角色權限.html）
+        function renderFullPermTable(containerId, roleName) {
+            const granted = new Set(ROLE_PERM_KEYS[roleName] || []);
+            const html = PERM_GROUPS.map(g => {
+                const gkeys = g.items.map(i => i.key);
+                const gGranted = gkeys.filter(k => granted.has(k)).length;
+                return `<div class="border border-gray-100 rounded-xl p-4">
+                    <div class="flex items-center justify-between mb-3">
+                        <h4 class="text-sm font-bold text-gray-800 flex items-center gap-2"><i class="fa-solid ${g.icon} text-primary"></i>${g.group}<span class="text-xs font-medium text-gray-400">${gGranted}/${gkeys.length}</span></h4>
+                    </div>
+                    <div class="grid grid-cols-2 lg:grid-cols-3 gap-2.5">
+                        ${g.items.map(it => `<label class="flex items-center gap-2.5 px-3 py-2 rounded-lg border border-gray-100 hover:border-gray-200 cursor-pointer">
+                            <input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer" ${granted.has(it.key) ? 'checked' : ''}>
+                            <span class="text-sm text-gray-700">${it.label}</span>
+                        </label>`).join('')}
+                    </div>
+                </div>`;
+            }).join('');
+            document.getElementById(containerId).innerHTML = html;
+        }
+        function renderRolePerms() {
+            renderFullPermTable('roleconfig-tbody', document.getElementById('roleconfig-role').value);
+        }
+        function closeRoleConfig() { document.getElementById('roleconfig-modal').classList.add('hidden'); }
+        function saveRoleConfig() { closeRoleConfig(); showToast('success', '已儲存「' + _roleconfigWho + '」的角色權限配置（示範）'); }
+
+        /* ============ 創建新角色（輸入角色名稱並設定權限）============ */
+        let _newroleWho = '';
+        function openNewRole(i) {
+            const r = PERM_CHANGE_REQUESTS[i];
+            _newroleWho = r.name + '（' + r.empno + '）';
+            document.getElementById('newrole-who').textContent = _newroleWho;
+            document.getElementById('newrole-name').value = '';
+            renderFullPermTable('newrole-tbody', (r.changes.find(c => c.action === 'add') || {}).role);
+            document.getElementById('newrole-modal').classList.remove('hidden');
+            setTimeout(() => document.getElementById('newrole-name').focus(), 50);
+        }
+        function closeNewRole() { document.getElementById('newrole-modal').classList.add('hidden'); }
+        function saveNewRole() {
+            const name = (document.getElementById('newrole-name').value || '').trim();
+            if (!name) { showToast('error', '請輸入角色名稱'); return; }
+            closeNewRole();
+            showToast('success', '已建立新角色「' + name + '」（示範）');
+        }
+
     </script>
 </body>
 </html>

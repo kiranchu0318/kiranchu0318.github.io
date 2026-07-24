@@ -2036,51 +2036,31 @@
                         <div class="px-4 pt-4 grid grid-cols-5 gap-x-5 gap-y-5 mb-4">
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">異動對象</label><input type="text" value="Nick（100064）" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed" disabled></div>
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">所屬部門</label><input type="text" value="RD" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed" disabled></div>
-                            <div><label class="block mb-1.5 text-[13px] text-gray-700">當前審批角色</label><input type="text" value="財務人員" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed" disabled></div>
                         </div>
-                        <div class="px-4 pb-4 space-y-3">
-                            <label class="block text-[13px] text-gray-700 font-medium">申請異動的權限項目 <span class="text-red-500">*</span><span class="text-[12px] text-gray-400 font-normal ml-1">（已預帶目前已配置的權限，可再勾選新增或取消）</span></label>
-                            <div class="border border-gray-200 rounded-md">
-                                <div class="px-3 py-2 bg-gray-50 border-b border-gray-200 text-[13px] font-bold text-[#2b3b84]">下載權限</div>
-                                <div class="p-3 grid grid-cols-2 sm:grid-cols-4 gap-2">
-                                    <label class="flex items-center gap-2 text-[13px] text-gray-700"><input type="checkbox" class="w-4 h-4"> 記賬下載</label>
-                                    <label class="flex items-center gap-2 text-[13px] text-gray-700"><input type="checkbox" class="w-4 h-4" checked> 費用會計下載</label>
-                                    <label class="flex items-center gap-2 text-[13px] text-gray-700"><input type="checkbox" class="w-4 h-4"> 文件下載</label>
-                                    <label class="flex items-center gap-2 text-[13px] text-gray-700"><input type="checkbox" class="w-4 h-4" checked> 資金專員下載</label>
-                                </div>
+                        <!-- 目前已附加的審批角色（來源：審批帳號 的「審批角色」，僅供檢視） -->
+                        <div class="px-4 pb-4">
+                            <label class="block mb-2 text-[13px] text-gray-700 font-medium">目前已附加的審批角色 <span class="text-[12px] text-gray-400 font-normal ml-1">（來源：審批帳號 的「審批角色」，僅供檢視）</span></label>
+                            <div id="ap-current-roles" class="border border-gray-200 rounded-md p-3 flex flex-col gap-2"></div>
+                        </div>
+
+                        <!-- 審批角色與權限對照（來源：審批角色權限，可展開檢視） -->
+                        <div class="px-4 pb-4">
+                            <label class="block mb-2 text-[13px] text-gray-700 font-medium">審批角色與權限對照 <span class="text-[12px] text-gray-400 font-normal ml-1">（來源：審批角色權限）</span></label>
+                            <button type="button" onclick="apOpenCatalog()" class="ui-btn ui-btn-sm bg-white text-blue-600 border border-blue-200 hover:bg-blue-50"><i data-lucide="book-open" class="w-3.5 h-3.5"></i> 檢視審批角色與權限對照</button>
+                        </div>
+
+                        <!-- 申請異動的角色 -->
+                        <div class="px-4 pb-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="text-[13px] text-gray-700 font-medium">申請異動的角色 <span class="text-red-500">*</span><span class="text-[12px] text-gray-400 font-normal ml-1">（選擇要新增或刪除的角色，並指定角色維度）</span></label>
+                                <button type="button" onclick="apAddChangeRow()" class="ui-btn ui-btn-sm bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100"><i data-lucide="plus" class="w-3.5 h-3.5"></i> 新增一列</button>
                             </div>
-                            <div class="border border-gray-200 rounded-md">
-                                <div class="px-3 py-2 bg-gray-50 border-b border-gray-200 text-[13px] font-bold text-[#2b3b84]">付款權限</div>
-                                <div class="p-3 grid grid-cols-2 sm:grid-cols-4 gap-2">
-                                    <label class="flex items-center gap-2 text-[13px] text-gray-700"><input type="checkbox" class="w-4 h-4" checked> 確認付款權限</label>
-                                    <label class="flex items-center gap-2 text-[13px] text-gray-700"><input type="checkbox" class="w-4 h-4" checked> 付款監控</label>
-                                </div>
-                            </div>
-                            <div class="border border-gray-200 rounded-md">
-                                <div class="px-3 py-2 bg-gray-50 border-b border-gray-200 text-[13px] font-bold text-[#2b3b84]">審批流程</div>
-                                <div class="p-3 grid grid-cols-2 sm:grid-cols-4 gap-2">
-                                    <label class="flex items-center gap-2 text-[13px] text-gray-700"><input type="checkbox" class="w-4 h-4"> 實時編輯審批線</label>
-                                    <label class="flex items-center gap-2 text-[13px] text-gray-700"><input type="checkbox" class="w-4 h-4" checked> 提交申請</label>
-                                </div>
-                            </div>
-                            <div class="border border-gray-200 rounded-md">
-                                <div class="px-3 py-2 bg-gray-50 border-b border-gray-200 text-[13px] font-bold text-[#2b3b84]">資產管理</div>
-                                <div class="p-3 grid grid-cols-2 sm:grid-cols-4 gap-2">
-                                    <label class="flex items-center gap-2 text-[13px] text-gray-700"><input type="checkbox" class="w-4 h-4"> 資產管理(檢視)</label>
-                                    <label class="flex items-center gap-2 text-[13px] text-gray-700"><input type="checkbox" class="w-4 h-4"> 資產管理(編輯)</label>
-                                    <label class="flex items-center gap-2 text-[13px] text-gray-700"><input type="checkbox" class="w-4 h-4"> 資產盤點內審</label>
-                                    <label class="flex items-center gap-2 text-[13px] text-gray-700"><input type="checkbox" class="w-4 h-4"> 資產盤點財務</label>
-                                    <label class="flex items-center gap-2 text-[13px] text-gray-700"><input type="checkbox" class="w-4 h-4"> 資產盤點管理員</label>
-                                    <label class="flex items-center gap-2 text-[13px] text-gray-700"><input type="checkbox" class="w-4 h-4"> 資產盤點行政</label>
-                                </div>
-                            </div>
-                            <div class="border border-gray-200 rounded-md">
-                                <div class="px-3 py-2 bg-gray-50 border-b border-gray-200 text-[13px] font-bold text-[#2b3b84]">職能角色</div>
-                                <div class="p-3 grid grid-cols-2 sm:grid-cols-4 gap-2">
-                                    <label class="flex items-center gap-2 text-[13px] text-gray-700"><input type="checkbox" class="w-4 h-4" checked> 費用會計</label>
-                                    <label class="flex items-center gap-2 text-[13px] text-gray-700"><input type="checkbox" class="w-4 h-4" checked> 資金專員</label>
-                                    <label class="flex items-center gap-2 text-[13px] text-gray-700"><input type="checkbox" class="w-4 h-4"> 採購負責人</label>
-                                    <label class="flex items-center gap-2 text-[13px] text-gray-700"><input type="checkbox" class="w-4 h-4"> 查看費用會計</label>
+                            <div class="overflow-x-auto">
+                                <div class="min-w-[760px]">
+                                    <div class="grid grid-cols-[110px_1fr_140px_1fr_36px] gap-2 mb-1.5 px-1 text-[12px] font-medium text-gray-400">
+                                        <div>異動類型</div><div>角色</div><div>分組類型</div><div>指定分組（維度）</div><div></div>
+                                    </div>
+                                    <div id="ap-change-rows" class="space-y-2"></div>
                                 </div>
                             </div>
                         </div>
@@ -2088,7 +2068,7 @@
 
                     <!-- 申請說明 -->
                     <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5">
-                        <div class="px-4 py-2.5 border-b border-gray-200"><h3 class="text-[#2b3b84] font-bold text-[15px]">申請說明</h3></div>
+                        <div class="px-4 py-2.5 border-b border-gray-200"><h3 class="text-[#2b3b84] font-bold text-[15px]">申請說明及其他異動需求</h3></div>
                         <div class="p-4"><textarea class="w-full min-h-[120px] outline-none resize-y text-[13px] border border-gray-300 rounded p-3" placeholder="請說明申請此審批權限的原因…"></textarea></div>
                     </div>
 
@@ -2155,37 +2135,40 @@
                         <div class="px-4 pt-4 grid grid-cols-5 gap-x-5 gap-y-5 mb-4">
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">異動對象</label><input type="text" value="Nick（100064）" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed" disabled></div>
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">所屬部門</label><input type="text" value="RD" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed" disabled></div>
-                            <div><label class="block mb-1.5 text-[13px] text-gray-700">當前套用角色</label><input type="text" value="一般員工" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed" disabled></div>
-                            <div><label class="block mb-1.5 text-[13px] text-gray-700">申請套用角色 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option><option>區域管理員</option><option>研發主管</option><option>財務主管</option><option>稽核人員</option><option>稽核主管</option></select></div>
-                            <div><label class="block mb-1.5 text-[13px] text-gray-700">申請負責區域</label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>維持現況</option><option>T1</option><option>T2</option><option>U</option><option>S</option></select></div>
                         </div>
+
+                        <!-- 目前已套用的系統角色（來源：權限設置，一帳號可多角色） -->
                         <div class="px-4 pb-4">
-                            <label class="block mb-2 text-[13px] text-gray-700">申請頁面資料權限 <span class="text-red-500">*</span></label>
-                            <div class="overflow-x-auto border border-gray-200 rounded">
-                                <table class="w-full text-[13px]">
-                                    <thead>
-                                        <tr class="bg-gray-50 text-gray-600 border-b border-gray-200">
-                                            <th class="text-left px-3 py-2">頁面</th>
-                                            <th class="px-3 py-2 w-24 text-center">檢視</th>
-                                            <th class="px-3 py-2 w-24 text-center">編輯</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="divide-y divide-gray-100">
-                                        <tr><td class="px-3 py-1.5">員工管理</td><td class="text-center"><input type="checkbox" class="w-4 h-4"></td><td class="text-center"><input type="checkbox" class="w-4 h-4"></td></tr>
-                                        <tr><td class="px-3 py-1.5">考勤管理</td><td class="text-center"><input type="checkbox" class="w-4 h-4"></td><td class="text-center"><input type="checkbox" class="w-4 h-4"></td></tr>
-                                        <tr><td class="px-3 py-1.5">假期管理</td><td class="text-center"><input type="checkbox" class="w-4 h-4"></td><td class="text-center"><input type="checkbox" class="w-4 h-4"></td></tr>
-                                        <tr><td class="px-3 py-1.5">薪資管理</td><td class="text-center"><input type="checkbox" class="w-4 h-4"></td><td class="text-center"><input type="checkbox" class="w-4 h-4"></td></tr>
-                                        <tr><td class="px-3 py-1.5">財務設定</td><td class="text-center"><input type="checkbox" class="w-4 h-4"></td><td class="text-center"><input type="checkbox" class="w-4 h-4"></td></tr>
-                                        <tr><td class="px-3 py-1.5">系統日誌</td><td class="text-center"><input type="checkbox" class="w-4 h-4"></td><td class="text-center"><input type="checkbox" class="w-4 h-4"></td></tr>
-                                    </tbody>
-                                </table>
+                            <label class="block mb-2 text-[13px] text-gray-700 font-medium">目前已套用的系統角色 <span class="text-[12px] text-gray-400 font-normal ml-1">（來源：權限設置，一帳號可套用多個角色，各角色有負責區域／項目，僅供檢視）</span></label>
+                            <div id="sp-current-roles" class="border border-gray-200 rounded-md p-3 flex flex-col gap-2"></div>
+                        </div>
+
+                        <!-- 系統角色與頁面資料權限對照（來源：權限設置，可展開檢視） -->
+                        <div class="px-4 pb-4">
+                            <label class="block mb-2 text-[13px] text-gray-700 font-medium">系統角色與頁面資料權限對照 <span class="text-[12px] text-gray-400 font-normal ml-1">（來源：權限設置）</span></label>
+                            <button type="button" onclick="spOpenCatalog()" class="ui-btn ui-btn-sm bg-white text-blue-600 border border-blue-200 hover:bg-blue-50"><i data-lucide="book-open" class="w-3.5 h-3.5"></i> 檢視系統角色與頁面資料權限對照</button>
+                        </div>
+
+                        <!-- 申請異動的角色 -->
+                        <div class="px-4 pb-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="text-[13px] text-gray-700 font-medium">申請異動的角色 <span class="text-red-500">*</span><span class="text-[12px] text-gray-400 font-normal ml-1">（選擇要新增或刪除的角色，並指定負責區域／項目）</span></label>
+                                <button type="button" onclick="spAddChangeRow()" class="ui-btn ui-btn-sm bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100"><i data-lucide="plus" class="w-3.5 h-3.5"></i> 新增一列</button>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <div class="min-w-[760px]">
+                                    <div class="grid grid-cols-[110px_1fr_1fr_1fr_36px] gap-2 mb-1.5 px-1 text-[12px] font-medium text-gray-400">
+                                        <div>異動類型</div><div>角色</div><div>負責區域</div><div>負責項目</div><div></div>
+                                    </div>
+                                    <div id="sp-change-rows" class="space-y-2"></div>
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     <!-- 申請說明 -->
                     <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5">
-                        <div class="px-4 py-2.5 border-b border-gray-200"><h3 class="text-[#2b3b84] font-bold text-[15px]">申請說明</h3></div>
+                        <div class="px-4 py-2.5 border-b border-gray-200"><h3 class="text-[#2b3b84] font-bold text-[15px]">申請說明及其他異動需求</h3></div>
                         <div class="p-4"><textarea class="w-full min-h-[120px] outline-none resize-y text-[13px] border border-gray-300 rounded p-3" placeholder="請說明申請此系統權限的原因…"></textarea></div>
                     </div>
 
@@ -5710,5 +5693,228 @@
             if (window.lucide) lucide.createIcons();
         }
     </script>
+<!-- =========== 審批角色與權限對照 彈窗 =========== -->
+<div id="ap-catalog-modal" class="fixed inset-0 bg-black/40 z-[60] flex justify-center items-center p-4 hidden" onclick="if(event.target===this)apCloseCatalog()">
+    <div class="bg-white rounded-lg shadow-2xl w-full max-w-[860px] h-[78vh] flex flex-col overflow-hidden">
+        <div class="bg-[#EAF2FC] flex justify-between items-center px-4 py-3 border-b border-blue-100 shrink-0">
+            <h2 class="text-[#2b3b84] font-bold text-[15px]">審批角色與權限對照 <span class="text-[12px] text-gray-400 font-normal ml-1">（來源：審批角色權限）</span></h2>
+            <button type="button" onclick="apCloseCatalog()" class="bg-blue-500 hover:bg-blue-600 text-white rounded p-1 transition-colors"><i data-lucide="x" class="w-4 h-4"></i></button>
+        </div>
+        <div class="flex flex-1 min-h-0 overflow-hidden">
+            <div id="ap-catalog-roles" class="w-[190px] shrink-0 border-r border-gray-200 overflow-y-auto bg-gray-50/60 py-1.5"></div>
+            <div id="ap-catalog-detail" class="flex-1 overflow-y-auto p-4"></div>
+        </div>
+        <div class="border-t border-gray-200 px-4 py-3 flex justify-end bg-[#f4f5f8] shrink-0"><button type="button" onclick="apCloseCatalog()" class="ui-btn ui-btn-secondary px-6">關閉</button></div>
+    </div>
+</div>
+
+<!-- =========== 系統角色與頁面資料權限對照 彈窗 =========== -->
+<div id="sp-catalog-modal" class="fixed inset-0 bg-black/40 z-[60] flex justify-center items-center p-4 hidden" onclick="if(event.target===this)spCloseCatalog()">
+    <div class="bg-white rounded-lg shadow-2xl w-full max-w-[860px] h-[78vh] flex flex-col overflow-hidden">
+        <div class="bg-[#EAF2FC] flex justify-between items-center px-4 py-3 border-b border-blue-100 shrink-0">
+            <h2 class="text-[#2b3b84] font-bold text-[15px]">系統角色與頁面資料權限對照 <span class="text-[12px] text-gray-400 font-normal ml-1">（來源：權限設置）</span></h2>
+            <button type="button" onclick="spCloseCatalog()" class="bg-blue-500 hover:bg-blue-600 text-white rounded p-1 transition-colors"><i data-lucide="x" class="w-4 h-4"></i></button>
+        </div>
+        <div class="flex flex-1 min-h-0 overflow-hidden">
+            <div id="sp-catalog-roles" class="w-[190px] shrink-0 border-r border-gray-200 overflow-y-auto bg-gray-50/60 py-1.5"></div>
+            <div id="sp-catalog-detail" class="flex-1 overflow-y-auto p-4"></div>
+        </div>
+        <div class="border-t border-gray-200 px-4 py-3 flex justify-end bg-[#f4f5f8] shrink-0"><button type="button" onclick="spCloseCatalog()" class="ui-btn ui-btn-secondary px-6">關閉</button></div>
+    </div>
+</div>
+
+<script>
+/* ===== 審批權限異動申請：附加角色檢視 + 角色權限對照 + 申請新增/刪除角色 ===== */
+(function () {
+    const AP_PERM_GROUPS = [
+        { group: '下載權限', items: [{ key: 'p01', label: '記賬下載' }, { key: 'p02', label: '費用會計下載' }, { key: 'p03', label: '文件下載' }, { key: 'p04', label: '資金專員下載' }] },
+        { group: '付款權限', items: [{ key: 'p05', label: '確認付款權限' }, { key: 'p07', label: '付款監控' }] },
+        { group: '審批流程', items: [{ key: 'p06', label: '實時編輯審批線' }, { key: 'p08', label: '提交申請' }] },
+        { group: '資產管理', items: [{ key: 'p09', label: '資產管理(檢視)' }, { key: 'p14', label: '資產管理(編輯)' }, { key: 'p10', label: '資產盤點內審' }, { key: 'p11', label: '資產盤點財務' }, { key: 'p12', label: '資產盤點管理員' }, { key: 'p13', label: '資產盤點行政' }] },
+        { group: '職能角色', items: [{ key: 'p15', label: '費用會計' }, { key: 'p16', label: '資金專員' }, { key: 'p17', label: '採購負責人' }, { key: 'p18', label: '查看費用會計' }] }
+    ];
+    const AP_ROLE_LIST = ['申請人直屬主管', '部門主管', '負責人', '人事專員', '人事主管', '財務人員', '財務主管', '執行長', '董事長'];
+    const AP_ALL_KEYS = AP_PERM_GROUPS.flatMap(g => g.items.map(i => i.key));
+    // 各角色權限（示範規律，比照 審批角色權限.html）
+    const AP_ROLE_PERMS = {};
+    AP_ROLE_LIST.forEach((role, ri) => { const set = new Set(); AP_ALL_KEYS.forEach((k, pi) => { if (ri === 0 ? true : ((pi + ri) % 3 !== 0)) set.add(k); }); AP_ROLE_PERMS[role] = set; });
+    // 分組類型 → 指定分組
+    const AP_GROUP_TYPES = { '地區': ['台灣', '越南', '香港', '日本', '新加坡'], '公司': ['RG', 'LKG', 'KX', 'BOSS'], '事業部': ['第一事業部', '第二事業部', '第三事業部', 'PMO'], '項目': ['GT', 'GT/VN'], '部門': ['財務部', '人資部', '研發部', '行銷部'] };
+    // 申請人目前已附加的審批角色（來源：審批帳號）
+    const AP_CURRENT_ROLES = [{ role: '財務人員', type: '公司', group: 'KX' }, { role: '人事專員', type: '地區', group: '台灣' }];
+
+    window.apRenderCurrentRoles = function () {
+        const el = document.getElementById('ap-current-roles'); if (!el) return;
+        if (!AP_CURRENT_ROLES.length) { el.innerHTML = '<span class="text-[13px] text-gray-400">目前無附加的審批角色</span>'; return; }
+        el.innerHTML = AP_CURRENT_ROLES.map(r => `
+            <div class="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+                <span class="inline-block px-3 py-1 bg-blue-50 text-[#4A90E2] border border-blue-100 rounded text-[13px] shrink-0">${r.role}</span>
+                <span class="inline-flex items-center gap-1.5 text-[13px] text-gray-700"><span class="text-gray-400">維度</span><span class="px-2 py-0.5 bg-gray-100 rounded">${r.type}：${r.group}</span></span>
+            </div>`).join('');
+    };
+    let _apCatSel = 0;
+    // 左側：審批角色選單
+    window.apRenderCatalog = function () {
+        const menu = document.getElementById('ap-catalog-roles'); if (!menu) return;
+        menu.innerHTML = AP_ROLE_LIST.map((role, i) => `
+            <button type="button" onclick="apSelectCatalogRole(${i})" class="w-full text-left px-3 py-2.5 text-[13px] border-l-2 transition-colors ${i === _apCatSel ? 'bg-white border-[#4A90E2] text-[#2b3b84] font-semibold' : 'border-transparent text-gray-600 hover:bg-white/70'}">
+                <div class="flex items-center justify-between gap-2"><span>${role}</span><span class="text-[11px] text-gray-400">${AP_ROLE_PERMS[role].size}/${AP_ALL_KEYS.length}</span></div>
+            </button>`).join('');
+        apRenderCatalogDetail();
+    };
+    window.apSelectCatalogRole = function (i) { _apCatSel = i; apRenderCatalog(); };
+    // 右側：所選角色的權限表
+    window.apRenderCatalogDetail = function () {
+        const el = document.getElementById('ap-catalog-detail'); if (!el) return;
+        const role = AP_ROLE_LIST[_apCatSel]; const set = AP_ROLE_PERMS[role];
+        const rows = AP_PERM_GROUPS.map(g => g.items.map((it, idx) =>
+            `<tr class="border-b border-gray-100">`
+            + (idx === 0 ? `<td class="px-3 py-2 align-top font-medium text-gray-700 bg-gray-50/60 border-r border-gray-100" rowspan="${g.items.length}">${g.group}</td>` : '')
+            + `<td class="px-3 py-2 text-gray-700">${it.label}</td>`
+            + `<td class="px-3 py-2 text-center">${set.has(it.key) ? '<span class="text-emerald-600 font-bold">✓</span>' : '<span class="text-gray-300">—</span>'}</td></tr>`
+        ).join('')).join('');
+        el.innerHTML = `
+            <div class="flex items-center gap-2 mb-3">
+                <span class="px-2.5 py-1 bg-blue-50 text-[#4A90E2] border border-blue-100 rounded text-[13px] font-semibold">${role}</span>
+                <span class="text-[12px] text-gray-400">已授權 ${set.size} / ${AP_ALL_KEYS.length} 項</span>
+            </div>
+            <div class="border border-gray-200 rounded-md overflow-hidden">
+                <table class="w-full text-[13px]">
+                    <thead><tr class="bg-gray-50 text-gray-500 border-b border-gray-200"><th class="px-3 py-2 text-left w-28">權限分組</th><th class="px-3 py-2 text-left">權限項目</th><th class="px-3 py-2 text-center w-20">是否具備</th></tr></thead>
+                    <tbody>${rows}</tbody>
+                </table>
+            </div>`;
+    };
+    window.apOpenCatalog = function () { _apCatSel = 0; apRenderCatalog(); const m = document.getElementById('ap-catalog-modal'); if (m) m.classList.remove('hidden'); };
+    window.apCloseCatalog = function () { const m = document.getElementById('ap-catalog-modal'); if (m) m.classList.add('hidden'); };
+    window.apOnTypeChange = function (sel) {
+        const row = sel.closest('.ap-change-row'); if (!row) return;
+        const groupSel = row.querySelector('.ap-group'); const opts = AP_GROUP_TYPES[sel.value] || [];
+        groupSel.innerHTML = opts.length ? '<option value="">選擇分組</option>' + opts.map(o => `<option>${o}</option>`).join('') : '<option value="">請先選分組類型</option>';
+    };
+    window.apAddChangeRow = function () {
+        const wrap = document.getElementById('ap-change-rows'); if (!wrap) return;
+        const row = document.createElement('div');
+        row.className = 'ap-change-row grid grid-cols-[110px_1fr_140px_1fr_36px] gap-2 items-center';
+        const roleOpts = AP_ROLE_LIST.map(r => `<option>${r}</option>`).join('');
+        const typeOpts = Object.keys(AP_GROUP_TYPES).map(t => `<option>${t}</option>`).join('');
+        row.innerHTML = `
+            <select class="ap-type border border-gray-300 rounded px-2 py-1.5 text-[13px] outline-none focus:border-blue-500"><option value="add">新增</option><option value="del">刪除</option></select>
+            <select class="ap-role border border-gray-300 rounded px-2 py-1.5 text-[13px] outline-none focus:border-blue-500"><option value="">選擇角色</option>${roleOpts}</select>
+            <select class="ap-grouptype border border-gray-300 rounded px-2 py-1.5 text-[13px] outline-none focus:border-blue-500" onchange="apOnTypeChange(this)"><option value="">分組類型</option>${typeOpts}</select>
+            <select class="ap-group border border-gray-300 rounded px-2 py-1.5 text-[13px] outline-none focus:border-blue-500"><option value="">請先選分組類型</option></select>
+            <button type="button" onclick="apRemoveChangeRow(this)" class="text-gray-400 hover:text-red-500 flex items-center justify-center" aria-label="移除"><i data-lucide="trash-2" class="w-4 h-4"></i></button>`;
+        wrap.appendChild(row);
+        if (window.lucide) lucide.createIcons();
+    };
+    window.apRemoveChangeRow = function (btn) {
+        const row = btn.closest('.ap-change-row'); const wrap = document.getElementById('ap-change-rows');
+        if (row && wrap && wrap.children.length > 1) { row.remove(); }
+        else if (row) { row.querySelectorAll('select').forEach(s => s.selectedIndex = 0); apOnTypeChange(row.querySelector('.ap-grouptype')); }
+    };
+    function apInit() {
+        if (!document.getElementById('ap-current-roles')) return;
+        apRenderCurrentRoles(); apRenderCatalog();
+        const rows = document.getElementById('ap-change-rows');
+        if (rows && !rows.children.length) apAddChangeRow();
+    }
+    if (document.readyState !== 'loading') apInit(); else document.addEventListener('DOMContentLoaded', apInit);
+})();
+</script>
+<script>
+/* ===== 系統權限異動申請：多角色檢視 + 角色頁面權限對照 + 申請新增/刪除角色（比照 權限設置.html 的一帳號多角色邏輯） ===== */
+(function () {
+    const SP_ROLE_LIST = ['系統管理員', '人資主管', '財務主管', '稽核人員'];
+    const SP_ROLE_DESC = {
+        '系統管理員': '擁有系統所有頁面、操作與功能權限',
+        '人資主管': '人事管理相關頁面具完整權限，其餘頁面僅可檢視',
+        '財務主管': '財務管理相關頁面具完整權限，其餘頁面僅可檢視',
+        '稽核人員': '可檢視全系統頁面（唯讀，不可編輯）'
+    };
+    const SP_ROLE_PERMS = {
+        '系統管理員': [{ page: '員工管理', level: '檢視/編輯' }, { page: '考勤管理', level: '檢視/編輯' }, { page: '假期管理', level: '檢視/編輯' }, { page: '薪資管理', level: '檢視/編輯' }, { page: '月初匯率管理', level: '檢視/編輯' }, { page: '財務設定', level: '檢視/編輯' }, { page: '資產清單', level: '檢視/編輯' }, { page: '系統日誌', level: '檢視/編輯' }],
+        '人資主管': [{ page: '員工管理', level: '檢視/編輯' }, { page: '考勤管理', level: '檢視/編輯' }, { page: '假期管理', level: '檢視/編輯' }, { page: '薪資管理', level: '檢視' }, { page: '資產清單', level: '檢視' }, { page: '系統日誌', level: '檢視' }],
+        '財務主管': [{ page: '月初匯率管理', level: '檢視/編輯' }, { page: '財務設定', level: '檢視/編輯' }, { page: '薪資管理', level: '檢視/編輯' }, { page: '員工管理', level: '檢視' }, { page: '考勤管理', level: '檢視' }, { page: '資產清單', level: '檢視' }],
+        '稽核人員': [{ page: '員工管理', level: '檢視' }, { page: '考勤管理', level: '檢視' }, { page: '假期管理', level: '檢視' }, { page: '薪資管理', level: '檢視' }, { page: '財務設定', level: '檢視' }, { page: '系統日誌', level: '檢視' }]
+    };
+    const SP_REGIONS = ['T1', 'T2', 'U', 'J', 'S'];
+    const SP_PROJECTS = ['GT', 'GX', 'GS', 'GF', 'GP'];
+    // 申請人目前已套用的系統角色（來源：權限設置，可多角色，各有負責區域/項目）
+    const SP_CURRENT_ROLES = [{ role: '人資主管', region: 'T1', project: 'GT' }, { role: '稽核人員', region: 'T2', project: 'GX' }];
+
+    window.spRenderCurrentRoles = function () {
+        const el = document.getElementById('sp-current-roles'); if (!el) return;
+        if (!SP_CURRENT_ROLES.length) { el.innerHTML = '<span class="text-[13px] text-gray-400">目前無套用的系統角色</span>'; return; }
+        el.innerHTML = SP_CURRENT_ROLES.map(r => `
+            <div class="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+                <span class="inline-block px-3 py-1 bg-blue-50 text-[#4A90E2] border border-blue-100 rounded text-[13px] shrink-0">${r.role}</span>
+                <span class="inline-flex items-center gap-1.5 text-[13px] text-gray-700"><span class="text-gray-400">負責區域</span><span class="px-2 py-0.5 bg-teal-50 text-teal-600 rounded text-xs font-semibold">${r.region}</span></span>
+                <span class="inline-flex items-center gap-1.5 text-[13px] text-gray-700"><span class="text-gray-400">負責項目</span><span class="px-2 py-0.5 bg-sky-50 text-sky-600 rounded text-xs font-semibold">${r.project}</span></span>
+            </div>`).join('');
+    };
+    let _spCatSel = 0;
+    // 左側：系統角色選單
+    window.spRenderCatalog = function () {
+        const menu = document.getElementById('sp-catalog-roles'); if (!menu) return;
+        menu.innerHTML = SP_ROLE_LIST.map((role, i) => `
+            <button type="button" onclick="spSelectCatalogRole(${i})" class="w-full text-left px-3 py-2.5 text-[13px] border-l-2 transition-colors ${i === _spCatSel ? 'bg-white border-[#4A90E2] text-[#2b3b84] font-semibold' : 'border-transparent text-gray-600 hover:bg-white/70'}">${role}</button>`).join('');
+        spRenderCatalogDetail();
+    };
+    window.spSelectCatalogRole = function (i) { _spCatSel = i; spRenderCatalog(); };
+    // 右側：所選角色的頁面資料權限表
+    window.spRenderCatalogDetail = function () {
+        const el = document.getElementById('sp-catalog-detail'); if (!el) return;
+        const role = SP_ROLE_LIST[_spCatSel]; const perms = SP_ROLE_PERMS[role] || [];
+        const rows = perms.map(p => {
+            const isEdit = p.level.includes('編輯');
+            return `<tr class="border-b border-gray-100">
+                <td class="px-3 py-2 text-gray-700">${p.page}</td>
+                <td class="px-3 py-2"><span class="px-2 py-0.5 ${isEdit ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-100 text-gray-600'} rounded text-[12px] font-semibold">${p.level}</span></td>
+            </tr>`;
+        }).join('') || '<tr><td colspan="2" class="px-3 py-6 text-center text-gray-400 text-[12px]">無權限</td></tr>';
+        el.innerHTML = `
+            <div class="mb-3">
+                <div class="flex items-center gap-2"><span class="px-2.5 py-1 bg-blue-50 text-[#4A90E2] border border-blue-100 rounded text-[13px] font-semibold">${role}</span></div>
+                <p class="text-[12px] text-gray-400 mt-1">${SP_ROLE_DESC[role] || ''}</p>
+            </div>
+            <div class="border border-gray-200 rounded-md overflow-hidden">
+                <table class="w-full text-[13px]">
+                    <thead><tr class="bg-gray-50 text-gray-500 border-b border-gray-200"><th class="px-3 py-2 text-left">頁面</th><th class="px-3 py-2 text-left w-32">權限</th></tr></thead>
+                    <tbody>${rows}</tbody>
+                </table>
+            </div>`;
+    };
+    window.spOpenCatalog = function () { _spCatSel = 0; spRenderCatalog(); const m = document.getElementById('sp-catalog-modal'); if (m) m.classList.remove('hidden'); };
+    window.spCloseCatalog = function () { const m = document.getElementById('sp-catalog-modal'); if (m) m.classList.add('hidden'); };
+    window.spAddChangeRow = function () {
+        const wrap = document.getElementById('sp-change-rows'); if (!wrap) return;
+        const row = document.createElement('div');
+        row.className = 'sp-change-row grid grid-cols-[110px_1fr_1fr_1fr_36px] gap-2 items-center';
+        const roleOpts = SP_ROLE_LIST.map(r => `<option>${r}</option>`).join('');
+        const regionOpts = SP_REGIONS.map(r => `<option>${r}</option>`).join('');
+        const projectOpts = SP_PROJECTS.map(p => `<option>${p}</option>`).join('');
+        row.innerHTML = `
+            <select class="sp-type border border-gray-300 rounded px-2 py-1.5 text-[13px] outline-none focus:border-blue-500"><option value="add">新增</option><option value="del">刪除</option></select>
+            <select class="sp-role border border-gray-300 rounded px-2 py-1.5 text-[13px] outline-none focus:border-blue-500"><option value="">選擇角色</option>${roleOpts}</select>
+            <select class="sp-region border border-gray-300 rounded px-2 py-1.5 text-[13px] outline-none focus:border-blue-500"><option value="">選擇負責區域</option>${regionOpts}</select>
+            <select class="sp-project border border-gray-300 rounded px-2 py-1.5 text-[13px] outline-none focus:border-blue-500"><option value="">選擇負責項目</option>${projectOpts}</select>
+            <button type="button" onclick="spRemoveChangeRow(this)" class="text-gray-400 hover:text-red-500 flex items-center justify-center" aria-label="移除"><i data-lucide="trash-2" class="w-4 h-4"></i></button>`;
+        wrap.appendChild(row);
+        if (window.lucide) lucide.createIcons();
+    };
+    window.spRemoveChangeRow = function (btn) {
+        const row = btn.closest('.sp-change-row'); const wrap = document.getElementById('sp-change-rows');
+        if (row && wrap && wrap.children.length > 1) { row.remove(); }
+        else if (row) { row.querySelectorAll('select').forEach(s => s.selectedIndex = 0); }
+    };
+    function spInit() {
+        if (!document.getElementById('sp-current-roles')) return;
+        spRenderCurrentRoles(); spRenderCatalog();
+        const rows = document.getElementById('sp-change-rows');
+        if (rows && !rows.children.length) spAddChangeRow();
+    }
+    if (document.readyState !== 'loading') spInit(); else document.addEventListener('DOMContentLoaded', spInit);
+})();
+</script>
 </body>
 </html>
