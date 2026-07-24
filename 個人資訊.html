@@ -914,12 +914,23 @@
                     ? officeSelectHtml()
                     : '<input type="text" placeholder="輸入修改後的值" class="w-full border border-gray-300 rounded-md px-2 py-1.5 text-sm">';
             } else if (v === 'del') {
-                cell.innerHTML = '<select class="w-full border border-rose-300 rounded-md px-2 py-1.5 text-sm bg-rose-50 text-rose-700 cursor-pointer">' +
+                cell.innerHTML = '<select onchange="onAccDelMethod(this)" class="w-full border border-rose-300 rounded-md px-2 py-1.5 text-sm bg-rose-50 text-rose-700 cursor-pointer">' +
                     '<option value="immediate">立即刪除</option><option value="transfer">資料轉移</option><option value="hold">暫時保留</option>' +
-                    '</select>';
+                    '</select>' +
+                    '<div class="js-acc-hold-date mt-1.5 hidden">' +
+                    '<label class="block text-[11px] text-gray-500 mb-1">保留至</label>' +
+                    '<input type="date" onclick="this.showPicker && this.showPicker()" class="w-full border border-gray-300 rounded-md px-2 py-1.5 text-sm cursor-pointer outline-none focus:border-primary">' +
+                    '</div>';
             } else {
                 cell.innerHTML = '<span class="text-gray-300">—</span>';
             }
+        }
+        // 刪除方式選「暫時保留」時，顯示日期選擇（保留至）
+        function onAccDelMethod(sel) {
+            const detail = sel.closest('.js-acc-detail');
+            const wrap = detail ? detail.querySelector('.js-acc-hold-date') : null;
+            if (!wrap) return;
+            wrap.classList.toggle('hidden', sel.value !== 'hold');
         }
         function onAccAttach(input) {
             const td = input.closest('td');
