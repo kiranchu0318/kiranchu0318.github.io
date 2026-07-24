@@ -716,6 +716,12 @@
             renderPermSections();
         }
 
+        // 頁面資料權限：已收合的分類群組（點群組標題可收合／展開子項）
+        const collapsedGroups = new Set();
+        function toggleGroup(group) {
+            if (collapsedGroups.has(group)) collapsedGroups.delete(group); else collapsedGroups.add(group);
+            renderPermSections();
+        }
         function renderPermSections() {
             // 頁面資料權限（依分類分組）
             const tbody = document.getElementById('data-perm-tbody');
@@ -724,12 +730,14 @@
             DATA_PAGES.forEach(p => {
                 if (p.group !== lastGroup) {
                     lastGroup = p.group;
-                    html += `<tr class="bg-gray-50/80"><td colspan="5" class="text-left text-xs font-bold text-gray-500 tracking-wide">${p.group}</td></tr>`;
+                    const isCollapsed = collapsedGroups.has(p.group);
+                    html += `<tr class="bg-gray-50/80 cursor-pointer select-none hover:bg-gray-100/80 transition-colors" onclick="toggleGroup('${p.group}')"><td colspan="5" class="text-left text-xs font-bold text-gray-500 tracking-wide"><i class="fa-solid fa-chevron-down text-[10px] mr-2 transition-transform ${isCollapsed ? '-rotate-90' : ''}"></i>${p.group}</td></tr>`;
                 }
+                const rowHidden = collapsedGroups.has(p.group) ? ' hidden' : '';
                 const cells = DATA_ACTIONS.map(a =>
                     `<td class="text-center"><input type="checkbox" class="perm-check" ${permDraft.data[p.key].has(a) ? 'checked' : ''} onchange="togglePerm('${p.key}','${a}',this.checked)"></td>`
                 ).join('');
-                html += `<tr class="hover:bg-gray-50/70 transition-colors"><td class="text-left font-medium text-gray-800">${p.name}</td>${cells}</tr>`;
+                html += `<tr data-group="${p.group}" class="hover:bg-gray-50/70 transition-colors${rowHidden}"><td class="text-left font-medium text-gray-800">${p.name}</td>${cells}</tr>`;
             });
             tbody.innerHTML = html;
 
@@ -1322,7 +1330,7 @@
             { name: '補卡簽核',     group: '簽核中心' },
             { name: '銷假簽核',     group: '簽核中心' },
             { name: '電子表單簽核', group: '簽核中心' },
-            { name: '員工管理', group: '人事管理', ops: ['添加新員工', '取消入職', '重置密碼', '離職', '刪除帳號', '檢視個人信息', '檢視職位信息', '檢視人員帳號', '檢視考勤信息', '檢視假期信息', '檢視薪資單', '檢視資產', '修改個人-基礎/個人信息', '修改個人-個人聯絡方式', '修改個人-緊急聯絡人', '修改職位-基本工資', '修改職位-獎金', '修改職位-其他福利', '修改職位-職位信息', '修改職位-事業部', '修改職位-職級', '修改職位-其他項目', '提交人員帳號異動申請', '修改考勤信息', '修改假期信息'], specialOps: ['檢視負責區域項目員工', '檢視下屬員工'] },
+            { name: '員工管理', group: '人事管理', ops: ['添加新員工', '取消入職', '重置密碼', '離職', '刪除帳號', '檢視個人信息', '檢視職位信息-主要編制', '檢視職位信息-職位', '檢視職位信息-基本工資', '檢視職位信息-獎金', '檢視職位信息-其他福利', '檢視職位信息-職位信息(主要)', '檢視職位信息-職位信息(次要)', '檢視職位信息-事業部', '檢視職位信息-職級', '檢視職位信息-其他項目', '檢視人員帳號', '檢視考勤信息', '檢視假期信息', '檢視薪資單', '檢視資產', '修改個人信息-基礎/個人信息', '修改個人信息-個人聯絡方式', '修改個人信息-緊急聯絡人', '修改職位信息-主要編制', '修改職位信息-職位', '修改職位信息-基本工資', '修改職位信息-獎金', '修改職位信息-其他福利', '修改職位信息-職位信息(主要)', '修改職位信息-職位信息(次要)', '修改職位信息-事業部', '修改職位信息-職級', '修改職位信息-其他項目', '提交人員帳號異動申請', '修改考勤信息', '修改假期信息'], specialOps: ['檢視負責區域項目員工', '檢視下屬員工'] },
             { name: '考勤管理', group: '人事管理' },
             { name: '考勤設置', group: '人事管理' },
             { name: '假期管理', group: '人事管理' },
@@ -1368,8 +1376,22 @@
                 html += `<tr><td class="px-3 py-1.5">${p.name}</td><td class="px-3 py-1.5 text-center">${vc}</td><td class="px-3 py-1.5 text-center">${ec}</td></tr>`;
                 const ops = (p.ops || []).concat(p.specialOps || []);
                 if (ops.length) {
-                    html += `<tr><td colspan="3" class="px-3 pb-2.5 pt-0"><div class="text-[11px] font-semibold text-gray-400 mb-1.5">特殊操作</div><div class="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-1.5">` +
-                        ops.map(op => `<label class="flex items-center gap-1.5 text-xs text-gray-600"><input type="checkbox" class="perm-check">${op}</label>`).join('') + `</div></td></tr>`;
+                    // 特殊操作細項分類：檢視（檢視…）／編輯（修改…）／其他
+                    const chk = (op, display) => `<label class="flex items-center gap-1.5 text-xs text-gray-600"><input type="checkbox" class="perm-check">${display ?? op}</label>`;
+                    const CAT_STYLE = { '檢視': ['text-sky-600', 'bg-sky-500', 'bg-sky-50/60', 'border-sky-200'], '編輯': ['text-emerald-600', 'bg-emerald-500', 'bg-emerald-50/60', 'border-emerald-200'], '其他': ['text-gray-500', 'bg-gray-400', 'bg-gray-50/70', 'border-gray-200'] };
+                    const opCats = [
+                        ['檢視', ops.filter(o => o.startsWith('檢視'))],
+                        ['編輯', ops.filter(o => o.startsWith('修改'))],
+                        ['其他', ops.filter(o => !o.startsWith('檢視') && !o.startsWith('修改'))],
+                    ].filter(([, list]) => list.length);
+                    html += `<tr><td colspan="3" class="px-3 pb-2.5 pt-0"><div class="text-[11px] font-semibold text-gray-400 mb-1.5">特殊操作</div><div class="space-y-2">` +
+                        opCats.map(([label, list]) => {
+                            const [txt, dot, bg, bd] = CAT_STYLE[label];
+                            // 檢視／編輯區塊：項目文字移除開頭的「檢視」／「修改」
+                            const disp = op => label === '檢視' ? op.replace(/^檢視/, '') : label === '編輯' ? op.replace(/^修改/, '') : op;
+                            return `<div class="rounded-md border ${bd} ${bg} px-3 py-2"><div class="text-[11px] font-bold ${txt} mb-2 flex items-center gap-1.5"><span class="inline-block w-1.5 h-1.5 rounded-full ${dot}"></span>${label}</div><div class="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-1.5">`
+                            + list.map(op => chk(op, disp(op))).join('') + `</div></div>`;
+                        }).join('') + `</div></td></tr>`;
                 }
             });
             html += `<tr class="bg-primary-light"><td colspan="3" class="px-3 py-2 text-primary text-sm font-bold border-y border-primary/15"><i class="fa-solid fa-file-signature mr-2"></i>可提交的申請單</td></tr>`;

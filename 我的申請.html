@@ -667,15 +667,9 @@
                           </td>
                           <td>
                             {row.kind === 'hire' ? (
-                              <div className="flex items-center justify-center gap-2">
-                                <div className="relative group">
-                                  <button onClick={(e) => { e.stopPropagation(); try { localStorage.setItem('hroa_prefill_employee', JSON.stringify({ '姓名': 'Gibson Yang', '性別': '男', '稱謂': '先生', '僱傭類型': '全職', '帳號狀態': '在職', '履歷來源': '人力銀行', '區域': 'THQ', '事業部': '研發事業部 (RD BU)', '項目': 'GT', '部門': 'RD', '職位': '資深工程師', '職級': 'P5', '入職日期': '2026-07-01', '貨幣類型': 'TWD', '發薪日': '每月 25 日', '支付方式': '銀行轉帳', '13薪': '有' })); } catch (err) {} window.location.href = '員工管理.html'; }} className="w-8 h-8 flex items-center justify-center rounded-md border border-gray-200 text-gray-500 hover:text-emerald-600 hover:border-emerald-400 hover:bg-emerald-50 transition-colors"><UserPlus size={16} /></button>
-                                  <span className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover:block z-[60] whitespace-nowrap bg-gray-800 text-white text-[11px] rounded px-2 py-1 shadow-lg">創建員工資料</span>
-                                </div>
-                                <div className="relative group">
-                                  <button onClick={(e) => { e.stopPropagation(); flashToast('已取消入職（示範）'); }} className="w-8 h-8 flex items-center justify-center rounded-md border border-gray-200 text-gray-500 hover:text-rose-600 hover:border-rose-400 hover:bg-rose-50 transition-colors"><UserX size={16} /></button>
-                                  <span className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover:block z-[60] whitespace-nowrap bg-gray-800 text-white text-[11px] rounded px-2 py-1 shadow-lg">取消入職</span>
-                                </div>
+                              <div className="flex flex-col items-center gap-1.5">
+                                <button onClick={(e) => { e.stopPropagation(); try { localStorage.setItem('hroa_prefill_employee', JSON.stringify({ '姓名': 'Gibson Yang', '性別': '男', '稱謂': '先生', '僱傭類型': '全職', '帳號狀態': '在職', '履歷來源': '人力銀行', '區域': 'THQ', '事業部': '研發事業部 (RD BU)', '項目': 'GT', '部門': 'RD', '職位': '資深工程師', '職級': 'P5', '入職日期': '2026-07-01', '貨幣類型': 'TWD', '發薪日': '每月 25 日', '支付方式': '銀行轉帳', '13薪': '有' })); } catch (err) {} window.location.href = '員工管理.html'; }} className="ui-btn ui-btn-sm text-emerald-600 border border-emerald-200 hover:bg-emerald-50 whitespace-nowrap">創建員工資料</button>
+                                <button onClick={(e) => { e.stopPropagation(); flashToast('已取消入職（示範）'); }} className="ui-btn ui-btn-sm text-rose-600 border border-rose-200 hover:bg-rose-50 whitespace-nowrap">取消入職</button>
                               </div>
                             ) : ['待簽核', '草稿', '模板'].includes(row.status) ? (
                             <div className="flex items-center justify-center gap-2">
@@ -739,7 +733,12 @@
                 
                 {/* 彈窗標題與關閉按鈕 */}
                 <div className="bg-[#EEF2F6] px-6 py-3.5 flex items-center justify-between border-b border-gray-200 flex-shrink-0">
-                  <span className="font-bold text-gray-800 text-base">{modalRow?.kind === 'account' ? '人員帳號異動申請單' : modalRow?.kind === 'recruit' ? '招聘需求單' : modalRow?.kind === 'hire' ? '錄用審批單' : `${({ B: '費用申請單', C: '費用報銷單', IC: '內部合同審批單', PU: '請購申請單', SA: '用印申請單' })[modalRow?.type] || '費用申請單'}(${modalRow?.type || 'B'})`}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-gray-800 text-base">{modalRow?.kind === 'account' ? '人員帳號異動申請單' : modalRow?.kind === 'recruit' ? '招聘需求單' : modalRow?.kind === 'hire' ? '錄用審批單' : `${({ B: '費用申請單', C: '費用報銷單', IC: '內部合同審批單', PU: '請購申請單', SA: '用印申請單' })[modalRow?.type] || '費用申請單'}(${modalRow?.type || 'B'})`}</span>
+                    {modalRow?.kind === 'recruit' && (
+                      <span className="inline-flex items-center text-[16px] font-bold text-white bg-[#4A90E2] border border-[#3A7BC8] rounded px-2.5 py-0.5 shadow-sm">[總招聘人數:2 關聯錄用:1]</span>
+                    )}
+                  </div>
                   <button 
                     onClick={() => setIsModalOpen(false)}
                     className="bg-[#3F51B5] hover:bg-blue-800 text-white p-1 rounded transition-colors"
@@ -1385,12 +1384,18 @@
                                   </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-100 font-medium">
-                                  {((modalRow?.kind === 'recruit' || modalRow?.kind === 'hire') ? [
+                                  {(modalRow?.kind === 'hire' ? [
+                                    { seq: '1', status: '已審批', cond: '—',  title: '提交申請', sign: modalRow?.applicant || 'Nick', id: '100258', time: '2026-06-03 11:00:00' },
+                                    { seq: '2', status: '已審批', cond: '串聯', title: '部門主管', sign: 'James', id: '100423', time: '2026-06-03 14:00:00' },
+                                    { seq: '3', status: '已審批', cond: '串聯', title: '人資專員', sign: 'Nora', id: '100562', time: '2026-06-04 09:30:00' },
+                                    { seq: '4', status: '已審批', cond: '串聯', title: '用人主管', sign: 'William', id: '100188', time: '2026-06-04 15:00:00' },
+                                    { seq: '5', status: '已審批', cond: '串聯', title: '執行長',   sign: 'Oscar', id: '100001', time: '2026-06-05 10:00:00' },
+                                  ] : (modalRow?.kind === 'recruit') ? [
                                     { seq: '1', status: '已審批', cond: '—',  title: '提交申請', sign: modalRow?.applicant || 'Nick', id: '100258', time: '2026-06-02 10:30:00' },
                                     { seq: '2', status: '已審批', cond: '串聯', title: '部門主管', sign: 'James', id: '100423', time: '2026-06-02 14:00:00' },
-                                    { seq: '3', status: '審批中', cond: '串聯', title: '人資專員', sign: '-', id: '-', time: '' },
-                                    { seq: '4', status: '待審批', cond: '串聯', title: '用人主管', sign: '-', id: '-', time: '' },
-                                    { seq: '5', status: '待審批', cond: '串聯', title: '執行長',   sign: '-', id: '-', time: '' },
+                                    { seq: '3', status: '已審批', cond: '串聯', title: '人資專員', sign: 'Nora', id: '100562', time: '2026-06-03 09:30:00' },
+                                    { seq: '4', status: '已審批', cond: '串聯', title: '用人主管', sign: 'William', id: '100188', time: '2026-06-03 15:00:00' },
+                                    { seq: '5', status: '已審批', cond: '串聯', title: '執行長',   sign: 'Oscar', id: '100001', time: '2026-06-04 10:00:00' },
                                   ] : [
                                     { seq: '1', status: '已審批', cond: '—',  title: '提交申請',       sign: modalRow?.applicant || 'Nick', id: '100258', time: '2026-05-30 15:36:45' },
                                     { seq: '2', status: '已審批', cond: '串聯', title: '部門主管',       sign: 'James', id: '100423', time: '2026-06-01 11:20:00' },
@@ -1592,13 +1597,21 @@
                     </div>
 
                     <div className="p-4 flex-1 overflow-y-auto">
-                      {((modalRow?.kind === 'recruit' || modalRow?.kind === 'hire')
+                      {(modalRow?.kind === 'hire'
                         ? [
                             { seq: '1', title: '提交申請', status: '已審批', sign: modalRow?.applicant || 'Nick' },
                             { seq: '2', title: '部門主管', status: '已審批', sign: 'James' },
-                            { seq: '3', title: '人資專員', status: '審批中' },
-                            { seq: '4', title: '用人主管', status: '待審批' },
-                            { seq: '5', title: '執行長', status: '待審批' },
+                            { seq: '3', title: '人資專員', status: '已審批', sign: 'Nora' },
+                            { seq: '4', title: '用人主管', status: '已審批', sign: 'William' },
+                            { seq: '5', title: '執行長', status: '已審批', sign: 'Oscar' },
+                          ]
+                        : modalRow?.kind === 'recruit'
+                        ? [
+                            { seq: '1', title: '提交申請', status: '已審批', sign: modalRow?.applicant || 'Nick' },
+                            { seq: '2', title: '部門主管', status: '已審批', sign: 'James' },
+                            { seq: '3', title: '人資專員', status: '已審批', sign: 'Nora' },
+                            { seq: '4', title: '用人主管', status: '已審批', sign: 'William' },
+                            { seq: '5', title: '執行長', status: '已審批', sign: 'Oscar' },
                           ]
                         : modalRow?.kind === 'account'
                         ? [

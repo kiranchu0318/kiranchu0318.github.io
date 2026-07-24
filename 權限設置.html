@@ -43,6 +43,10 @@
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
         .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
         .perm-check { width: 1rem; height: 1rem; accent-color: #4A90E2; cursor: pointer; }
+        /* 特殊操作收合 */
+        .op-details > summary { list-style: none; }
+        .op-details > summary::-webkit-details-marker { display: none; }
+        .op-details[open] > summary .op-chevron { transform: rotate(90deg); }
     </style>
     <link rel="stylesheet" href="shared-ui.css">
 </head>
@@ -341,7 +345,7 @@
             { key: 'pg_signcancel', name: '銷假簽核',     group: '簽核中心', ops: [] },
             { key: 'pg_signeform',  name: '電子表單簽核', group: '簽核中心', ops: [] },
             // 人事管理
-            { key: 'pg_employee',   name: '員工管理',     group: '人事管理', ops: ['添加新員工', '取消入職', '重置密碼', '離職', '刪除帳號', '檢視個人信息', '檢視職位信息', '檢視人員帳號', '檢視考勤信息', '檢視假期信息', '檢視薪資單', '檢視資產', '修改個人-基礎/個人信息', '修改個人-個人聯絡方式', '修改個人-緊急聯絡人', '修改職位-基本工資', '修改職位-獎金', '修改職位-其他福利', '修改職位-職位信息', '修改職位-事業部', '修改職位-職級', '修改職位-其他項目', '提交人員帳號異動申請', '修改考勤信息', '修改假期信息'], specialOps: ['檢視負責區域項目員工', '檢視下屬員工'] },
+            { key: 'pg_employee',   name: '員工管理',     group: '人事管理', ops: ['添加新員工', '取消入職', '重置密碼', '離職', '刪除帳號', '檢視個人信息', '檢視職位信息-主要編制', '檢視職位信息-職位', '檢視職位信息-基本工資', '檢視職位信息-獎金', '檢視職位信息-其他福利', '檢視職位信息-職位信息(主要)', '檢視職位信息-職位信息(次要)', '檢視職位信息-事業部', '檢視職位信息-職級', '檢視職位信息-其他項目', '檢視人員帳號', '檢視考勤信息', '檢視假期信息', '檢視薪資單', '檢視資產', '修改個人信息-基礎/個人信息', '修改個人信息-個人聯絡方式', '修改個人信息-緊急聯絡人', '修改職位信息-主要編制', '修改職位信息-職位', '修改職位信息-基本工資', '修改職位信息-獎金', '修改職位信息-其他福利', '修改職位信息-職位信息(主要)', '修改職位信息-職位信息(次要)', '修改職位信息-事業部', '修改職位信息-職級', '修改職位信息-其他項目', '提交人員帳號異動申請', '修改考勤信息', '修改假期信息'], specialOps: ['檢視負責區域項目員工', '檢視下屬員工'] },
             { key: 'pg_attmgmt',    name: '考勤管理',     group: '人事管理', ops: [] },
             { key: 'pg_attset',     name: '考勤設置',     group: '人事管理', ops: [] },
             { key: 'pg_leavemgmt',  name: '假期管理',     group: '人事管理', ops: [] },
@@ -522,6 +526,41 @@
             renderPermSections();
         }
 
+        // 頁面資料權限：已收合的分類群組（點群組標題可收合／展開子項）
+        const collapsedGroups = new Set();
+        function toggleGroup(group) {
+            if (collapsedGroups.has(group)) collapsedGroups.delete(group); else collapsedGroups.add(group);
+            renderPermSections();
+        }
+        // 計算某分類群組的頁數與「已授權」（權限為檢視/編輯）頁數
+        function computeGroupStat(group) {
+            let total = 0, granted = 0;
+            DATA_PAGES.forEach(p => {
+                if (p.group !== group) return;
+                total++;
+                const s = permDraft.data[p.key];
+                if (s.has('檢視') || s.has('編輯')) granted++;
+            });
+            return { total, granted };
+        }
+        // 權限下拉變更後即時更新群組統計（避免整表重繪）
+        function refreshGroupStat(pageKey) {
+            const page = DATA_PAGES.find(p => p.key === pageKey);
+            if (!page) return;
+            const el = document.getElementById('grpstat-' + page.group);
+            if (!el) return;
+            const st = computeGroupStat(page.group);
+            el.textContent = `${st.total} 頁 · 已授權 ${st.granted}`;
+        }
+        // 特殊操作勾選後即時更新該列「已選 x/總數」
+        function refreshOpCount(pageKey) {
+            const page = DATA_PAGES.find(p => p.key === pageKey);
+            if (!page) return;
+            const el = document.getElementById('opcount-' + pageKey);
+            if (!el) return;
+            const all = (page.ops || []).concat(page.specialOps || []);
+            el.textContent = all.filter(o => permDraft.data[pageKey].has(o)).length;
+        }
         function renderPermSections() {
             // 頁面資料權限（依分類分組）
             const tbody = document.getElementById('data-perm-tbody');
@@ -530,8 +569,15 @@
             DATA_PAGES.forEach(p => {
                 if (p.group !== lastGroup) {
                     lastGroup = p.group;
-                    html += `<tr><td colspan="3" class="text-left bg-primary-light text-primary text-sm font-bold py-2.5 border-y border-primary/15"><i class="fa-solid fa-folder-open mr-2"></i>${p.group}</td></tr>`;
+                    const isCollapsed = collapsedGroups.has(p.group);
+                    const st = computeGroupStat(p.group);
+                    html += `<tr class="cursor-pointer select-none" onclick="toggleGroup('${p.group}')"><td colspan="3" class="bg-primary-light border-y border-primary/15 hover:bg-primary/15 transition-colors py-2.5">`
+                        + `<div class="flex items-center justify-between gap-2">`
+                        + `<span class="flex items-center text-primary text-sm font-bold"><i class="fa-solid fa-chevron-down text-[11px] mr-2 transition-transform ${isCollapsed ? '-rotate-90' : ''}"></i><i class="fa-solid fa-folder-open mr-2"></i>${p.group}</span>`
+                        + `<span id="grpstat-${p.group}" class="text-[11px] font-medium text-primary/70 whitespace-nowrap">${st.total} 頁 · 已授權 ${st.granted}</span>`
+                        + `</div></td></tr>`;
                 }
+                const rowHidden = collapsedGroups.has(p.group) ? ' hidden' : '';
                 // 權限：下拉選擇「無 / 檢視 / 編輯」（編輯含檢視）；純檢視頁面僅提供「無 / 檢視」
                 const _set = permDraft.data[p.key];
                 const _level = _set.has('編輯') ? '編輯' : (_set.has('檢視') ? '檢視' : '');
@@ -542,26 +588,51 @@
                 // 特殊操作：勾選才會於該頁顯示並可使用
                 const ops = p.ops || [];
                 const specialOps = p.specialOps || [];
-                const opCheckbox = op =>
+                const opCheckbox = (op, display) =>
                     `<label class="inline-flex items-center gap-1.5 cursor-pointer">`
                     + `<input type="checkbox" class="perm-check" ${permDraft.data[p.key].has(op) ? 'checked' : ''} onchange="togglePerm('${p.key}','${op}',this.checked)">`
-                    + `<span class="text-sm text-gray-600">${op}</span></label>`;
+                    + `<span class="text-sm text-gray-600">${display ?? op}</span></label>`;
                 let opsCell;
                 if (ops.length || specialOps.length) {
-                    opsCell = '';
+                    const total = ops.length + specialOps.length;
+                    const selected = ops.concat(specialOps).filter(o => permDraft.data[p.key].has(o)).length;
+                    let detail = '';
                     if (specialOps.length) {
                         // 檢視範圍：獨立一行置頂，與其他特殊操作以分隔線區隔
-                        opsCell += `<div class="flex flex-wrap items-center gap-x-6 gap-y-2">`
+                        detail += `<div class="flex flex-wrap items-center gap-x-6 gap-y-2">`
                             + `<span class="inline-flex items-center gap-1 text-xs font-bold text-amber-600 mr-1"><i class="fa-solid fa-eye text-[10px]"></i>檢視範圍</span>`
-                            + specialOps.map(opCheckbox).join('') + `</div>`;
+                            + specialOps.map(op => opCheckbox(op)).join('') + `</div>`;
                     }
                     if (ops.length) {
-                        opsCell += `<div class="${specialOps.length ? 'mt-2.5 pt-2.5 border-t border-dashed border-gray-300' : ''} grid grid-cols-4 gap-x-6 gap-y-2">` + ops.map(opCheckbox).join('') + `</div>`;
+                        // 特殊操作細項分類：檢視（檢視…）／編輯（修改…）／其他
+                        const CAT_STYLE = { '檢視': ['text-sky-600', 'bg-sky-500', 'bg-sky-50/60', 'border-sky-200'], '編輯': ['text-emerald-600', 'bg-emerald-500', 'bg-emerald-50/60', 'border-emerald-200'], '其他': ['text-gray-500', 'bg-gray-400', 'bg-gray-50/70', 'border-gray-200'] };
+                        const opCats = [
+                            ['檢視', ops.filter(o => o.startsWith('檢視'))],
+                            ['編輯', ops.filter(o => o.startsWith('修改'))],
+                            ['其他', ops.filter(o => !o.startsWith('檢視') && !o.startsWith('修改'))],
+                        ].filter(([, list]) => list.length);
+                        detail += `<div class="${specialOps.length ? 'mt-2.5 pt-2.5 border-t border-dashed border-gray-300' : ''} space-y-2.5">`
+                            + opCats.map(([label, list]) => {
+                                const [txt, dot, bg, bd] = CAT_STYLE[label];
+                                // 檢視／編輯區塊：項目文字移除開頭的「檢視」／「修改」（僅顯示用，權限值不變）
+                                const disp = op => label === '檢視' ? op.replace(/^檢視/, '') : label === '編輯' ? op.replace(/^修改/, '') : op;
+                                return `<div class="rounded-md border ${bd} ${bg} px-3 py-2">`
+                                    + `<div class="text-[11px] font-bold ${txt} mb-2 flex items-center gap-1.5"><span class="inline-block w-1.5 h-1.5 rounded-full ${dot}"></span>${label}</div>`
+                                    + `<div class="grid grid-cols-4 gap-x-6 gap-y-2">` + list.map(op => opCheckbox(op, disp(op))).join('') + `</div></div>`;
+                            }).join('') + `</div>`;
                     }
+                    // 收合式：預設只顯示摘要（已選 x/總數），點擊展開細項
+                    opsCell = `<details class="op-details">`
+                        + `<summary class="inline-flex items-center gap-2 cursor-pointer text-xs font-semibold text-gray-600 hover:text-primary">`
+                        + `<i class="fa-solid fa-chevron-right op-chevron text-[10px] text-gray-400 transition-transform"></i>特殊操作`
+                        + `<span class="inline-flex items-center rounded-full bg-gray-100 text-gray-500 text-[11px] font-medium px-2 py-0.5">已選 <span id="opcount-${p.key}">${selected}</span>/${total}</span>`
+                        + `</summary>`
+                        + `<div class="mt-2.5">${detail}</div>`
+                        + `</details>`;
                 } else {
                     opsCell = `<span class="text-gray-300 text-xs">—</span>`;
                 }
-                html += `<tr class="hover:bg-gray-50/70 transition-colors"><td class="text-left font-medium text-gray-700 pl-8"><i class="fa-regular fa-file-lines text-gray-300 text-xs mr-2"></i>${p.name}</td>${cells}<td class="text-left">${opsCell}</td></tr>`;
+                html += `<tr data-group="${p.group}" class="hover:bg-gray-50/70 transition-colors${rowHidden}"><td class="text-left font-medium text-gray-700 pl-8"><i class="fa-regular fa-file-lines text-gray-300 text-xs mr-2"></i>${p.name}</td>${cells}<td class="text-left">${opsCell}</td></tr>`;
             });
             tbody.innerHTML = html;
 
@@ -576,6 +647,7 @@
 
         function togglePerm(pageKey, action, checked) {
             if (checked) permDraft.data[pageKey].add(action); else permDraft.data[pageKey].delete(action);
+            refreshOpCount(pageKey);
         }
         // 設定頁面權限層級：無 / 檢視 / 編輯（編輯含檢視）
         function setPageLevel(pageKey, level) {
@@ -583,6 +655,7 @@
             set.delete('檢視'); set.delete('編輯');
             if (level === '檢視') set.add('檢視');
             else if (level === '編輯') { set.add('檢視'); set.add('編輯'); }
+            refreshGroupStat(pageKey);
         }
         function toggleApprove(formKey, checked) {
             if (checked) permDraft.approve.add(formKey); else permDraft.approve.delete(formKey);
