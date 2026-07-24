@@ -2721,7 +2721,7 @@
            人員帳號資料（單一來源，供「人員帳號」分頁表格與異動申請彈窗共用）
            ----------------------- */
         const ACCOUNT_FIELDS = [
-            { label: 'Mobile / WhatsApp', values: ['「T2」601114372701', '「T1」0912-345-678', '「J」81-90-1234-5678', '「T2」602233445566'] },
+            { label: 'Mobile / WhatsApp', values: ['「T2」601114372701', '「T1」0912-345-678', '「J」81-90-1234-5678', '「T2」602233445566'], notes: ['（立即刪除）', '（資料轉移）', '', ''] },
             { label: 'E-mail', values: ['gibsonyang@roycetechnology.com'] },
             { label: 'Apple ID', values: [] },
             { label: 'Jira', values: [] },
@@ -2747,7 +2747,7 @@
                         const tr = document.createElement('tr');
                         tr.innerHTML =
                             (idx === 0 ? '<td class="px-4 py-2.5 font-medium text-gray-800 align-top border-r border-gray-100" rowspan="' + vals.length + '">' + f.label + '</td>' : '') +
-                            '<td class="px-4 py-2.5 text-gray-700 font-mono align-top">' + v + '</td>';
+                            '<td class="px-4 py-2.5 text-gray-700 font-mono align-top">' + v + ((f.notes && f.notes[idx]) ? '<span class="ml-1 text-xs font-sans text-gray-400">' + f.notes[idx] + '</span>' : '') + '</td>';
                         tbody.appendChild(tr);
                     });
                 } else {
@@ -2851,12 +2851,24 @@
                     ? officeSelectHtml()
                     : '<input type="text" placeholder="輸入修改後的值" class="w-full border border-gray-300 rounded-md px-2 py-1.5 text-sm">';
             } else if (v === 'del') {
-                cell.innerHTML = '<select class="w-full border border-rose-300 rounded-md px-2 py-1.5 text-sm bg-rose-50 text-rose-700 cursor-pointer">' +
+                cell.innerHTML = '<select onchange="onAccDelMethod(this)" class="w-full border border-rose-300 rounded-md px-2 py-1.5 text-sm bg-rose-50 text-rose-700 cursor-pointer">' +
                     '<option value="immediate">立即刪除</option><option value="transfer">資料轉移</option><option value="hold">暫時保留</option>' +
-                    '</select>';
+                    '</select>' +
+                    '<div class="js-acc-hold-date mt-1.5 hidden">' +
+                    '<label class="block text-[11px] text-gray-500 mb-1">保留至</label>' +
+                    '<input type="date" onclick="this.showPicker && this.showPicker()" class="w-full border border-gray-300 rounded-md px-2 py-1.5 text-sm cursor-pointer outline-none focus:border-primary">' +
+                    '</div>';
             } else {
                 cell.innerHTML = '<span class="text-gray-300">—</span>';
             }
+        }
+
+        // 刪除方式選「暫時保留」時，顯示日期選擇（保留至）
+        function onAccDelMethod(sel) {
+            const detail = sel.closest('.js-acc-detail');
+            const wrap = detail ? detail.querySelector('.js-acc-hold-date') : null;
+            if (!wrap) return;
+            wrap.classList.toggle('hidden', sel.value !== 'hold');
         }
 
         // 附件：顯示已選檔名
