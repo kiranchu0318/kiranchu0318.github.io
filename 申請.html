@@ -104,10 +104,6 @@
             <i data-lucide="pen" class="w-4 h-4 mr-3 text-gray-400 group-hover:text-blue-500 transition-colors"></i>
             <span class="text-[14px] group-hover:text-blue-600 transition-colors">用印流程(SE)</span>
         </div>
-        <div data-category="admin" class="app-item bg-white border border-gray-200 hover:border-blue-400 hover:shadow-md cursor-pointer rounded-md px-4 py-2.5 flex items-center text-gray-700 transition-all duration-200 group" data-form="AP">
-            <i data-lucide="pen" class="w-4 h-4 mr-3 text-gray-400 group-hover:text-blue-500 transition-colors"></i>
-            <span class="text-[14px] group-hover:text-blue-600 transition-colors">審批權限異動申請</span>
-        </div>
         <div data-category="admin" class="app-item bg-white border border-gray-200 hover:border-blue-400 hover:shadow-md cursor-pointer rounded-md px-4 py-2.5 flex items-center text-gray-700 transition-all duration-200 group" data-form="SP">
             <i data-lucide="pen" class="w-4 h-4 mr-3 text-gray-400 group-hover:text-blue-500 transition-colors"></i>
             <span class="text-[14px] group-hover:text-blue-600 transition-colors">系統權限異動申請</span>
@@ -194,6 +190,10 @@
             </button>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-3">
+            <div class="app-item bg-white border border-gray-200 hover:border-blue-400 hover:shadow-md cursor-pointer rounded-md px-4 py-2.5 flex items-center text-gray-700 transition-all duration-200 group" data-form="AP">
+                <i data-lucide="pen" class="w-4 h-4 mr-3 text-gray-400 group-hover:text-blue-500 transition-colors"></i>
+                <span class="text-[14px] group-hover:text-blue-600 transition-colors">審批權限異動申請</span>
+            </div>
             <div onclick="showSaveToast('Demo：其他表單尚未建置')" class="bg-white border border-dashed border-gray-300 hover:border-gray-400 hover:shadow-md cursor-pointer rounded-md px-4 py-2.5 flex items-center text-gray-700 transition-all duration-200 group">
                 <i data-lucide="file-plus" class="w-4 h-4 mr-3 text-gray-400 group-hover:text-gray-600 transition-colors"></i>
                 <span class="text-[14px] group-hover:text-gray-700 transition-colors">差旅費用申請單(PTAB)</span>
@@ -2137,12 +2137,6 @@
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">所屬部門</label><input type="text" value="RD" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed" disabled></div>
                         </div>
 
-                        <!-- 目前已套用的系統角色（來源：權限設置，一帳號可多角色） -->
-                        <div class="px-4 pb-4">
-                            <label class="block mb-2 text-[13px] text-gray-700 font-medium">目前已套用的系統角色 <span class="text-[12px] text-gray-400 font-normal ml-1">（來源：權限設置，一帳號可套用多個角色，各角色有負責區域／項目，僅供檢視）</span></label>
-                            <div id="sp-current-roles" class="border border-gray-200 rounded-md p-3 flex flex-col gap-2"></div>
-                        </div>
-
                         <!-- 系統角色與頁面資料權限對照（來源：權限設置，可展開檢視） -->
                         <div class="px-4 pb-4">
                             <label class="block mb-2 text-[13px] text-gray-700 font-medium">系統角色與頁面資料權限對照 <span class="text-[12px] text-gray-400 font-normal ml-1">（來源：權限設置）</span></label>
@@ -2152,16 +2146,14 @@
                         <!-- 申請異動的角色 -->
                         <div class="px-4 pb-4">
                             <div class="flex items-center justify-between mb-2">
-                                <label class="text-[13px] text-gray-700 font-medium">申請異動的角色 <span class="text-red-500">*</span><span class="text-[12px] text-gray-400 font-normal ml-1">（選擇要新增或刪除的角色，並指定負責區域／項目）</span></label>
+                                <label class="text-[13px] text-gray-700 font-medium">申請異動的角色 <span class="text-red-500">*</span></label>
                                 <button type="button" onclick="spAddChangeRow()" class="ui-btn ui-btn-sm bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100"><i data-lucide="plus" class="w-3.5 h-3.5"></i> 新增一列</button>
                             </div>
-                            <div class="overflow-x-auto">
-                                <div class="min-w-[760px]">
-                                    <div class="grid grid-cols-[110px_1fr_1fr_1fr_36px] gap-2 mb-1.5 px-1 text-[12px] font-medium text-gray-400">
-                                        <div>異動類型</div><div>角色</div><div>負責區域</div><div>負責項目</div><div></div>
-                                    </div>
-                                    <div id="sp-change-rows" class="space-y-2"></div>
+                            <div>
+                                <div class="grid grid-cols-[100px_1.4fr_1fr_1fr_1.1fr_36px] gap-2 mb-1.5 px-1 text-[12px] font-medium text-gray-400">
+                                    <div>異動類型</div><div>角色 / 權限項目</div><div>負責區域</div><div>負責項目</div><div>可提交申請單</div><div></div>
                                 </div>
+                                <div id="sp-change-rows" class="space-y-2"></div>
                             </div>
                         </div>
                     </div>
@@ -4738,6 +4730,18 @@
             setTimeout(() => modal.classList.add('hidden'), 700);
         }
 
+        // Demo 區塊：其中的 .app-item（如審批權限異動申請）仍可開啟對應彈窗
+        const otherFormsDemo = document.getElementById('other-forms-demo');
+        if (otherFormsDemo) {
+            otherFormsDemo.addEventListener('click', (e) => {
+                const card = e.target.closest('.app-item');
+                if (!card) return;
+                const code = card.getAttribute('data-form');
+                if (!code) return;
+                const modal = document.getElementById(formModalMap[code]);
+                if (modal) { modal.classList.remove('hidden'); if (window.lucide) lucide.createIcons(); }
+            });
+        }
         const appGrid = document.getElementById('app-grid');
         if (appGrid) {
             appGrid.addEventListener('click', (e) => {
@@ -5723,6 +5727,23 @@
     </div>
 </div>
 
+<!-- =========== 系統權限：權限項目勾選彈窗 =========== -->
+<div id="sp-perm-picker-modal" class="fixed inset-0 bg-black/40 z-[70] flex justify-center items-center p-4 hidden" onclick="if(event.target===this)spClosePermPicker()">
+    <div class="bg-white rounded-lg shadow-2xl w-full max-w-[676px] max-h-[80vh] flex flex-col overflow-hidden">
+        <div class="bg-[#EAF2FC] flex justify-between items-center px-4 py-3 border-b border-blue-100 shrink-0">
+            <h2 class="text-[#2b3b84] font-bold text-[15px]">選擇權限項目 <span class="text-[12px] text-gray-400 font-normal ml-1">（勾選頁面的檢視／編輯權限）</span></h2>
+            <button type="button" onclick="spClosePermPicker()" class="bg-blue-500 hover:bg-blue-600 text-white rounded p-1 transition-colors"><i data-lucide="x" class="w-4 h-4"></i></button>
+        </div>
+        <div class="p-4 overflow-y-auto flex-1">
+            <div id="sp-perm-picker-body" class="border border-gray-200 rounded-md overflow-hidden"></div>
+        </div>
+        <div class="border-t border-gray-200 px-4 py-3 flex justify-end gap-2 bg-[#f4f5f8] shrink-0">
+            <button type="button" onclick="spClosePermPicker()" class="ui-btn ui-btn-secondary px-5">取消</button>
+            <button type="button" onclick="spApplyPermPicker()" class="ui-btn ui-btn-primary px-6">確定</button>
+        </div>
+    </div>
+</div>
+
 <script>
 /* ===== 審批權限異動申請：附加角色檢視 + 角色權限對照 + 申請新增/刪除角色 ===== */
 (function () {
@@ -5831,16 +5852,30 @@
         '財務主管': '財務管理相關頁面具完整權限，其餘頁面僅可檢視',
         '稽核人員': '可檢視全系統頁面（唯讀，不可編輯）'
     };
+    // 頁面資料權限列表（分組與頁面比照 權限設置.html；v:1 為僅檢視頁面）
+    const SP_DATA_GROUPS = [
+        { group: '電子表單', pages: [{ n: '我的申請' }, { n: '臨時保存' }, { n: '模板保存' }, { n: '申請' }] },
+        { group: '簽核中心', pages: [{ n: '請假簽核' }, { n: '補卡簽核' }, { n: '銷假簽核' }, { n: '電子表單簽核' }] },
+        { group: '人事管理', pages: [{ n: '員工管理' }, { n: '考勤管理' }, { n: '考勤設置' }, { n: '假期管理' }, { n: '薪資管理' }, { n: '員工假期查詢' }] },
+        { group: '財務管理', pages: [{ n: '月初匯率管理' }] },
+        { group: '行政管理', pages: [{ n: '公告管理' }, { n: '文件庫管理' }, { n: '資產數統計', v: 1 }, { n: '資產清單', v: 1 }, { n: '資產單統計', v: 1 }, { n: '資產盤點' }, { n: '資產抽查' }, { n: '資產類型設定' }, { n: '工號創建管理' }] },
+        { group: '系統設定', pages: [{ n: '審批帳號' }, { n: '審批角色權限' }, { n: '審批流管理' }, { n: '分組管理' }, { n: '帳號權限' }, { n: '權限設置' }, { n: '組織圖設定' }, { n: '組織架構管理' }, { n: '財務設定' }, { n: '系統日誌', v: 1 }] }
+    ];
+    const SP_PAGES = []; const SP_PAGE_VIEWONLY = {}; const SP_PAGE_GROUP = {};
+    SP_DATA_GROUPS.forEach(g => g.pages.forEach(p => { SP_PAGES.push(p.n); SP_PAGE_VIEWONLY[p.n] = !!p.v; SP_PAGE_GROUP[p.n] = g.group; }));
+    // 各角色的頁面資料權限（比照 權限設置.html 的角色設定）
+    function spBuildRole(levelFn) { return SP_PAGES.map(pg => ({ page: pg, level: levelFn(pg) })).filter(x => x.level !== '無'); }
     const SP_ROLE_PERMS = {
-        '系統管理員': [{ page: '員工管理', level: '檢視/編輯' }, { page: '考勤管理', level: '檢視/編輯' }, { page: '假期管理', level: '檢視/編輯' }, { page: '薪資管理', level: '檢視/編輯' }, { page: '月初匯率管理', level: '檢視/編輯' }, { page: '財務設定', level: '檢視/編輯' }, { page: '資產清單', level: '檢視/編輯' }, { page: '系統日誌', level: '檢視/編輯' }],
-        '人資主管': [{ page: '員工管理', level: '檢視/編輯' }, { page: '考勤管理', level: '檢視/編輯' }, { page: '假期管理', level: '檢視/編輯' }, { page: '薪資管理', level: '檢視' }, { page: '資產清單', level: '檢視' }, { page: '系統日誌', level: '檢視' }],
-        '財務主管': [{ page: '月初匯率管理', level: '檢視/編輯' }, { page: '財務設定', level: '檢視/編輯' }, { page: '薪資管理', level: '檢視/編輯' }, { page: '員工管理', level: '檢視' }, { page: '考勤管理', level: '檢視' }, { page: '資產清單', level: '檢視' }],
-        '稽核人員': [{ page: '員工管理', level: '檢視' }, { page: '考勤管理', level: '檢視' }, { page: '假期管理', level: '檢視' }, { page: '薪資管理', level: '檢視' }, { page: '財務設定', level: '檢視' }, { page: '系統日誌', level: '檢視' }]
+        '系統管理員': spBuildRole(pg => SP_PAGE_VIEWONLY[pg] ? '檢視' : '檢視/編輯'),
+        '人資主管': spBuildRole(pg => (SP_PAGE_GROUP[pg] === '人事管理' && !SP_PAGE_VIEWONLY[pg]) ? '檢視/編輯' : '檢視'),
+        '財務主管': spBuildRole(pg => ((SP_PAGE_GROUP[pg] === '財務管理' || pg === '薪資管理' || pg === '財務設定') && !SP_PAGE_VIEWONLY[pg]) ? '檢視/編輯' : '檢視'),
+        '稽核人員': spBuildRole(() => '檢視')
     };
     const SP_REGIONS = ['T1', 'T2', 'U', 'J', 'S'];
     const SP_PROJECTS = ['GT', 'GX', 'GS', 'GF', 'GP'];
-    // 申請人目前已套用的系統角色（來源：權限設置，可多角色，各有負責區域/項目）
-    const SP_CURRENT_ROLES = [{ role: '人資主管', region: 'T1', project: 'GT' }, { role: '稽核人員', region: 'T2', project: 'GX' }];
+    const SP_FORMS = ['商務', '合同', '財務', '行政', 'PMO', 'HR'];
+    // 申請人目前已套用的系統角色（來源：權限設置，可多角色，各有負責區域/項目/可提交申請單）
+    const SP_CURRENT_ROLES = [{ role: '人資主管', regions: ['T1'], projects: ['GT'], forms: ['HR', '行政'] }, { role: '稽核人員', regions: ['T2', 'U'], projects: ['GX', 'GS'], forms: [] }];
 
     window.spRenderCurrentRoles = function () {
         const el = document.getElementById('sp-current-roles'); if (!el) return;
@@ -5886,32 +5921,226 @@
     };
     window.spOpenCatalog = function () { _spCatSel = 0; spRenderCatalog(); const m = document.getElementById('sp-catalog-modal'); if (m) m.classList.remove('hidden'); };
     window.spCloseCatalog = function () { const m = document.getElementById('sp-catalog-modal'); if (m) m.classList.add('hidden'); };
+    // 權限勾選用的頁面清單
+    // 角色預設權限 → 逐頁層級 {page: '檢視'|'編輯'}
+    function spRoleLevels(role) {
+        const out = {}; (SP_ROLE_PERMS[role] || []).forEach(p => { out[p.page] = p.level.includes('編輯') ? '編輯' : '檢視'; });
+        return out;
+    }
+    function spLevelOptions(selected, viewOnly) { return (viewOnly ? ['無', '檢視'] : ['無', '檢視', '編輯']).map(l => `<option${l === selected ? ' selected' : ''}>${l}</option>`).join(''); }
+    // 負責區域／負責項目／可提交申請單：下拉式多選（trigger + 勾選面板）
+    function spMsSelect(field, selected) {
+        const opts = field === 'region' ? SP_REGIONS : field === 'project' ? SP_PROJECTS : SP_FORMS;
+        const sel = new Set(selected || []);
+        const ph = field === 'region' ? '選擇負責區域' : field === 'project' ? '選擇負責項目' : '選擇可提交申請單';
+        const summary = sel.size ? [...sel].join('、') : ph;
+        return `<div class="sp-ms relative" data-field="${field}" data-placeholder="${ph}">
+            <button type="button" onclick="spMsOpen(this)" class="sp-ms-trigger w-full border border-gray-300 rounded px-2 py-1.5 text-[13px] text-left flex items-center justify-between gap-1 bg-white outline-none focus:border-blue-500">
+                <span class="sp-ms-label truncate ${sel.size ? 'text-gray-700' : 'text-gray-400'}">${summary}</span>
+                <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-gray-400 shrink-0"></i>
+            </button>
+            <div class="sp-ms-panel hidden absolute z-30 left-0 right-0 mt-1 bg-white border border-gray-200 rounded shadow-lg p-1 max-h-44 overflow-y-auto">
+                ${opts.map(o => `<label class="flex items-center gap-2 px-2 py-1 text-[13px] hover:bg-gray-50 rounded cursor-pointer"><input type="checkbox" class="sp-ms-cb w-4 h-4" value="${o}" ${sel.has(o) ? 'checked' : ''} onchange="spMsChange(this)"> ${o}</label>`).join('')}
+            </div>
+        </div>`;
+    }
+    window.spMsOpen = function (btn) {
+        if (btn.disabled) return;
+        const panel = btn.parentElement.querySelector('.sp-ms-panel');
+        const willOpen = panel.classList.contains('hidden');
+        document.querySelectorAll('#sp-change-rows .sp-ms-panel').forEach(p => p.classList.add('hidden'));
+        if (willOpen) panel.classList.remove('hidden');
+    };
+    window.spMsChange = function (cb) {
+        const wrap = cb.closest('.sp-ms');
+        const vals = [...wrap.querySelectorAll('.sp-ms-cb:checked')].map(c => c.value);
+        const label = wrap.querySelector('.sp-ms-label');
+        label.textContent = vals.length ? vals.join('、') : wrap.getAttribute('data-placeholder');
+        label.className = 'sp-ms-label truncate ' + (vals.length ? 'text-gray-700' : 'text-gray-400');
+    };
+    function spPermBtn(label) { return `<button type="button" onclick="spOpenPermPicker(this)" class="sp-perm-btn inline-flex items-center gap-1.5 px-2.5 py-1.5 text-[13px] border border-blue-200 text-blue-600 rounded hover:bg-blue-50 whitespace-nowrap"><i data-lucide="list-checks" class="w-3.5 h-3.5"></i>${label}<span class="sp-perm-count text-gray-400 ml-0.5">未選</span></button>`; }
+    function spUpdatePermCount(row) {
+        const cnt = row.querySelector('.sp-perm-count'); if (!cnt) return;
+        const roleEl = row.querySelector('.sp-role-name');
+        const levels = row._levels || {};
+        // 特殊操作異動數＝新增（勾選但非舊有）＋移除（舊有但取消）
+        const origOps = new Set(row._origSpecialOps || []); const curOps = new Set(row._specialOps || []);
+        let opChanges = 0;
+        curOps.forEach(o => { if (!origOps.has(o)) opChanges++; });
+        origOps.forEach(o => { if (!curOps.has(o)) opChanges++; });
+        if (roleEl) {
+            // 現有角色：計算「異動權限」與「原權限」有差異的頁面數 + 特殊操作異動數
+            const orig = spRoleLevels(roleEl.textContent);
+            let n = 0;
+            SP_PAGES.forEach(pg => { const o = orig[pg] || '無'; const c = (pg in levels) ? levels[pg] : o; if (c !== o) n++; });
+            n += opChanges;
+            cnt.textContent = n ? `異動 ${n} 項` : '無異動';
+            cnt.className = 'sp-perm-count ml-0.5 ' + (n ? 'text-blue-600 font-semibold' : 'text-gray-400');
+        } else {
+            const n = Object.keys(levels).length + opChanges;
+            cnt.textContent = n ? `已選 ${n} 項` : '未選';
+            cnt.className = 'sp-perm-count ml-0.5 ' + (n ? 'text-blue-600 font-semibold' : 'text-gray-400');
+        }
+    }
+    // 現有角色列（無異動類型，可調整權限／區域／項目）
+    function spAddExistingRow(cur) {
+        const wrap = document.getElementById('sp-change-rows'); if (!wrap) return;
+        const row = document.createElement('div');
+        row.className = 'sp-change-row grid grid-cols-[100px_1.4fr_1fr_1fr_1.1fr_36px] gap-2 items-center';
+        row._levels = spRoleLevels(cur.role);
+        row._origSpecialOps = spRoleSpecialOps(cur.role);
+        row._specialOps = row._origSpecialOps.slice();
+        row._delete = false;
+        row.innerHTML = `
+            <select class="sp-type-sel border border-gray-300 rounded px-2 py-1.5 text-[13px] outline-none focus:border-blue-500" onchange="spOnExistingType(this)">
+                <option value="none">不變動</option>
+                <option value="edit">編輯</option>
+                <option value="del">刪除</option>
+            </select>
+            <div class="flex items-center gap-2 min-w-0">
+                <span class="sp-role-name px-2 py-0.5 bg-blue-50 text-[#4A90E2] border border-blue-100 rounded text-[12px] font-semibold whitespace-nowrap shrink-0">${cur.role}</span>
+                ${spPermBtn('勾選權限')}
+            </div>
+            ${spMsSelect('region', cur.regions)}
+            ${spMsSelect('project', cur.projects)}
+            ${spMsSelect('form', cur.forms)}
+            <span></span>`;
+        wrap.appendChild(row);
+        spUpdatePermCount(row);
+        spApplyExistingState(row);
+        if (window.lucide) lucide.createIcons();
+    }
+    // 現有角色：依異動類型（不變動／編輯／刪除）套用欄位鎖定與壓灰
+    function spApplyExistingState(row) {
+        const sel = row.querySelector('.sp-type-sel'); const v = sel ? sel.value : 'none';
+        const editable = v === 'edit'; const del = v === 'del'; const locked = !editable;
+        const roleName = row.querySelector('.sp-role-name');
+        row._delete = del;
+        row.querySelectorAll('.sp-perm-btn, .sp-ms-trigger, .sp-ms-cb').forEach(el => { el.disabled = locked; el.classList.toggle('opacity-50', locked); });
+        if (locked) row.querySelectorAll('.sp-ms-panel').forEach(p => p.classList.add('hidden'));
+        row.classList.toggle('opacity-60', del);
+        if (roleName) roleName.classList.toggle('line-through', del);
+        if (sel) { sel.classList.toggle('text-rose-600', del); sel.classList.toggle('font-semibold', del || editable); sel.classList.toggle('text-blue-600', editable); }
+    }
+    window.spOnExistingType = function (sel) { const row = sel.closest('.sp-change-row'); if (row) spApplyExistingState(row); };
+    // 新增列（異動類型＝新增，直接勾選權限項目）
     window.spAddChangeRow = function () {
         const wrap = document.getElementById('sp-change-rows'); if (!wrap) return;
         const row = document.createElement('div');
-        row.className = 'sp-change-row grid grid-cols-[110px_1fr_1fr_1fr_36px] gap-2 items-center';
-        const roleOpts = SP_ROLE_LIST.map(r => `<option>${r}</option>`).join('');
-        const regionOpts = SP_REGIONS.map(r => `<option>${r}</option>`).join('');
-        const projectOpts = SP_PROJECTS.map(p => `<option>${p}</option>`).join('');
+        row.className = 'sp-change-row grid grid-cols-[100px_1.4fr_1fr_1fr_1.1fr_36px] gap-2 items-center';
+        row._levels = {};
+        row._origSpecialOps = [];
+        row._specialOps = [];
         row.innerHTML = `
-            <select class="sp-type border border-gray-300 rounded px-2 py-1.5 text-[13px] outline-none focus:border-blue-500"><option value="add">新增</option><option value="del">刪除</option></select>
-            <select class="sp-role border border-gray-300 rounded px-2 py-1.5 text-[13px] outline-none focus:border-blue-500"><option value="">選擇角色</option>${roleOpts}</select>
-            <select class="sp-region border border-gray-300 rounded px-2 py-1.5 text-[13px] outline-none focus:border-blue-500"><option value="">選擇負責區域</option>${regionOpts}</select>
-            <select class="sp-project border border-gray-300 rounded px-2 py-1.5 text-[13px] outline-none focus:border-blue-500"><option value="">選擇負責項目</option>${projectOpts}</select>
+            <span class="px-2 py-1 rounded text-[11px] font-bold bg-emerald-50 text-emerald-600 text-center">新增</span>
+            <div class="min-w-0">${spPermBtn('選擇權限項目')}</div>
+            ${spMsSelect('region', [])}
+            ${spMsSelect('project', [])}
+            ${spMsSelect('form', [])}
             <button type="button" onclick="spRemoveChangeRow(this)" class="text-gray-400 hover:text-red-500 flex items-center justify-center" aria-label="移除"><i data-lucide="trash-2" class="w-4 h-4"></i></button>`;
         wrap.appendChild(row);
+        spUpdatePermCount(row);
         if (window.lucide) lucide.createIcons();
     };
-    window.spRemoveChangeRow = function (btn) {
-        const row = btn.closest('.sp-change-row'); const wrap = document.getElementById('sp-change-rows');
-        if (row && wrap && wrap.children.length > 1) { row.remove(); }
-        else if (row) { row.querySelectorAll('select').forEach(s => s.selectedIndex = 0); }
+    window.spRemoveChangeRow = function (btn) { const row = btn.closest('.sp-change-row'); if (row) row.remove(); };
+    // 員工管理的特殊操作（比照 權限設置.html）
+    const SP_EMP_SPECIAL = ['檢視負責區域項目員工', '檢視下屬員工'];
+    const SP_EMP_OPS = ['添加新員工', '取消入職', '重置密碼', '離職', '刪除帳號', '檢視個人信息', '檢視職位信息-主要編制', '檢視職位信息-職位', '檢視職位信息-基本工資', '檢視職位信息-獎金', '檢視職位信息-其他福利', '檢視職位信息-職位信息(主要)', '檢視職位信息-職位信息(次要)', '檢視職位信息-事業部', '檢視職位信息-職級', '檢視職位信息-其他項目', '檢視人員帳號', '檢視考勤信息', '檢視假期信息', '檢視薪資單', '檢視資產', '修改個人信息-基礎/個人信息', '修改個人信息-個人聯絡方式', '修改個人信息-緊急聯絡人', '修改職位信息-主要編制', '修改職位信息-職位', '修改職位信息-基本工資', '修改職位信息-獎金', '修改職位信息-其他福利', '修改職位信息-職位信息(主要)', '修改職位信息-職位信息(次要)', '修改職位信息-事業部', '修改職位信息-職級', '修改職位信息-其他項目', '提交人員帳號異動申請', '修改考勤信息', '修改假期信息'];
+    // 角色原本擁有的員工管理特殊操作（依員工管理層級推得）
+    function spRoleSpecialOps(role) {
+        const lvl = spRoleLevels(role)['員工管理'] || '無';
+        if (lvl === '無') return [];
+        if (lvl === '編輯') return SP_EMP_SPECIAL.concat(SP_EMP_OPS);
+        return SP_EMP_SPECIAL.concat(SP_EMP_OPS.filter(o => o.startsWith('檢視')));
+    }
+    // 員工管理特殊操作的勾選子列（檢視範圍 + 檢視／編輯／其他 分類，比照 權限設置.html）
+    // 勾勾顏色：舊權限（原本擁有）＝藍色；異動（新增）＝綠色
+    function spEmpSpecialHtml(cols, level) {
+        const sel = new Set((_spPickerRow && _spPickerRow._specialOps) || []);
+        const orig = new Set((_spPickerRow && _spPickerRow._origSpecialOps) || []);
+        const chk = (op, label) => `<label class="inline-flex items-center gap-1.5 text-[12px] text-gray-600 cursor-pointer"><input type="checkbox" class="sp-pp-op w-3.5 h-3.5 ${orig.has(op) ? 'accent-blue-600' : 'accent-emerald-500'}" data-op="${op}" ${sel.has(op) ? 'checked' : ''}> ${label}</label>`;
+        const cats = [
+            ['檢視', SP_EMP_OPS.filter(o => o.startsWith('檢視')), o => o.replace(/^檢視/, '')],
+            ['編輯', SP_EMP_OPS.filter(o => o.startsWith('修改')), o => o.replace(/^修改/, '')],
+            ['其他', SP_EMP_OPS.filter(o => !o.startsWith('檢視') && !o.startsWith('修改')), o => o]
+        ].filter(([, list]) => list.length);
+        let inner = `<div class="mb-2"><div class="text-[11px] font-bold text-amber-600 mb-1">檢視範圍</div><div class="flex flex-wrap gap-x-4 gap-y-1">${SP_EMP_SPECIAL.map(o => chk(o, o)).join('')}</div></div>`;
+        inner += cats.map(([label, list, disp]) => `<div class="mb-2"><div class="text-[11px] font-bold text-gray-500 mb-1">${label}</div><div class="grid grid-cols-2 sm:grid-cols-3 gap-x-3 gap-y-1">${list.map(o => chk(o, disp(o))).join('')}</div></div>`).join('');
+        return `<tr class="sp-emp-special border-b border-gray-100 bg-gray-50/40 ${level === '無' ? 'hidden' : ''}"><td colspan="${cols}" class="px-6 py-3"><div class="text-[11px] font-semibold text-gray-400 mb-2">員工管理 · 特殊操作</div>${inner}</td></tr>`;
+    }
+    // ===== 權限項目彈窗 =====
+    let _spPickerRow = null, _spPickerMode = 'new';
+    window.spOpenPermPicker = function (btn) {
+        if (btn.disabled) return;
+        _spPickerRow = btn.closest('.sp-change-row'); if (!_spPickerRow) return;
+        const roleEl = _spPickerRow.querySelector('.sp-role-name');
+        _spPickerMode = roleEl ? 'existing' : 'new';
+        const levels = _spPickerRow._levels || {};
+        const body = document.getElementById('sp-perm-picker-body'); if (!body) return;
+        const grpHead = (g, cols) => `<tr class="bg-blue-50/50"><td colspan="${cols}" class="px-3 py-1.5 text-[12px] font-bold text-[#2b3b84]">${g}</td></tr>`;
+        if (_spPickerMode === 'existing') {
+            // 現有角色：原權限（唯讀）／異動權限（可改），皆為 無／檢視／編輯 下拉
+            const orig = spRoleLevels(roleEl.textContent);
+            body.innerHTML = `<table class="w-full text-[13px]">
+                <thead><tr class="bg-gray-50 text-gray-500 border-b border-gray-200"><th class="px-3 py-2 text-left">頁面</th><th class="px-3 py-2 text-center w-28">原權限</th><th class="px-3 py-2 text-center w-28">異動權限</th></tr></thead>
+                <tbody>${SP_DATA_GROUPS.map(g => grpHead(g.group, 3) + g.pages.map(p => {
+                    const pg = p.n, vo = !!p.v; const o = orig[pg] || '無'; const c = (pg in levels) ? levels[pg] : o;
+                    return `<tr class="border-b border-gray-100">
+                        <td class="px-3 py-2 text-gray-700 pl-6">${pg}</td>
+                        <td class="px-3 py-2 text-center"><select disabled class="border border-gray-200 rounded px-2 py-1 text-[13px] bg-gray-50 text-gray-500">${spLevelOptions(o, vo)}</select></td>
+                        <td class="px-3 py-2 text-center"><select class="sp-pp-level rounded px-2 py-1 text-[13px] outline-none border ${c !== o ? 'border-blue-400 text-blue-600 font-semibold' : 'border-gray-300 focus:border-blue-500'}" data-page="${pg}" data-orig="${o}" onchange="spPpLevelChange(this)">${spLevelOptions(c, vo)}</select></td>
+                    </tr>` + (pg === '員工管理' ? spEmpSpecialHtml(3, c) : '');
+                }).join('')).join('')}</tbody></table>`;
+        } else {
+            // 新增列：單一「申請權限」下拉（無／檢視／編輯，預設無）
+            body.innerHTML = `<table class="w-full text-[13px]">
+                <thead><tr class="bg-gray-50 text-gray-500 border-b border-gray-200"><th class="px-3 py-2 text-left">頁面</th><th class="px-3 py-2 text-center w-32">申請權限</th></tr></thead>
+                <tbody>${SP_DATA_GROUPS.map(g => grpHead(g.group, 2) + g.pages.map(p => {
+                    const pg = p.n, vo = !!p.v; const lvl = levels[pg] || '無';
+                    return `<tr class="border-b border-gray-100">
+                        <td class="px-3 py-2 text-gray-700 pl-6">${pg}</td>
+                        <td class="px-3 py-2 text-center"><select class="sp-pp-level border border-gray-300 rounded px-2 py-1 text-[13px] outline-none focus:border-blue-500" data-page="${pg}" onchange="spPpLevelChange(this)">${spLevelOptions(lvl, vo)}</select></td>
+                    </tr>` + (pg === '員工管理' ? spEmpSpecialHtml(2, lvl) : '');
+                }).join('')).join('')}</tbody></table>`;
+        }
+        const m = document.getElementById('sp-perm-picker-modal'); if (m) m.classList.remove('hidden');
+    };
+    window.spPpLevelChange = function (sel) {
+        // 員工管理選「無」時隱藏特殊操作，選檢視／編輯時顯示
+        if (sel.dataset.page === '員工管理') {
+            const body = document.getElementById('sp-perm-picker-body');
+            const sr = body && body.querySelector('.sp-emp-special');
+            if (sr) sr.classList.toggle('hidden', sel.value === '無');
+        }
+        // 現有角色的「異動權限」：與原權限不同時該下拉框轉藍
+        if (sel.dataset.orig !== undefined) {
+            const diff = sel.value !== sel.dataset.orig;
+            sel.className = 'sp-pp-level rounded px-2 py-1 text-[13px] outline-none border ' + (diff ? 'border-blue-400 text-blue-600 font-semibold' : 'border-gray-300 focus:border-blue-500');
+        }
+    };
+    window.spClosePermPicker = function () { const m = document.getElementById('sp-perm-picker-modal'); if (m) m.classList.add('hidden'); };
+    window.spApplyPermPicker = function () {
+        if (!_spPickerRow) { spClosePermPicker(); return; }
+        const levels = {};
+        if (_spPickerMode === 'existing') {
+            document.querySelectorAll('#sp-perm-picker-body .sp-pp-level').forEach(sel => { levels[sel.dataset.page] = sel.value; });
+        } else {
+            document.querySelectorAll('#sp-perm-picker-body .sp-pp-level').forEach(sel => { if (sel.value !== '無') levels[sel.dataset.page] = sel.value; });
+        }
+        _spPickerRow._levels = levels;
+        _spPickerRow._specialOps = [...document.querySelectorAll('#sp-perm-picker-body .sp-pp-op:checked')].map(cb => cb.dataset.op);
+        spUpdatePermCount(_spPickerRow);
+        spClosePermPicker();
     };
     function spInit() {
-        if (!document.getElementById('sp-current-roles')) return;
-        spRenderCurrentRoles(); spRenderCatalog();
+        if (!document.getElementById('sp-change-rows')) return;
+        spRenderCatalog();
         const rows = document.getElementById('sp-change-rows');
-        if (rows && !rows.children.length) spAddChangeRow();
+        if (rows && !rows.children.length) SP_CURRENT_ROLES.forEach(spAddExistingRow);
+        // 點空白處關閉所有多選下拉
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.sp-ms')) document.querySelectorAll('#sp-change-rows .sp-ms-panel').forEach(p => p.classList.add('hidden'));
+        });
     }
     if (document.readyState !== 'loading') spInit(); else document.addEventListener('DOMContentLoaded', spInit);
 })();
