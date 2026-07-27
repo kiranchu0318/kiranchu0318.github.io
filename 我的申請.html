@@ -736,7 +736,7 @@
                   <div className="flex items-center gap-2">
                     <span className="font-bold text-gray-800 text-base">{modalRow?.kind === 'account' ? '人員帳號異動申請單' : modalRow?.kind === 'recruit' ? '招聘需求單' : modalRow?.kind === 'hire' ? '錄用審批單' : `${({ B: '費用申請單', C: '費用報銷單', IC: '內部合同審批單', PU: '請購申請單', SA: '用印申請單' })[modalRow?.type] || '費用申請單'}(${modalRow?.type || 'B'})`}</span>
                     {modalRow?.kind === 'recruit' && (
-                      <span className="inline-flex items-center text-[16px] font-bold text-white bg-[#4A90E2] border border-[#3A7BC8] rounded px-2.5 py-0.5 shadow-sm">[總招聘人數:2 關聯錄用:1]</span>
+                      <span className="inline-flex items-center text-[13px] font-semibold text-[#2b6cb0] bg-blue-50 border border-blue-200 rounded px-2 py-0.5">關聯錄用 1／2 · 剩餘名額 1</span>
                     )}
                   </div>
                   <button 
