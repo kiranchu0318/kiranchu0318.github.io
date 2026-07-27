@@ -1281,7 +1281,7 @@
                         afterHtml += scopeBlock(s, `<span class="px-2 py-0.5 bg-gray-100 text-gray-500 line-through rounded text-xs font-semibold">${s.role}</span>${typeBadge('刪除')}`, true);
                     });
                 } else {
-                    afterHtml = `<div class="py-3"><span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-amber-50 text-amber-600 border border-amber-100"><i class="fa-solid fa-circle-info text-[10px]"></i>未指定角色 · 文字描述需求</span><div class="text-[11px] text-gray-400 mt-1">詳見「檢視異動申請」</div></div>`;
+                    afterHtml = `<div class="py-3"><span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-amber-50 text-amber-600 border border-amber-100"><i class="fa-solid fa-circle-info text-[10px]"></i>未異動角色權限</span><div class="text-[11px] text-gray-400 mt-1">需求內容詳見「單號:AAA-AAA-AAA-100000」</div></div>`;
                 }
                 return `
                 <div class="border border-gray-200 rounded-xl overflow-hidden shadow-sm">
@@ -1293,7 +1293,7 @@
                             <span class="text-xs text-gray-400">（${r.empno}）</span>
                         </div>
                         <div class="flex items-center gap-2 flex-wrap">
-                            <button onclick="markPermProcessed(${i})" class="ui-btn ui-btn-sm text-emerald-600 border border-emerald-200 hover:bg-emerald-50">標記為已處理</button>
+                            <button onclick="markPermProcessed(${i})" class="ui-btn ui-btn-sm text-emerald-600 border border-emerald-200 hover:bg-emerald-50">不再顯示</button>
                         </div>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr]">

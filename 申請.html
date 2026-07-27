@@ -2123,28 +2123,17 @@
                             <div class="col-span-2"><label class="block mb-1.5 text-[13px] text-gray-700">文件編號</label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed" value="自動生成" disabled></div>
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">申請日期</label><div class="border border-gray-300 rounded px-3 py-1.5 bg-white flex items-center"><i data-lucide="calendar" class="w-4 h-4 text-gray-400"></i><input type="text" class="w-full ml-2 text-[13px] outline-none" disabled></div></div>
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">主旨 <span class="text-red-500">*</span></label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"></div>
-                            <div class="col-start-1"><label class="block mb-1.5 text-[13px] text-gray-700">申請人</label><input type="text" value="Nick（100064）" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed" disabled></div>
-                            <div><label class="block mb-1.5 text-[13px] text-gray-700">區域</label><input type="text" value="THQ" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed" disabled></div>
-                            <div><label class="block mb-1.5 text-[13px] text-gray-700">項目</label><input type="text" value="GT" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed" disabled></div>
+                            <div class="col-start-1"><label class="block mb-1.5 text-[13px] text-gray-700">申請人 <span class="text-red-500">*</span></label><div class="relative applicant-combo" id="sp-applicant-combo"><input type="text" autocomplete="off" placeholder="搜尋人名 / 工號" class="applicant-input w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><div class="applicant-list hidden absolute z-30 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto text-[13px]"></div></div></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">區域 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option></select></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">項目 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option></select></div>
                         </div>
                     </div>
 
                     <!-- 系統權限異動明細 -->
                     <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5">
                         <div class="px-4 py-2.5 border-b border-gray-200"><h3 class="text-[#2b3b84] font-bold text-[15px]">系統權限異動明細</h3></div>
-                        <div class="px-4 pt-4 grid grid-cols-5 gap-x-5 gap-y-5 mb-4">
-                            <div><label class="block mb-1.5 text-[13px] text-gray-700">異動對象</label><input type="text" value="Nick（100064）" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed" disabled></div>
-                            <div><label class="block mb-1.5 text-[13px] text-gray-700">所屬部門</label><input type="text" value="RD" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed" disabled></div>
-                        </div>
-
-                        <!-- 系統角色與頁面資料權限對照（來源：權限設置，可展開檢視） -->
-                        <div class="px-4 pb-4">
-                            <label class="block mb-2 text-[13px] text-gray-700 font-medium">系統角色與頁面資料權限對照 <span class="text-[12px] text-gray-400 font-normal ml-1">（來源：權限設置）</span></label>
-                            <button type="button" onclick="spOpenCatalog()" class="ui-btn ui-btn-sm bg-white text-blue-600 border border-blue-200 hover:bg-blue-50"><i data-lucide="book-open" class="w-3.5 h-3.5"></i> 檢視系統角色與頁面資料權限對照</button>
-                        </div>
-
                         <!-- 申請異動的角色 -->
-                        <div class="px-4 pb-4">
+                        <div class="px-4 pt-4 pb-4">
                             <div class="flex items-center justify-between mb-2">
                                 <label class="text-[13px] text-gray-700 font-medium">申請異動的角色 <span class="text-red-500">*</span></label>
                                 <button type="button" onclick="spAddChangeRow()" class="ui-btn ui-btn-sm bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100"><i data-lucide="plus" class="w-3.5 h-3.5"></i> 新增一列</button>
