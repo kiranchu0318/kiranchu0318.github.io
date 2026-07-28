@@ -241,6 +241,30 @@
       // 費用會計彈窗
       const [costAcctOpen, setCostAcctOpen] = useState(false);
       const [costAcctRows, setCostAcctRows] = useState([]); // 費用會計分錄，初始為空
+      // 資金支付彈窗
+      const emptyPayRow = { method: '', date: '', currency: '', amount: '', note: '', cny: 'CNY', cnyRate: '', fee: '' };
+      const [payOpen, setPayOpen] = useState(false);
+      const [payRows, setPayRows] = useState([{ ...emptyPayRow }]);
+      const [payStatCurrency, setPayStatCurrency] = useState('CNY');
+      const PAY_METHODS = ['銀行轉帳', '電匯', '支票', '現金'];
+      const PAY_CURRENCIES = ['CNY', 'TWD', 'USD', 'EUR', 'JPY'];
+      const CNY_RATES = { CNY: 1, TWD: 0.22, USD: 7.15, EUR: 7.8, JPY: 0.048 };
+      // 依實際支付日與貨幣自動帶出人民幣匯率（示範：基準匯率隨支付日微幅浮動）
+      const payRateForDate = (currency, date) => {
+        const base = CNY_RATES[currency] || 0;
+        if (!base) return '';
+        const day = date ? (parseInt(date.slice(-2), 10) || 15) : 15;
+        return (base * (1 + (day - 15) * 0.001)).toFixed(4);
+      };
+      const payCny = (r) => (parseFloat(String(r.amount).replace(/,/g, '')) || 0) * (parseFloat(r.cnyRate) || 0); // 人民幣金額＝支付金額×人民幣匯率
+      const addPayRow = () => setPayRows(prev => [...prev, { ...emptyPayRow }]);
+      const updatePayRow = (i, field, val) => setPayRows(prev => prev.map((r, idx) => {
+        if (idx !== i) return r;
+        const nr = { ...r, [field]: val };
+        if (field === 'date' || field === 'currency') nr.cnyRate = payRateForDate(nr.currency, nr.date); // 選日期/貨幣自動帶匯率
+        return nr;
+      }));
+      const removePayRow = (i) => setPayRows(prev => prev.length > 1 ? prev.filter((_, idx) => idx !== i) : prev);
       const addCostAcctRow = () => setCostAcctRows(prev => [...prev, { subject: '', subjectNote: '', project: 'GT', dept: '', currency: 'TWD', amount: '' }]);
       const removeCostAcctRow = (i) => setCostAcctRows(prev => prev.filter((_, idx) => idx !== i));
       // 費用報銷明細（供表格顯示與「項目金額」計算共用）
@@ -623,6 +647,7 @@
         { oa: '行政', location: 'THQ', type: 'HR', docNo: 'HR_THQ-000001', label: 'HR_THQ-000001_員工帳號申請/換發/刪除', applicant: 'Oliver', signature: 'Oliver', amounts: ['-'], date: '2026-06-01 09:15:00', approver: 'James', refNo: '-', status: '待我簽核', isGreen: false, workStatus: '未派工' },
         { oa: '行政', location: 'THQ', type: 'HR', docNo: 'HR_THQ-000001', label: 'HR_THQ-000001_招聘需求單', applicant: 'Oliver', signature: 'Oliver', amounts: ['-'], date: '2026-06-02 10:30:00', approver: 'James', refNo: '-', status: '待我簽核', isGreen: false, workStatus: '未派工' },
         { oa: '行政', location: 'THQ', type: 'HR', docNo: 'HR_THQ-000001', label: 'HR_THQ-000001_錄用審批單', applicant: 'Oliver', signature: 'Oliver', amounts: ['-'], date: '2026-06-03 11:00:00', approver: 'James', refNo: '-', status: '簽核完成', isGreen: true, workStatus: '已完成' },
+        { oa: '行政', location: 'THQ', type: 'AUTH', docNo: 'HROA_AUTH_000001', label: 'HROA_AUTH_000001_系統權限異動申請', applicant: 'Nick', signature: 'Nick', amounts: ['-'], date: '2026-06-04 14:20:00', approver: 'James', refNo: '-', status: '待我簽核', isGreen: false, workStatus: '未派工' },
         { oa: '財務', location: 'THQ', type: 'B',  docNo: 'B-THQ-000003',  applicant: 'Oliver', signature: 'Oliver', amounts: ['TWD 8,000', 'CNY 2137.09'],        date: '2026-05-30 15:36:45', approver: 'James', refNo: '-', status: '待我簽核', isGreen: false, workStatus: '未派工' },
         { oa: '合同', location: 'THQ', type: 'IC', docNo: 'IC-THQ-000002', applicant: 'Oliver', signature: 'Oliver', amounts: ['TWD 2,000,000', 'CNY 427407.40'], date: '2026-05-20 15:36:45', approver: 'James', refNo: '-', status: '簽核完成', isGreen: true, workStatus: '已完成' },
         { oa: '行政', location: 'THQ', type: 'PU', docNo: 'PU-THQ-000003', applicant: 'Oliver', signature: 'Oliver', amounts: ['TWD 8,000', 'CNY 2137.09'],        date: '2026-05-12 15:36:45', approver: 'James', refNo: '-', status: '未簽核', isGreen: false, workStatus: '未派工', urgent: true },
@@ -1261,7 +1286,7 @@
                           </div>
                           <div>
                             <label className="block text-gray-700 text-xs mb-1.5 font-medium">{['C-THQ-000001', 'C-THQ-000002'].includes(modalRow?.docNo) ? '目的' : '主旨'}</label>
-                            <input type="text" disabled value={modalRow ? (['C-THQ-000001', 'C-THQ-000002'].includes(modalRow.docNo) ? '辦公室用品費用報銷' : `${modalRow.oa || ''}申請單`) : ''} className="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-sm text-gray-800 font-medium" />
+                            <input type="text" disabled value={modalRow ? (['C-THQ-000001', 'C-THQ-000002'].includes(modalRow.docNo) ? '辦公室用品費用報銷' : modalRow.type === 'AUTH' ? '系統權限異動申請' : `${modalRow.oa || ''}申請單`) : ''} className="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-sm text-gray-800 font-medium" />
                           </div>
                           <div className="lg:col-start-1">
                             <label className="block text-gray-700 text-xs mb-1.5 font-medium">申請人</label>
@@ -1434,6 +1459,59 @@
                       </>
                       )}
 
+                      {/* 系統權限異動申請明細（AUTH 專用；內容參照 申請.html 系統權限異動申請）*/}
+                      {modalRow?.type === 'AUTH' && (
+                      <>
+                      <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-5">
+                        <div className="text-[#2b3b84] font-bold text-[15px] border-b border-gray-100 pb-2">系統權限異動明細</div>
+                        <div className="overflow-x-auto border border-gray-100 rounded-lg">
+                          <table className="w-full text-left text-sm border-collapse whitespace-nowrap">
+                            <thead>
+                              <tr className="border-b border-gray-200 bg-gray-50 text-gray-700 font-bold text-xs">
+                                <th className="px-3 py-2 w-20 text-center">異動類型</th>
+                                <th className="px-3 py-2">角色 / 權限項目</th>
+                                <th className="px-3 py-2">負責區域</th>
+                                <th className="px-3 py-2">負責項目</th>
+                                <th className="px-3 py-2">可提交申請單</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-100 font-medium">
+                              {[
+                                { chg: '編輯', role: '人資主管', regions: ['T1'], projects: ['GT'], forms: ['HR', '行政'], perms: ['員工管理 檢視→編輯', '薪資管理 +檢視', '員工假期查詢 +檢視'] },
+                                { chg: '不變動', role: '稽核人員', regions: ['T2', 'U'], projects: ['GX', 'GS'], forms: [], perms: [] },
+                                { chg: '新增', role: '', regions: ['U', 'S'], projects: ['GP', 'GT'], forms: ['財務'], perms: ['月初匯率管理 檢視/編輯', '財務設定 檢視', '薪資管理 檢視', '資產清單 檢視'] },
+                                { chg: '刪除', role: '一般員工', regions: ['T1'], projects: ['GT'], forms: ['行政'], perms: [] },
+                              ].map((r, i) => (
+                                <tr key={i} className={r.chg === '刪除' ? 'opacity-60' : ''}>
+                                  <td className="px-3 py-2 text-center align-top"><span className={`ui-badge ${r.chg === '刪除' ? 'ui-badge-danger' : r.chg === '新增' ? 'ui-badge-success' : r.chg === '編輯' ? 'ui-badge-info' : 'ui-badge-gray'}`}>{r.chg}</span></td>
+                                  <td className="px-3 py-2 align-top">
+                                    <div className="mb-1">
+                                      {r.chg === '新增'
+                                        ? <span className="px-2 py-0.5 rounded text-xs font-bold bg-emerald-50 text-emerald-600">新增角色</span>
+                                        : <span className={`px-2 py-0.5 bg-gray-100 text-gray-700 rounded text-xs font-semibold ${r.chg === '刪除' ? 'line-through' : ''}`}>{r.role}</span>}
+                                    </div>
+                                    {r.perms.length > 0 ? (
+                                      <div className="flex flex-wrap gap-1">{r.perms.map((p, pi) => <span key={pi} className="px-1.5 py-0.5 bg-blue-50 text-blue-600 rounded text-[11px] font-normal">{p}</span>)}</div>
+                                    ) : (
+                                      <span className="text-[11px] text-gray-400">{r.chg === '不變動' ? '權限不變' : '—'}</span>
+                                    )}
+                                  </td>
+                                  <td className="px-3 py-2 align-top"><div className="flex flex-wrap gap-1">{r.regions.map((x, xi) => <span key={xi} className="px-1.5 py-0.5 bg-teal-50 text-teal-600 rounded text-[11px] font-semibold">{x}</span>)}</div></td>
+                                  <td className="px-3 py-2 align-top"><div className="flex flex-wrap gap-1">{r.projects.map((x, xi) => <span key={xi} className="px-1.5 py-0.5 bg-sky-50 text-sky-600 rounded text-[11px] font-semibold">{x}</span>)}</div></td>
+                                  <td className="px-3 py-2 align-top"><div className="flex flex-wrap gap-1">{r.forms.length ? r.forms.map((x, xi) => <span key={xi} className="px-1.5 py-0.5 bg-violet-50 text-violet-600 rounded text-[11px] font-semibold">{x}</span>) : <span className="text-gray-300 text-[11px]">—</span>}</div></td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                      <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-3">
+                        <div className="text-[#2b3b84] font-bold text-[15px] border-b border-gray-100 pb-2">申請說明及其他異動需求</div>
+                        <div className="text-sm text-gray-700 bg-gray-50 border border-gray-200 rounded-lg p-3 leading-relaxed whitespace-pre-line">因職務調整，申請將「人資主管」角色權限異動並擴增財務相關可提交申請單；新增一個依勾選權限項目建立的新角色；原「一般員工」角色不再需要，申請移除。</div>
+                      </div>
+                      </>
+                      )}
+
                       {/* 費用報銷卡片（C-THQ-000001 專用） */}
                       {['C-THQ-000001', 'C-THQ-000002'].includes(modalRow?.docNo) && (
                       <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-5">
@@ -1505,7 +1583,7 @@
                       )}
 
                       {/* 費用申請明細 / 費用報銷明細卡片（HR 不顯示）*/}
-                      {modalRow?.type !== 'HR' && (
+                      {modalRow?.type !== 'HR' && modalRow?.type !== 'AUTH' && (
                       <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-5">
                         <div className="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2">{['C-THQ-000001', 'C-THQ-000002'].includes(modalRow?.docNo) ? '費用報銷明細' : '費用申請明細'}</div>
                         {['C-THQ-000001', 'C-THQ-000002'].includes(modalRow?.docNo) ? (
@@ -1775,7 +1853,7 @@
                     </div>
 
                     {/* 懸浮總計金額（參考申請.html 請購單 PU 浮動區塊；人員帳號異動不涉及金額，故不顯示）*/}
-                    {modalRow?.type !== 'HR' && modalRow?.amounts && (
+                    {modalRow?.type !== 'HR' && modalRow?.type !== 'AUTH' && modalRow?.amounts && (
                       <div className="absolute right-6 bottom-[88px] z-30 bg-white border border-gray-200 rounded-xl shadow-xl px-5 py-3 min-w-[210px]">
                         <div className="text-[11px] text-gray-400 font-medium">總計金額</div>
                         <div className="flex items-baseline gap-1.5">
@@ -1793,7 +1871,7 @@
                           <button onClick={() => setCostAcctOpen(true)} className="ui-btn ui-btn-secondary ui-btn-lg">費用會計</button>
                         )}
                         {modalRow?.label === 'C-THQ-000001_辦公室用品費用報銷(費用會計+資金支付)' && (
-                          <button className="ui-btn ui-btn-secondary ui-btn-lg">資金支付</button>
+                          <button onClick={() => setPayOpen(true)} className="ui-btn ui-btn-secondary ui-btn-lg">資金支付</button>
                         )}
                         <button
                           onClick={openApproveAction}
@@ -2345,6 +2423,90 @@
                 <div className="bg-white border-t border-gray-200 px-5 py-3 flex justify-center gap-3 flex-shrink-0">
                   <button onClick={() => setCostAcctOpen(false)} className="ui-btn ui-btn-secondary px-6">取消</button>
                   <button onClick={() => setCostAcctOpen(false)} className="ui-btn ui-btn-primary px-8">保存</button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ================= 資金支付彈窗 ================= */}
+          {payOpen && (
+            <div className="fixed inset-0 bg-black bg-opacity-45 z-[60] flex items-center justify-center p-4" onClick={() => setPayOpen(false)}>
+              <div className="bg-white rounded-md shadow-2xl w-full max-w-[1440px] max-h-[90vh] flex flex-col overflow-hidden text-left" onClick={(e) => e.stopPropagation()}>
+                <div className="bg-[#EAF2FC] flex justify-between items-center px-5 py-3 border-b border-blue-100 flex-shrink-0">
+                  <h2 className="text-[#2b3b84] font-bold text-[16px]">資金支付</h2>
+                  <button onClick={() => setPayOpen(false)} className="bg-blue-500 hover:bg-blue-600 text-white rounded p-1 transition-colors"><span className="block w-4 h-4 leading-4 text-center">✕</span></button>
+                </div>
+                <div className="flex-1 overflow-y-auto p-5 space-y-5 bg-[#f4f5f8]">
+                  {/* 支付明細表格 */}
+                  <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="text-[#1A237E] font-bold text-[15px]">支付明細</div>
+                      <button onClick={addPayRow} className="ui-btn ui-btn-sm bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100">＋ 新增</button>
+                    </div>
+                    <div className="overflow-x-auto border border-gray-100 rounded-lg">
+                      <table className="text-left text-xs border-collapse whitespace-nowrap min-w-[1120px] w-full">
+                        <thead>
+                          <tr className="border-b border-gray-200 bg-gray-50 text-gray-700 font-bold">
+                            <th className="px-2 py-2 w-28">支付方式</th>
+                            <th className="px-2 py-2 w-36">實際支付日</th>
+                            <th className="px-2 py-2 w-24">支付貨幣</th>
+                            <th className="px-2 py-2 w-28">支付金額</th>
+                            <th className="px-2 py-2">說明</th>
+                            <th className="px-2 py-2 w-24">CNY</th>
+                            <th className="px-2 py-2 w-24">人民幣匯率</th>
+                            <th className="px-2 py-2 w-28">人民幣金額</th>
+                            <th className="px-2 py-2 w-24">手續費</th>
+                            <th className="px-2 py-2 w-10"></th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100">
+                          {payRows.map((r, i) => (
+                            <tr key={i}>
+                              <td className="px-2 py-1.5"><select value={r.method} onChange={(e) => updatePayRow(i, 'method', e.target.value)} className="w-full border border-gray-300 rounded px-2 py-1 outline-none focus:border-blue-500"><option value="">選擇</option>{PAY_METHODS.map(m => <option key={m}>{m}</option>)}</select></td>
+                              <td className="px-2 py-1.5"><input type="date" value={r.date} onChange={(e) => updatePayRow(i, 'date', e.target.value)} className="w-full border border-gray-300 rounded px-2 py-1 outline-none focus:border-blue-500" /></td>
+                              <td className="px-2 py-1.5"><select value={r.currency} onChange={(e) => updatePayRow(i, 'currency', e.target.value)} className="w-full border border-gray-300 rounded px-2 py-1 outline-none focus:border-blue-500"><option value="">選擇</option>{PAY_CURRENCIES.map(c => <option key={c}>{c}</option>)}</select></td>
+                              <td className="px-2 py-1.5"><input type="text" value={r.amount} onChange={(e) => updatePayRow(i, 'amount', e.target.value)} placeholder="0" className="w-full border border-gray-300 rounded px-2 py-1 outline-none focus:border-blue-500 text-right" /></td>
+                              <td className="px-2 py-1.5"><input type="text" value={r.note} onChange={(e) => updatePayRow(i, 'note', e.target.value)} placeholder="填寫說明" className="w-full border border-gray-300 rounded px-2 py-1 outline-none focus:border-blue-500" /></td>
+                              <td className="px-2 py-1.5"><select value={r.cny || 'CNY'} onChange={(e) => updatePayRow(i, 'cny', e.target.value)} className="w-full border border-gray-300 rounded px-2 py-1 outline-none focus:border-blue-500 bg-gray-50 text-gray-700"><option value="CNY">CNY</option></select></td>
+                              <td className="px-2 py-1.5"><input type="text" value={r.cnyRate} onChange={(e) => updatePayRow(i, 'cnyRate', e.target.value)} placeholder="0" className="w-full border border-gray-300 rounded px-2 py-1 outline-none focus:border-blue-500 text-right" /></td>
+                              <td className="px-2 py-1.5"><div className="w-full bg-gray-50 border border-gray-200 rounded px-2 py-1 text-right text-gray-700" title="支付金額 × 人民幣匯率（自動換算）">{payCny(r).toLocaleString('en-US', { maximumFractionDigits: 2 })}</div></td>
+                              <td className="px-2 py-1.5"><input type="text" value={r.fee} onChange={(e) => updatePayRow(i, 'fee', e.target.value)} placeholder="0" className="w-full border border-gray-300 rounded px-2 py-1 outline-none focus:border-blue-500 text-right" /></td>
+                              <td className="px-2 py-1.5 text-center"><button onClick={() => removePayRow(i)} className="text-gray-400 hover:text-red-500" title="移除">✕</button></td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                  {/* 統計 */}
+                  {(() => {
+                    const num = (v) => parseFloat(String(v).replace(/,/g, '')) || 0;
+                    const cur = payStatCurrency;
+                    const totalSel = payRows.filter(r => r.currency === cur).reduce((s, r) => s + num(r.amount), 0);
+                    const cnyTotal = payRows.reduce((s, r) => s + num(r.amount) * num(r.cnyRate), 0); // 換算人民幣總額（Σ 人民幣金額）
+                    const cnyPay = payRows.reduce((s, r) => s + (r.cny === 'CNY' ? payCny(r) : 0), 0); // 實際支付人民幣（CNY 欄固定 CNY → 取人民幣金額）
+                    const diff = cnyTotal - cnyPay;
+                    const fmt = (n) => n.toLocaleString('en-US', { maximumFractionDigits: 2 });
+                    return (
+                      <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
+                        <div className="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2 mb-3">統計</div>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+                          <div>
+                            <label className="block text-gray-500 text-xs mb-1.5">幣別</label>
+                            <select value={payStatCurrency} onChange={(e) => setPayStatCurrency(e.target.value)} className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm outline-none focus:border-blue-500">{PAY_CURRENCIES.map(c => <option key={c}>{c}</option>)}</select>
+                          </div>
+                          <div><label className="block text-gray-500 text-xs mb-1.5">該幣別總金額</label><div className="px-2 py-1.5 bg-gray-50 border border-gray-200 rounded text-sm font-semibold text-gray-800 text-right">{fmt(totalSel)}</div></div>
+                          <div><label className="block text-gray-500 text-xs mb-1.5">以人民幣匯兌的總金額</label><div className="px-2 py-1.5 bg-gray-50 border border-gray-200 rounded text-sm font-semibold text-gray-800 text-right">{fmt(cnyTotal)}</div></div>
+                          <div><label className="block text-gray-500 text-xs mb-1.5">以人民幣匯兌的支付金額</label><div className="px-2 py-1.5 bg-gray-50 border border-gray-200 rounded text-sm font-semibold text-gray-800 text-right">{fmt(cnyPay)}</div></div>
+                          <div><label className="block text-gray-500 text-xs mb-1.5">和人民幣匯兌的差額</label><div className={`px-2 py-1.5 border rounded text-sm font-semibold text-right ${diff < 0 ? 'bg-rose-50 border-rose-200 text-rose-600' : 'bg-emerald-50 border-emerald-200 text-emerald-700'}`}>{fmt(diff)}</div></div>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+                <div className="bg-white border-t border-gray-200 px-5 py-3 flex justify-center gap-3 flex-shrink-0">
+                  <button onClick={() => setPayOpen(false)} className="ui-btn ui-btn-secondary px-6">取消</button>
+                  <button onClick={() => setPayOpen(false)} className="ui-btn ui-btn-primary px-8">保存</button>
                 </div>
               </div>
             </div>
