@@ -267,10 +267,12 @@
       };
 
       // 共用：篩選列渲染函數
-      const renderFilterBar = (configs) => (
+      const renderFilterBar = (configs) => {
+      const isEform = configs.some(c => c.id === 'docType'); // 電子表單申請篩選列
+      return (
         <div className="bg-[#F8F9FB] p-3 rounded border border-gray-200 flex flex-wrap gap-x-0 gap-y-2 items-center">
           {configs.map((filter) => (
-            <div key={filter.id} className={`flex items-center gap-2 relative hover:z-[70] ${filter.id === 'docType' ? 'basis-full min-w-0' : ['status', 'oa', 'project', 'location'].includes(filter.id) ? 'basis-1/4 min-w-0' : 'flex-1 min-w-[180px]'}`}>
+            <div key={filter.id} className={`flex items-center gap-2 relative hover:z-[70] ${filter.id === 'docType' ? 'basis-1/2 min-w-0' : ['status', 'oa', 'project', 'location'].includes(filter.id) ? 'basis-1/4 min-w-0' : 'flex-1 min-w-[180px]'}`}>
               <span className={`whitespace-nowrap text-xs text-gray-600 font-medium ${(filter.id === 'status' || filter.id === 'docType') ? 'w-10 text-left' : 'w-16 text-right'}`}>{filter.label}</span>
               <div className="relative flex-1 group">
                 <button
@@ -369,13 +371,28 @@
               </div>
             </div>
           ))}
+          {/* 查詢關鍵字（置於篩選列，與單據類型同列）*/}
+          {isEform && (
+            <div className="flex items-center gap-2 relative basis-1/2 min-w-0">
+              <span className="whitespace-nowrap text-xs text-gray-600 font-medium w-16 text-right">查詢關鍵字</span>
+              <div className="relative flex-1">
+                <input
+                  type="text"
+                  placeholder="請輸入關鍵字"
+                  className="w-full bg-white border border-gray-300 rounded px-2.5 py-1.5 text-[13px] shadow-sm min-h-[32px] focus:outline-none focus:border-[#4A90E2] focus:ring-1 focus:ring-[#4A90E2]"
+                />
+              </div>
+            </div>
+          )}
         </div>
       );
+      };
 
       // 共用：搜尋與日期列渲染函數
-      const renderSearchBar = () => (
+      const renderSearchBar = (showKeyword = true) => (
         <div className="flex flex-wrap items-center justify-between gap-4 pb-2">
           <div className="flex flex-1 min-w-[200px] max-w-md gap-3">
+            {showKeyword && (
             <div className="ui-search flex-1">
               <Search size={14} className="text-gray-400" />
               <input
@@ -384,6 +401,7 @@
                 className="ui-input ui-search-input"
               />
             </div>
+            )}
           </div>
           
           <div className="flex flex-wrap items-center gap-1.5">
@@ -602,7 +620,7 @@
             <div className="p-6 space-y-5">
               <>
                 {renderFilterBar(filterConfigs)}
-                {renderSearchBar()}
+                {renderSearchBar(false)}
 
                 {/* 資料表格 */}
                 <div className="border border-gray-200 rounded overflow-x-auto">

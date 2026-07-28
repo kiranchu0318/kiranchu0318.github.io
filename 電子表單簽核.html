@@ -265,12 +265,12 @@
         return nr;
       }));
       const removePayRow = (i) => setPayRows(prev => prev.length > 1 ? prev.filter((_, idx) => idx !== i) : prev);
-      const addCostAcctRow = () => setCostAcctRows(prev => [...prev, { subject: '', subjectNote: '', project: 'GT', dept: '', currency: 'TWD', amount: '' }]);
+      const addCostAcctRow = () => setCostAcctRows(prev => [...prev, { subj3: '', subj4: '', subjectNote: '', project: 'GT', dept: '', currency: 'TWD', amount: '' }]);
       const removeCostAcctRow = (i) => setCostAcctRows(prev => prev.filter((_, idx) => idx !== i));
       // 費用報銷明細（供表格顯示與「項目金額」計算共用）
       const reimburseDetail = [
-        { project: 'GT', dept: 'RD', purpose: '辦公室文具採購', currency: 'TWD', amount: '1,200', note: '—' },
-        { project: 'GT', dept: 'HR', purpose: '茶水間用品補充', currency: 'TWD', amount: '800', note: '—' },
+        { project: 'GT', dept: 'RD', subj3: '辦公費用', subj4: '文具用品', purpose: '辦公室文具採購', currency: 'TWD', amount: '1,200', note: '—' },
+        { project: 'GT', dept: 'HR', subj3: '辦公費用', subj4: '清潔用品', purpose: '茶水間用品補充', currency: 'TWD', amount: '800', note: '—' },
       ];
       // 匯率：換算成人民幣（CNY per 1 單位）
       const FX_TO_CNY = { TWD: 451.47 / 2000, CNY: 1 };
@@ -401,7 +401,6 @@
         { id: 'project', label: '項目', type: 'multi', options: ['GT'] },
         { id: 'location', label: '地點', type: 'multi', options: ['T1', 'T2', 'THQ', 'T3', 'T4'] },
         { id: 'docType', label: '單據類型', type: 'multi', options: ['新增資產申請 (ASSETS)', '費用申請單 (B)', '商務公告(BU)', '費用報銷單 (C)', '內部合同審批單 (IC)'] },
-        { id: 'title', label: '職稱', type: 'multi', options: ['行政負責代表', '人力資源中心', '記帳', '財務總監', '費用會計'] },
       ];
 
       // 請假/補卡簽核：專屬篩選器設定
@@ -467,7 +466,9 @@
       };
 
       // 提取共用的篩選列渲染函數
-      const renderFilterBar = (configs) => (
+      const renderFilterBar = (configs) => {
+      const isEform = configs.some(c => c.id === 'docType'); // 電子表單簽核篩選列
+      return (
         <div className="bg-[#F8F9FB] p-3 rounded border border-gray-200 flex flex-wrap gap-x-0 gap-y-2 items-center">
           {configs.map((filter) => (
             <div key={filter.id} className={`flex items-center gap-2 relative hover:z-[70] ${(filter.id === 'docType' || filter.id === 'title') ? 'basis-1/2 min-w-0' : ['status', 'oa', 'project', 'location'].includes(filter.id) ? 'basis-1/4 min-w-0' : 'flex-1 min-w-[180px]'}`}>
@@ -568,13 +569,28 @@
               </div>
             </div>
           ))}
+          {/* 查詢關鍵字（置於原「職稱」欄位位置）*/}
+          {isEform && (
+            <div className="flex items-center gap-2 relative basis-1/2 min-w-0">
+              <span className="whitespace-nowrap text-xs text-gray-600 font-medium w-16 text-right">查詢關鍵字</span>
+              <div className="relative flex-1">
+                <input
+                  type="text"
+                  placeholder="請輸入關鍵字"
+                  className="w-full bg-white border border-gray-300 rounded px-2.5 py-1.5 text-[13px] shadow-sm min-h-[32px] focus:outline-none focus:border-[#4A90E2] focus:ring-1 focus:ring-[#4A90E2]"
+                />
+              </div>
+            </div>
+          )}
         </div>
       );
+      };
 
       // 提取共用的搜尋與日期列渲染函數
-      const renderSearchBar = (showEmpNo, sDate, setSDate, eDate, setEDate, onReset) => (
+      const renderSearchBar = (showEmpNo, sDate, setSDate, eDate, setEDate, onReset, showKeyword = true) => (
         <div className="flex flex-wrap items-center justify-between gap-4 pb-2">
           <div className="flex flex-1 min-w-[200px] max-w-md gap-3">
+            {showKeyword && (
             <div className="ui-search flex-1">
               <Search size={14} className="text-gray-400" />
               <input
@@ -583,6 +599,7 @@
                 className="ui-input ui-search-input"
               />
             </div>
+            )}
             {showEmpNo && (
               <div className="w-[120px]">
                 <input
@@ -767,11 +784,11 @@
                   {/* 1. 下拉選單區塊 */}
                   {renderFilterBar(filterConfigs)}
 
-                  {/* 2. 搜尋與日期操作列 */}
+                  {/* 2. 搜尋與日期操作列（關鍵字已移至上方篩選列「職稱」位置）*/}
                   {renderSearchBar(false, startDate, setStartDate, endDate, setEndDate, () => {
                     setStartDate('');
                     setEndDate('');
-                  })}
+                  }, false)}
 
                   {/* 3. 資料表格 */}
                   <div className="border border-gray-200 rounded overflow-x-auto">
@@ -1593,6 +1610,8 @@
                                 <tr className="border-b border-gray-200 bg-gray-50 text-gray-700 font-bold text-xs">
                                   <th className="px-3 py-2 w-28">項目</th>
                                   <th className="px-3 py-2 w-28">部門</th>
+                                  <th className="px-3 py-2 w-36">三級科目</th>
+                                  <th className="px-3 py-2 w-36">四級科目</th>
                                   <th className="px-3 py-2 w-48">目的</th>
                                   <th className="px-3 py-2 w-48">金額</th>
                                   <th className="px-3 py-2">其他備註</th>
@@ -1600,8 +1619,8 @@
                               </thead>
                               <tbody className="divide-y divide-gray-100">
                                 {[
-                                  { dept: 'RD', purpose: '辦公室文具採購', amount: '1,200', note: '—' },
-                                  { dept: 'HR', purpose: '茶水間用品補充', amount: '800', note: '—' },
+                                  { dept: 'RD', subj3: '辦公費用', subj4: '文具用品', purpose: '辦公室文具採購', amount: '1,200', note: '—' },
+                                  { dept: 'HR', subj3: '辦公費用', subj4: '清潔用品', purpose: '茶水間用品補充', amount: '800', note: '—' },
                                 ].map((r, i) => (
                                   <tr key={i}>
                                     <td className="px-3 py-1.5">
@@ -1609,6 +1628,12 @@
                                     </td>
                                     <td className="px-3 py-1.5">
                                       <select defaultValue={r.dept} className="w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2]"><option>RD</option><option>HR</option><option>MKT</option><option>IA1</option></select>
+                                    </td>
+                                    <td className="px-3 py-1.5">
+                                      <select defaultValue={r.subj3} className="w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2]"><option>辦公費用</option><option>差旅費</option><option>業務招待費</option><option>管理費用</option><option>水電雜費</option></select>
+                                    </td>
+                                    <td className="px-3 py-1.5">
+                                      <select defaultValue={r.subj4} className="w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2]"><option>文具用品</option><option>清潔用品</option><option>餐飲費</option><option>交通費</option><option>郵電費</option></select>
                                     </td>
                                     <td className="px-3 py-1.5"><input type="text" defaultValue={r.purpose} className="w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2]" /></td>
                                     <td className="px-3 py-1.5">
@@ -2313,6 +2338,8 @@
                           <tr className="border-b border-gray-200 bg-gray-50 text-gray-700 font-bold text-xs">
                             <th className="px-3 py-2 w-28">專案</th>
                             <th className="px-3 py-2 w-28">部門</th>
+                            <th className="px-3 py-2 w-32">三級科目</th>
+                            <th className="px-3 py-2 w-32">四級科目</th>
                             <th className="px-3 py-2 w-48">目的</th>
                             <th className="px-3 py-2 w-48">金額</th>
                             <th className="px-3 py-2">其他意見</th>
@@ -2323,6 +2350,8 @@
                             <tr key={i}>
                               <td className="px-3 py-2">{r.project}</td>
                               <td className="px-3 py-2">{r.dept}</td>
+                              <td className="px-3 py-2">{r.subj3}</td>
+                              <td className="px-3 py-2">{r.subj4}</td>
                               <td className="px-3 py-2">{r.purpose}</td>
                               <td className="px-3 py-2"><span className="text-gray-400 mr-1">{r.currency}</span>{r.amount}</td>
                               <td className="px-3 py-2">{r.note}</td>
@@ -2343,7 +2372,8 @@
                       <table className="w-full text-left text-sm border-collapse whitespace-nowrap">
                         <thead>
                           <tr className="border-b border-gray-200 bg-gray-50 text-gray-700 font-bold text-xs">
-                            <th className="px-3 py-2 w-44">科目</th>
+                            <th className="px-3 py-2 w-36">三級科目</th>
+                            <th className="px-3 py-2 w-36">四級科目</th>
                             <th className="px-3 py-2 w-48">說明</th>
                             <th className="px-3 py-2 w-28">專案</th>
                             <th className="px-3 py-2 w-28">部門</th>
@@ -2354,13 +2384,19 @@
                         </thead>
                         <tbody className="divide-y divide-gray-100">
                           {costAcctRows.length === 0 ? (
-                            <tr><td colSpan="7" className="px-3 py-6 text-center text-gray-400 text-sm">尚無資料，請點「＋ 添加」新增分錄</td></tr>
+                            <tr><td colSpan="8" className="px-3 py-6 text-center text-gray-400 text-sm">尚無資料，請點「＋ 添加」新增分錄</td></tr>
                           ) : costAcctRows.map((r, i) => (
                             <tr key={i}>
                               <td className="px-3 py-1.5">
-                                <select value={r.subject} onChange={(e) => setCostAcctRows(prev => prev.map((x, idx) => idx === i ? { ...x, subject: e.target.value } : x))} className="w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2]">
+                                <select value={r.subj3} onChange={(e) => setCostAcctRows(prev => prev.map((x, idx) => idx === i ? { ...x, subj3: e.target.value } : x))} className="w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2]">
                                   <option value="">請選擇</option>
-                                  <option>辦公費</option><option>差旅費</option><option>交際費</option><option>郵電費</option><option>雜項購置</option><option>其他費用</option>
+                                  <option>辦公費用</option><option>差旅費</option><option>業務招待費</option><option>管理費用</option><option>水電雜費</option>
+                                </select>
+                              </td>
+                              <td className="px-3 py-1.5">
+                                <select value={r.subj4} onChange={(e) => setCostAcctRows(prev => prev.map((x, idx) => idx === i ? { ...x, subj4: e.target.value } : x))} className="w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2]">
+                                  <option value="">請選擇</option>
+                                  <option>文具用品</option><option>清潔用品</option><option>餐飲費</option><option>交通費</option><option>郵電費</option>
                                 </select>
                               </td>
                               <td className="px-3 py-1.5">
