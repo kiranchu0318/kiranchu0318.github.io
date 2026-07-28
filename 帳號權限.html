@@ -424,6 +424,20 @@
         </div>
     </div>
 
+    <!-- ============ 完成確認 彈窗 ============ -->
+    <div id="permdone-modal" class="fixed inset-0 bg-black/40 z-[70] flex justify-center items-center hidden p-4" onclick="if(event.target===this)closePermDone()">
+        <div class="bg-white rounded-2xl shadow-modal w-full max-w-md overflow-hidden">
+            <div class="px-6 py-5">
+                <h3 class="text-base font-bold text-gray-900 mb-2">標記完成</h3>
+                <p class="text-sm text-gray-600 leading-relaxed">若標記完成，此筆紀錄將從列表移除。確認已完成此筆申請內容？</p>
+            </div>
+            <div class="flex justify-end gap-2.5 px-6 py-4 bg-gray-50 border-t border-gray-100">
+                <button onclick="closePermDone()" class="ui-btn ui-btn-secondary">取消</button>
+                <button onclick="confirmPermDone()" class="ui-btn ui-btn-primary">確認</button>
+            </div>
+        </div>
+    </div>
+
     <!-- ============ 檢視異動差異 彈窗（左：舊有權限 / 右：申請的權限）============ -->
     <div id="permdiff-modal" class="fixed inset-0 bg-black/40 z-[60] flex justify-center items-center hidden p-4" onclick="if(event.target===this)closePermDiff()">
         <div class="bg-white rounded-2xl shadow-modal w-full max-w-[1100px] max-h-[90vh] flex flex-col overflow-hidden">
@@ -971,13 +985,20 @@
         function applyRowScopes(tr, scopes) {
             const cell = tr.querySelector('.acct-scope');
             if (!cell) return;
-            const tags = (arr, cls) => (arr && arr.length) ? arr.map(v => `<span class="px-2 py-0.5 ${cls} rounded text-xs font-semibold">${v}</span>`).join('') : '<span class="text-xs text-gray-400">—</span>';
-            cell.innerHTML = scopes.map((s, i) => `
-                <div class="flex flex-wrap items-center gap-x-2 gap-y-1 py-2 ${i < scopes.length - 1 ? 'border-b border-gray-100' : ''}">
-                    <span class="px-2 py-0.5 bg-gray-100 text-gray-700 rounded text-xs font-semibold shrink-0">${s.role}</span>
-                    <span class="text-[11px] text-gray-400 shrink-0">區域</span>${tags(s.regions, 'bg-teal-50 text-teal-600')}
-                    <span class="text-[11px] text-gray-400 shrink-0 ml-1">項目</span>${tags(s.projects, 'bg-sky-50 text-sky-600')}
-                </div>`).join('');
+            cell.classList.add('align-top');
+            const tags = (arr, cls) => (arr && arr.length)
+                ? `<div class="flex flex-wrap gap-1">` + arr.map(v => `<span class="px-2 py-0.5 ${cls} rounded text-xs font-semibold">${v}</span>`).join('') + `</div>`
+                : '<span class="text-xs text-gray-400">—</span>';
+            // 以 grid 讓每筆資料的「角色 / 區域 / 項目」對齊成欄位
+            const rows = scopes.map((s, i) => {
+                const bb = i < scopes.length - 1 ? 'border-b border-gray-100' : '';
+                return `
+                    <div class="flex items-start py-2 ${bb}"><span class="px-2 py-0.5 bg-gray-100 text-gray-700 rounded text-xs font-semibold whitespace-nowrap">${s.role}</span></div>
+                    <div class="flex items-start gap-1.5 py-2 ${bb}"><span class="text-[11px] text-gray-400 shrink-0 pt-0.5">區域</span>${tags(s.regions, 'bg-teal-50 text-teal-600')}</div>
+                    <div class="flex items-start gap-1.5 py-2 ${bb}"><span class="text-[11px] text-gray-400 shrink-0 pt-0.5">項目</span>${tags(s.projects, 'bg-sky-50 text-sky-600')}</div>`;
+            }).join('');
+            // 角色欄固定寬度，讓不同帳號列的「區域／項目」也能跨列對齊
+            cell.innerHTML = `<div class="grid gap-x-3 items-stretch" style="grid-template-columns:132px minmax(0,1fr) minmax(0,1fr);">${rows}</div>`;
             tr.dataset.roleScopes = JSON.stringify(scopes);
         }
         // 由角色多選＋各角色範圍組出 scopes；缺區域/項目回傳錯誤字串
@@ -1209,6 +1230,11 @@
             updatePermChangeCount();
             showToast('success', '已將「' + r.name + '」的權限異動申請標記為已處理');
         }
+        // 完成：先開確認彈窗，確認後才移除
+        let _permDoneIndex = -1;
+        function askPermDone(i) { _permDoneIndex = i; document.getElementById('permdone-modal').classList.remove('hidden'); }
+        function closePermDone() { document.getElementById('permdone-modal').classList.add('hidden'); _permDoneIndex = -1; }
+        function confirmPermDone() { if (_permDoneIndex >= 0) markPermProcessed(_permDoneIndex); closePermDone(); }
         function pcTags(arr, cls) {
             return '<div class="flex flex-wrap gap-1">' + arr.map(x => '<span class="px-2 py-0.5 ' + cls + ' rounded text-xs font-semibold">' + x + '</span>').join('') + '</div>';
         }
@@ -1293,7 +1319,7 @@
                             <span class="text-xs text-gray-400">（${r.empno}）</span>
                         </div>
                         <div class="flex items-center gap-2 flex-wrap">
-                            <button onclick="markPermProcessed(${i})" class="ui-btn ui-btn-sm text-emerald-600 border border-emerald-200 hover:bg-emerald-50">不再顯示</button>
+                            <button onclick="askPermDone(${i})" class="ui-btn ui-btn-sm text-emerald-600 border border-emerald-200 hover:bg-emerald-50">完成</button>
                         </div>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr]">
