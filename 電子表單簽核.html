@@ -1288,7 +1288,19 @@
 
                       {/* 基本資訊卡片 */}
                       <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-5">
-                        <div className="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2">基本資訊</div>
+                        <div className="flex items-center justify-between gap-3 border-b border-gray-100 pb-2">
+                          <span className="text-[#1A237E] font-bold text-[15px]">基本資訊</span>
+                          {/* 前申請單號標籤（所有表單彈窗）：點擊開啟同類型的前一張申請單（內容不同）*/}
+                          {modalRow && !modalRow._isPrev && (
+                            <button
+                              onClick={() => openRelatedDoc({ ...modalRow, docNo: 'HR_THQ-0000000', _isPrev: true, date: '2026-03-12 10:05:00', ...(modalRow.type === 'HR' ? { label: 'HR_THQ-0000000_員工帳號異動申請單', applicant: 'Gibson Yang', signature: 'Gibson Yang' } : {}) })}
+                              className="inline-flex items-center gap-1.5 bg-[#EEF2F6] hover:bg-[#dde6f1] text-[#2b3b84] border border-[#c9d6e5] rounded-md px-3 py-1 text-[12px] font-semibold transition-colors shrink-0"
+                            >
+                              前申請單號：HR_THQ-0000000
+                              <span className="text-[#4A90E2]">↗</span>
+                            </button>
+                          )}
+                        </div>
                         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-x-5 gap-y-4">
                           <div className="lg:col-span-2">
                             <label className="block text-gray-700 text-xs mb-1.5 font-medium">文件編號</label>
@@ -1350,7 +1362,13 @@
                               </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100 font-medium">
-                              {[
+                              {(modalRow?._isPrev ? [
+                                { field: '職稱 Title', rows: [{ cur: '工程師', chg: '修改', detail: '資深工程師', note: '年度升遷' }] },
+                                { field: '部門 Department', rows: [{ cur: 'RD / API', chg: '修改', detail: 'RD / GT', note: '專案轉調' }] },
+                                { field: 'VPN 權限', rows: [{ cur: '（未開通）', chg: '新增', detail: '開通遠端 VPN', note: '遠距辦公需求' }] },
+                                { field: 'GitHub', rows: [{ cur: '（未綁定）', chg: '新增', detail: 'gibson-yang', note: '程式碼協作' }] },
+                                { field: '門禁卡', rows: [{ cur: 'THQ-2F', chg: '修改', detail: 'THQ-3F', note: '座位調整' }] },
+                              ] : [
                                 { field: 'Mobile / WhatsApp', rows: [{ cur: '「T2」601114372701', chg: '修改', detail: '「T2」602233445566', note: '門號更換' }] },
                                 { field: 'E-mail', rows: [
                                     { cur: 'gibsonyang@roycetechnology.com', chg: '刪除', detail: '離職停用（保留 30 天）', note: '轉調前先停用' },
@@ -1360,7 +1378,7 @@
                                 { field: 'Jira', rows: [{ cur: '（未綁定）', chg: '新增', detail: 'gibson.yang', note: '專案協作需求' }] },
                                 { field: '門禁卡', rows: [{ cur: 'THQ-3F', chg: '修改', detail: 'THQ-5F', note: '辦公室搬遷' }] },
                                 { field: '指紋', rows: [{ cur: 'THQ-3F', chg: '修改', detail: 'THQ-5F', note: '辦公室搬遷' }] },
-                              ].flatMap((f, fi) => f.rows.map((r, ri) => (
+                              ]).flatMap((f, fi) => f.rows.map((r, ri) => (
                                 <tr key={`${fi}-${ri}`}>
                                   {ri === 0 && <td className="px-3 py-1.5 text-gray-800 align-top border-r border-gray-100" rowSpan={f.rows.length}>{f.field}</td>}
                                   <td className="px-3 py-1.5 text-gray-600 font-mono">{r.cur}</td>
