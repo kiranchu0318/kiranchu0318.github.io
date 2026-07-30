@@ -60,7 +60,7 @@
         </div>
         <div data-category="admin" class="app-item bg-white border border-gray-200 hover:border-blue-400 hover:shadow-md cursor-pointer rounded-md px-4 py-2.5 flex items-center text-gray-700 transition-all duration-200 group" data-form="ASSETS">
             <i data-lucide="pen" class="w-4 h-4 mr-3 text-gray-400 group-hover:text-blue-500 transition-colors"></i>
-            <span class="text-[14px] group-hover:text-blue-600 transition-colors">新增資產申請(ASSETS)</span>
+            <span class="text-[14px] group-hover:text-blue-600 transition-colors">新增資產申請(AN)</span>
         </div>
         <div id="aa-card" data-category="admin" class="app-item bg-white border border-gray-200 hover:border-blue-400 hover:shadow-md cursor-pointer rounded-md px-4 py-2.5 flex items-center text-gray-700 transition-all duration-200 group" data-form="AA">
             <i data-lucide="pen" class="w-4 h-4 mr-3 text-gray-400 group-hover:text-blue-500 transition-colors"></i>
@@ -152,9 +152,9 @@
         </div>
 
         <!-- 公告 / 商務公告類 -->
-        <div data-category="business" data-form="NR" class="app-item bg-white border border-gray-200 hover:border-blue-400 hover:shadow-md cursor-pointer rounded-md px-4 py-2.5 flex items-center text-gray-700 transition-all duration-200 group">
+        <div data-category="hr" data-form="NR" class="app-item bg-white border border-gray-200 hover:border-blue-400 hover:shadow-md cursor-pointer rounded-md px-4 py-2.5 flex items-center text-gray-700 transition-all duration-200 group">
             <i data-lucide="pen" class="w-4 h-4 mr-3 text-gray-400 group-hover:text-blue-500 transition-colors"></i>
-            <span class="text-[14px] group-hover:text-blue-600 transition-colors">公告發布申請</span>
+            <span class="text-[14px] group-hover:text-blue-600 transition-colors">公告發布申請(NR)</span>
         </div>
         <div data-category="business" data-form="BUG" class="app-item hidden bg-white border border-gray-200 hover:border-blue-400 hover:shadow-md cursor-pointer rounded-md px-4 py-2.5 flex items-center text-gray-700 transition-all duration-200 group">
             <i data-lucide="pen" class="w-4 h-4 mr-3 text-gray-400 group-hover:text-blue-500 transition-colors"></i>
@@ -240,10 +240,10 @@
                             <div class="px-4 pt-4 grid grid-cols-5 gap-x-5 gap-y-5 mb-4">
                                 <div class="col-span-2"><label class="block mb-1.5 text-[13px] text-gray-700">文件編號</label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed" value="自動生成" disabled></div>
                                 <div><label class="block mb-1.5 text-[13px] text-gray-700">申請日期</label><div class="border border-gray-300 rounded px-3 py-1.5 bg-white flex items-center"><i data-lucide="calendar" class="w-4 h-4 text-gray-400"></i><input type="text" class="w-full ml-2 text-[13px] outline-none" disabled></div></div>
-                                <div><label class="block mb-1.5 text-[13px] text-gray-700">主旨 <span class="text-red-500">*</span></label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] bg-[#f8f9fa] text-gray-500 cursor-not-allowed outline-none" value="選定「調出區域」和「調出項目」後自動生成主旨" disabled></div>
+                                <div><label class="block mb-1.5 text-[13px] text-gray-700">主旨 <span class="text-red-500">*</span></label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] bg-[#f8f9fa] text-gray-500 cursor-not-allowed outline-none" value="" disabled></div>
                             </div>
                             <div class="px-4 pb-4 grid grid-cols-5 gap-x-5 gap-y-5">
-                                <div><label class="block mb-1.5 text-[13px] text-gray-700">服務類型</label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] bg-white text-gray-700 outline-none focus:border-blue-500"><option>資產本地調撥</option></select></div>
+                                <div><label class="block mb-1.5 text-[13px] text-gray-700">服務類型</label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] bg-white text-gray-700 outline-none focus:border-blue-500"><option>資產本地調撥</option><option>資產跨區調撥至 D</option><option>資產跨區調撥至 F</option><option>資產跨區調撥至 J</option><option>資產跨區調撥至 K</option><option>資產跨區調撥至 M</option><option>資產跨區調撥至 S</option><option>資產跨區調撥至 T1</option><option>資產跨區調撥至 T2</option><option>資產跨區調撥至 T3</option><option>資產跨區調撥至 THQ</option><option>資產跨區調撥至 U</option></select></div>
                                 <div><label class="block mb-1.5 text-[13px] text-gray-700">异动日期 <span class="text-red-500">*</span></label><div class="w-full border border-gray-300 rounded px-3 py-1.5 bg-white flex items-center"><i data-lucide="calendar" class="w-4 h-4 text-gray-400"></i><input type="date" onclick="this.showPicker && this.showPicker()" class="w-full ml-2 text-[13px] outline-none bg-transparent cursor-pointer"></div></div>
                             </div>
                         </div>
@@ -319,8 +319,8 @@
 
     <!-- =========== 帶入人員資產 搜尋彈窗（資產調撥 AA）=========== -->
     <div id="aa-import-modal" class="fixed inset-0 bg-black/40 z-[60] flex justify-center items-center hidden p-4" onclick="if(event.target===this) aaImportClose()">
-        <div class="bg-white rounded-md shadow-2xl w-full max-w-[560px] overflow-hidden" onclick="event.stopPropagation()">
-            <div class="bg-[#EAF2FC] flex justify-between items-center px-4 py-3 border-b border-blue-100">
+        <div class="bg-white rounded-md shadow-2xl w-full max-w-[560px]" onclick="event.stopPropagation()">
+            <div class="bg-[#EAF2FC] flex justify-between items-center px-4 py-3 border-b border-blue-100 rounded-t-md">
                 <h2 class="text-[#2b3b84] font-bold text-[15px]">帶入人員資產</h2>
                 <button type="button" onclick="aaImportClose()" class="bg-blue-500 hover:bg-blue-600 text-white rounded p-1 transition-colors"><i data-lucide="x" class="w-4 h-4"></i></button>
             </div>
@@ -348,7 +348,7 @@
                     </div>
                 </div>
             </div>
-            <div class="flex justify-end gap-3 px-5 py-4 border-t border-gray-200 bg-gray-50">
+            <div class="flex justify-end gap-3 px-5 py-4 border-t border-gray-200 bg-gray-50 rounded-b-md">
                 <button type="button" onclick="aaImportClose()" class="ui-btn ui-btn-secondary">取消</button>
                 <button type="button" id="aa-import-confirm" onclick="aaImportConfirm()" class="ui-btn ui-btn-primary hidden"><i data-lucide="download" class="w-4 h-4 mr-1"></i>帶入資產</button>
             </div>
@@ -1058,154 +1058,6 @@
                                 </div>
                             </div>
                         </div>
-
-                        <!-- 區塊：資產明細（同 新增資產申請 ASSETS）-->
-                    <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5">
-                        <div class="px-4 py-2.5 border-b border-gray-200 flex justify-between items-center">
-                            <h3 class="text-[#2b3b84] font-bold text-[15px]">資產明細</h3>
-                            <button type="button" onclick="blockAdd(this)" class="text-[12px] text-blue-600 border border-blue-200 rounded px-2.5 py-1 hover:bg-blue-50 flex items-center gap-1"><i data-lucide="plus" class="w-3.5 h-3.5"></i>添加</button>
-                        </div>
-                        <div class="p-4">
-                            <!-- 填寫說明（可收合）-->
-                            <div class="mb-4 border border-blue-100 rounded-md bg-blue-50/40 overflow-hidden">
-                                <button type="button" onclick="this.nextElementSibling.classList.toggle('hidden'); this.querySelector('.ld-chev').classList.toggle('rotate-180');" class="w-full px-4 py-2.5 text-[13px] font-bold text-[#2b3b84] flex items-center gap-2 hover:bg-blue-50 transition-colors">
-                                    <i data-lucide="info" class="w-4 h-4"></i>填寫說明
-                                    <i data-lucide="chevron-down" class="ld-chev w-4 h-4 ml-auto text-gray-400 transition-transform"></i>
-                                </button>
-                                <div class="hidden px-4 pb-4 pt-1 text-[12px] text-gray-600 leading-relaxed whitespace-pre-line border-t border-blue-100">资产信息——
-「资产编号」请参阅资产管理办法中之命名规则，并为该资产贴上资产编号标签。
-「序列号」电子设备需填入序列号
-「资产名称」品牌＋机型＋尺寸 ex. iphone 15 pro
-「规格」详细型号、处理器、记忆体容量等资讯
-「使用人」名字+工号
-「币种」「价格」「购买日期」应包含所有购置该资产之各项成本，含运费、税金、安装费等，需同附件收据载明
-附件——
-须附上资产照片
-显示序列号&资产编号
-资产本身含充电线材（如有）之照片
-以及发票或收据（能清楚显示价格&资产资讯）
-入库时如直接下发使用人，集团内部需填写领用单（无需附件）</div>
-                            </div>
-                            <!-- 明細卡 #1 -->
-                            <div class="border border-gray-300 rounded-md overflow-hidden mb-4">
-                                <div class="bg-[#f5f5f5] px-4 py-2.5 flex justify-between items-center">
-                                    <span class="font-bold text-[14px] text-gray-700">資產 #1</span>
-                                    <div class="flex items-center gap-2">
-                                        <button type="button" onclick="blockDuplicate(this)" class="text-[12px] text-blue-600 border border-blue-200 rounded px-2.5 py-1 hover:bg-blue-50 inline-flex items-center gap-1"><i data-lucide="copy-plus" class="w-3.5 h-3.5"></i>複製添加</button>
-                                        <button type="button" onclick="blockRemove(this)" class="text-[12px] text-rose-600 border border-rose-200 rounded px-2.5 py-1 hover:bg-rose-50 inline-flex items-center gap-1 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i>移除</button>
-                                    </div>
-                                </div>
-                                <div class="p-4">
-                                    <!-- 基礎資訊 -->
-                                    <h4 class="text-[14px] font-bold text-[#1565c0] mb-3">基礎資訊</h4>
-                                    <div class="grid grid-cols-5 gap-x-6 gap-y-5 mb-5">
-                                        <div>
-                                            <label class="block mb-1.5 text-[13px] text-gray-700">資產編號 <span class="text-red-500">*</span></label>
-                                            <input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500">
-                                        </div>
-                                        <div>
-                                            <label class="block mb-1.5 text-[13px] text-gray-700">資產類型 <span class="text-red-500">*</span></label>
-                                            <select onchange="assetTypeChange(this)" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option value="">請選擇</option><option>USB</option><option>筆記型電腦</option><option>桌上型電腦</option><option>手機</option><option>顯示器</option><option>鍵盤滑鼠</option><option>軟體授權</option><option>其他</option></select>
-                                        </div>
-                                        <div>
-                                            <label class="block mb-1.5 text-[13px] text-gray-700">序列號</label>
-                                            <input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500">
-                                        </div>
-                                        <div>
-                                            <label class="block mb-1.5 text-[13px] text-gray-700">類別</label>
-                                            <input type="text" disabled placeholder="依資產類型自動判斷" class="asset-category w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-600 cursor-not-allowed">
-                                        </div>
-                                        <div class="col-span-2 col-start-1">
-                                            <label class="block mb-1.5 text-[13px] text-gray-700">資產名稱 <span class="text-red-500">*</span></label>
-                                            <input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500" placeholder="品牌＋機型＋尺寸 ex. iphone 15 pro / Macbook 13">
-                                        </div>
-                                        <div class="col-span-2">
-                                            <label class="block mb-1.5 text-[13px] text-gray-700">規格</label>
-                                            <input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500" placeholder="詳細型號、處理器、記憶體容量等資訊">
-                                        </div>
-                                    </div>
-
-                                    <!-- 分配資訊 -->
-                                    <h4 class="text-[14px] font-bold text-[#e65100] mb-3">分配資訊</h4>
-                                    <div class="grid grid-cols-5 gap-x-6 gap-y-5 mb-5">
-                                        <div>
-                                            <label class="block mb-1.5 text-[13px] text-gray-700">資產狀態 <span class="text-red-500">*</span></label>
-                                            <select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option></select>
-                                        </div>
-                                        <div>
-                                            <label class="block mb-1.5 text-[13px] text-gray-700">所屬項目 <span class="text-red-500">*</span></label>
-                                            <select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option></select>
-                                        </div>
-                                        <div>
-                                            <label class="block mb-1.5 text-[13px] text-gray-700">所屬部門 <span class="text-red-500">*</span></label>
-                                            <select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option></select>
-                                        </div>
-                                        <div class="relative person-combo">
-                                            <label class="block mb-1.5 text-[13px] text-gray-700">使用人 <span class="text-red-500">*</span></label>
-                                            <input type="text" autocomplete="off" placeholder="搜尋工號 / 姓名" class="person-input w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500">
-                                            <div class="person-list hidden absolute z-30 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto text-[13px]"></div>
-                                        </div>
-                                        <div class="relative person-combo">
-                                            <label class="block mb-1.5 text-[13px] text-gray-700">管理者 <span class="text-red-500">*</span></label>
-                                            <input type="text" autocomplete="off" placeholder="搜尋工號 / 姓名" class="person-input w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500">
-                                            <div class="person-list hidden absolute z-30 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto text-[13px]"></div>
-                                        </div>
-                                    </div>
-
-                                    <!-- 財務資訊 -->
-                                    <h4 class="text-[14px] font-bold text-[#2e7d32] mb-3">財務資訊</h4>
-                                    <div class="grid grid-cols-5 gap-x-6 gap-y-5 mb-5">
-                                        <div>
-                                            <label class="block mb-1.5 text-[13px] text-gray-700">幣種 <span class="text-red-500">*</span></label>
-                                            <select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>CNY</option></select>
-                                        </div>
-                                        <div>
-                                            <label class="block mb-1.5 text-[13px] text-gray-700">價格 <span class="text-red-500">*</span></label>
-                                            <div class="flex items-center border border-gray-300 rounded px-3 py-1.5 bg-white"><span class="text-gray-500 text-[13px] mr-2">¥</span><input type="text" class="w-full text-[13px] outline-none bg-transparent" value="0"></div>
-                                        </div>
-                                        <div>
-                                            <label class="block mb-1.5 text-[13px] text-gray-700">購買日期 <span class="text-red-500">*</span></label>
-                                            <div class="border border-gray-300 rounded px-3 py-1.5 bg-white flex items-center"><i data-lucide="calendar" class="w-4 h-4 text-gray-400"></i><input type="date" onclick="this.showPicker && this.showPicker()" class="w-full ml-2 text-[13px] outline-none bg-transparent cursor-pointer"></div>
-                                        </div>
-                                        <div>
-                                            <label class="block mb-1.5 text-[13px] text-gray-700">原採購單位</label>
-                                            <input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500">
-                                        </div>
-                                        <div>
-                                            <label class="block mb-1.5 text-[13px] text-gray-700">現所有權單位</label>
-                                            <input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500">
-                                        </div>
-                                    </div>
-
-                                    <!-- 關聯單據 -->
-                                    <h4 class="text-[14px] font-bold text-[#6a1b9a] mb-3">關聯單據</h4>
-                                    <div class="grid grid-cols-5 gap-x-6 gap-y-5">
-                                        <div>
-                                            <label class="block mb-1.5 text-[13px] text-gray-700">採購單號 (PU)</label>
-                                            <input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500">
-                                        </div>
-                                        <div>
-                                            <label class="block mb-1.5 text-[13px] text-gray-700">請款單號(A單/B單)</label>
-                                            <input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500">
-                                        </div>
-                                        <div>
-                                            <label class="block mb-1.5 text-[13px] text-gray-700">報銷單號(C單)</label>
-                                            <input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500">
-                                        </div>
-                                    </div>
-                                    <!-- 附件（自成一行；已選附件由左至右排列）-->
-                                    <div class="mt-5">
-                                        <label class="block mb-1.5 text-[13px] text-gray-700">附件</label>
-                                        <div class="flex items-center flex-wrap gap-3">
-                                            <input type="file" multiple class="hidden asset-file-input" onchange="assetRenderFiles(this)">
-                                            <button type="button" onclick="this.previousElementSibling.click()" class="shrink-0 text-[13px] text-blue-600 border border-blue-200 rounded px-3 py-1.5 hover:bg-blue-50 inline-flex items-center gap-1"><i data-lucide="paperclip" class="w-3.5 h-3.5"></i>添加附件</button>
-                                            <ul class="asset-file-list flex flex-wrap items-center gap-2"></ul>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
 
                         <!-- 4. 備註（參考 用印流程 SE）-->
                         <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5">
@@ -2562,12 +2414,42 @@
                             <div class="col-span-2"><label class="block mb-1.5 text-[13px] text-gray-700">文件編號</label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed" value="自動生成" disabled></div>
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">申請日期</label><div class="border border-gray-300 rounded px-3 py-1.5 bg-white flex items-center"><i data-lucide="calendar" class="w-4 h-4 text-gray-400"></i><input type="text" class="w-full ml-2 text-[13px] outline-none" disabled></div></div>
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">主旨 <span class="text-red-500">*</span></label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"></div>
-                            <div class="col-start-1"><label id="seyin-applicant-label" class="block mb-1.5 text-[13px] text-gray-700">申請人 <span class="text-red-500">*</span></label><div class="relative applicant-combo" id="seyin-applicant-combo"><input type="text" autocomplete="off" placeholder="搜尋人名 / 工號" class="applicant-input w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><div class="applicant-list hidden absolute z-30 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto text-[13px]"></div></div><label class="flex items-center gap-1.5 mt-1.5 text-[12px] text-gray-600 cursor-pointer select-none"><input type="checkbox" onchange="stToggleProxy(this)" class="w-3.5 h-3.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"> 代他人申請</label></div>
+                            <div class="col-span-5"><label class="inline-flex items-center gap-1.5 text-[13px] text-gray-600 cursor-pointer select-none"><input type="checkbox" onchange="stToggleProxy(this)" class="w-3.5 h-3.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"> 代他人申請</label></div>
+                            <div class="col-start-1"><label id="seyin-applicant-label" class="block mb-1.5 text-[13px] text-gray-700">申請人 <span class="text-red-500">*</span></label><div class="relative applicant-combo" id="seyin-applicant-combo"><input type="text" autocomplete="off" placeholder="搜尋人名 / 工號" class="applicant-input w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><div class="applicant-list hidden absolute z-30 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto text-[13px]"></div></div></div>
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">區域 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option></select></div>
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">項目 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇項目</option></select></div>
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">部門 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇部門</option></select></div>
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">公司 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option value="" disabled selected>請選擇</option><option>台灣總部 (TC)</option><option>香港分公司 (HK)</option><option>新加坡分公司 (SG)</option><option>馬來西亞分公司 (MY)</option></select></div>
                             <div id="seyin-proxy-reason-wrap" class="col-span-5 hidden"><label class="block mb-1.5 text-[13px] text-gray-700">代申請原因 <span class="text-red-500">*</span></label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500" placeholder="請說明代他人申請的原因"></div>
+                        </div>
+                    </div>
+
+                        <!-- 是否緊急（同 請購單 PU）-->
+                        <label class="flex items-center gap-2 cursor-pointer select-none mt-4 mb-4 bg-amber-50 border border-amber-200 rounded-md px-4 py-2.5">
+                            <input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                            <span class="text-[13px] font-medium text-gray-700">是否緊急</span>
+                        </label>
+
+                    <!-- 用印資訊 -->
+                    <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5">
+                        <div class="px-4 py-2.5 border-b border-gray-200"><h3 class="text-[#2b3b84] font-bold text-[15px]">用印資訊</h3></div>
+                        <div class="px-4 pt-4 pb-4 grid grid-cols-5 gap-x-5 gap-y-5">
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">文件類型 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option value="" disabled selected>請選擇</option><option>合同</option><option>授權書</option><option>銀行文件</option><option>政府文件</option><option>人事文件</option><option>採購文件</option><option>財務文件</option><option>客戶文件</option><option>其他</option></select></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">預計用印日期 <span class="text-red-500">*</span></label><div class="border border-gray-300 rounded px-3 py-1.5 bg-white flex items-center"><i data-lucide="calendar" class="w-4 h-4 text-gray-400"></i><input type="date" onclick="this.showPicker && this.showPicker()" class="w-full ml-2 text-[13px] outline-none bg-transparent cursor-pointer"></div></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">文件名稱 <span class="text-red-500">*</span></label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500" placeholder="請輸入文件名稱"></div>
+                            <div class="col-span-5"><label class="block mb-1.5 text-[13px] text-gray-700">印章種類 <span class="text-red-500">*</span><span class="font-normal text-gray-400 ml-1">（可複選）</span></label>
+                                <div class="flex flex-wrap gap-x-6 gap-y-2">
+                                    <label class="flex items-center gap-1.5 text-[13px] text-gray-700 cursor-pointer"><input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"> 公司章</label>
+                                    <label class="flex items-center gap-1.5 text-[13px] text-gray-700 cursor-pointer"><input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"> 合同章</label>
+                                    <label class="flex items-center gap-1.5 text-[13px] text-gray-700 cursor-pointer"><input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"> 財務章</label>
+                                    <label class="flex items-center gap-1.5 text-[13px] text-gray-700 cursor-pointer"><input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"> 法人章</label>
+                                    <label class="flex items-center gap-1.5 text-[13px] text-gray-700 cursor-pointer"><input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"> 發票章</label>
+                                    <label class="flex items-center gap-1.5 text-[13px] text-gray-700 cursor-pointer"><input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"> 騎縫章</label>
+                                    <label class="flex items-center gap-1.5 text-[13px] text-gray-700 cursor-pointer"><input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"> 電子章</label>
+                                    <label class="flex items-center gap-1.5 text-[13px] text-gray-700 cursor-pointer"><input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"> 其他</label>
+                                </div>
+                            </div>
+                            <div class="col-span-5"><label class="block mb-1.5 text-[13px] text-gray-700">用印用途 <span class="text-red-500">*</span></label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500" placeholder="請具體說明文件用途、用印對象與使用情境（至少 20 字）"></div>
                         </div>
                     </div>
 
@@ -2824,44 +2706,6 @@
                         </div>
                     </div>
 
-                    <!-- 資產信息（可添加多筆）-->
-                    <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5">
-                        <div class="px-4 py-2.5 border-b border-gray-200 flex justify-between items-center">
-                            <h3 class="text-[#2b3b84] font-bold text-[15px]">資產信息</h3>
-                            <button type="button" onclick="blockAdd(this)" class="text-[12px] text-blue-600 border border-blue-200 rounded px-2.5 py-1 hover:bg-blue-50 flex items-center gap-1"><i data-lucide="plus" class="w-3.5 h-3.5"></i>添加</button>
-                        </div>
-                        <div class="p-4">
-                            <div class="space-y-3">
-                                <div class="se-asset-row flex gap-3 items-end border border-gray-200 rounded-md p-3 bg-gray-50/40">
-                                    <div class="flex-1 grid grid-cols-2 sm:grid-cols-5 gap-3">
-                                        <div class="relative person-combo">
-                                            <label class="block mb-1.5 text-[13px] text-gray-700">使用人 <span class="text-red-500">*</span></label>
-                                            <input type="text" autocomplete="off" placeholder="搜尋工號 / 姓名" class="person-input w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500">
-                                            <div class="person-list hidden absolute z-30 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto text-[13px]"></div>
-                                        </div>
-                                        <div>
-                                            <label class="block mb-1.5 text-[13px] text-gray-700">區域</label>
-                                            <input type="text" readonly placeholder="自動帶入" class="pa-region w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#f3f4f6] text-gray-600 cursor-not-allowed">
-                                        </div>
-                                        <div>
-                                            <label class="block mb-1.5 text-[13px] text-gray-700">項目</label>
-                                            <input type="text" readonly placeholder="自動帶入" class="pa-project w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#f3f4f6] text-gray-600 cursor-not-allowed">
-                                        </div>
-                                        <div>
-                                            <label class="block mb-1.5 text-[13px] text-gray-700">部門</label>
-                                            <input type="text" readonly placeholder="自動帶入" class="pa-dept w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#f3f4f6] text-gray-600 cursor-not-allowed">
-                                        </div>
-                                        <div>
-                                            <label class="block mb-1.5 text-[13px] text-gray-700">資產編號 <span class="text-red-500">*</span></label>
-                                            <input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500" placeholder="請輸入資產編號">
-                                        </div>
-                                    </div>
-                                    <button type="button" onclick="blockRemove(this)" class="shrink-0 text-[12px] text-rose-600 border border-rose-200 rounded px-2.5 py-1 hover:bg-rose-50 inline-flex items-center gap-1 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i>移除</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
                     <!-- 備註 -->
                     <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5">
                         <div class="px-4 py-2.5 border-b border-gray-200"><h3 class="text-[#2b3b84] font-bold text-[15px]">備註</h3></div>
@@ -2926,7 +2770,7 @@
 <div id="nr-modal" class="form-modal fixed inset-0 bg-black/40 z-50 flex justify-center items-center hidden">
     <div class="bg-white w-[98vw] max-w-[1400px] h-[95vh] rounded-md shadow-2xl flex flex-col relative overflow-hidden">
         <div class="bg-[#EAF2FC] flex justify-between items-center px-4 py-3 border-b border-blue-100">
-            <h2 class="text-[#2b3b84] font-bold text-[16px]">公告發布申請</h2>
+            <h2 class="text-[#2b3b84] font-bold text-[16px]">公告發布申請(NR)</h2>
             <button class="form-modal-close bg-blue-500 hover:bg-blue-600 text-white rounded p-1 transition-colors"><i data-lucide="x" class="w-4 h-4"></i></button>
         </div>
         <div class="flex flex-1 overflow-hidden bg-[#f4f5f8]">
@@ -3210,7 +3054,7 @@
 <div id="assets-modal" class="form-modal fixed inset-0 bg-black/40 z-50 flex justify-center items-center hidden">
     <div class="bg-white w-[98vw] max-w-[1400px] h-[95vh] rounded-md shadow-2xl flex flex-col relative overflow-hidden">
         <div class="bg-[#EAF2FC] flex justify-between items-center px-4 py-3 border-b border-blue-100">
-            <h2 class="text-[#2b3b84] font-bold text-[16px]">新增資產申請 (ASSETS)</h2>
+            <h2 class="text-[#2b3b84] font-bold text-[16px]">新增資產申請 (AN)</h2>
             <button class="form-modal-close bg-blue-500 hover:bg-blue-600 text-white rounded p-1 transition-colors"><i data-lucide="x" class="w-4 h-4"></i></button>
         </div>
         <div class="flex flex-1 overflow-hidden bg-[#f4f5f8]">
@@ -3588,6 +3432,19 @@
             <div class="w-[300px] border-l border-gray-300 bg-white hidden md:block overflow-y-auto">
                 <div class="bg-[#17a2b8] text-white px-4 py-2 text-[14px] font-bold sticky top-0">審批流程</div>
                 <div class="px-4 py-12 text-center text-gray-400 text-[12px] leading-relaxed"><i data-lucide="git-merge" class="w-7 h-7 mx-auto mb-2 text-gray-300"></i>尚未產生審批流程<br>填寫完整單據資訊後，<br>系統將自動判斷並帶出該單的審批流程</div>
+                <div class="bg-[#eef6f7] text-[#17a2b8] px-4 py-2 text-[14px] font-bold">預算摘要</div>
+                <div class="px-4 pt-2 text-[11px] text-gray-400">選定供應商後同步更新</div>
+                <div class="p-4 space-y-2 text-[13px]">
+                    <div class="flex justify-between"><span class="text-gray-500">每期預算</span><span id="pu-bs-perperiod" class="font-semibold text-gray-800">CNY 0.00</span></div>
+                    <div class="flex justify-between"><span class="text-gray-500">計費期數</span><span id="pu-bs-periods" class="font-semibold text-gray-800">1</span></div>
+                    <div class="flex justify-between"><span class="text-gray-500">週期預算</span><span id="pu-bs-period" class="font-semibold text-gray-800">CNY 0.00</span></div>
+                    <div class="flex justify-between"><span class="text-gray-500">一次性費用</span><span id="pu-bs-onetime" class="font-semibold text-gray-800">CNY 0.00</span></div>
+                    <div class="flex justify-between"><span class="text-gray-500">預估稅費</span><span id="pu-bs-tax" class="font-semibold text-gray-800">CNY 0.00</span></div>
+                    <div class="flex justify-between border-t border-gray-100 pt-2"><span class="text-gray-600 font-medium">申請預算上限</span><span id="pu-bs-cap" class="font-bold text-[#2b3b84]">CNY 0.00</span></div>
+                    <div class="flex justify-between"><span class="text-gray-500">可退還押金</span><span id="pu-bs-deposit" class="font-semibold text-gray-800">CNY 0.00</span></div>
+                    <div class="flex justify-between"><span class="text-gray-500">首期資金需求</span><span id="pu-bs-first" class="font-semibold text-gray-800">CNY 0.00</span></div>
+                    <div class="flex justify-between border-t border-gray-100 pt-2"><span class="text-gray-500">人民幣換算金額</span><span id="pu-bs-cny" class="font-semibold text-gray-800">CNY 0.00</span></div>
+                </div>
             </div>
         </div>
     </div>
@@ -3614,19 +3471,19 @@
                     <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5">
                         <div class="px-4 py-2.5 border-b border-gray-200"><h3 class="text-[#2b3b84] font-bold text-[15px]">基本資料</h3></div>
                         <div class="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-x-5 gap-y-4">
-                            <div>
+                            <div class="lg:col-span-2">
                                 <label class="block mb-1.5 text-[13px] text-gray-700">文件編號</label>
                                 <input type="text" value="提交後自動產生" disabled class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed">
                             </div>
                             <div>
-                                <label class="block mb-1.5 text-[13px] text-gray-700">申請日期時間</label>
-                                <div class="border border-gray-300 rounded px-3 py-1.5 bg-white flex items-center"><i data-lucide="calendar" class="w-4 h-4 text-gray-400"></i><input type="datetime-local" id="rpu-apply-date" class="w-full ml-2 text-[13px] outline-none bg-transparent"></div>
+                                <label class="block mb-1.5 text-[13px] text-gray-700">申請日期</label>
+                                <div class="border border-gray-300 rounded px-3 py-1.5 bg-white flex items-center"><i data-lucide="calendar" class="w-4 h-4 text-gray-400"></i><input type="text" class="w-full ml-2 text-[13px] outline-none" disabled></div>
                             </div>
                             <div>
                                 <label class="block mb-1.5 text-[13px] text-gray-700">主旨 <span class="text-red-500">*</span></label>
                                 <input type="text" placeholder="例：2026 年度週期性採購申請" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500">
                             </div>
-                            <div>
+                            <div class="lg:col-start-1">
                                 <label class="block mb-1.5 text-[13px] text-gray-700">申請人 <span class="text-red-500">*</span></label>
                                 <div class="relative applicant-combo" id="rpu-applicant-combo">
                                     <input type="text" autocomplete="off" placeholder="搜尋人名 / 工號" class="applicant-input w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500">
@@ -3657,11 +3514,9 @@
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     <button type="button" data-rpu-type="sub" onclick="rpuSetApplyType('sub')" class="rpu-type-card text-left border rounded-md px-4 py-3 transition-colors border-blue-500 bg-blue-50">
                                         <div class="text-[13px] font-semibold text-gray-800">訂閱／週期性服務</div>
-                                        <div class="text-[12px] text-gray-500 mt-0.5">軟體、SaaS、通訊、維保、顧問等週期性支出</div>
                                     </button>
                                     <button type="button" data-rpu-type="lease" onclick="rpuSetApplyType('lease')" class="rpu-type-card text-left border rounded-md px-4 py-3 transition-colors border-gray-300 bg-white hover:border-blue-300">
                                         <div class="text-[13px] font-semibold text-gray-800">辦公室／物業租賃</div>
-                                        <div class="text-[12px] text-gray-500 mt-0.5">辦公室、物業、倉儲、設備等租賃</div>
                                     </button>
                                 </div>
                             </div>
@@ -3768,6 +3623,7 @@
                 <div class="bg-[#17a2b8] text-white px-4 py-2 text-[14px] font-bold sticky top-0 z-10">審批流程</div>
                 <div class="px-4 py-12 text-center text-gray-400 text-[12px] leading-relaxed border-b border-gray-200"><i data-lucide="git-merge" class="w-7 h-7 mx-auto mb-2 text-gray-300"></i>尚未產生審批流程<br>填寫完整單據資訊後，<br>系統將自動判斷並帶出該單的審批流程</div>
                 <div class="bg-[#eef6f7] text-[#17a2b8] px-4 py-2 text-[14px] font-bold">預算摘要</div>
+                <div class="px-4 pt-2 text-[11px] text-gray-400">選定供應商後同步更新</div>
                 <div class="p-4 space-y-2 text-[13px]">
                     <div class="flex justify-between"><span class="text-gray-500">每期預算</span><span id="rpu-bs-perperiod" class="font-semibold text-gray-800">CNY 0.00</span></div>
                     <div class="flex justify-between"><span class="text-gray-500">計費期數</span><span id="rpu-bs-periods" class="font-semibold text-gray-800">12</span></div>
@@ -3778,7 +3634,6 @@
                     <div class="flex justify-between"><span class="text-gray-500">可退還押金</span><span id="rpu-bs-deposit" class="font-semibold text-gray-800">CNY 0.00</span></div>
                     <div class="flex justify-between"><span class="text-gray-500">首期資金需求</span><span id="rpu-bs-first" class="font-semibold text-gray-800">CNY 0.00</span></div>
                     <div class="flex justify-between border-t border-gray-100 pt-2"><span class="text-gray-500">人民幣換算金額</span><span id="rpu-bs-cny" class="font-semibold text-gray-800">CNY 0.00</span></div>
-                    <p class="text-[11px] text-gray-400 pt-1 leading-relaxed">選定供應商後同步更新；不覆蓋申請人填寫的預估單價。</p>
                 </div>
             </div>
         </div>
@@ -5872,7 +5727,7 @@
             HRPC:'hr-pc-modal', HREA:'hr-ea-modal', HRRA:'hr-ra-modal', HRSP:'hr-sp-modal', HRTH:'hr-th-modal'
         };
         // ===== 送出申請 → 寫入共享儲存（localStorage），供「我的申請 / 簽核」讀取 =====
-        const OA_MAP = { PU:'行政', RPU:'行政', APU:'行政', AA:'行政', AM:'行政', AR:'行政', SEYIN:'行政', SE:'行政', VM:'行政', CV:'行政', ASSETS:'行政', SA:'行政', PTA:'行政', TR:'行政', AP:'行政', SP:'行政', PMO:'PMO', PMOA:'PMO', PMOS:'PMO', BU:'事業部', NR:'事業部', B:'財務', PTAB:'財務', C:'財務', PTAC:'財務', AB:'財務', AC:'財務', IC:'合同', HRPC:'人事', HREA:'人事', HRRA:'人事', HRSP:'人事', HRTH:'人事' };
+        const OA_MAP = { PU:'行政', RPU:'行政', APU:'行政', AA:'行政', AM:'行政', AR:'行政', SEYIN:'行政', SE:'行政', VM:'行政', CV:'行政', ASSETS:'行政', SA:'行政', PTA:'行政', TR:'行政', AP:'行政', SP:'行政', PMO:'PMO', PMOA:'PMO', PMOS:'PMO', BU:'事業部', NR:'人事', B:'財務', PTAB:'財務', C:'財務', PTAC:'財務', AB:'財務', AC:'財務', IC:'合同', HRPC:'人事', HREA:'人事', HRRA:'人事', HRSP:'人事', HRTH:'人事' };
         function submitApplication(btn) {
             const modal = btn.closest('.form-modal');
             if (!modal) return;
@@ -6441,7 +6296,7 @@
                 if (inp[0]) inp[0].value = d.no || '';
                 if (inp[1]) inp[1].value = d.date || '';
                 if (inp[2]) inp[2].value = d.resid || '';
-                if (inp[4]) inp[4].value = '由「' + _aaImportName + '」帶入';
+                // 調撥原因留空，不自動帶入
                 _aaImportTarget.appendChild(clone);
             });
             _renumberSeq(_aaImportTarget);
@@ -6776,12 +6631,12 @@
         const S = () => RPU_STORE[RPU_NS];
 
         function rpuMakeSupplier(key) {
-            return { key, name: '', specSame: 'same', specDiffNote: '', unitPrice: 0, oneTime: 0, oneTimeNote: '',
-                tax: '請選擇', estTax: 0, quoteLink: '', quoteFile: '', selected: false, expanded: false, advExpanded: false,
+            return { key, name: '', specSame: 'same', specDiffNote: '', brandModel: '', deliveryTime: '', warranty: '', unitPrice: 0, oneTime: 0, oneTimeNote: '',
+                deposit: 0, tax: '請選擇', estTax: 0, quoteLink: '', quoteFile: '', selected: false, expanded: false, advExpanded: false,
                 payTerm: '', autoRenew: 'no', cancelNotice: '', renewCancel: '', priceFixed: 'yes', priceAdjust: '' };
         }
         function rpuMakeItem() {
-            return { id: ++RPU_SEQ, name: '', unit: '帳號', qty: 1, unitPrice: 0, expanded: false,
+            return { id: ++RPU_SEQ, name: '', spec: '', unit: '帳號', qty: 1, unitPrice: 0, taxRate: 0, expanded: false,
                 method: 'three', officialReason: '', otherNote: '', notLowestReason: '',
                 suppliers: [rpuMakeSupplier('A'), rpuMakeSupplier('B'), rpuMakeSupplier('C')] };
         }
@@ -6794,21 +6649,26 @@
         // ===== 共用計算函式（摘要、供應商卡片、右側預算共用）=====
         function rpuPerPeriod(sup, it) { return rpuNum(sup.unitPrice) * rpuNum(it.qty); }
         function rpuPeriodFee(sup, it) { return rpuPerPeriod(sup, it) * rpuPeriods(); }
-        function rpuEstTax(sup) { return sup.tax === '未稅' ? rpuNum(sup.estTax) : 0; }
+        function rpuEstTax(sup) { return (sup.tax === '未稅' || RPU_NS === 'pu') ? rpuNum(sup.estTax) : 0; }
         function rpuFull(sup, it) { return rpuPeriodFee(sup, it) + rpuNum(sup.oneTime) + rpuEstTax(sup); }
         function rpuActiveSuppliers(it) { return it.method === 'three' ? it.suppliers : [it.suppliers[0]]; }
         // 供應商是否報價完整 → { complete, missing[] }
         function rpuComplete(sup, it) {
             const miss = [];
             if (!sup.name.trim()) miss.push('供應商名稱');
-            if (rpuNum(sup.unitPrice) <= 0) miss.push('每期單價');
-            if (sup.tax === '請選擇') miss.push('稅務方式');
-            if (sup.tax === '無法確認') miss.push('稅務確認');
+            if (rpuNum(sup.unitPrice) <= 0) miss.push(RPU_NS === 'pu' ? '報價單價' : '每期單價');
             if (!sup.quoteLink.trim()) miss.push('報價連結');
             if (!sup.quoteFile) miss.push('報價附件');
-            if (sup.specSame === 'diff' && !sup.specDiffNote.trim()) miss.push('規格差異說明');
-            if (rpuNum(sup.oneTime) > 0 && !sup.oneTimeNote.trim()) miss.push('一次性費用說明');
-            if (sup.tax === '未稅' && rpuNum(sup.estTax) <= 0) miss.push('預估稅費');
+            if (RPU_NS === 'pu') {
+                // 請購單（一次性採購）：品牌／型號必填；無稅務方式
+                if (!sup.brandModel.trim()) miss.push('品牌／型號');
+            } else {
+                if (sup.tax === '請選擇') miss.push('稅務方式');
+                if (sup.tax === '無法確認') miss.push('稅務確認');
+                if (sup.specSame === 'diff' && !sup.specDiffNote.trim()) miss.push('規格差異說明');
+                if (rpuNum(sup.oneTime) > 0 && !sup.oneTimeNote.trim()) miss.push('一次性費用說明');
+                if (sup.tax === '未稅' && rpuNum(sup.estTax) <= 0) miss.push('預估稅費');
+            }
             return { complete: miss.length === 0, missing: miss };
         }
         // 最低價供應商（以完整週期總價比較；僅比較有填每期單價者）
@@ -6893,8 +6753,31 @@
                     <span class="text-[12px] text-gray-500 shrink-0">每期 <span class="rpu-cur-prefix">${cur}</span> <span id="${RPU_NS}_hd_perfee_${it.id}_${s.key}">0.00</span> · 總價 <span class="rpu-cur-prefix">${cur}</span> <span id="${RPU_NS}_hd_full_${it.id}_${s.key}">0.00</span></span>
                 </button>
                 <div class="${s.expanded ? '' : 'hidden'} p-3 space-y-3">
+                    ${RPU_NS === 'pu' ? `
                     <div class="text-[12px] font-bold text-gray-500">必要報價資料</div>
-                    <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                    <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+                        <div><label class="block mb-1 text-[12px] text-gray-600">供應商名稱 <span class="text-red-500">*</span></label><input type="text" value="${s.name.replace(/"/g,'&quot;')}" oninput="rpuSupSet(${it.id},'${s.key}','name',this.value)" class="${inp}"></div>
+                        <div><label class="block mb-1 text-[12px] text-gray-600">品牌／型號</label><input type="text" value="${(s.brandModel||'').replace(/"/g,'&quot;')}" oninput="rpuSupSet(${it.id},'${s.key}','brandModel',this.value)" class="${inp}"></div>
+                        <div><label class="block mb-1 text-[12px] text-gray-600">報價單價 <span class="text-red-500">*</span></label><div class="flex items-center border border-gray-300 rounded overflow-hidden"><span class="bg-gray-50 border-r border-gray-300 px-2 py-1 text-[11px] text-gray-500 rpu-cur-prefix">${cur}</span><input type="number" min="0" value="${s.unitPrice}" oninput="rpuSupSet(${it.id},'${s.key}','unitPrice',this.value)" class="w-full px-2 py-1 text-[13px] text-right outline-none"></div></div>
+                        <div><label class="block mb-1 text-[12px] text-gray-600">數量</label><input type="text" value="${rpuNum(it.qty)}" disabled class="${inp} bg-[#e9ecef] text-gray-500 cursor-not-allowed" id="${RPU_NS}_supqty_${it.id}_${s.key}"></div>
+                        <div><label class="block mb-1 text-[12px] text-gray-600">商品／服務小計</label><input type="text" value="" disabled id="${RPU_NS}_perfee_${it.id}_${s.key}" class="${inp} bg-[#e9ecef] text-gray-500 cursor-not-allowed text-right"></div>
+                        <div><label class="block mb-1 text-[12px] text-gray-600">運費／安裝／其他費用</label><div class="flex items-center border border-gray-300 rounded overflow-hidden"><span class="bg-gray-50 border-r border-gray-300 px-2 py-1 text-[11px] text-gray-500 rpu-cur-prefix">${cur}</span><input type="number" min="0" value="${s.oneTime}" oninput="rpuSupSet(${it.id},'${s.key}','oneTime',this.value)" class="w-full px-2 py-1 text-[13px] text-right outline-none"></div></div>
+                        <div><label class="block mb-1 text-[12px] text-gray-600">預估稅費</label><div class="flex items-center border border-gray-300 rounded overflow-hidden"><span class="bg-gray-50 border-r border-gray-300 px-2 py-1 text-[11px] text-gray-500 rpu-cur-prefix">${cur}</span><input type="number" min="0" value="${s.estTax}" oninput="rpuSupSet(${it.id},'${s.key}','estTax',this.value)" class="w-full px-2 py-1 text-[13px] text-right outline-none"></div></div>
+                        <div><label class="block mb-1 text-[12px] text-gray-600">預計交付時間</label><input type="date" onclick="this.showPicker && this.showPicker()" value="${s.deliveryTime||''}" oninput="rpuSupSet(${it.id},'${s.key}','deliveryTime',this.value)" class="${inp}"></div>
+                        <div><label class="block mb-1 text-[12px] text-gray-600">保固／服務說明</label><input type="text" value="${(s.warranty||'').replace(/"/g,'&quot;')}" oninput="rpuSupSet(${it.id},'${s.key}','warranty',this.value)" class="${inp}"></div>
+                        <div><label class="block mb-1 text-[12px] text-gray-600">報價連結 <span class="text-red-500">*</span></label><input type="text" value="${s.quoteLink.replace(/"/g,'&quot;')}" oninput="rpuSupSet(${it.id},'${s.key}','quoteLink',this.value)" placeholder="https://" class="${inp}"></div>
+                        <div><label class="block mb-1 text-[12px] text-gray-600">報價附件 <span class="text-red-500">*</span></label>
+                            <input type="file" id="${RPU_NS}_file_${it.id}_${s.key}" class="hidden" onchange="rpuSupFile(${it.id},'${s.key}',this.files)">
+                            <div class="flex items-center gap-2"><button type="button" onclick="document.getElementById('${RPU_NS}_file_${it.id}_${s.key}').click()" class="text-[12px] border border-gray-300 rounded px-2 py-1 hover:bg-gray-50 shrink-0">選擇檔案</button><span class="text-[12px] text-gray-500 truncate">${s.quoteFile || '尚未上傳'}</span></div>
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 border border-gray-100 rounded p-3 grid grid-cols-2 sm:grid-cols-3 gap-2 text-[12px]">
+                        <div><div class="text-gray-400">完整總價</div><div class="font-semibold text-gray-700"><span class="rpu-cur-prefix">${cur}</span> <span id="${RPU_NS}_c_full_${it.id}_${s.key}">0.00</span></div></div>
+                        <div><div class="text-gray-400">價格判定</div><div id="${RPU_NS}_c_judge_${it.id}_${s.key}" class="font-semibold text-gray-500">—</div></div>
+                    </div>
+                    ` : `
+                    <div class="text-[12px] font-bold text-gray-500">必要報價資料</div>
+                    <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-3">
                         <div><label class="block mb-1 text-[12px] text-gray-600">供應商名稱 <span class="text-red-500">*</span></label><input type="text" value="${s.name.replace(/"/g,'&quot;')}" oninput="rpuSupSet(${it.id},'${s.key}','name',this.value)" class="${inp}"></div>
                         <div><label class="block mb-1 text-[12px] text-gray-600">方案／規格</label>
                             <select onchange="rpuSupSet(${it.id},'${s.key}','specSame',this.value)" class="${inp} bg-white">
@@ -6911,6 +6794,9 @@
                         <div><label class="block mb-1 text-[12px] text-gray-600">一次性費用</label>
                             <div class="flex items-center border border-gray-300 rounded overflow-hidden"><span class="bg-gray-50 border-r border-gray-300 px-2 py-1 text-[11px] text-gray-500 rpu-cur-prefix">${cur}</span><input type="number" min="0" value="${s.oneTime}" oninput="rpuSupSet(${it.id},'${s.key}','oneTime',this.value)" class="w-full px-2 py-1 text-[13px] text-right outline-none"></div>
                         </div>
+                        <div><label class="block mb-1 text-[12px] text-gray-600">可退還押金</label>
+                            <div class="flex items-center border border-gray-300 rounded overflow-hidden"><span class="bg-gray-50 border-r border-gray-300 px-2 py-1 text-[11px] text-gray-500 rpu-cur-prefix">${cur}</span><input type="number" min="0" value="${s.deposit}" oninput="rpuSupSet(${it.id},'${s.key}','deposit',this.value)" class="w-full px-2 py-1 text-[13px] text-right outline-none"></div>
+                        </div>
                         <div id="${RPU_NS}_onenote_${it.id}_${s.key}" class="${rpuNum(s.oneTime) > 0 ? '' : 'hidden'}"><label class="block mb-1 text-[12px] text-gray-600">一次性費用說明 <span class="text-red-500">*</span></label><input type="text" value="${s.oneTimeNote.replace(/"/g,'&quot;')}" oninput="rpuSupSet(${it.id},'${s.key}','oneTimeNote',this.value)" class="${inp}"></div>
                         <div><label class="block mb-1 text-[12px] text-gray-600">稅務方式 <span class="text-red-500">*</span></label>
                             <select onchange="rpuSupSet(${it.id},'${s.key}','tax',this.value)" class="${inp} bg-white">
@@ -6920,7 +6806,6 @@
                         <div id="${RPU_NS}_esttaxwrap_${it.id}_${s.key}" class="${s.tax === '未稅' ? '' : 'hidden'}"><label class="block mb-1 text-[12px] text-gray-600">預估稅費 <span class="text-red-500">*</span></label>
                             <div class="flex items-center border border-gray-300 rounded overflow-hidden"><span class="bg-gray-50 border-r border-gray-300 px-2 py-1 text-[11px] text-gray-500 rpu-cur-prefix">${cur}</span><input type="number" min="0" value="${s.estTax}" oninput="rpuSupSet(${it.id},'${s.key}','estTax',this.value)" class="w-full px-2 py-1 text-[13px] text-right outline-none"></div>
                         </div>
-                        <div><label class="block mb-1 text-[12px] text-gray-600">完整週期總價</label><input type="text" value="" disabled id="${RPU_NS}_full_${it.id}_${s.key}" class="${inp} bg-[#e9ecef] text-gray-500 cursor-not-allowed text-right font-semibold"></div>
                         <div><label class="block mb-1 text-[12px] text-gray-600">報價連結 <span class="text-red-500">*</span></label><input type="text" value="${s.quoteLink.replace(/"/g,'&quot;')}" oninput="rpuSupSet(${it.id},'${s.key}','quoteLink',this.value)" placeholder="https://" class="${inp}"></div>
                         <div><label class="block mb-1 text-[12px] text-gray-600">報價附件 <span class="text-red-500">*</span></label>
                             <input type="file" id="${RPU_NS}_file_${it.id}_${s.key}" class="hidden" onchange="rpuSupFile(${it.id},'${s.key}',this.files)">
@@ -6936,6 +6821,7 @@
                         <div><div class="text-gray-400">完整週期總價</div><div class="font-semibold text-gray-700"><span class="rpu-cur-prefix">${cur}</span> <span id="${RPU_NS}_c_full_${it.id}_${s.key}">0.00</span></div></div>
                         <div><div class="text-gray-400">價格判定</div><div id="${RPU_NS}_c_judge_${it.id}_${s.key}" class="font-semibold text-gray-500">—</div></div>
                     </div>
+                    `}
                 </div>
             </div>`;
         }
@@ -6972,13 +6858,24 @@
                 </div>
                 <div class="p-4">
                     <!-- 品項基本資料 -->
+                    ${RPU_NS === 'pu' ? `
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-                        <div class="lg:col-span-2"><label class="block mb-1 text-[12px] text-gray-600">品項／方案名稱 <span class="text-red-500">*</span></label><input type="text" value="${it.name.replace(/"/g,'&quot;')}" oninput="rpuSet(${it.id},'name',this.value)" class="${inp}"></div>
+                        <div><label class="block mb-1 text-[12px] text-gray-600">品項名稱 <span class="text-red-500">*</span></label><input type="text" value="${it.name.replace(/"/g,'&quot;')}" oninput="rpuSet(${it.id},'name',this.value)" class="${inp}"></div>
+                        <div><label class="block mb-1 text-[12px] text-gray-600">規格／型號 <span class="text-red-500">*</span></label><input type="text" value="${(it.spec||'').replace(/"/g,'&quot;')}" oninput="rpuSet(${it.id},'spec',this.value)" class="${inp}"></div>
+                        <div><label class="block mb-1 text-[12px] text-gray-600">數量 <span class="text-red-500">*</span></label><input type="number" min="1" value="${it.qty}" oninput="rpuSet(${it.id},'qty',this.value)" class="${inp} text-right"></div>
+                        <div><label class="block mb-1 text-[12px] text-gray-600">預估單價 <span class="text-red-500">*</span></label><div class="flex items-center border border-gray-300 rounded overflow-hidden"><span class="bg-gray-50 border-r border-gray-300 px-2 py-1 text-[11px] text-gray-500 rpu-cur-prefix">${cur}</span><input type="number" min="0" value="${it.unitPrice}" oninput="rpuSet(${it.id},'unitPrice',this.value)" class="w-full px-2 py-1 text-[13px] text-right outline-none"></div></div>
+                        <div><label class="block mb-1 text-[12px] text-gray-600">預估稅率</label><div class="flex items-center border border-gray-300 rounded overflow-hidden"><input type="number" min="0" value="${it.taxRate}" oninput="rpuSet(${it.id},'taxRate',this.value)" class="w-full px-2 py-1 text-[13px] text-right outline-none"><span class="bg-gray-50 border-l border-gray-300 px-2 py-1 text-[11px] text-gray-500">%</span></div></div>
+                        <div class="lg:col-span-5"><label class="block mb-1 text-[12px] text-gray-600">預估總價</label><input type="text" value="" disabled id="${RPU_NS}_sub_${it.id}" class="${inp} bg-[#e9ecef] text-gray-500 cursor-not-allowed text-right"></div>
+                    </div>
+                    ` : `
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                        <div><label class="block mb-1 text-[12px] text-gray-600">品項／方案名稱 <span class="text-red-500">*</span></label><input type="text" value="${it.name.replace(/"/g,'&quot;')}" oninput="rpuSet(${it.id},'name',this.value)" class="${inp}"></div>
                         <div><label class="block mb-1 text-[12px] text-gray-600">計價單位 <span class="text-red-500">*</span></label><select onchange="rpuSet(${it.id},'unit',this.value)" class="${inp} bg-white">${RPU_UNITS.map(u => `<option ${it.unit === u ? 'selected' : ''}>${u}</option>`).join('')}</select></div>
                         <div><label class="block mb-1 text-[12px] text-gray-600">數量 <span class="text-red-500">*</span></label><input type="number" min="1" value="${it.qty}" oninput="rpuSet(${it.id},'qty',this.value)" class="${inp} text-right"></div>
                         <div><label class="block mb-1 text-[12px] text-gray-600">預估每期單價 <span class="text-red-500">*</span></label><div class="flex items-center border border-gray-300 rounded overflow-hidden"><span class="bg-gray-50 border-r border-gray-300 px-2 py-1 text-[11px] text-gray-500 rpu-cur-prefix">${cur}</span><input type="number" min="0" value="${it.unitPrice}" oninput="rpuSet(${it.id},'unitPrice',this.value)" class="w-full px-2 py-1 text-[13px] text-right outline-none"></div></div>
-                        <div class="lg:col-span-5"><label class="block mb-1 text-[12px] text-gray-600">預估每期小計</label><input type="text" value="" disabled id="${RPU_NS}_sub_${it.id}" class="${inp} bg-[#e9ecef] text-gray-500 cursor-not-allowed text-right"></div>
-                    </div>
+                        <div class="lg:col-span-4"><label class="block mb-1 text-[12px] text-gray-600">預估每期小計</label><input type="text" value="" disabled id="${RPU_NS}_sub_${it.id}" class="${inp} bg-[#e9ecef] text-gray-500 cursor-not-allowed text-right"></div>
+                        </div>
+                    `}
                     <!-- 比價摘要列 -->
                     <div class="mt-3 bg-[#f8fafc] border border-gray-200 rounded-md px-3 py-2 flex flex-wrap items-center gap-x-5 gap-y-1.5 text-[12px]">
                         <span class="text-gray-500">比價方式：<span class="font-semibold text-gray-700">${RPU_METHOD_LABEL[it.method]}</span></span>
@@ -7005,7 +6902,7 @@
             const setTxt = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
             const setVal = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
             const show = (id, on) => { const el = document.getElementById(id); if (el) el.classList.toggle('hidden', !on); };
-            let bPer = 0, bPeriod = 0, bOne = 0, bTax = 0, bFull = 0;
+            let bPer = 0, bPeriod = 0, bOne = 0, bTax = 0, bFull = 0, bDep = 0;
             S().items.forEach(it => {
                 setVal(RPU_NS + '_sub_' + it.id, rpuFmt(rpuNum(it.unitPrice) * rpuNum(it.qty)));
                 const low = rpuLowest(it);
@@ -7056,17 +6953,24 @@
                         else { st.textContent = '待補' + c.missing.join('、'); st.className = 'text-[11px] px-1.5 py-0.5 rounded bg-rose-50 text-rose-600'; }
                     }
                 });
-                // 右側預算：優先取選用供應商，否則 0
-                if (sel) { bPer += rpuPerPeriod(sel, it); bPeriod += rpuPeriodFee(sel, it); bOne += rpuNum(sel.oneTime); bTax += rpuEstTax(sel); bFull += rpuFull(sel, it); }
+                // 右側預算
+                if (RPU_NS === 'pu') {
+                    // 請購單：依選用供應商的報價資料計算
+                    if (sel) { bPer += rpuPerPeriod(sel, it); bPeriod += rpuPeriodFee(sel, it); bOne += rpuNum(sel.oneTime); bTax += rpuEstTax(sel); bFull += rpuFull(sel, it); bDep += rpuNum(sel.deposit); }
+                } else {
+                    // 週期性請購：依申請人填寫的品項預估（每期單價 × 數量）計算
+                    bPer += rpuNum(it.unitPrice) * rpuNum(it.qty);
+                }
             });
+            if (RPU_NS !== 'pu') { bPeriod = bPer * rpuPeriods(); bFull = bPeriod + bOne + bTax; }
             setTxt(RPU_NS + '-bs-perperiod', rpuMoney(bPer));
             setTxt(RPU_NS + '-bs-periods', rpuPeriods());
             setTxt(RPU_NS + '-bs-period', rpuMoney(bPeriod));
             setTxt(RPU_NS + '-bs-onetime', rpuMoney(bOne));
             setTxt(RPU_NS + '-bs-tax', rpuMoney(bTax));
             setTxt(RPU_NS + '-bs-cap', rpuMoney(bFull));
-            setTxt(RPU_NS + '-bs-deposit', rpuMoney(0));
-            setTxt(RPU_NS + '-bs-first', rpuMoney(bPer + bOne));
+            setTxt(RPU_NS + '-bs-deposit', rpuMoney(bDep));
+            setTxt(RPU_NS + '-bs-first', rpuMoney(bPer + bOne + bDep));
             const fx = RPU_FX_TO_CNY[S().currency] || 0;
             setTxt(RPU_NS + '-bs-cny', 'CNY ' + rpuFmt(bFull * fx));
         }
