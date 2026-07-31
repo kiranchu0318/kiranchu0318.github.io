@@ -240,7 +240,7 @@
                             <div class="px-4 pt-4 grid grid-cols-5 gap-x-5 gap-y-5 mb-4">
                                 <div class="col-span-2"><label class="block mb-1.5 text-[13px] text-gray-700">文件編號</label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed" value="自動生成" disabled></div>
                                 <div><label class="block mb-1.5 text-[13px] text-gray-700">申請日期</label><div class="border border-gray-300 rounded px-3 py-1.5 bg-white flex items-center"><i data-lucide="calendar" class="w-4 h-4 text-gray-400"></i><input type="text" class="w-full ml-2 text-[13px] outline-none" disabled></div></div>
-                                <div><label class="block mb-1.5 text-[13px] text-gray-700">主旨 <span class="text-red-500">*</span></label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] bg-[#f8f9fa] text-gray-500 cursor-not-allowed outline-none" value="" disabled></div>
+                                <div><label class="block mb-1.5 text-[13px] text-gray-700">主旨 <span class="text-red-500">*</span></label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"></div>
                             </div>
                             <div class="px-4 pb-4 grid grid-cols-5 gap-x-5 gap-y-5">
                                 <div><label class="block mb-1.5 text-[13px] text-gray-700">服務類型</label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] bg-white text-gray-700 outline-none focus:border-blue-500"><option>資產本地調撥</option><option>資產跨區調撥至 D</option><option>資產跨區調撥至 F</option><option>資產跨區調撥至 J</option><option>資產跨區調撥至 K</option><option>資產跨區調撥至 M</option><option>資產跨區調撥至 S</option><option>資產跨區調撥至 T1</option><option>資產跨區調撥至 T2</option><option>資產跨區調撥至 T3</option><option>資產跨區調撥至 THQ</option><option>資產跨區調撥至 U</option></select></div>
@@ -262,7 +262,7 @@
                                         <thead>
                                             <tr class="border-b border-gray-200 bg-gray-50 text-gray-700 font-bold text-xs">
                                                 <th class="px-3 py-2">產編</th>
-                                                <th class="px-3 py-2 w-40">日期</th>
+                                                <th class="px-3 py-2 w-40">殘值日期</th>
                                                 <th class="px-3 py-2 w-32">殘值</th>
                                                 <th class="px-3 py-2">新使用人</th>
                                                 <th class="px-3 py-2">調撥原因</th>
@@ -1531,7 +1531,7 @@
                                 <div><label class="block mb-1 text-[13px]">項目 *</label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option>請選擇</option></select></div>
                                 <div><label class="block mb-1 text-[13px]">部門 *</label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option>請選擇</option></select></div>
                                 <div><label class="block mb-1 text-[13px]">職稱</label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"></div>
-                                <div><label class="block mb-1 text-[13px]">職級</label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option>請選擇</option></select></div>
+                                <div><label class="block mb-1 text-[13px]">職級</label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option>請選擇</option><option>P1</option><option>P2</option><option>P3</option><option>P4</option><option>P5</option><option>P6</option><option>P7</option><option>P8</option><option>P9</option><option>P10</option><option>P11</option><option>P12</option><option>M1</option><option>M2</option><option>M3</option><option>M4</option><option>M5</option><option>M6</option><option>M7</option><option>M8</option><option>M9</option><option>BOSS</option></select></div>
                                 <div class="col-start-1"><label class="block mb-1 text-[13px]">長駐區域 *</label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option>請選擇</option></select></div>
                             </div>
                         </div>
@@ -2000,7 +2000,6 @@
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">主旨 <span class="text-red-500">*</span></label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"></div>
                         </div>
                         <div class="px-4 pb-4 grid grid-cols-5 gap-x-5 gap-y-5">
-                            <div><label class="block mb-1.5 text-[13px] text-gray-700">服務類型</label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option></select></div>
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">項目 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇項目</option></select></div>
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">區域 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option></select></div>
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">申請部門 <span class="text-red-500">*</span></label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"></div>
@@ -3080,10 +3079,6 @@
                         </div>
                         <div class="px-4 pb-4 grid grid-cols-5 gap-x-5 gap-y-5">
                             <div>
-                                <label class="block mb-1.5 text-[13px] text-gray-700">審批線清單</label>
-                                <select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option></select>
-                            </div>
-                            <div>
                                 <label class="block mb-1.5 text-[13px] text-gray-700">項目 <span class="text-red-500">*</span></label>
                                 <select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option></select>
                             </div>
@@ -3363,7 +3358,7 @@
                                 <label class="block mb-1.5 text-[13px] text-gray-700">採購類別 <span class="text-red-500">*</span></label>
                                 <select id="pu-category-select" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500 bg-white">
                                     <option value="" disabled selected>請選擇</option>
-                                    <option>其他採購</option><option>員工福利採購</option><option>域名申請及續約單</option><option>宿舍相關採購</option><option>活動相關</option><option>資產及列管品採購</option><option>軟體資產採購</option><option>辦公室營運消耗品採購</option><option>通訊採購</option>
+                                    <option>辦公設備／用品</option><option>資訊設備／硬體</option><option>軟體買斷／永久授權</option><option>家具／設施</option><option>行銷／活動物料</option><option>維修／工程材料</option><option>專業服務（一次性）</option><option>其他一次性採購</option>
                                 </select>
                             </div>
                             <div>
@@ -4553,12 +4548,19 @@
                                 <select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇部門</option></select>
                             </div>
                             <div>
+                                <label class="block mb-1.5 text-[13px] text-gray-700">職級</label>
+                                <select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇職級</option><option>P1</option><option>P2</option><option>P3</option><option>P4</option><option>P5</option><option>P6</option><option>P7</option><option>P8</option><option>P9</option><option>P10</option><option>P11</option><option>P12</option><option>M1</option><option>M2</option><option>M3</option><option>M4</option><option>M5</option><option>M6</option><option>M7</option><option>M8</option><option>M9</option><option>BOSS</option></select>
+                            </div>
+                            <div>
                                 <label class="block mb-1.5 text-[13px] text-gray-700">職位</label>
                                 <select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option></select>
                             </div>
                             <div>
                                 <label class="block mb-1.5 text-[13px] text-gray-700">直屬上司</label>
-                                <select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option></select>
+                                <div class="relative applicant-combo" id="ea-manager-combo">
+                                    <input type="text" autocomplete="off" placeholder="搜尋人名 / 工號" class="applicant-input w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500">
+                                    <div class="applicant-list hidden absolute z-30 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto text-[13px]"></div>
+                                </div>
                             </div>
                             <div class="col-start-1 col-span-5 other-section">
                                 <div class="flex items-center justify-between mb-2">
@@ -4723,7 +4725,7 @@
                             </div>
                             <div>
                                 <label class="block mb-1.5 text-[13px] text-gray-700">職級</label>
-                                <select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option></select>
+                                <select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option><option>P1</option><option>P2</option><option>P3</option><option>P4</option><option>P5</option><option>P6</option><option>P7</option><option>P8</option><option>P9</option><option>P10</option><option>P11</option><option>P12</option><option>M1</option><option>M2</option><option>M3</option><option>M4</option><option>M5</option><option>M6</option><option>M7</option><option>M8</option><option>M9</option><option>BOSS</option></select>
                             </div>
                         </div>
                     </div>
@@ -4996,7 +4998,7 @@
                             <div>
                                 <label class="block mb-1.5 text-[13px] text-gray-700">調整後職級 <span class="text-red-500">*</span></label>
                                 <select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500">
-                                    <option></option>
+                                    <option>請選擇</option><option>P1</option><option>P2</option><option>P3</option><option>P4</option><option>P5</option><option>P6</option><option>P7</option><option>P8</option><option>P9</option><option>P10</option><option>P11</option><option>P12</option><option>M1</option><option>M2</option><option>M3</option><option>M4</option><option>M5</option><option>M6</option><option>M7</option><option>M8</option><option>M9</option><option>BOSS</option>
                                 </select>
                             </div>
                         </div>
@@ -6053,6 +6055,8 @@
                         ptaFillApplicantDefaults(combo, opt.getAttribute('data-id'));
                     } else if (combo.id === 'aa-import-combo') {
                         aaImportShowAssets(opt.getAttribute('data-id'), opt.getAttribute('data-val'));
+                    } else if (combo.id === 'ea-manager-combo') {
+                        /* 直屬上司：僅填入所選人員，不連動職位欄位 */
                     } else {
                         puFillApplicantDefaults(combo, opt.getAttribute('data-id'));  // 其餘單子：帶入 項目/區域/部門（若有）
                     }
@@ -7113,7 +7117,7 @@
             const h = String(empId).split('').reduce((a, c) => a + (parseInt(c, 10) || 0), 0);
             const pick = (arr) => arr[h % arr.length];
             const TITLES = ['專員', '資深專員', '主任', '副理', '經理'];
-            const GRADES = ['P1', 'P2', 'P3', 'M1', 'M2'];
+            const GRADES = ['P1', 'P2', 'P3', 'P4', 'P5', 'P6', 'P7', 'P8', 'P9', 'P10', 'P11', 'P12', 'M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7', 'M8', 'M9', 'BOSS'];
             const REGIONS = ['T1', 'T2', 'U', 'J', 'S'];
             const project = pick(PROJECTS);
             const depts = PROJECT_DEPT_MAP[project] || [];
