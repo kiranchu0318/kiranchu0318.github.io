@@ -685,6 +685,7 @@
         { id: 'oa_punch_101278_2', oa: '行政', loc: 'T1', type: 'PU', title: "“補打卡申請” (申請補打卡_101278_2026-06-03)", applicant: 'Lucas', signer: 'Mila', amount: 'TWD 0', date: '2026-06-03 03:06:30', approver: '部門主管', ref: '-', status: '待簽核' }
       ],
       notifications: [
+        { id: 'n0', title: "請創建費用申請單（RPU 單號：12312123123123）", time: "2026-06-03 10:05:00", isRead: false, link: '我的申請.html?open=B' },
         { id: 'n1', title: "有員工提交'休假申請' (申請休假_101730_2026-06-03)", time: "2026-06-03 09:36:32", isRead: false, approvalId: 'oa_leave_101730' },
         { id: 'n2', title: "駁回通知_{離任審計申請_100344_2026-05-27}，請儘速查閱", time: "2026-06-03 05:45:01", isRead: false, approvalId: 'oa_audit_100344' },
         { id: 'n3', title: "您有一份 “員工補打卡申請” 需要審批 (申請補打卡_101383_2026-06-03)", time: "2026-06-03 03:26:00", isRead: false, approvalId: 'oa_punch_101383_1' },
@@ -1243,7 +1244,9 @@
       renderNotifications();
       
       const notification = state.notifications.find(n => n.id === id);
-      if (notification && notification.approvalId) {
+      if (notification && notification.link) {
+        location.href = notification.link;
+      } else if (notification && notification.approvalId) {
         openApprovalDetailModal(notification.approvalId);
       }
     }

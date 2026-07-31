@@ -246,7 +246,7 @@
       const [payOpen, setPayOpen] = useState(false);
       const [payRows, setPayRows] = useState([{ ...emptyPayRow }]);
       const [payStatCurrency, setPayStatCurrency] = useState('CNY');
-      const PAY_METHODS = ['銀行轉帳', '電匯', '支票', '現金'];
+      const PAY_METHODS = ['現金支付', 'USDT 支付', '無需支付', '划帳', '非集团账户出款', '银行提款'];
       const PAY_CURRENCIES = ['CNY', 'TWD', 'USD', 'EUR', 'JPY'];
       const CNY_RATES = { CNY: 1, TWD: 0.22, USD: 7.15, EUR: 7.8, JPY: 0.048 };
       // 依實際支付日與貨幣自動帶出人民幣匯率（示範：基準匯率隨支付日微幅浮動）
@@ -671,6 +671,7 @@
         { oa: '行政', location: 'THQ', type: 'PU', docNo: 'PU-THQ-000002', applicant: 'Oliver', signature: 'Oliver', amounts: ['TWD 2,000,000', 'CNY 427407.40'], date: '2026-04-30 12:36:10', approver: 'James', refNo: '-', status: '簽核完成', isGreen: true, workStatus: '處理中' },
         { oa: '財務', location: 'THQ', type: 'C',  docNo: 'C-THQ-000001',  applicant: 'Oliver', signature: 'Oliver', amounts: ['TWD 2,000', 'CNY 451.47'],          date: '2026-04-26 19:00:45', approver: 'James', refNo: '-', status: '待我簽核', isGreen: false, workStatus: '未派工' },
         { oa: '財務', location: 'THQ', type: 'C',  docNo: 'C-THQ-000001',  label: 'C-THQ-000001_辦公室用品費用報銷(費用會計+資金支付)', applicant: 'Oliver', signature: 'Oliver', amounts: ['TWD 2,000', 'CNY 451.47'],          date: '2026-04-26 19:00:45', approver: 'James', refNo: '-', status: '待我簽核', isGreen: false, workStatus: '未派工' },
+        { oa: '財務', location: 'THQ', type: 'C',  docNo: 'C-THQ-000001',  label: 'C-THQ-000001_辦公室用品費用報銷(有B單)', applicant: 'Oliver', signature: 'Oliver', amounts: ['TWD 2,000', 'CNY 451.47'],          date: '2026-04-26 19:00:45', approver: 'James', refNo: '-', status: '待我簽核', isGreen: false, workStatus: '未派工' },
         { oa: '財務', location: 'THQ', type: 'C',  docNo: 'C-THQ-000002',  applicant: 'Dev', signature: 'Dev', amounts: ['TWD 3,500', 'CNY 789.25'],          date: '2026-05-18 10:22:30', approver: 'James', refNo: '-', status: '待我簽核', isGreen: false, workStatus: '處理中' },
         { oa: '行政', location: 'THQ', type: 'PU', docNo: 'PU-THQ-000001', applicant: 'Oliver', signature: 'Oliver', amounts: ['TWD 2,000', 'CNY 451.47'],          date: '2026-04-25 19:00:45', approver: 'James', refNo: '-', status: '簽核完成', isGreen: true, workStatus: '已完成' },
       ];
@@ -1913,8 +1914,8 @@
                         {modalRow?.docNo === 'C-THQ-000001' && (
                           <button onClick={() => setCostAcctOpen(true)} className="ui-btn ui-btn-secondary ui-btn-lg">費用會計</button>
                         )}
-                        {modalRow?.label === 'C-THQ-000001_辦公室用品費用報銷(費用會計+資金支付)' && (
-                          <button onClick={() => setPayOpen(true)} className="ui-btn ui-btn-secondary ui-btn-lg">資金支付</button>
+                        {(modalRow?.label === 'C-THQ-000001_辦公室用品費用報銷(費用會計+資金支付)' || modalRow?.label === 'C-THQ-000001_辦公室用品費用報銷(有B單)' || modalRow?.docNo === 'B-THQ-000003') && (
+                          <button onClick={() => { if (modalRow?.label === 'C-THQ-000001_辦公室用品費用報銷(有B單)') setPayRows([{ ...emptyPayRow, method: '無需支付', amount: '0' }]); setPayOpen(true); }} className="ui-btn ui-btn-secondary ui-btn-lg">資金支付</button>
                         )}
                         <button
                           onClick={openApproveAction}

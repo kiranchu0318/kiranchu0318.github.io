@@ -1353,6 +1353,10 @@
                                         </table>
                                     </div>
                                 </div>
+                                <div class="plan-group">
+                                    <label class="block mb-1.5 text-[13px] font-bold text-gray-700">出差實際達成結果</label>
+                                    <input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-[#4A90E2]" placeholder="請填寫此次出差的實際達成結果">
+                                </div>
                                     </div>
                                 </div>
                             </div>
@@ -3547,6 +3551,28 @@
                                 <div>
                                     <label class="block mb-1.5 text-[13px] text-gray-700">計費期數 <span class="text-red-500">*</span></label>
                                     <input type="number" id="rpu-periods" min="1" value="12" oninput="rpuOnPeriods(this.value)" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500">
+                                </div>
+                                <div>
+                                    <label class="block mb-1.5 text-[13px] text-gray-700">B單提醒設置</label>
+                                    <select id="rpu-remind-mode" onchange="rpuRemindMode(this.value)" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500 bg-white"><option>不提醒</option><option>每月提醒</option><option>每季提醒</option><option>每年提醒</option></select>
+                                </div>
+                                <div id="rpu-remind-monthly" class="hidden">
+                                    <label class="block mb-1.5 text-[13px] text-gray-700">每月提醒日期</label>
+                                    <select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500 bg-white"><option>1 號</option><option>2 號</option><option>3 號</option><option>4 號</option><option>5 號</option><option>6 號</option><option>7 號</option><option>8 號</option><option>9 號</option><option>10 號</option><option>11 號</option><option>12 號</option><option>13 號</option><option>14 號</option><option>15 號</option><option>16 號</option><option>17 號</option><option>18 號</option><option>19 號</option><option>20 號</option><option>21 號</option><option>22 號</option><option>23 號</option><option>24 號</option><option>25 號</option><option>26 號</option><option>27 號</option><option>28 號</option><option>29 號</option><option>30 號</option><option>31 號</option></select>
+                                </div>
+                                <div id="rpu-remind-quarterly" class="hidden">
+                                    <label class="block mb-1.5 text-[13px] text-gray-700">每季提醒（月份・日期）</label>
+                                    <div class="flex items-center gap-2">
+                                        <select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500 bg-white"><option>第 1 個月</option><option>第 2 個月</option><option>第 3 個月</option></select>
+                                        <select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500 bg-white"><option>1 號</option><option>2 號</option><option>3 號</option><option>4 號</option><option>5 號</option><option>6 號</option><option>7 號</option><option>8 號</option><option>9 號</option><option>10 號</option><option>11 號</option><option>12 號</option><option>13 號</option><option>14 號</option><option>15 號</option><option>16 號</option><option>17 號</option><option>18 號</option><option>19 號</option><option>20 號</option><option>21 號</option><option>22 號</option><option>23 號</option><option>24 號</option><option>25 號</option><option>26 號</option><option>27 號</option><option>28 號</option><option>29 號</option><option>30 號</option><option>31 號</option></select>
+                                    </div>
+                                </div>
+                                <div id="rpu-remind-yearly" class="hidden">
+                                    <label class="block mb-1.5 text-[13px] text-gray-700">每年提醒（月份・日期）</label>
+                                    <div class="flex items-center gap-2">
+                                        <select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500 bg-white"><option>1 月</option><option>2 月</option><option>3 月</option><option>4 月</option><option>5 月</option><option>6 月</option><option>7 月</option><option>8 月</option><option>9 月</option><option>10 月</option><option>11 月</option><option>12 月</option></select>
+                                        <select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500 bg-white"><option>1 號</option><option>2 號</option><option>3 號</option><option>4 號</option><option>5 號</option><option>6 號</option><option>7 號</option><option>8 號</option><option>9 號</option><option>10 號</option><option>11 號</option><option>12 號</option><option>13 號</option><option>14 號</option><option>15 號</option><option>16 號</option><option>17 號</option><option>18 號</option><option>19 號</option><option>20 號</option><option>21 號</option><option>22 號</option><option>23 號</option><option>24 號</option><option>25 號</option><option>26 號</option><option>27 號</option><option>28 號</option><option>29 號</option><option>30 號</option><option>31 號</option></select>
+                                    </div>
                                 </div>
                                 <div>
                                     <label class="block mb-1.5 text-[13px] text-gray-700">幣別 <span class="text-red-500">*</span></label>
@@ -6685,6 +6711,12 @@
         const RPU_METHOD_LABEL = { three: '三家供應商比價', official: '官方／指定供應商', other: '其他' };
 
         // ===== 事件：更新狀態 → 重算（不重建 DOM，保留輸入焦點）=====
+        function rpuRemindMode(v) {
+            const show = (id, on) => { const el = document.getElementById(id); if (el) el.classList.toggle('hidden', !on); };
+            show('rpu-remind-monthly', v === '每月提醒');
+            show('rpu-remind-quarterly', v === '每季提醒');
+            show('rpu-remind-yearly', v === '每年提醒');
+        }
         function rpuOnPeriods(v) { S().periods = parseInt(v) || 0; rpuRecalc(); }
         function rpuOnCurrency(v) { S().currency = v; document.querySelectorAll('.rpu-cur-prefix').forEach(el => el.textContent = v); rpuRecalc(); }
         function rpuSetApplyType(t) {

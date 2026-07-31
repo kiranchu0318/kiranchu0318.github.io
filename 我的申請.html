@@ -470,12 +470,25 @@
         { oa: '行政', location: 'THQ', type: 'PU', docNo: 'PU-THQ-000002', title: 'PU-THQ-000002', applicant: 'Nick', amounts: ['TWD 2,000,000', 'CNY 427407.40'], date: '2026-04-30 12:36:10', approver: 'James', refNo: '-', status: '簽核完成' , workStatus: '處理中' },
         { oa: '財務', location: 'THQ', type: 'C',  docNo: 'C-THQ-000001',  title: 'C-THQ-000001',  applicant: 'Nick', amounts: ['TWD 2,000', 'CNY 451.47'],          date: '2026-04-26 19:00:45', approver: 'James', refNo: '-', status: '待簽核' , workStatus: '未派工' },
         { oa: '行政', location: 'THQ', type: 'PU', docNo: 'PU-THQ-000001', title: 'PU-THQ-000001', applicant: 'Nick', amounts: ['TWD 2,000', 'CNY 451.47'],          date: '2026-04-25 19:00:45', approver: 'James', refNo: '-', status: '簽核完成' , workStatus: '已完成' },
+        // 差旅系列（PTA / PTAB / PTAC）demo
+        { oa: '行政', location: 'THQ', type: 'PTA',  docNo: 'PTA-THQ-000001',  title: 'PTA-THQ-000001',  applicant: 'Nick', project: 'GT', dept: 'RD', amounts: ['CNY 12,000.00'], date: '2026-06-20 10:00:00', approver: 'James', refNo: '-', status: '簽核完成',   workStatus: '已完成' },
+        { oa: '財務', location: 'THQ', type: 'PTAB', docNo: 'PTAB-THQ-000001', title: 'PTAB-THQ-000001', applicant: 'Nick', project: 'GT', dept: 'RD', amounts: ['CNY 8,000.00'],  date: '2026-06-22 14:00:00', approver: 'James', refNo: '-', status: '待簽核',   workStatus: '未派工' },
+        { oa: '財務', location: 'THQ', type: 'PTAC', docNo: 'PTAC-THQ-000001', title: 'PTAC-THQ-000001', applicant: 'Nick', project: 'GT', dept: 'RD', amounts: ['CNY 7,500.00'],  date: '2026-06-28 16:00:00', approver: 'James', refNo: '-', status: '簽核完成', workStatus: '已完成' },
         // 臨時保存的資料
         { oa: '財務', location: 'THQ', type: 'C', docNo: 'C-THQ-000001', title: 'C-THQ-000001', applicant: 'Nick', amounts: ['TWD 2,000', 'CNY 451.47'], date: '2026-06-26 09:00:00', approver: '-', refNo: '-', status: '草稿' },
         { oa: '行政', location: 'T2', type: 'SA', title: 'T2-用印申請-草稿', applicant: 'Nick', amounts: ['0'], date: '2026-05-27 10:00:00', approver: '-', refNo: '-', status: '草稿' },
         // 模板保存的資料
         { oa: '財務', location: 'T1', type: 'B', title: '出差旅費報銷模板', applicant: 'Nick', amounts: ['0'], date: '2026-05-20 09:00:00', approver: '-', refNo: '-', status: '模板' },
       ];
+
+      // 由外部（首頁通知）帶參數自動開啟指定單據彈窗，例如 ?open=B
+      useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const openType = params.get('open');
+        if (!openType) return;
+        const target = allMockData.find(r => r.type === openType && r.status !== '模板' && r.status !== '草稿');
+        if (target) { setModalRow(target); setIsModalOpen(true); }
+      }, []);
 
       // 費用報銷明細「目的（科目）→ 科目（子科目）」階層清單
       const expenseCategories = [
@@ -604,6 +617,114 @@
         }
         return <span className="ui-badge ui-badge-gray">{status}</span>;
       };
+
+      // ===== 差旅單（PTA / PTAC）唯讀區塊 helper：對照 申請.html 出差行程 =====
+      const roInput = "w-full bg-[#EAECEF] border border-gray-300 rounded px-2 py-1 text-sm text-gray-600 cursor-not-allowed outline-none";
+      const roCell = "w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed";
+      const roLabel = "block text-gray-700 text-xs mb-1.5 font-medium";
+      const ptaBudgetRows = [['1', '機票'], ['2', '交通'], ['3', '住宿'], ['4', '餐費'], ['5', '保險'], ['6', '預計採購項']];
+      const renderPtaBudgetTable = (title, hint) => (
+        <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-3">
+          <div className="flex items-center gap-2 border-b border-gray-100 pb-2"><span className="text-[#1A237E] font-bold text-[15px]">{title}</span>{hint && <span className="text-gray-400 text-xs">{hint}</span>}</div>
+          <div className="overflow-x-auto border border-gray-100 rounded-lg">
+            <table className="w-full text-left text-sm border-collapse whitespace-nowrap">
+              <thead><tr className="border-b border-gray-200 bg-gray-50 text-gray-700 font-bold text-xs"><th className="px-3 py-2 w-14 text-center">序号</th><th className="px-3 py-2">預算項目</th><th className="px-3 py-2 w-28">幣種</th><th className="px-3 py-2 w-40 text-right">預算金額</th><th className="px-3 py-2">備註</th></tr></thead>
+              <tbody className="divide-y divide-gray-100">
+                {ptaBudgetRows.map(([seq, name]) => (
+                  <tr key={seq}><td className="px-3 py-2 text-center font-medium">{seq}</td><td className="px-3 py-2 text-gray-700">{name}</td><td className="px-3 py-2 text-gray-700">CNY</td><td className="px-3 py-2 text-right text-gray-700">0</td><td className="px-3 py-2 text-gray-400">-</td></tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      );
+      const renderTravelTripSection = (showResult) => (
+        <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-5">
+          <div className="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2">出差行程</div>
+          <div className="border border-gray-200 rounded-lg p-4 space-y-5">
+            <div className="flex items-center gap-2 -mx-4 -mt-4 mb-1 px-4 py-2.5 bg-[#EAF2FC] border-b border-blue-100 rounded-t-lg"><span className="w-1.5 h-4 bg-[#4A90E2] rounded-full"></span><span className="text-sm font-bold text-[#1A237E]">出差行程-1</span></div>
+            {/* 地點 / 限額 */}
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-x-5 gap-y-4">
+              <div><label className={roLabel}>出發地</label><input type="text" disabled value="THQ" className={roCell} /></div>
+              <div><label className={roLabel}>目的地</label><input type="text" disabled value="亞洲 A 類（參照 K 區）：深圳" className={roCell} /></div>
+              <div><label className={roLabel}>適用限額區</label><input type="text" disabled value="K區" className={roCell} /></div>
+              <div><label className={roLabel}>住宿</label><input type="text" disabled value="酒店" className={roCell} /></div>
+              <div><label className={roLabel}>是否領月餐補</label><input type="text" disabled value="否" className={roCell} /></div>
+            </div>
+            {/* 去程 */}
+            <div className="border-t border-gray-100 pt-4">
+              <div className="flex items-center gap-2 mb-2.5 text-[13px] font-bold text-gray-700">去程</div>
+              <div className="grid grid-cols-3 gap-5">
+                <div><label className={roLabel}>出發日</label><input type="text" disabled value="2026-06-20" className={roCell} /></div>
+                <div><label className={roLabel}>出發離境時間</label><input type="text" disabled value="09:00" className={roCell} /></div>
+                <div><label className={roLabel}>出發抵達日</label><input type="text" disabled value="2026-06-20" className={roCell} /></div>
+              </div>
+            </div>
+            {/* 回程 */}
+            <div className="border-t border-gray-100 pt-4">
+              <div className="flex items-center gap-2 mb-2.5 text-[13px] font-bold text-gray-700">回程</div>
+              <div className="grid grid-cols-3 gap-5">
+                <div><label className={roLabel}>回程日</label><input type="text" disabled value="2026-06-24" className={roCell} /></div>
+                <div><label className={roLabel}>回程抵達時間</label><input type="text" disabled value="20:00" className={roCell} /></div>
+                <div><label className={roLabel}>回程出發日</label><input type="text" disabled value="2026-06-24" className={roCell} /></div>
+              </div>
+            </div>
+            {/* 日包計算 */}
+            <div className="border-t border-gray-100 pt-4 space-y-2">
+              <div className="flex items-center gap-2"><span className="text-[13px] font-bold text-gray-700">日包計算</span><span className="text-gray-400 text-xs">（依目的地與出發/回程日期自動連動，不可編輯）</span></div>
+              <div className="overflow-x-auto border border-gray-100 rounded-lg">
+                <table className="w-full text-left text-sm border-collapse whitespace-nowrap">
+                  <thead><tr className="border-b border-gray-200 bg-gray-50 text-gray-700 font-bold text-xs"><th className="px-3 py-2">項目</th><th className="px-3 py-2 w-24">幣別</th><th className="px-3 py-2 w-28">限額參照</th><th className="px-3 py-2 w-28">餐數/天數</th><th className="px-3 py-2 w-32">可領總金額</th><th className="px-3 py-2 w-24">領取幣別</th><th className="px-3 py-2 w-20">匯率</th><th className="px-3 py-2 w-32">應領金額</th></tr></thead>
+                  <tbody className="divide-y divide-gray-100">
+                    <tr><td className="px-3 py-2 font-medium text-gray-700">餐補總額</td><td className="px-3 py-2"><input disabled value="CNY" className={roInput + ' text-center'} /></td><td className="px-3 py-2"><input disabled value="0" className={roInput + ' text-right'} /></td><td className="px-3 py-2"><input disabled value="0 餐" className={roInput + ' text-right'} /></td><td className="px-3 py-2"><input disabled value="0" className={roInput + ' text-right'} /></td><td className="px-3 py-2"><input disabled value="CNY" className={roInput + ' text-center'} /></td><td className="px-3 py-2"><input disabled value="1" className={roInput + ' text-right'} /></td><td className="px-3 py-2"><input disabled value="0" className={roInput + ' text-right'} /></td></tr>
+                    <tr><td className="px-3 py-2 font-medium text-gray-700">酒店費總額</td><td className="px-3 py-2"><input disabled value="CNY" className={roInput + ' text-center'} /></td><td className="px-3 py-2"><input disabled value="0" className={roInput + ' text-right'} /></td><td className="px-3 py-2"><input disabled value="0 天" className={roInput + ' text-right'} /></td><td className="px-3 py-2"><input disabled value="0" className={roInput + ' text-right'} /></td><td className="px-3 py-2"><input disabled value="CNY" className={roInput + ' text-center'} /></td><td className="px-3 py-2"><input disabled value="1" className={roInput + ' text-right'} /></td><td className="px-3 py-2"><input disabled value="0" className={roInput + ' text-right'} /></td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            {/* 差旅預算明細（本行程） */}
+            <div className="border-t border-gray-100 pt-4 space-y-2">
+              <div className="text-[13px] font-bold text-gray-700">差旅預算明細</div>
+              <div className="overflow-x-auto border border-gray-100 rounded-lg">
+                <table className="w-full text-left text-sm border-collapse whitespace-nowrap">
+                  <thead><tr className="border-b border-gray-200 bg-gray-50 text-gray-700 font-bold text-xs"><th className="px-3 py-2 w-14 text-center">序号</th><th className="px-3 py-2">預算項目</th><th className="px-3 py-2 w-24">幣種</th><th className="px-3 py-2 w-32 text-right">預算金額</th><th className="px-3 py-2">備註</th></tr></thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {ptaBudgetRows.map(([seq, name]) => (
+                      <tr key={seq}><td className="px-3 py-2 text-center font-medium">{seq}</td><td className="px-3 py-2 text-gray-700">{name}</td><td className="px-3 py-2 text-gray-700">CNY</td><td className="px-3 py-2 text-right text-gray-700">0</td><td className="px-3 py-2 text-gray-400">-</td></tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            {/* 出差目的及欲達成目標 */}
+            <div className="border-t border-gray-100 pt-4 space-y-2">
+              <div className="text-[13px] font-bold text-gray-700">出差目的及欲達成目標</div>
+              <div className="overflow-x-auto border border-gray-100 rounded-lg">
+                <table className="w-full text-left text-sm border-collapse whitespace-nowrap">
+                  <thead><tr className="border-b border-gray-200 bg-gray-50 text-gray-700 font-bold text-xs"><th className="px-3 py-2">出差目的</th><th className="px-3 py-2">達成目標</th><th className="px-3 py-2">備註</th></tr></thead>
+                  <tbody className="divide-y divide-gray-100"><tr><td className="px-3 py-2 text-gray-700">客戶端部署</td><td className="px-3 py-2 text-gray-700">完成部署與教育訓練</td><td className="px-3 py-2 text-gray-400">-</td></tr></tbody>
+                </table>
+              </div>
+            </div>
+            {/* 週末/節日出差 */}
+            <div className="border-t border-gray-100 pt-4 space-y-2">
+              <div className="text-[13px] font-bold text-gray-700">週末/節日出差</div>
+              <div className="overflow-x-auto border border-gray-100 rounded-lg">
+                <table className="w-full text-left text-sm border-collapse whitespace-nowrap">
+                  <thead><tr className="border-b border-gray-200 bg-gray-50 text-gray-700 font-bold text-xs"><th className="px-3 py-2">內容</th></tr></thead>
+                  <tbody className="divide-y divide-gray-100"><tr><td className="px-3 py-2 text-gray-400">-</td></tr></tbody>
+                </table>
+              </div>
+            </div>
+            {showResult && (
+              <div className="border-t border-gray-100 pt-4">
+                <label className={roLabel + ' font-bold'}>出差實際達成結果</label>
+                <input type="text" disabled value="完成客戶端部署與教育訓練，簽回驗收單" className="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-sm text-gray-800" />
+              </div>
+            )}
+          </div>
+        </div>
+      );
 
       return (
         <div className="min-h-screen bg-[#F5F6F8] font-sans text-gray-800 flex flex-col p-6" onClick={() => setOpenDropdown(null)}>
@@ -752,7 +873,7 @@
                 {/* 彈窗標題與關閉按鈕 */}
                 <div className="bg-[#EEF2F6] px-6 py-3.5 flex items-center justify-between border-b border-gray-200 flex-shrink-0">
                   <div className="flex items-center gap-2">
-                    <span className="font-bold text-gray-800 text-base">{modalRow?.kind === 'account' ? '人員帳號異動申請單' : modalRow?.kind === 'recruit' ? '招聘需求單' : modalRow?.kind === 'hire' ? '錄用審批單' : `${({ B: '費用申請單', C: '費用報銷單', IC: '內部合同審批單', PU: '請購申請單', SA: '用印申請單' })[modalRow?.type] || '費用申請單'}(${modalRow?.type || 'B'})`}</span>
+                    <span className="font-bold text-gray-800 text-base">{modalRow?.kind === 'account' ? '人員帳號異動申請單' : modalRow?.kind === 'recruit' ? '招聘需求單' : modalRow?.kind === 'hire' ? '錄用審批單' : `${({ B: '費用申請單', C: '費用報銷單', IC: '內部合同審批單', PU: '請購申請單', SA: '用印申請單', PTA: '差旅申請單', PTAB: '差旅費用申請單', PTAC: '差旅費用報銷單' })[modalRow?.type] || '費用申請單'}(${modalRow?.type || 'B'})`}</span>
                     {modalRow?.kind === 'recruit' && (
                       <span className="inline-flex items-center text-[13px] font-semibold text-[#2b6cb0] bg-blue-50 border border-blue-200 rounded px-2 py-0.5">關聯錄用 1／2 · 剩餘名額 1</span>
                     )}
@@ -1306,39 +1427,93 @@
                         </>
                       )}
 
-                      {modalRow?.kind !== 'account' && modalRow?.kind !== 'recruit' && modalRow?.kind !== 'hire' && modalRow?.docNo !== 'C-THQ-000001' && (
+                      {modalRow?.kind !== 'account' && modalRow?.kind !== 'recruit' && modalRow?.kind !== 'hire' && modalRow?.docNo !== 'C-THQ-000001' && !['PTA', 'PTAB', 'PTAC'].includes(modalRow?.type) && (
                         <>
-                      {/* 基本資訊卡片 */}
+                      {/* 基本資訊卡片（參照 申請.html 費用申請單 B）*/}
                       <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-5">
                         <div className="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2">基本資訊</div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                          <div>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-x-5 gap-y-4">
+                          <div className="lg:col-span-2">
                             <label className="block text-gray-700 text-xs mb-1.5 font-medium">文件編號</label>
-                            <input type="text" disabled value="B-BU4-API-T1-Nick-20260526-01" className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 cursor-not-allowed font-mono" />
+                            <input type="text" disabled value={modalRow?.docNo || 'B-BU4-API-T1-Nick-20260526-01'} className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed font-mono" />
                           </div>
                           <div>
                             <label className="block text-gray-700 text-xs mb-1.5 font-medium">申請日期</label>
-                            <div className="flex items-center bg-[#EAECEF] border border-gray-300 rounded px-3 py-2 text-sm text-gray-700">
+                            <div className="flex items-center bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700">
                               <Calendar size={14} className="mr-2 text-gray-500" />
-                              <span>2026-05-26</span>
+                              <span>{(modalRow?.date || '').slice(0, 10) || '2026-05-26'}</span>
                             </div>
                           </div>
                           <div>
-                            <label className="block text-gray-700 text-xs mb-1.5 font-medium">標題</label>
-                            <input type="text" disabled value="T1—一般費用-20260605" className="w-full bg-white border border-gray-200 rounded px-3 py-2 text-sm text-gray-800 font-medium" />
+                            <label className="block text-gray-700 text-xs mb-1.5 font-medium">主旨</label>
+                            <input type="text" disabled value="T1—一般費用-20260605" className="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-sm text-gray-800 font-medium" />
                           </div>
                           <div>
+                            <label className="block text-gray-700 text-xs mb-1.5 font-medium">費用類型</label>
+                            <input type="text" disabled value="一般費用" className="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-sm text-gray-800" />
+                          </div>
+                          <div className="lg:col-start-1">
                             <label className="block text-gray-700 text-xs mb-1.5 font-medium">申請人</label>
-                            <input type="text" disabled value="Nick" className="w-full bg-white border border-gray-200 rounded px-3 py-2 text-sm text-gray-800" />
-                          </div>
-                          <div>
-                            <label className="block text-gray-700 text-xs mb-1.5 font-medium">服務類型</label>
-                            <input type="text" disabled value="一般費用" className="w-full bg-white border border-gray-200 rounded px-3 py-2 text-sm text-gray-800" />
+                            <input type="text" disabled value={modalRow?.applicant || 'Nick'} className="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-sm text-gray-800" />
                           </div>
                           <div>
                             <label className="block text-gray-700 text-xs mb-1.5 font-medium">區域</label>
-                            <input type="text" disabled value="T1" className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 cursor-not-allowed" />
+                            <input type="text" disabled value={modalRow?.location || 'T1'} className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed" />
                           </div>
+                          <div>
+                            <label className="block text-gray-700 text-xs mb-1.5 font-medium">項目</label>
+                            <input type="text" disabled value={modalRow?.project || 'GT'} className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed" />
+                          </div>
+                          <div>
+                            <label className="block text-gray-700 text-xs mb-1.5 font-medium">部門</label>
+                            <input type="text" disabled value={modalRow?.dept || 'RD'} className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed" />
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 border-t border-gray-100 pt-3">
+                          <input type="checkbox" disabled className="w-4 h-4 rounded border-gray-300 text-blue-600" />
+                          <label className="text-sm text-gray-700">總部審批</label>
+                          <span className="text-gray-400 text-xs">（「BU4 獨立項目」或「非本地實體公司」請勾選）</span>
+                        </div>
+                      </div>
+
+                      {/* 費用申請卡片（參照 申請.html 費用申請單 B）*/}
+                      <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-5">
+                        <div className="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2">費用申請</div>
+                        <div className="grid grid-cols-2 sm:grid-cols-5 gap-x-5 gap-y-4">
+                          <div className="sm:col-span-2">
+                            <label className="block text-gray-700 text-xs mb-1.5 font-medium">關聯單號</label>
+                            <input type="text" disabled value="-" className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed" />
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 sm:grid-cols-5 gap-x-5 gap-y-4">
+                          <div>
+                            <label className="block text-gray-700 text-xs mb-1.5 font-medium">公司別</label>
+                            <input type="text" disabled value="—" className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed" />
+                          </div>
+                          <div>
+                            <label className="block text-gray-700 text-xs mb-1.5 font-medium">部門主管</label>
+                            <input type="text" disabled value={modalRow?.approver || 'James'} className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed" />
+                          </div>
+                          <div>
+                            <label className="block text-gray-700 text-xs mb-1.5 font-medium">貨幣</label>
+                            <input type="text" disabled value="CNY" className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed" />
+                          </div>
+                          <div className="sm:col-start-1">
+                            <label className="block text-gray-700 text-xs mb-1.5 font-medium">開戶行姓名</label>
+                            <input type="text" disabled value="—" className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed" />
+                          </div>
+                          <div>
+                            <label className="block text-gray-700 text-xs mb-1.5 font-medium">開戶銀行</label>
+                            <input type="text" disabled value="—" className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed" />
+                          </div>
+                          <div>
+                            <label className="block text-gray-700 text-xs mb-1.5 font-medium">銀行賬號</label>
+                            <input type="text" disabled value="—" className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed" />
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-md px-4 py-2.5">
+                          <input type="checkbox" disabled className="w-4 h-4 rounded border-gray-300 text-blue-600" />
+                          <span className="text-sm font-medium text-gray-700">此單有特批</span>
                         </div>
                       </div>
 
@@ -1353,12 +1528,179 @@
                           <div className="lg:col-span-4">
                             <label className="block text-gray-700 text-xs mb-1.5 font-semibold">金額</label>
                             <div className="flex items-center border border-gray-200 rounded overflow-hidden">
-                              <span className="bg-gray-50 border-r border-gray-200 px-3 py-2 text-sm text-gray-500 font-medium select-none">TWD</span>
+                              <span className="bg-gray-50 border-r border-gray-200 px-3 py-2 text-sm text-gray-500 font-medium select-none">CNY</span>
                               <input type="text" disabled value="1000000000" className="w-full bg-white px-3 py-2 text-sm text-gray-800 font-medium focus:outline-none" />
                             </div>
                           </div>
                         </div>
                       </div>
+                        </>
+                      )}
+
+                      {/* ===== 差旅費用申請單 (PTAB)（參照 申請.html PTAB）===== */}
+                      {modalRow?.type === 'PTAB' && (
+                        <>
+                          {/* 基本資訊 */}
+                          <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-5">
+                            <div className="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2">基本資訊</div>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-x-5 gap-y-4">
+                              <div className="lg:col-span-2"><label className="block text-gray-700 text-xs mb-1.5 font-medium">文件編號</label><input type="text" disabled value={modalRow?.docNo || ''} className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed font-mono" /></div>
+                              <div><label className="block text-gray-700 text-xs mb-1.5 font-medium">申請日期</label><div className="flex items-center bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700"><Calendar size={14} className="mr-2 text-gray-500" /><span>{(modalRow?.date || '').slice(0, 10) || '—'}</span></div></div>
+                              <div><label className="block text-gray-700 text-xs mb-1.5 font-medium">主旨</label><input type="text" disabled value="出差費用申請" className="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-sm text-gray-800 font-medium" /></div>
+                              <div><label className="block text-gray-700 text-xs mb-1.5 font-medium">費用類型</label><input type="text" disabled value="差旅報銷線" className="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-sm text-gray-800" /></div>
+                              <div className="lg:col-start-1"><label className="block text-gray-700 text-xs mb-1.5 font-medium">申請人</label><input type="text" disabled value={modalRow?.applicant || ''} className="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-sm text-gray-800" /></div>
+                              <div><label className="block text-gray-700 text-xs mb-1.5 font-medium">區域</label><input type="text" disabled value={modalRow?.location || ''} className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed" /></div>
+                              <div><label className="block text-gray-700 text-xs mb-1.5 font-medium">項目</label><input type="text" disabled value={modalRow?.project || 'GT'} className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed" /></div>
+                              <div><label className="block text-gray-700 text-xs mb-1.5 font-medium">部門</label><input type="text" disabled value={modalRow?.dept || 'RD'} className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed" /></div>
+                            </div>
+                            <div className="flex items-center gap-2 border-t border-gray-100 pt-3"><input type="checkbox" disabled className="w-4 h-4 rounded border-gray-300 text-blue-600" /><label className="text-sm text-gray-700">總部審批</label><span className="text-gray-400 text-xs">（「BU4 獨立項目」或「非本地實體公司」請勾選）</span></div>
+                          </div>
+
+                          {/* 費用申請 */}
+                          <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-5">
+                            <div className="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2">費用申請</div>
+                            <div className="grid grid-cols-2 sm:grid-cols-5 gap-x-5 gap-y-4">
+                              <div className="sm:col-span-2"><label className="block text-gray-700 text-xs mb-1.5 font-medium">關聯單號</label><input type="text" disabled value="-" className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed" /></div>
+                            </div>
+                            <div className="grid grid-cols-2 sm:grid-cols-5 gap-x-5 gap-y-4">
+                              <div><label className="block text-gray-700 text-xs mb-1.5 font-medium">公司別</label><input type="text" disabled value="—" className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed" /></div>
+                              <div><label className="block text-gray-700 text-xs mb-1.5 font-medium">部門主管</label><input type="text" disabled value={modalRow?.approver || 'James'} className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed" /></div>
+                              <div><label className="block text-gray-700 text-xs mb-1.5 font-medium">貨幣</label><input type="text" disabled value="CNY" className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed" /></div>
+                              <div className="sm:col-start-1"><label className="block text-gray-700 text-xs mb-1.5 font-medium">開戶行姓名</label><input type="text" disabled value="—" className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed" /></div>
+                              <div><label className="block text-gray-700 text-xs mb-1.5 font-medium">開戶銀行</label><input type="text" disabled value="—" className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed" /></div>
+                              <div><label className="block text-gray-700 text-xs mb-1.5 font-medium">銀行賬號</label><input type="text" disabled value="—" className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed" /></div>
+                            </div>
+                            <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-md px-4 py-2.5"><input type="checkbox" disabled className="w-4 h-4 rounded border-gray-300 text-blue-600" /><span className="text-sm font-medium text-gray-700">此單有特批</span></div>
+                          </div>
+
+                          {/* 費用申請明細（差旅預算） */}
+                          <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-4">
+                            <div className="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2">費用申請明細</div>
+                            <div className="overflow-x-auto border border-gray-100 rounded-lg">
+                              <table className="w-full text-left text-sm border-collapse whitespace-nowrap">
+                                <thead><tr className="border-b border-gray-200 bg-gray-50 text-gray-700 font-bold text-xs"><th className="px-3 py-2 w-14 text-center">序号</th><th className="px-3 py-2">預算項目</th><th className="px-3 py-2 w-28">幣種</th><th className="px-3 py-2 w-40 text-right">預算金額</th><th className="px-3 py-2">備註</th></tr></thead>
+                                <tbody className="divide-y divide-gray-100">
+                                  {[['1', '機票'], ['2', '交通'], ['3', '住宿'], ['4', '餐費'], ['5', '保險'], ['6', '預計採購項']].map(([seq, name]) => (
+                                    <tr key={seq}><td className="px-3 py-2 text-center font-medium">{seq}</td><td className="px-3 py-2 text-gray-700">{name}</td><td className="px-3 py-2 text-gray-700">CNY</td><td className="px-3 py-2 text-right text-gray-700">0</td><td className="px-3 py-2 text-gray-400">-</td></tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                        </>
+                      )}
+
+                      {/* ===== 差旅費用報銷單 (PTAC)（參照 申請.html PTAC）===== */}
+                      {modalRow?.type === 'PTAC' && (
+                        <>
+                          {/* 基本資訊 */}
+                          <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-5">
+                            <div className="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2">基本資訊</div>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-x-5 gap-y-4">
+                              <div className="lg:col-span-2"><label className="block text-gray-700 text-xs mb-1.5 font-medium">文件編號</label><input type="text" disabled value={modalRow?.docNo || ''} className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed font-mono" /></div>
+                              <div><label className="block text-gray-700 text-xs mb-1.5 font-medium">申請日期</label><div className="flex items-center bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700"><Calendar size={14} className="mr-2 text-gray-500" /><span>{(modalRow?.date || '').slice(0, 10) || '—'}</span></div></div>
+                              <div><label className="block text-gray-700 text-xs mb-1.5 font-medium">主旨</label><input type="text" disabled value="出差費用報銷" className="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-sm text-gray-800 font-medium" /></div>
+                              <div><label className="block text-gray-700 text-xs mb-1.5 font-medium">費用類型</label><input type="text" disabled value="差旅報銷線" className="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-sm text-gray-800" /></div>
+                              <div className="lg:col-start-1"><label className="block text-gray-700 text-xs mb-1.5 font-medium">申請人</label><input type="text" disabled value={modalRow?.applicant || ''} className="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-sm text-gray-800" /></div>
+                              <div><label className="block text-gray-700 text-xs mb-1.5 font-medium">區域</label><input type="text" disabled value={modalRow?.location || ''} className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed" /></div>
+                              <div><label className="block text-gray-700 text-xs mb-1.5 font-medium">項目</label><input type="text" disabled value={modalRow?.project || 'GT'} className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed" /></div>
+                              <div><label className="block text-gray-700 text-xs mb-1.5 font-medium">部門</label><input type="text" disabled value={modalRow?.dept || 'RD'} className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed" /></div>
+                            </div>
+                            <div className="flex items-center gap-2 border-t border-gray-100 pt-3"><input type="checkbox" disabled className="w-4 h-4 rounded border-gray-300 text-blue-600" /><label className="text-sm text-gray-700">總部審批</label><span className="text-gray-400 text-xs">（「BU4 獨立項目」或「非本地實體公司」請勾選）</span></div>
+                          </div>
+
+                          {/* 費用報銷 */}
+                          <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-5">
+                            <div className="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2">費用報銷</div>
+                            <div className="grid grid-cols-2 sm:grid-cols-5 gap-x-5 gap-y-4">
+                              <div className="sm:col-span-2"><label className="block text-gray-700 text-xs mb-1.5 font-medium">B單單號</label><input type="text" disabled value="B-THQ-000003" className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed font-mono" /></div>
+                              <div className="sm:col-span-2"><label className="block text-gray-700 text-xs mb-1.5 font-medium">關聯單號</label><input type="text" disabled value="PTA-THQ-000001" className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed font-mono" /></div>
+                            </div>
+                            <div className="grid grid-cols-2 sm:grid-cols-5 gap-x-5 gap-y-4">
+                              <div><label className="block text-gray-700 text-xs mb-1.5 font-medium">公司別</label><input type="text" disabled value="—" className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed" /></div>
+                              <div><label className="block text-gray-700 text-xs mb-1.5 font-medium">部門主管</label><input type="text" disabled value={modalRow?.approver || 'James'} className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed" /></div>
+                              <div><label className="block text-gray-700 text-xs mb-1.5 font-medium">貨幣</label><input type="text" disabled value="CNY" className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed" /></div>
+                              <div className="sm:col-start-1"><label className="block text-gray-700 text-xs mb-1.5 font-medium">開戶行姓名</label><input type="text" disabled value="—" className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed" /></div>
+                              <div><label className="block text-gray-700 text-xs mb-1.5 font-medium">開戶銀行</label><input type="text" disabled value="—" className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed" /></div>
+                              <div><label className="block text-gray-700 text-xs mb-1.5 font-medium">銀行賬號</label><input type="text" disabled value="—" className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed" /></div>
+                            </div>
+                            <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-md px-4 py-2.5"><input type="checkbox" disabled className="w-4 h-4 rounded border-gray-300 text-blue-600" /><span className="text-sm font-medium text-gray-700">此單有特批</span></div>
+                          </div>
+
+                          {/* 出差行程（完整對照 PTAC，含 出差實際達成結果）*/}
+                          {renderTravelTripSection(true)}
+
+                          {/* 費用報銷明細 */}
+                          <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-4">
+                            <div className="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2">費用報銷明細</div>
+                            <div className="overflow-x-auto border border-gray-100 rounded-lg">
+                              <table className="w-full text-left text-sm border-collapse whitespace-nowrap">
+                                <thead><tr className="border-b border-gray-200 bg-gray-50 text-gray-700 font-bold text-xs"><th className="px-3 py-2 w-28">項目</th><th className="px-3 py-2 w-28">部門</th><th className="px-3 py-2">目的</th><th className="px-3 py-2 w-40 text-right">金額</th><th className="px-3 py-2">其他意見</th></tr></thead>
+                                <tbody className="divide-y divide-gray-100">
+                                  {[['機票', 'RD', '客戶端部署差旅', '¥ 3,200'], ['住宿', 'RD', '飯店住宿', '¥ 2,500'], ['交通', 'RD', '市內交通', '¥ 800'], ['餐費', 'RD', '出差餐費', '¥ 1,000']].map(([item, dept, purpose, amt], idx) => (
+                                    <tr key={idx}><td className="px-3 py-2 text-gray-700">{item}</td><td className="px-3 py-2 text-gray-700">{dept}</td><td className="px-3 py-2 text-gray-700">{purpose}</td><td className="px-3 py-2 text-right text-gray-700">{amt}</td><td className="px-3 py-2 text-gray-400">-</td></tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                        </>
+                      )}
+
+                      {/* ===== 差旅申請單 (PTA)（參照 申請.html PTA）===== */}
+                      {modalRow?.type === 'PTA' && (
+                        <>
+                          {/* 基本資訊 */}
+                          <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-5">
+                            <div className="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2">基本資訊</div>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-x-5 gap-y-4">
+                              <div className="lg:col-span-2"><label className="block text-gray-700 text-xs mb-1.5 font-medium">文件編號</label><input type="text" disabled value={modalRow?.docNo || ''} className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed font-mono" /></div>
+                              <div><label className="block text-gray-700 text-xs mb-1.5 font-medium">申請日期</label><div className="flex items-center bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700"><Calendar size={14} className="mr-2 text-gray-500" /><span>{(modalRow?.date || '').slice(0, 10) || '—'}</span></div></div>
+                              <div><label className="block text-gray-700 text-xs mb-1.5 font-medium">主旨</label><input type="text" disabled value="出差申請" className="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-sm text-gray-800 font-medium" /></div>
+                              <div><label className="block text-gray-700 text-xs mb-1.5 font-medium">出差類型</label><input type="text" disabled value="商務出差" className="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-sm text-gray-800" /></div>
+                              <div className="lg:col-start-1"><label className="block text-gray-700 text-xs mb-1.5 font-medium">申請人</label><input type="text" disabled value={modalRow?.applicant || ''} className="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-sm text-gray-800" /></div>
+                              <div><label className="block text-gray-700 text-xs mb-1.5 font-medium">項目</label><input type="text" disabled value={modalRow?.project || 'GT'} className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed" /></div>
+                              <div><label className="block text-gray-700 text-xs mb-1.5 font-medium">部門</label><input type="text" disabled value={modalRow?.dept || 'RD'} className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed" /></div>
+                              <div><label className="block text-gray-700 text-xs mb-1.5 font-medium">職稱</label><input type="text" disabled value="工程師" className="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-sm text-gray-800" /></div>
+                              <div><label className="block text-gray-700 text-xs mb-1.5 font-medium">職級</label><input type="text" disabled value="P5" className="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-sm text-gray-800" /></div>
+                              <div className="lg:col-start-1"><label className="block text-gray-700 text-xs mb-1.5 font-medium">長駐區域</label><input type="text" disabled value={modalRow?.location || ''} className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed" /></div>
+                            </div>
+                          </div>
+
+                          {/* 隨身資產 + 聯絡方式 */}
+                          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+                            <div className="lg:col-span-2 bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-4">
+                              <div className="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2">隨身資產</div>
+                              <div className="grid grid-cols-2 gap-5">
+                                <div><label className="block text-gray-700 text-xs mb-1.5 font-medium">手機編號</label><input type="text" disabled value="—" className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed" /></div>
+                                <div><label className="block text-gray-700 text-xs mb-1.5 font-medium">電腦編號</label><input type="text" disabled value="—" className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed" /></div>
+                              </div>
+                            </div>
+                            <div className="lg:col-span-3 bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-4">
+                              <div className="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2">聯絡方式</div>
+                              <div className="grid grid-cols-2 gap-5">
+                                <div><label className="block text-gray-700 text-xs mb-1.5 font-medium">聯絡電話</label><input type="text" disabled value="—" className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed" /></div>
+                                <div><label className="block text-gray-700 text-xs mb-1.5 font-medium">郵箱</label><input type="text" disabled value="—" className="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed" /></div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* 出差行程（完整對照 PTA）*/}
+                          {renderTravelTripSection(false)}
+
+                          {/* 差旅預算明細（各行程加總）*/}
+                          {renderPtaBudgetTable('差旅預算明細（各行程加總）', '自動加總各出差行程的預算金額，不可編輯')}
+
+                          {/* 應領金額 */}
+                          <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-4">
+                            <div className="flex items-center gap-2 border-b border-gray-100 pb-2"><span className="text-[#1A237E] font-bold text-[15px]">應領金額</span><span className="text-gray-400 text-xs">（總領金額加總日包計算的應領金額；選擇幣別後，匯率與應領金額依即時匯率自動產生）</span></div>
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-5 gap-y-4">
+                              <div><label className={roLabel}>總領金額</label><input type="text" disabled value="12,000" className={roCell + ' text-right'} /></div>
+                              <div><label className={roLabel}>幣別</label><input type="text" disabled value="CNY" className={roCell} /></div>
+                              <div><label className={roLabel}>匯率</label><input type="text" disabled value="1.0000" className={roCell + ' text-right'} /></div>
+                              <div><label className={roLabel}>應領金額</label><input type="text" disabled value="12,000" className={roCell + ' text-right'} /></div>
+                            </div>
+                          </div>
                         </>
                       )}
 
@@ -1588,6 +1930,18 @@
                           <div className="flex flex-wrap gap-3">
                             <button onClick={() => setIsModalOpen(false)} className="ui-btn ui-btn-primary">開立費用申請單 (B)</button>
                             <button onClick={() => setIsModalOpen(false)} className="ui-btn ui-btn-secondary">開立費用報銷單 (C)</button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* 下一步：差旅申請單（PTA）已完成 → 可開立 PTAB / PTAC */}
+                      {modalRow?.type === 'PTA' && (
+                        <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-4">
+                          <div className="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2">下一步</div>
+                          <p className="text-sm text-gray-600">此單據已可進行下一步，請選擇要開立的單據類型：</p>
+                          <div className="flex flex-wrap gap-3">
+                            <button onClick={() => setIsModalOpen(false)} className="ui-btn ui-btn-primary">開立差旅費用申請單 (PTAB)</button>
+                            <button onClick={() => setIsModalOpen(false)} className="ui-btn ui-btn-secondary">開立差旅費用報銷單 (PTAC)</button>
                           </div>
                         </div>
                       )}
