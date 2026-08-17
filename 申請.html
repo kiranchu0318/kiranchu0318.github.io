@@ -271,11 +271,11 @@
                                         </thead>
                                         <tbody class="divide-y divide-gray-100">
                                             <tr>
-                                                <td class="px-3 py-1.5"><input type="text" class="w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2]" placeholder="資產編號"></td>
+                                                <td class="px-3 py-1.5"><div class="relative"><input type="text" class="w-full border border-gray-300 rounded px-2 py-1 pr-7 text-sm outline-none focus:border-[#4A90E2]" placeholder="資產編號"><button type="button" onclick="aaAssetDetail(this)" title="檢視詳情" class="absolute inset-y-0 right-1.5 flex items-center text-gray-400 hover:text-[#4A90E2]"><i data-lucide="eye" class="w-4 h-4"></i></button></div></td>
                                                 <td class="px-3 py-1.5"><input type="date" onclick="this.showPicker && this.showPicker()" class="w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2]"></td>
                                                 <td class="px-3 py-1.5"><div class="flex items-center border border-gray-300 rounded overflow-hidden"><span class="bg-gray-50 border-r border-gray-300 px-2 py-1 text-xs text-gray-500">¥</span><input type="text" class="w-full px-2 py-1 text-sm text-right outline-none" value="0"></div></td>
                                                 <td class="px-3 py-1.5"><div class="relative person-combo"><input type="text" autocomplete="off" placeholder="新使用人" class="person-input w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2]"><div class="person-list hidden absolute z-30 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto text-[13px]"></div></div></td>
-                                                <td class="px-3 py-1.5"><input type="text" class="w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2]" placeholder="調撥原因"></td>
+                                                <td class="px-3 py-1.5"><select class="w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2] bg-white"><option value="" disabled selected>請選擇</option><option>人員入職</option><option>人員離職</option><option>在職更換資產</option><option>在職退回資產</option><option>其他</option></select></td>
                                                 <td class="px-3 py-1.5 text-center"><button type="button" onclick="blockRemove(this)" class="text-[12px] text-rose-600 border border-rose-200 rounded px-2.5 py-1 hover:bg-rose-50 inline-flex items-center gap-1 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i>移除</button></td>
                                             </tr>
                                         </tbody>
@@ -351,6 +351,20 @@
             <div class="flex justify-end gap-3 px-5 py-4 border-t border-gray-200 bg-gray-50 rounded-b-md">
                 <button type="button" onclick="aaImportClose()" class="ui-btn ui-btn-secondary">取消</button>
                 <button type="button" id="aa-import-confirm" onclick="aaImportConfirm()" class="ui-btn ui-btn-primary hidden"><i data-lucide="download" class="w-4 h-4 mr-1"></i>帶入資產</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- =========== 資產詳情 彈窗（AA 產編檢視詳情；比照 資產清單.html 資產詳情，唯讀）=========== -->
+    <div id="aa-asset-detail-modal" class="fixed inset-0 bg-black/40 z-[70] flex justify-center items-center hidden p-4" onclick="if(event.target===this) aaCloseAssetDetail()">
+        <div class="bg-white rounded-md shadow-2xl w-full max-w-[1000px] max-h-[90vh] flex flex-col overflow-hidden" onclick="event.stopPropagation()">
+            <div class="bg-[#EAF2FC] flex justify-between items-center px-4 py-3 border-b border-blue-100">
+                <h2 class="text-[#2b3b84] font-bold text-[16px]">資產詳情 <span id="aa-ad-no" class="text-[#4A90E2] font-mono ml-1"></span></h2>
+                <button type="button" onclick="aaCloseAssetDetail()" class="bg-blue-500 hover:bg-blue-600 text-white rounded p-1 transition-colors"><i data-lucide="x" class="w-4 h-4"></i></button>
+            </div>
+            <div id="aa-ad-body" class="flex-1 overflow-y-auto p-5 bg-[#f4f5f8] space-y-4"></div>
+            <div class="flex justify-end gap-3 px-5 py-4 border-t border-gray-200 bg-gray-50">
+                <button type="button" onclick="aaCloseAssetDetail()" class="ui-btn ui-btn-secondary">關閉</button>
             </div>
         </div>
     </div>
@@ -6283,6 +6297,35 @@
 
         // 資產調撥：帶入人員資產（開啟搜尋彈窗；查到人員→顯示資產→帶回表格）
         let _aaImportTarget = null, _aaImportRows = [], _aaImportName = '';
+        function aaCloseAssetDetail() { document.getElementById('aa-asset-detail-modal').classList.add('hidden'); }
+        function aaAssetDetail(btn) {
+            const input = btn.closest('.relative').querySelector('input');
+            const no = (input && input.value.trim()) || 'A-THQ-000000';
+            const h = (no.replace(/\D/g, '') || '1').split('').reduce((a, c) => a + (+c || 0), 0) || 1;
+            const pick = arr => arr[h % arr.length];
+            const money = n => Number(n || 0).toLocaleString('en-US');
+            const price = h * 1000 + 5000;
+            const groups = [
+                ['基本資訊', [['資產類型', pick(['筆電-蘋果筆電', '手機-蘋果手機', '顯示器', '網路設備'])], ['狀態', pick(['使用中', '項目閒置', '行政保管', '外借'])], ['類別', pick(['資產', '列管品', '軟資產'])], ['區域', pick(['T1', 'T2', 'U', 'J', 'S'])], ['項目', 'GT'], ['部門', pick(['RD', 'FIN', 'HR', 'MKT'])]]],
+                ['資產識別', [['資產編號', no], ['型號', 'MDL-' + (h * 7 % 9999)], ['序列號', 'SN' + (1000000 + h * 13)], ['歷史資產編號', '-'], ['資產名稱', pick(['MacBook Pro 14', 'iPhone 15', 'Dell U2723', 'Cisco Switch'])], ['規格', '標準規格'], ['數量', '1']]],
+                ['採購 / 財務', [['購買日期', '2024-0' + (h % 9 + 1) + '-15'], ['幣種', 'CNY'], ['價格', '¥ ' + money(price)], ['殘值', '¥ ' + money(Math.round(price * 0.3))], ['收據號碼', 'RC-' + no.slice(-6)], ['文件編號', 'DOC-' + no.slice(-4)]]],
+                ['使用 / 負責', [['使用人', 'Nick（100258）'], ['負責人', 'James']]],
+                ['關聯單據', [['物品購買申請號(PU單)', 'PU-THQ-00' + (h % 90 + 10)], ['請款單號(A單/B單)', 'B-THQ-00' + (h % 90 + 10)], ['報銷單號(C單)', 'C-THQ-00' + (h % 90 + 10)], ['維修記錄(維修單號)', '-']]],
+                ['費用歸屬', [['原采購單位(原費用項目)', 'GT / RD'], ['現資產所有權單位(現費用項目)', 'GT / RD']]]
+            ];
+            const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');
+            const html = groups.map(([g, items]) => `
+                <div class="bg-white border border-gray-200 rounded-md shadow-sm overflow-hidden">
+                    <div class="px-4 py-2.5 border-b border-gray-200"><h3 class="text-[#2b3b84] font-bold text-[15px]">${g}</h3></div>
+                    <div class="p-4 grid grid-cols-2 md:grid-cols-3 gap-x-5 gap-y-4">
+                        ${items.map(([k, v]) => `<div><div class="text-[12px] text-gray-400 mb-1">${esc(k)}</div><div class="text-[13px] text-gray-800 break-all">${esc(v)}</div></div>`).join('')}
+                    </div>
+                </div>`).join('');
+            document.getElementById('aa-ad-no').textContent = no;
+            document.getElementById('aa-ad-body').innerHTML = html;
+            document.getElementById('aa-asset-detail-modal').classList.remove('hidden');
+            if (window.lucide) lucide.createIcons();
+        }
         function aaImportPersonAssets(btn) {
             const block = btn.closest('.bg-white');
             _aaImportTarget = block && block.querySelector('table tbody');

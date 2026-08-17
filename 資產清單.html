@@ -245,7 +245,10 @@
                     </div>
                 </div>
                 <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-between items-center flex-shrink-0">
-                    <button onclick="openAssetHistory()" class="ui-btn ui-btn-secondary"><i class="fa-solid fa-clock-rotate-left"></i> 歷史紀錄</button>
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="openAssetHistory()" class="ui-btn ui-btn-secondary"><i class="fa-solid fa-clock-rotate-left"></i> 歷史紀錄</button>
+                        <button onclick="showToast('success', '已下載所有附件（示範）')" class="ui-btn ui-btn-secondary"><i class="fa-solid fa-images"></i> 下載所有附件</button>
+                    </div>
                     <div class="flex gap-2">
                         <div id="ad-view-btns" class="flex gap-2">
                             <button onclick="closeAssetDetail()" class="ui-btn ui-btn-secondary">關閉</button>
