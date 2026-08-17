@@ -53,6 +53,7 @@
                     <button onclick="expandAll(true)" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-angles-down"></i> 全部展開</button>
                     <button onclick="expandAll(false)" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-angles-up"></i> 全部收合</button>
                 </div>
+                <button onclick="openAddTopUnit()" class="ui-btn ui-btn-primary w-full sm:w-auto"><i class="fa-solid fa-plus"></i> 新增頂層單位</button>
             </div>
 
             <div class="overflow-x-auto rounded-lg border border-gray-100 bg-gray-50/40 p-4 sm:p-8">
@@ -80,14 +81,12 @@
                     <label class="block text-xs font-semibold text-text-muted mb-1.5">單位名稱 <span class="text-rose-500">*</span></label>
                     <input type="text" id="org-name" placeholder="例如：研發事業部" class="ui-input">
                 </div>
-                <div>
+                <div id="org-type-wrap">
                     <label class="block text-xs font-semibold text-text-muted mb-1.5">單位類型 <span class="text-rose-500">*</span></label>
-                    <select id="org-type" class="ui-select bg-gray-100 text-gray-500 cursor-not-allowed" disabled>
-                        <option>公司</option>
-                        <option>事業部</option>
-                        <option>中心</option>
+                    <select id="org-type" class="ui-select">
+                        <option>事業部/中心</option>
                         <option>部門</option>
-                        <option>組</option>
+                        <option>組別</option>
                     </select>
                 </div>
                 <div id="org-head-wrap">
@@ -115,6 +114,46 @@
         </div>
     </div>
 
+    <!-- ============ 新增頂層單位 彈窗 ============ -->
+    <div id="top-modal" class="fixed inset-0 bg-black/40 z-50 flex justify-center items-center hidden p-4">
+        <div class="bg-white rounded-2xl shadow-modal w-full max-w-md overflow-hidden">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                <h3 class="text-base font-bold text-gray-900">新增頂層單位</h3>
+                <button onclick="closeTopModal()" class="text-gray-400 hover:text-gray-600 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="px-6 py-5 space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">單位名稱 <span class="text-rose-500">*</span></label>
+                    <input type="text" id="top-name" placeholder="例如：新事業群" class="ui-input">
+                </div>
+                <label class="flex items-center gap-2 cursor-pointer select-none bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5">
+                    <input type="checkbox" id="top-virtual" onchange="updateTopVirtual()" class="w-4 h-4 rounded border-gray-300 text-primary">
+                    <span class="text-sm font-medium text-gray-700">是否為虛擬節點</span>
+                    <span class="text-xs text-gray-400">（虛擬節點僅作分層群組，無單位類型）</span>
+                </label>
+                <div id="top-type-wrap">
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">單位類型 <span class="text-rose-500">*</span></label>
+                    <select id="top-type" class="ui-select">
+                        <option>事業部/中心</option>
+                        <option>部門</option>
+                        <option>組別</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">單位主管</label>
+                    <div class="relative" id="top-head-combo">
+                        <input type="text" id="top-head" autocomplete="off" placeholder="搜尋員工姓名 / 工號" class="ui-input">
+                        <div id="top-head-list" class="hidden absolute z-30 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto text-sm"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="flex justify-end gap-2.5 px-6 py-4 bg-gray-50 border-t border-gray-100">
+                <button onclick="closeTopModal()" class="ui-btn ui-btn-secondary">取消</button>
+                <button onclick="saveTopUnit()" class="ui-btn ui-btn-primary">儲存</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast -->
     <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] flex items-center gap-2 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-2xl text-sm font-medium opacity-0 translate-y-3 transition-all duration-300 pointer-events-none">
         <i class="fa-solid fa-circle-check text-emerald-400"></i><span id="toast-text"></span>
@@ -125,8 +164,7 @@
         let orgTree = [
             { id: 1, name: '董事會', type: '部門', head: '', subs: [], children: [
                 { id: 2, name: 'GMO', type: '部門', head: '', subs: [], children: [
-                    { id: 3, name: '事業部', type: '部門', head: '', subs: [], children: [
-                        { id: 4, name: 'BU1', type: '事業部', head: '', subs: [], children: [
+                        { id: 4, start: true, name: 'BU1', type: '事業部', head: '', subs: [], children: [
                             { id: 5, name: 'BU1-OP1', type: '部門', head: '', subs: [], children: [
                                 { id: 6, name: 'API', type: '組', head: '', subs: [], children: [] },
                                 { id: 7, name: 'YL', type: '組', head: '', subs: [], children: [] },
@@ -144,13 +182,13 @@
                                 { id: 17, name: '資訊組 (MIS)', type: '組', head: '', subs: [], children: [] },
                             ] },
                         ] },
-                        { id: 18, name: 'BU2', type: '事業部', head: '', subs: [], children: [
+                        { id: 18, start: true, name: 'BU2', type: '事業部', head: '', subs: [], children: [
                             { id: 19, name: 'BU2-OP', type: '部門', head: '', subs: [], children: [
                                 { id: 20, name: 'V8', type: '組', head: '', subs: [], children: [] },
                             ] },
                             { id: 21, name: 'BU2-BUZ', type: '組', head: '', subs: [], children: [] },
                         ] },
-                        { id: 22, name: 'BU4', type: '事業部', head: '', subs: [], children: [
+                        { id: 22, start: true, name: 'BU4', type: '事業部', head: '', subs: [], children: [
                             { id: 23, name: '2C越南-369', type: '組', head: '', subs: [], children: [] },
                             { id: 24, name: '2C菲律賓-KYPH', type: '組', head: '', subs: [], children: [] },
                             { id: 25, name: '2C日本-VV', type: '組', head: '', subs: [], children: [] },
@@ -159,9 +197,7 @@
                             { id: 28, name: '流量巴西-SEO', type: '組', head: '', subs: [], children: [] },
                             { id: 29, name: '支付南非-Sapay', type: '組', head: '', subs: [], children: [] },
                         ] },
-                    ] },
-                    { id: 30, name: '中心側', type: '中心', head: '', subs: [], children: [
-                        { id: 31, name: 'GT', type: '事業部', head: '', subs: [], children: [
+                        { id: 31, start: true, name: 'GT', type: '事業部', head: '', subs: [], children: [
                             { id: 32, name: '研發中心 (RDC)', type: '中心', head: '', subs: [], children: [
                                 { id: 33, name: '專案部 (RDC-PM1)', type: '部門', head: '', subs: [], children: [] },
                                 { id: 34, name: '遊戲前端部 (RDC-GMF)', type: '部門', head: '', subs: [], children: [] },
@@ -202,12 +238,16 @@
                             { id: 64, name: '內審一部 (IA1)', type: '部門', head: '', subs: [], children: [] },
                             { id: 65, name: '內審二部 (IA2)', type: '部門', head: '', subs: [], children: [] },
                         ] },
-                    ] },
+                ] },
+            ] },
+            { id: 66, start: true, name: 'CO', type: '事業部', head: '', subs: [], children: [
+                { id: 67, name: 'CO', type: '部門', head: '', subs: [], children: [
+                    { id: 68, name: 'CO', type: '組', head: '', subs: [], children: [] },
                 ] },
             ] }
         ];
         let nextId = 100;
-        const expanded = new Set([1, 2, 3, 30, 31]);
+        const expanded = new Set([1, 2, 3, 30, 31, 66, 67]);
 
         let modalMode = 'add-top'; // add-top | add-child | edit
         let modalRefId = null;     // add-child: 父單位 id；edit: 該單位 id
@@ -232,12 +272,11 @@
         const empLabel = e => `${e.name}（${e.id}）`;
         let orgSubs = []; // 下屬（工號陣列）
 
-        // 層級計算：BU1/BU2/BU4/GT 起算為第 1 層，往下最多第 4 層；只有第 4 層（最後一層）可設定下屬
-        const START_NAMES = new Set(['BU1', 'BU2', 'BU4', 'GT']);
+        // 層級計算：帶 start 標記者（BU1/BU2/BU4/GT/CO）為第 1 層，往下最多第 4 層；最後一層（葉節點）可設定下屬
         let LEVELS = {};
         function computeLevels(nodes = orgTree, parentLevel = null) {
             nodes.forEach(n => {
-                const lv = START_NAMES.has(n.name) ? 1 : (parentLevel == null ? null : parentLevel + 1);
+                const lv = n.start ? 1 : (parentLevel == null ? null : parentLevel + 1);
                 LEVELS[n.id] = lv;
                 computeLevels(n.children, lv);
             });
@@ -253,11 +292,20 @@
             3:     'bg-amber-50 border-amber-300',    // 第 3 層
             4:     'bg-violet-50 border-violet-300'   // 第 4 層（最後一層）
         };
-        const levelStyle = n => LEVEL_STYLE[LEVELS[n.id] == null ? 'top' : LEVELS[n.id]] || 'bg-white border-gray-200';
+        // 依標籤（單位類型）對應卡片配色
+        const BADGE_COLOR = { '事業部/中心': 'bg-blue-50 border-blue-300', '部門': 'bg-emerald-50 border-emerald-300', '組別': 'bg-amber-50 border-amber-300' };
+        const levelStyle = n => n.virtual ? LEVEL_STYLE.top
+            : (n.badge ? (BADGE_COLOR[n.badge] || LEVEL_STYLE.top)
+            : (LEVEL_STYLE[LEVELS[n.id] == null ? 'top' : LEVELS[n.id]] || 'bg-white border-gray-200'));
 
-        // 依層級掛標籤：第 1 層 事業部（GT 為中心）、第 2 層 部門、第 3 層以下 組別；結構層不掛
+        // 結構層 / 虛擬節點：無單位類型、不可設定主管
+        const isStructural = n => n.virtual === true || (LEVELS[n.id] == null && !n.badge);
+
+        // 依層級掛標籤：第 1 層 事業部/中心、第 2 層 部門、第 3 層以下 組別；虛擬/結構層不掛；頂層單位以自身類型為標籤
         const BADGE_STYLE = { '事業部/中心': 'ui-badge-info', '部門': 'ui-badge-success', '組別': 'ui-badge-gray' };
         function levelBadge(n) {
+            if (n.virtual) return '';
+            if (n.badge) return n.badge;
             const lv = LEVELS[n.id];
             if (lv == null) return '';
             if (lv === 1) return '事業部/中心';
@@ -294,7 +342,7 @@
                 <div class="org-node group relative inline-block border ${levelStyle(n)} rounded-xl shadow-sm px-4 py-3 min-w-[171px] hover:border-primary/60 hover:shadow-md transition-all">
                     <div class="flex items-center justify-center gap-2">
                         ${toggle}
-                        <i class="fa-solid ${meta.icon} text-primary shrink-0"></i>
+                        <i class="fa-solid ${n.icon || meta.icon} text-primary shrink-0"></i>
                         <span class="font-bold text-gray-800 text-sm">${esc(n.name)}</span>${badge}
                     </div>
                     ${(() => {
@@ -354,9 +402,18 @@
         function toggleSubsField(show) {
             document.getElementById('org-subs-wrap').classList.toggle('hidden', !show);
         }
-        // 結構層（董事會 / GMO / 事業部 / 中心側）不可設定單位主管
+        // 結構層 / 虛擬節點不可設定單位主管
         function toggleHeadField(show) {
             document.getElementById('org-head-wrap').classList.toggle('hidden', !show);
+        }
+        // 單位類型：新增子單位時可選；編輯時唯讀；結構層則隱藏
+        function toggleTypeField(show, enabled) {
+            document.getElementById('org-type-wrap').classList.toggle('hidden', !show);
+            const sel = document.getElementById('org-type');
+            sel.disabled = !enabled;
+            sel.classList.toggle('bg-gray-100', !enabled);
+            sel.classList.toggle('text-gray-500', !enabled);
+            sel.classList.toggle('cursor-not-allowed', !enabled);
         }
         function openAddChild(parentId) {
             modalMode = 'add-child'; modalRefId = parentId;
@@ -367,6 +424,7 @@
             const pLv = LEVELS[parentId];
             toggleSubsField(pLv != null && pLv + 1 <= 4);  // 新子單位為該分支葉節點 → 可設定下屬
             toggleHeadField(true);                          // 新子單位皆非結構層 → 可設定主管
+            toggleTypeField(true, true);                    // 可選擇「事業部/中心 / 部門 / 組別」
             document.getElementById('org-modal').classList.remove('hidden');
         }
         function openEdit(id) {
@@ -376,8 +434,10 @@
             document.getElementById('org-modal-title').innerText = '編輯組織單位';
             setHint('');
             fillForm(n.name, n.type, n.head, n.subs);
+            document.getElementById('org-type').value = n.badge || levelBadge(n) || '部門';
             toggleSubsField(isLastLevel(n));
-            toggleHeadField(LEVELS[id] != null); // 結構層不可設定單位主管
+            toggleHeadField(!isStructural(n)); // 結構層 / 虛擬節點不可設定主管
+            toggleTypeField(!isStructural(n), false); // 編輯唯讀；結構層隱藏
             document.getElementById('org-modal').classList.remove('hidden');
         }
         function closeOrgModal() { document.getElementById('org-modal').classList.add('hidden'); }
@@ -391,18 +451,14 @@
 
             if (modalMode === 'edit') {
                 const n = findNode(modalRefId);
-                if (n) { n.name = name; n.type = type; n.head = head; n.subs = subs; n.count = subs.length; }
+                if (n) { n.name = name; n.head = head; n.subs = subs; n.count = subs.length; } // 類型不可編輯
                 showToast('已更新組織單位');
             } else {
-                const node = { id: ++nextId, name, type, head, subs, count: subs.length, children: [] };
-                if (modalMode === 'add-child') {
-                    const p = findNode(modalRefId);
-                    if (p) { p.children.push(node); expanded.add(p.id); }
-                    showToast('已新增子單位');
-                } else {
-                    orgTree.push(node);
-                    showToast('已新增頂層單位');
-                }
+                const node = { id: ++nextId, name, head, subs, count: subs.length, children: [], badge: type };
+                if (type === '事業部/中心') node.start = true; // 事業部/中心視為第 1 層起點
+                const p = findNode(modalRefId);
+                if (p) { p.children.push(node); expanded.add(p.id); }
+                showToast('已新增子單位');
             }
             closeOrgModal();
             render();
@@ -430,10 +486,10 @@
         }
 
         /* ============ 單位主管：搜尋員工下拉 ============ */
-        (function setupHeadCombo() {
-            const combo = document.getElementById('org-head-combo');
-            const input = document.getElementById('org-head');
-            const list = document.getElementById('org-head-list');
+        function setupHeadCombo(comboId, inputId, listId) {
+            const combo = document.getElementById(comboId);
+            const input = document.getElementById(inputId);
+            const list = document.getElementById(listId);
             const render = () => {
                 const k = (input.value || '').trim().toLowerCase();
                 const items = EMPLOYEES.filter(e => !k || e.name.toLowerCase().includes(k) || e.id.includes(k));
@@ -451,7 +507,48 @@
                 list.classList.add('hidden');
             });
             document.addEventListener('click', e => { if (!combo.contains(e.target)) list.classList.add('hidden'); });
-        })();
+        }
+        setupHeadCombo('org-head-combo', 'org-head', 'org-head-list');
+        setupHeadCombo('top-head-combo', 'top-head', 'top-head-list');
+
+        /* ============ 新增頂層單位 ============ */
+        function openAddTopUnit() {
+            document.getElementById('top-name').value = '';
+            document.getElementById('top-virtual').checked = false;
+            document.getElementById('top-type').value = '事業部/中心';
+            document.getElementById('top-head').value = '';
+            updateTopVirtual();
+            document.getElementById('top-modal').classList.remove('hidden');
+        }
+        function updateTopVirtual() {
+            const v = document.getElementById('top-virtual').checked;
+            const sel = document.getElementById('top-type');
+            sel.disabled = v;
+            sel.classList.toggle('bg-gray-100', v);
+            sel.classList.toggle('text-gray-500', v);
+            sel.classList.toggle('cursor-not-allowed', v);
+            document.getElementById('top-type-wrap').classList.toggle('opacity-50', v);
+        }
+        function closeTopModal() { document.getElementById('top-modal').classList.add('hidden'); }
+        function saveTopUnit() {
+            const name = document.getElementById('top-name').value.trim();
+            if (!name) { showToast('請輸入單位名稱'); return; }
+            const virtual = document.getElementById('top-virtual').checked;
+            const head = document.getElementById('top-head').value.trim();
+            const node = { id: ++nextId, name, head, subs: [], children: [], icon: TYPE_META['部門'].icon }; // 圖示同董事會
+            if (virtual) {
+                node.virtual = true;               // 虛擬節點：結構層，無單位類型
+            } else {
+                const t = document.getElementById('top-type').value;
+                node.badge = t;                    // 以所選類型作為標籤與配色
+                if (t === '事業部/中心') node.start = true; // 事業部/中心視為第 1 層起點
+            }
+            orgTree.push(node);
+            closeTopModal();
+            render();
+            showToast('已新增頂層單位');
+        }
+        document.getElementById('top-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeTopModal(); });
 
         /* ============ 下屬：多選員工 ============ */
         function renderSubChips() {
