@@ -243,7 +243,8 @@
                                 <div><label class="block mb-1.5 text-[13px] text-gray-700">主旨 <span class="text-red-500">*</span></label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"></div>
                             </div>
                             <div class="px-4 pb-4 grid grid-cols-5 gap-x-5 gap-y-5">
-                                <div><label class="block mb-1.5 text-[13px] text-gray-700">服務類型</label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] bg-white text-gray-700 outline-none focus:border-blue-500"><option>資產本地調撥</option><option>資產跨區調撥至 D</option><option>資產跨區調撥至 F</option><option>資產跨區調撥至 J</option><option>資產跨區調撥至 K</option><option>資產跨區調撥至 M</option><option>資產跨區調撥至 S</option><option>資產跨區調撥至 T1</option><option>資產跨區調撥至 T2</option><option>資產跨區調撥至 T3</option><option>資產跨區調撥至 THQ</option><option>資產跨區調撥至 U</option></select></div>
+                                <div><label class="block mb-1.5 text-[13px] text-gray-700">轉出地區</label><select id="aa-out-region" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] bg-white text-gray-700 outline-none focus:border-blue-500"><option value="" disabled selected>請選擇</option><option>T1</option><option>T2</option><option>T3</option><option>S</option><option>J</option><option>BU2</option><option>FAC</option></select></div>
+                                <div><label class="block mb-1.5 text-[13px] text-gray-700">轉入地區</label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] bg-white text-gray-700 outline-none focus:border-blue-500"><option value="" disabled selected>請選擇</option><option>T1</option><option>T2</option><option>T3</option><option>S</option><option>J</option><option>BU2</option><option>FAC</option></select></div>
                                 <div><label class="block mb-1.5 text-[13px] text-gray-700">异动日期 <span class="text-red-500">*</span></label><div class="w-full border border-gray-300 rounded px-3 py-1.5 bg-white flex items-center"><i data-lucide="calendar" class="w-4 h-4 text-gray-400"></i><input type="date" onclick="this.showPicker && this.showPicker()" class="w-full ml-2 text-[13px] outline-none bg-transparent cursor-pointer"></div></div>
                             </div>
                         </div>
@@ -253,7 +254,7 @@
                                 <h3 class="text-[#2b3b84] font-bold text-[15px]">資產信息</h3>
                                 <div class="flex items-center gap-2">
                                     <button type="button" onclick="aaImportPersonAssets(this)" class="text-[12px] text-[#2b3b84] border border-gray-300 rounded px-2.5 py-1 hover:bg-gray-50 flex items-center gap-1"><i data-lucide="user-check" class="w-3.5 h-3.5"></i>帶入人員資產</button>
-                                    <button type="button" onclick="blockAdd(this)" class="text-[12px] text-blue-600 border border-blue-200 rounded px-2.5 py-1 hover:bg-blue-50 flex items-center gap-1"><i data-lucide="plus" class="w-3.5 h-3.5"></i>添加</button>
+                                    <button type="button" onclick="blockAdd(this); aaSyncAllEyes()" class="text-[12px] text-blue-600 border border-blue-200 rounded px-2.5 py-1 hover:bg-blue-50 flex items-center gap-1"><i data-lucide="plus" class="w-3.5 h-3.5"></i>添加</button>
                                 </div>
                             </div>
                             <div class="p-4">
@@ -265,16 +266,18 @@
                                                 <th class="px-3 py-2 w-40">殘值日期</th>
                                                 <th class="px-3 py-2 w-32">殘值</th>
                                                 <th class="px-3 py-2">新使用人</th>
+                                                <th class="px-3 py-2">管理人</th>
                                                 <th class="px-3 py-2">調撥原因</th>
                                                 <th class="px-3 py-2 w-20 text-center">操作</th>
                                             </tr>
                                         </thead>
                                         <tbody class="divide-y divide-gray-100">
                                             <tr>
-                                                <td class="px-3 py-1.5"><div class="relative"><input type="text" class="w-full border border-gray-300 rounded px-2 py-1 pr-7 text-sm outline-none focus:border-[#4A90E2]" placeholder="資產編號"><button type="button" onclick="aaAssetDetail(this)" title="檢視詳情" class="absolute inset-y-0 right-1.5 flex items-center text-gray-400 hover:text-[#4A90E2]"><i data-lucide="eye" class="w-4 h-4"></i></button></div></td>
+                                                <td class="px-3 py-1.5"><div class="relative"><input type="text" readonly onclick="aaOpenAssetCheck(this)" class="w-full border border-gray-300 rounded px-2 py-1 pr-7 text-sm outline-none focus:border-[#4A90E2] cursor-pointer bg-white" placeholder="點擊輸入資產編號"><button type="button" disabled onclick="event.stopPropagation(); aaAssetDetail(this)" title="檢視詳情" class="aa-eye-btn absolute inset-y-0 right-1.5 flex items-center text-gray-400 opacity-40 cursor-not-allowed disabled:pointer-events-none"><i data-lucide="eye" class="w-4 h-4"></i></button></div></td>
                                                 <td class="px-3 py-1.5"><input type="date" onclick="this.showPicker && this.showPicker()" class="w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2]"></td>
                                                 <td class="px-3 py-1.5"><div class="flex items-center border border-gray-300 rounded overflow-hidden"><span class="bg-gray-50 border-r border-gray-300 px-2 py-1 text-xs text-gray-500">¥</span><input type="text" class="w-full px-2 py-1 text-sm text-right outline-none" value="0"></div></td>
                                                 <td class="px-3 py-1.5"><div class="relative person-combo"><input type="text" autocomplete="off" placeholder="新使用人" class="person-input w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2]"><div class="person-list hidden absolute z-30 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto text-[13px]"></div></div></td>
+                                                <td class="px-3 py-1.5"><select class="w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2] bg-white"><option value="" disabled selected>請選擇</option><option>地區資產管理人</option><option>中心資產管理人</option></select></td>
                                                 <td class="px-3 py-1.5"><select class="w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2] bg-white"><option value="" disabled selected>請選擇</option><option>人員入職</option><option>人員離職</option><option>在職更換資產</option><option>在職退回資產</option><option>其他</option></select></td>
                                                 <td class="px-3 py-1.5 text-center"><button type="button" onclick="blockRemove(this)" class="text-[12px] text-rose-600 border border-rose-200 rounded px-2.5 py-1 hover:bg-rose-50 inline-flex items-center gap-1 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i>移除</button></td>
                                             </tr>
@@ -369,6 +372,31 @@
         </div>
     </div>
 
+    <!-- =========== 資產編號 確認 彈窗（AA：確認資產存在且所屬於轉出地區）=========== -->
+    <div id="aa-check-modal" class="fixed inset-0 bg-black/40 z-[70] flex justify-center items-center hidden p-4" onclick="if(event.target===this) aaCloseCheck()">
+        <div class="bg-white rounded-md shadow-2xl w-full max-w-[460px]" onclick="event.stopPropagation()">
+            <div class="bg-[#EAF2FC] flex justify-between items-center px-4 py-3 border-b border-blue-100 rounded-t-md">
+                <h2 class="text-[#2b3b84] font-bold text-[15px]">確認資產編號</h2>
+                <button type="button" onclick="aaCloseCheck()" class="bg-blue-500 hover:bg-blue-600 text-white rounded p-1 transition-colors"><i data-lucide="x" class="w-4 h-4"></i></button>
+            </div>
+            <div class="p-5 space-y-4">
+                <!-- 輸入資產編號確認（轉出地區已於表單選定）-->
+                <div id="aa-check-input-wrap" class="space-y-3">
+                    <div class="text-[13px] text-gray-600">轉出地區：<span id="aa-check-region" class="font-semibold text-gray-800">—</span></div>
+                    <div>
+                        <label class="block mb-1.5 text-[13px] text-gray-700">資產編號 <span class="text-red-500">*</span></label>
+                        <input type="text" id="aa-check-no" autocomplete="off" placeholder="請輸入資產編號" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500">
+                    </div>
+                    <div id="aa-check-msg" class="hidden text-[13px] rounded-md px-3 py-2"></div>
+                </div>
+            </div>
+            <div class="flex justify-end gap-3 px-5 py-4 border-t border-gray-200 bg-gray-50 rounded-b-md">
+                <button type="button" onclick="aaCloseCheck()" class="ui-btn ui-btn-secondary">取消</button>
+                <button type="button" id="aa-check-confirm" onclick="aaConfirmAsset()" class="ui-btn ui-btn-primary">確認</button>
+            </div>
+        </div>
+    </div>
+
     <!-- =======================================================================
          2. 一般費用 (B) Modal
     ======================================================================== -->
@@ -392,8 +420,8 @@
                                 <div><label class="block mb-1 text-[13px] text-gray-700">費用類型 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option value="">請選擇</option><option>一般费用</option><option>人力成本及猎头费</option><option>佣金返点</option><option>其他壞帳審批</option><option>區域備用金（僅限資金部使用）</option><option>员工福利及團建費</option><option>子表單B（申請費用）</option><option>差旅報銷線</option><option>應收壞帳</option><option>私帳</option><option>私帳項目審批線</option><option>績效審批線</option></select></div>
                                 <div class="col-start-1"><label class="block mb-1 text-[13px] text-gray-700">申請人 <span class="text-red-500">*</span></label><div class="relative applicant-combo" id="b-applicant-combo"><input type="text" autocomplete="off" placeholder="搜尋人名 / 工號" class="applicant-input w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><div class="applicant-list hidden absolute z-30 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto text-[13px]"></div></div></div>
                                 <div><label class="block mb-1 text-[13px] text-gray-700">區域 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option>請選擇</option></select></div>
-                                <div><label class="block mb-1 text-[13px] text-gray-700">項目 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option>請選擇</option></select></div>
                                 <div><label class="block mb-1 text-[13px] text-gray-700">部門 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option>請選擇</option></select></div>
+                                <div><label class="block mb-1 text-[13px] text-gray-700">組別 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option>請選擇</option></select></div>
                             </div>
                             <div class="px-4 pb-4 grid grid-cols-5 gap-x-5 gap-y-5">
                                 <div class="col-span-5 flex items-center gap-2 border-t border-gray-100 pt-3 mt-1"><input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-blue-600 cursor-pointer"><label class="text-[13px] text-gray-700">總部審批</label><span class="text-gray-400 text-[12px]">（「BU4 獨立項目」或「非本地實體公司」請勾選）</span></div>
@@ -528,8 +556,8 @@
                                 <div><label class="block mb-1 text-[13px] text-gray-700">費用類型 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option value="">請選擇</option><option>一般费用</option><option>人力成本及猎头费</option><option>佣金返点</option><option>其他壞帳審批</option><option>區域備用金（僅限資金部使用）</option><option>员工福利及團建費</option><option>子表單B（申請費用）</option><option>差旅報銷線</option><option>應收壞帳</option><option>私帳</option><option>私帳項目審批線</option><option>績效審批線</option></select></div>
                                 <div class="col-start-1"><label class="block mb-1 text-[13px] text-gray-700">申請人 <span class="text-red-500">*</span></label><div class="relative applicant-combo" id="ptab-applicant-combo"><input type="text" autocomplete="off" placeholder="搜尋人名 / 工號" class="applicant-input w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><div class="applicant-list hidden absolute z-30 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto text-[13px]"></div></div></div>
                                 <div><label class="block mb-1 text-[13px] text-gray-700">區域 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option>請選擇</option></select></div>
-                                <div><label class="block mb-1 text-[13px] text-gray-700">項目 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option>請選擇</option></select></div>
                                 <div><label class="block mb-1 text-[13px] text-gray-700">部門 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option>請選擇</option></select></div>
+                                <div><label class="block mb-1 text-[13px] text-gray-700">組別 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option>請選擇</option></select></div>
                             </div>
                             <div class="px-4 pb-4 grid grid-cols-5 gap-x-5 gap-y-5">
                                 <div class="col-span-5 flex items-center gap-2 border-t border-gray-100 pt-3 mt-1"><input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-blue-600 cursor-pointer"><label class="text-[13px] text-gray-700">總部審批</label><span class="text-gray-400 text-[12px]">（「BU4 獨立項目」或「非本地實體公司」請勾選）</span></div>
@@ -698,8 +726,8 @@
                                 <div><label class="block mb-1 text-[13px] text-gray-700">費用類型 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option value="">請選擇</option><option>一般费用</option><option>人力成本及猎头费</option><option>佣金返点</option><option>其他壞帳審批</option><option>區域備用金（僅限資金部使用）</option><option>员工福利及團建費</option><option>子表單B（申請費用）</option><option>差旅報銷線</option><option>應收壞帳</option><option>私帳</option><option>私帳項目審批線</option><option>績效審批線</option></select></div>
                                 <div class="col-start-1"><label class="block mb-1 text-[13px] text-gray-700">申請人 <span class="text-red-500">*</span></label><div class="relative applicant-combo" id="c-applicant-combo"><input type="text" autocomplete="off" placeholder="搜尋人名 / 工號" class="applicant-input w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><div class="applicant-list hidden absolute z-30 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto text-[13px]"></div></div></div>
                                 <div><label class="block mb-1 text-[13px] text-gray-700">區域 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option>請選擇</option></select></div>
-                                <div><label class="block mb-1 text-[13px] text-gray-700">項目 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option>請選擇</option></select></div>
                                 <div><label class="block mb-1 text-[13px] text-gray-700">部門 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option>請選擇</option></select></div>
+                                <div><label class="block mb-1 text-[13px] text-gray-700">組別 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option>請選擇</option></select></div>
                             </div>
                             <div class="px-4 pb-4 grid grid-cols-5 gap-x-5 gap-y-5">
                                 <div class="col-span-5 flex items-center gap-2 border-t border-gray-100 pt-3 mt-1"><input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-blue-600 cursor-pointer"><label class="text-[13px] text-gray-700">總部審批</label><span class="text-gray-400 text-[12px]">（「BU4 獨立項目」或「非本地實體公司」請勾選）</span></div>
@@ -860,8 +888,8 @@
                                 <div><label class="block mb-1 text-[13px] text-gray-700">費用類型 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option value="">請選擇</option><option>一般费用</option><option>人力成本及猎头费</option><option>佣金返点</option><option>其他壞帳審批</option><option>區域備用金（僅限資金部使用）</option><option>员工福利及團建費</option><option>子表單B（申請費用）</option><option>差旅報銷線</option><option>應收壞帳</option><option>私帳</option><option>私帳項目審批線</option><option>績效審批線</option></select></div>
                                 <div class="col-start-1"><label class="block mb-1 text-[13px] text-gray-700">申請人 <span class="text-red-500">*</span></label><div class="relative applicant-combo" id="ab-applicant-combo"><input type="text" autocomplete="off" placeholder="搜尋人名 / 工號" class="applicant-input w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><div class="applicant-list hidden absolute z-30 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto text-[13px]"></div></div></div>
                                 <div><label class="block mb-1 text-[13px] text-gray-700">區域 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option>請選擇</option></select></div>
-                                <div><label class="block mb-1 text-[13px] text-gray-700">項目 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option>請選擇</option></select></div>
                                 <div><label class="block mb-1 text-[13px] text-gray-700">部門 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option>請選擇</option></select></div>
+                                <div><label class="block mb-1 text-[13px] text-gray-700">組別 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option>請選擇</option></select></div>
                             </div>
                             <div class="px-4 pb-4 grid grid-cols-5 gap-x-5 gap-y-5">
                                 <div class="col-span-5 flex items-center gap-2 border-t border-gray-100 pt-3 mt-1"><input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-blue-600 cursor-pointer"><label class="text-[13px] text-gray-700">總部審批</label><span class="text-gray-400 text-[12px]">（「BU4 獨立項目」或「非本地實體公司」請勾選）</span></div>
@@ -996,8 +1024,8 @@
                                 <div><label class="block mb-1 text-[13px] text-gray-700">費用類型 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option value="">請選擇</option><option>一般费用</option><option>人力成本及猎头费</option><option>佣金返点</option><option>其他壞帳審批</option><option>區域備用金（僅限資金部使用）</option><option>员工福利及團建費</option><option>子表單B（申請費用）</option><option>差旅報銷線</option><option>應收壞帳</option><option>私帳</option><option>私帳項目審批線</option><option>績效審批線</option></select></div>
                                 <div class="col-start-1"><label class="block mb-1 text-[13px] text-gray-700">申請人 <span class="text-red-500">*</span></label><div class="relative applicant-combo" id="ac-applicant-combo"><input type="text" autocomplete="off" placeholder="搜尋人名 / 工號" class="applicant-input w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><div class="applicant-list hidden absolute z-30 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto text-[13px]"></div></div></div>
                                 <div><label class="block mb-1 text-[13px] text-gray-700">區域 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option>請選擇</option></select></div>
-                                <div><label class="block mb-1 text-[13px] text-gray-700">項目 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option>請選擇</option></select></div>
                                 <div><label class="block mb-1 text-[13px] text-gray-700">部門 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option>請選擇</option></select></div>
+                                <div><label class="block mb-1 text-[13px] text-gray-700">組別 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option>請選擇</option></select></div>
                             </div>
                             <div class="px-4 pb-4 grid grid-cols-5 gap-x-5 gap-y-5">
                                 <div class="col-span-5 flex items-center gap-2 border-t border-gray-100 pt-3 mt-1"><input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-blue-600 cursor-pointer"><label class="text-[13px] text-gray-700">總部審批</label><span class="text-gray-400 text-[12px]">（「BU4 獨立項目」或「非本地實體公司」請勾選）</span></div>
@@ -1158,8 +1186,8 @@
                                 <div><label class="block mb-1 text-[13px] text-gray-700">費用類型 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option value="">請選擇</option><option>一般费用</option><option>人力成本及猎头费</option><option>佣金返点</option><option>其他壞帳審批</option><option>區域備用金（僅限資金部使用）</option><option>员工福利及團建費</option><option>子表單B（申請費用）</option><option>差旅報銷線</option><option>應收壞帳</option><option>私帳</option><option>私帳項目審批線</option><option>績效審批線</option></select></div>
                                 <div class="col-start-1"><label class="block mb-1 text-[13px] text-gray-700">申請人 <span class="text-red-500">*</span></label><div class="relative applicant-combo" id="ptac-applicant-combo"><input type="text" autocomplete="off" placeholder="搜尋人名 / 工號" class="applicant-input w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><div class="applicant-list hidden absolute z-30 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto text-[13px]"></div></div></div>
                                 <div><label class="block mb-1 text-[13px] text-gray-700">區域 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option>請選擇</option></select></div>
-                                <div><label class="block mb-1 text-[13px] text-gray-700">項目 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option>請選擇</option></select></div>
                                 <div><label class="block mb-1 text-[13px] text-gray-700">部門 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option>請選擇</option></select></div>
+                                <div><label class="block mb-1 text-[13px] text-gray-700">組別 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option>請選擇</option></select></div>
                             </div>
                             <div class="px-4 pb-4 grid grid-cols-5 gap-x-5 gap-y-5">
                                 <div class="col-span-5 flex items-center gap-2 border-t border-gray-100 pt-3 mt-1"><input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-blue-600 cursor-pointer"><label class="text-[13px] text-gray-700">總部審批</label><span class="text-gray-400 text-[12px]">（「BU4 獨立項目」或「非本地實體公司」請勾選）</span></div>
@@ -1546,8 +1574,8 @@
                                 <div><label class="block mb-1 text-[13px]">主旨 *</label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"></div>
                                 <div><label class="block mb-1 text-[13px]">出差類型 *</label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option value="" disabled selected>請選擇</option><option>商務出差</option><option>內務出差</option><option>新員工入職</option><option>人員轉移</option><option>簽證事宜</option></select></div>
                                 <div class="col-start-1"><label class="block mb-1 text-[13px]">申請人 *</label><div class="relative applicant-combo" id="pta-applicant-combo"><input type="text" autocomplete="off" placeholder="搜尋人名 / 工號" class="applicant-input w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><div class="applicant-list hidden absolute z-30 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto text-[13px]"></div></div></div>
-                                <div><label class="block mb-1 text-[13px]">項目 *</label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option>請選擇</option></select></div>
                                 <div><label class="block mb-1 text-[13px]">部門 *</label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option>請選擇</option></select></div>
+                                <div><label class="block mb-1 text-[13px]">組別 *</label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option>請選擇</option></select></div>
                                 <div><label class="block mb-1 text-[13px]">職稱</label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"></div>
                                 <div><label class="block mb-1 text-[13px]">職級</label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option>請選擇</option><option>P1</option><option>P2</option><option>P3</option><option>P4</option><option>P5</option><option>P6</option><option>P7</option><option>P8</option><option>P9</option><option>P10</option><option>P11</option><option>P12</option><option>M1</option><option>M2</option><option>M3</option><option>M4</option><option>M5</option><option>M6</option><option>M7</option><option>M8</option><option>M9</option><option>BOSS</option></select></div>
                                 <div class="col-start-1"><label class="block mb-1 text-[13px]">長駐區域 *</label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option>請選擇</option></select></div>
@@ -1883,8 +1911,8 @@
                                 <div><label class="block mb-1 text-[13px]">主旨 *</label><input type="text" class="w-full border rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none" placeholder="選定「區域」和「項目」後自動生成主旨"></div>
                                 <div class="col-start-1"><label class="block mb-1 text-[13px]">申請人 *</label><div class="relative applicant-combo" id="tr-applicant-combo"><input type="text" autocomplete="off" placeholder="搜尋人名 / 工號" class="applicant-input w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><div class="applicant-list hidden absolute z-30 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto text-[13px]"></div></div></div>
                                 <div><label class="block mb-1 text-[13px]">區域 *</label><select class="w-full border rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option>請選擇</option></select></div>
-                                <div><label class="block mb-1 text-[13px]">項目 *</label><select class="w-full border border-red-300 rounded px-3 py-1.5 text-[13px] focus:border-red-500 outline-none"><option>請選擇</option></select><span class="text-red-500 text-[11px] mt-1 block">請輸入項目名稱</span></div>
-                                <div><label class="block mb-1 text-[13px] font-medium">部門 *</label><select class="w-full border border-red-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option>請選擇</option></select><span class="text-red-500 text-[11px] mt-1 block">請選擇部門</span></div>
+                                <div><label class="block mb-1 text-[13px]">部門 *</label><select class="w-full border border-red-300 rounded px-3 py-1.5 text-[13px] focus:border-red-500 outline-none"><option>請選擇</option></select><span class="text-red-500 text-[11px] mt-1 block">請輸入項目名稱</span></div>
+                                <div><label class="block mb-1 text-[13px] font-medium">組別 *</label><select class="w-full border border-red-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option>請選擇</option></select><span class="text-red-500 text-[11px] mt-1 block">請選擇部門</span></div>
                             </div>
                             <div class="px-4 pb-4 grid grid-cols-5 gap-x-5 gap-y-5">
                                 <div class="flex flex-col justify-start"><label class="block mb-1 text-[13px]">總部審批</label><input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-blue-600 cursor-pointer"><span class="text-red-500 text-[11px] mt-1 block">BU4 獨立項目”或“非本地實體公司”請選擇</span></div>
@@ -2018,7 +2046,7 @@
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">主旨 <span class="text-red-500">*</span></label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"></div>
                         </div>
                         <div class="px-4 pb-4 grid grid-cols-5 gap-x-5 gap-y-5">
-                            <div><label class="block mb-1.5 text-[13px] text-gray-700">項目 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇項目</option></select></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">部門 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇項目</option></select></div>
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">區域 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option></select></div>
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">申請部門 <span class="text-red-500">*</span></label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"></div>
                         </div>
@@ -2135,8 +2163,8 @@
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">主旨 <span class="text-red-500">*</span></label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"></div>
                             <div class="col-start-1"><label class="block mb-1.5 text-[13px] text-gray-700">申請人 <span class="text-red-500">*</span></label><div class="relative applicant-combo" id="ar-applicant-combo"><input type="text" autocomplete="off" placeholder="搜尋人名 / 工號" class="applicant-input w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><div class="applicant-list hidden absolute z-30 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto text-[13px]"></div></div></div>
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">區域 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option></select></div>
-                            <div><label class="block mb-1.5 text-[13px] text-gray-700">項目 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇項目</option></select></div>
-                            <div><label class="block mb-1.5 text-[13px] text-gray-700">部門 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option></select></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">部門 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇項目</option></select></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">組別 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option></select></div>
                         </div>
                         <div class="px-4 pb-4 grid grid-cols-5 gap-x-5 gap-y-5">
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">減少原因 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option><option>正常報廢</option><option>其他報廢</option><option>內部出售</option><option>外部出售</option><option>人員賠償</option></select></div>
@@ -2247,8 +2275,8 @@
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">主旨 <span class="text-red-500">*</span></label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"></div>
                             <div class="col-start-1"><label class="block mb-1.5 text-[13px] text-gray-700">申請人 <span class="text-red-500">*</span></label><div class="relative applicant-combo" id="ic-applicant-combo"><input type="text" autocomplete="off" placeholder="搜尋人名 / 工號" class="applicant-input w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><div class="applicant-list hidden absolute z-30 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto text-[13px]"></div></div></div>
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">區域 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option></select></div>
-                            <div><label class="block mb-1.5 text-[13px] text-gray-700">項目 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇項目</option></select></div>
-                            <div><label class="block mb-1.5 text-[13px] text-gray-700">部門 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option></select></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">部門 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇項目</option></select></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">組別 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option></select></div>
                         </div>
                         <div class="px-4 pb-4 grid grid-cols-5 gap-x-5 gap-y-5">
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">是否為遊戲供應商帳單</label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option value="">否</option><option value="1">是</option></select></div>
@@ -2330,8 +2358,8 @@
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">主旨 <span class="text-red-500">*</span></label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"></div>
                             <div class="col-start-1"><label class="block mb-1.5 text-[13px] text-gray-700">申請人 <span class="text-red-500">*</span></label><div class="relative applicant-combo" id="bu-applicant-combo"><input type="text" autocomplete="off" placeholder="搜尋人名 / 工號" class="applicant-input w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><div class="applicant-list hidden absolute z-30 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto text-[13px]"></div></div></div>
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">區域 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option></select></div>
-                            <div><label class="block mb-1.5 text-[13px] text-gray-700">項目 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇項目</option></select></div>
-                            <div><label class="block mb-1.5 text-[13px] text-gray-700">部門 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option></select></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">部門 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇項目</option></select></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">組別 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option></select></div>
                         </div>
                         <div class="px-4 pb-4 grid grid-cols-5 gap-x-5 gap-y-5">
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">公告分類 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option></select></div>
@@ -2434,8 +2462,8 @@
                             <div class="col-span-5"><label class="inline-flex items-center gap-1.5 text-[13px] text-gray-600 cursor-pointer select-none"><input type="checkbox" onchange="stToggleProxy(this)" class="w-3.5 h-3.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"> 代他人申請</label></div>
                             <div class="col-start-1"><label id="seyin-applicant-label" class="block mb-1.5 text-[13px] text-gray-700">申請人 <span class="text-red-500">*</span></label><div class="relative applicant-combo" id="seyin-applicant-combo"><input type="text" autocomplete="off" placeholder="搜尋人名 / 工號" class="applicant-input w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><div class="applicant-list hidden absolute z-30 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto text-[13px]"></div></div></div>
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">區域 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option></select></div>
-                            <div><label class="block mb-1.5 text-[13px] text-gray-700">項目 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇項目</option></select></div>
-                            <div><label class="block mb-1.5 text-[13px] text-gray-700">部門 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇部門</option></select></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">部門 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇項目</option></select></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">組別 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇部門</option></select></div>
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">公司 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option value="" disabled selected>請選擇</option><option>台灣總部 (TC)</option><option>香港分公司 (HK)</option><option>新加坡分公司 (SG)</option><option>馬來西亞分公司 (MY)</option></select></div>
                             <div id="seyin-proxy-reason-wrap" class="col-span-5 hidden"><label class="block mb-1.5 text-[13px] text-gray-700">代申請原因 <span class="text-red-500">*</span></label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500" placeholder="請說明代他人申請的原因"></div>
                         </div>
@@ -2549,8 +2577,8 @@
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">主旨 <span class="text-red-500">*</span></label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"></div>
                             <div class="col-start-1"><label class="block mb-1.5 text-[13px] text-gray-700">申請人 <span class="text-red-500">*</span></label><div class="relative applicant-combo" id="vm-applicant-combo"><input type="text" autocomplete="off" placeholder="搜尋人名 / 工號" class="applicant-input w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><div class="applicant-list hidden absolute z-30 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto text-[13px]"></div></div></div>
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">區域 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option></select></div>
-                            <div><label class="block mb-1.5 text-[13px] text-gray-700">項目 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇項目</option></select></div>
-                            <div><label class="block mb-1.5 text-[13px] text-gray-700">部門 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇部門</option></select></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">部門 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇項目</option></select></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">組別 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇部門</option></select></div>
                         </div>
                     </div>
 
@@ -2634,8 +2662,8 @@
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">主旨 <span class="text-red-500">*</span></label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"></div>
                             <div class="col-start-1"><label class="block mb-1.5 text-[13px] text-gray-700">申請人 <span class="text-red-500">*</span></label><div class="relative applicant-combo" id="cv-applicant-combo"><input type="text" autocomplete="off" placeholder="搜尋人名 / 工號" class="applicant-input w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><div class="applicant-list hidden absolute z-30 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto text-[13px]"></div></div></div>
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">區域 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option></select></div>
-                            <div><label class="block mb-1.5 text-[13px] text-gray-700">項目 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇項目</option></select></div>
-                            <div><label class="block mb-1.5 text-[13px] text-gray-700">部門 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇部門</option></select></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">部門 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇項目</option></select></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">組別 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇部門</option></select></div>
                         </div>
                     </div>
 
@@ -2718,8 +2746,8 @@
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">主旨 <span class="text-red-500">*</span></label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"></div>
                             <div class="col-start-1"><label class="block mb-1.5 text-[13px] text-gray-700">申請人 <span class="text-red-500">*</span></label><div class="relative applicant-combo" id="sec-applicant-combo"><input type="text" autocomplete="off" placeholder="搜尋人名 / 工號" class="applicant-input w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><div class="applicant-list hidden absolute z-30 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto text-[13px]"></div></div></div>
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">區域 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option></select></div>
-                            <div><label class="block mb-1.5 text-[13px] text-gray-700">項目 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇項目</option></select></div>
-                            <div><label class="block mb-1.5 text-[13px] text-gray-700">部門 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇部門</option></select></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">部門 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇項目</option></select></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">組別 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇部門</option></select></div>
                         </div>
                     </div>
 
@@ -2803,7 +2831,7 @@
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">主旨 <span class="text-red-500">*</span></label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"></div>
                             <div class="col-start-1"><label class="block mb-1.5 text-[13px] text-gray-700">申請人</label><input type="text" value="Nick（100064）" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed" disabled></div>
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">區域</label><input type="text" value="THQ" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed" disabled></div>
-                            <div><label class="block mb-1.5 text-[13px] text-gray-700">項目</label><input type="text" value="GT" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed" disabled></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">部門</label><input type="text" value="GT" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed" disabled></div>
                         </div>
                     </div>
 
@@ -2907,7 +2935,7 @@
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">主旨 <span class="text-red-500">*</span></label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"></div>
                             <div class="col-start-1"><label class="block mb-1.5 text-[13px] text-gray-700">申請人</label><input type="text" value="Nick（100064）" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed" disabled></div>
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">區域</label><input type="text" value="THQ" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed" disabled></div>
-                            <div><label class="block mb-1.5 text-[13px] text-gray-700">項目</label><input type="text" value="GT" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed" disabled></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">部門</label><input type="text" value="GT" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed" disabled></div>
                         </div>
                     </div>
 
@@ -3006,7 +3034,7 @@
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">主旨 <span class="text-red-500">*</span></label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"></div>
                             <div class="col-start-1"><label class="block mb-1.5 text-[13px] text-gray-700">申請人 <span class="text-red-500">*</span></label><div class="relative applicant-combo" id="sp-applicant-combo"><input type="text" autocomplete="off" placeholder="搜尋人名 / 工號" class="applicant-input w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><div class="applicant-list hidden absolute z-30 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto text-[13px]"></div></div></div>
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">區域 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option></select></div>
-                            <div><label class="block mb-1.5 text-[13px] text-gray-700">項目 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option></select></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">部門 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option></select></div>
                         </div>
                     </div>
 
@@ -3097,7 +3125,7 @@
                         </div>
                         <div class="px-4 pb-4 grid grid-cols-5 gap-x-5 gap-y-5">
                             <div>
-                                <label class="block mb-1.5 text-[13px] text-gray-700">項目 <span class="text-red-500">*</span></label>
+                                <label class="block mb-1.5 text-[13px] text-gray-700">部門 <span class="text-red-500">*</span></label>
                                 <select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option></select>
                             </div>
                             <div>
@@ -3358,11 +3386,11 @@
                                 <select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option></select>
                             </div>
                             <div>
-                                <label class="block mb-1.5 text-[13px] text-gray-700">項目 <span class="text-red-500">*</span></label>
+                                <label class="block mb-1.5 text-[13px] text-gray-700">部門 <span class="text-red-500">*</span></label>
                                 <select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option></select>
                             </div>
                             <div>
-                                <label class="block mb-1.5 text-[13px] text-gray-700">部門 <span class="text-red-500">*</span></label>
+                                <label class="block mb-1.5 text-[13px] text-gray-700">組別 <span class="text-red-500">*</span></label>
                                 <select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option></select>
                             </div>
                         </div>
@@ -3508,11 +3536,11 @@
                                 <select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500 bg-white"><option>D區</option><option>U區</option><option>KL區</option><option>未設定</option></select>
                             </div>
                             <div>
-                                <label class="block mb-1.5 text-[13px] text-gray-700">項目 <span class="text-red-500">*</span></label>
+                                <label class="block mb-1.5 text-[13px] text-gray-700">部門 <span class="text-red-500">*</span></label>
                                 <select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500 bg-white"><option>行政</option><option>營運</option><option>技術</option><option>未設定</option></select>
                             </div>
                             <div>
-                                <label class="block mb-1.5 text-[13px] text-gray-700">部門 <span class="text-red-500">*</span></label>
+                                <label class="block mb-1.5 text-[13px] text-gray-700">組別 <span class="text-red-500">*</span></label>
                                 <select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500 bg-white"><option>行政部</option><option>營運部</option><option>技術部</option><option>未設定</option></select>
                             </div>
                         </div>
@@ -3760,7 +3788,7 @@
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">主旨 <span class="text-red-500">*</span></label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"></div>
                             <div class="col-start-1"><label class="block mb-1.5 text-[13px] text-gray-700">申請人 <span class="text-red-500">*</span></label><div class="relative applicant-combo" id="pmo-applicant-combo"><input type="text" autocomplete="off" placeholder="搜尋人名 / 工號" class="applicant-input w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><div class="applicant-list hidden absolute z-30 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto text-[13px]"></div></div></div>
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">區域 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option></select></div>
-                            <div><label class="block mb-1.5 text-[13px] text-gray-700">項目 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option></select></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">部門 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option></select></div>
                         </div>
                     </div>
 
@@ -3935,7 +3963,7 @@
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">主旨 <span class="text-red-500">*</span></label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"></div>
                             <div class="col-start-1"><label class="block mb-1.5 text-[13px] text-gray-700">申請人 <span class="text-red-500">*</span></label><div class="relative applicant-combo" id="pmoa-applicant-combo"><input type="text" autocomplete="off" placeholder="搜尋人名 / 工號" class="applicant-input w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><div class="applicant-list hidden absolute z-30 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto text-[13px]"></div></div></div>
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">區域 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option></select></div>
-                            <div><label class="block mb-1.5 text-[13px] text-gray-700">項目 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option></select></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">部門 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option></select></div>
                         </div>
                     </div>
 
@@ -4110,7 +4138,7 @@
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">主旨 <span class="text-red-500">*</span></label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"></div>
                             <div class="col-start-1"><label class="block mb-1.5 text-[13px] text-gray-700">申請人 <span class="text-red-500">*</span></label><div class="relative applicant-combo" id="pmos-applicant-combo"><input type="text" autocomplete="off" placeholder="搜尋人名 / 工號" class="applicant-input w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><div class="applicant-list hidden absolute z-30 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto text-[13px]"></div></div></div>
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">區域 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option></select></div>
-                            <div><label class="block mb-1.5 text-[13px] text-gray-700">項目 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option></select></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">部門 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option></select></div>
                         </div>
                     </div>
 
@@ -4580,11 +4608,11 @@
                                 <select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option></select>
                             </div>
                             <div>
-                                <label class="block mb-1.5 text-[13px] text-gray-700">項目</label>
+                                <label class="block mb-1.5 text-[13px] text-gray-700">部門</label>
                                 <select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇項目</option></select>
                             </div>
                             <div>
-                                <label class="block mb-1.5 text-[13px] text-gray-700">部門</label>
+                                <label class="block mb-1.5 text-[13px] text-gray-700">組別</label>
                                 <select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇部門</option></select>
                             </div>
                             <div>
@@ -4700,11 +4728,11 @@
                                 <select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option></select>
                             </div>
                             <div>
-                                <label class="block mb-1.5 text-[13px] text-gray-700">部門</label>
+                                <label class="block mb-1.5 text-[13px] text-gray-700">組別</label>
                                 <select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇部門</option></select>
                             </div>
                             <div>
-                                <label class="block mb-1.5 text-[13px] text-gray-700">項目</label>
+                                <label class="block mb-1.5 text-[13px] text-gray-700">部門</label>
                                 <select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇項目</option></select>
                             </div>
                             <div>
@@ -5978,9 +6006,9 @@
                 Object.keys(PROJECT_DEPT).map(p => `<option value="${esc(p)}">${esc(p)}</option>`).join('');
             const roleOf = (sel) => {
                 const lab = sel.previousElementSibling;
-                const txt = (lab && lab.tagName === 'LABEL') ? lab.textContent : '';
-                if (/項目/.test(txt)) return 'project';
-                if (/部門/.test(txt)) return 'dept';
+                const t = (lab && lab.tagName === 'LABEL') ? lab.textContent.trim() : '';
+                if (t.startsWith('組別')) return 'dept';   // 原「部門」欄，標籤已改為「組別」
+                if (t.startsWith('部門')) return 'project'; // 原「項目」欄，標籤已改為「部門」
                 return null;
             };
             // 以各表單彈窗為範圍，配對「項目 → 緊接其後的部門」
@@ -6297,6 +6325,67 @@
 
         // 資產調撥：帶入人員資產（開啟搜尋彈窗；查到人員→顯示資產→帶回表格）
         let _aaImportTarget = null, _aaImportRows = [], _aaImportName = '';
+        // 資產編號確認：示範資產庫（編號 → 所屬地區）
+        const AA_ASSET_DB = {
+            'A-THQ-000001': 'THQ', 'A-THQ-000002': 'THQ', 'A-D-000001': 'D', 'A-D-000002': 'D',
+            'A-U-000001': 'U', 'A-T1-000001': 'T1', 'A-T2-000001': 'T2', 'A-S-000001': 'S', 'A-K-000001': 'K'
+        };
+        let _aaCheckTarget = null;
+        function aaOpenAssetCheck(input) {
+            // 先檢查表單是否已選擇轉出地區；未選則直接提示，不開彈窗
+            const region = (document.getElementById('aa-out-region') || {}).value || '';
+            if (!region) { showSaveToast('請先選擇「轉出地區」'); return; }
+            _aaCheckTarget = input;
+            document.getElementById('aa-check-region').textContent = region;
+            const no = document.getElementById('aa-check-no');
+            no.value = input.value || '';
+            const msg = document.getElementById('aa-check-msg');
+            msg.classList.add('hidden'); msg.textContent = '';
+            document.getElementById('aa-check-modal').classList.remove('hidden');
+            if (window.lucide) lucide.createIcons();
+            setTimeout(() => no.focus(), 30);
+        }
+        function aaCloseCheck() { document.getElementById('aa-check-modal').classList.add('hidden'); _aaCheckTarget = null; }
+        // 檢視詳情 icon：未填資產編號前為 disable
+        function aaSyncEye(input) {
+            if (!input) return;
+            const btn = input.parentElement && input.parentElement.querySelector('.aa-eye-btn');
+            if (!btn) return;
+            const has = !!(input.value && input.value.trim());
+            btn.disabled = !has;
+            btn.classList.toggle('opacity-40', !has);
+            btn.classList.toggle('cursor-not-allowed', !has);
+            btn.classList.toggle('hover:text-[#4A90E2]', has);
+        }
+        function aaSyncAllEyes() {
+            document.querySelectorAll('.aa-eye-btn').forEach(btn => {
+                const input = btn.parentElement && btn.parentElement.querySelector('input');
+                aaSyncEye(input);
+            });
+        }
+        function aaConfirmAsset() {
+            const region = (document.getElementById('aa-out-region') || {}).value || '';
+            const no = (document.getElementById('aa-check-no').value || '').trim();
+            const msg = document.getElementById('aa-check-msg');
+            const show = (text, ok) => {
+                msg.textContent = text;
+                msg.className = 'text-[13px] rounded-md px-3 py-2 ' + (ok ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200');
+                msg.classList.remove('hidden');
+            };
+            if (!no) { show('請輸入資產編號', false); return; }
+            // Demo 情境：111 查無、222 不在轉出地區、333 正確
+            if (no === '111') { show('查無此資產編號，請確認資產是否存在。', false); return; }
+            if (no === '222') { show('此資產所屬不在所選的轉出地區', false); return; }
+            if (no !== '333') {
+                const assetRegion = AA_ASSET_DB[no];
+                if (!assetRegion) { show('查無此資產編號，請確認資產是否存在。', false); return; }
+                if (assetRegion !== region) { show('此資產所屬不在所選的轉出地區', false); return; }
+            }
+            // 通過：回寫資產編號
+            if (_aaCheckTarget) { _aaCheckTarget.value = no; aaSyncEye(_aaCheckTarget); }
+            showSaveToast('資產 ' + no + ' 確認成功');
+            aaCloseCheck();
+        }
         function aaCloseAssetDetail() { document.getElementById('aa-asset-detail-modal').classList.add('hidden'); }
         function aaAssetDetail(btn) {
             const input = btn.closest('.relative').querySelector('input');
@@ -6327,6 +6416,9 @@
             if (window.lucide) lucide.createIcons();
         }
         function aaImportPersonAssets(btn) {
+            // 先檢查是否已選擇轉出地區；未選則提示並中止
+            const region = (document.getElementById('aa-out-region') || {}).value || '';
+            if (!region) { showSaveToast('請先選擇「轉出地區」'); return; }
             const block = btn.closest('.bg-white');
             _aaImportTarget = block && block.querySelector('table tbody');
             _aaImportRows = []; _aaImportName = '';
@@ -6374,6 +6466,7 @@
             });
             _renumberSeq(_aaImportTarget);
             if (window.lucide) lucide.createIcons();
+            aaSyncAllEyes();
             if (typeof showSaveToast === 'function') showSaveToast('已帶入「' + _aaImportName + '」的資產（' + _aaImportRows.length + ' 筆）');
             aaImportClose();
         }
@@ -7117,8 +7210,9 @@
             const lb = wrap && wrap.querySelector('label');
             return lb ? lb.textContent.trim() : '';
         }
-        const isProjectLabel = t => t.startsWith('項目');
-        const isDeptLabel = t => t.startsWith('部門');
+        // 表格欄位仍用「項目/部門」；基本資訊欄位已改標籤為「部門/組別」，兩者皆需辨識
+        const isProjectLabel = t => t.startsWith('項目') || t.startsWith('部門');
+        const isDeptLabel = t => t.startsWith('組別') || t.startsWith('部門');
 
         function fillProject(sel) {
             const ph = sel.options[0] ? sel.options[0].textContent : '請選擇項目';
@@ -7202,12 +7296,12 @@
             if (titleEl) titleEl.value = pick(TITLES);
             setSelect(fieldByLabel('職級'), pick(GRADES));
             setSelect(fieldByLabel('長駐區域'), pick(REGIONS));
-            const projSel = fieldByLabel('項目');
+            const projSel = fieldByLabel('部門');
             if (projSel) {
                 setSelect(projSel, project);
                 projSel.dispatchEvent(new Event('change', { bubbles: true })); // 觸發部門連動
             }
-            setSelect(fieldByLabel('部門'), dept);
+            setSelect(fieldByLabel('組別'), dept);
 
             // 隨身資產／聯絡方式：同樣由人員資料帶入預設（仍可編輯）
             const asset = document.getElementById('pta-sec-asset');
@@ -7244,12 +7338,12 @@
             const project = PROJECTS[h % PROJECTS.length];
             const depts = PROJECT_DEPT_MAP[project] || [];
             const dept = depts.length ? depts[h % depts.length] : '';
-            const projSel = fieldByLabel('項目');
+            const projSel = fieldByLabel('部門');
             if (projSel) {
                 setSelect(projSel, project);
                 projSel.dispatchEvent(new Event('change', { bubbles: true })); // 觸發部門連動
             }
-            setSelect(fieldByLabel('部門'), dept);
+            setSelect(fieldByLabel('組別'), dept);
             setSelect(fieldByLabel('區域'), REGIONS[h % REGIONS.length]);
         }
 
