@@ -2362,6 +2362,7 @@
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">組別 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option></select></div>
                         </div>
                         <div class="px-4 pb-4 grid grid-cols-5 gap-x-5 gap-y-5">
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">事業部(公告) <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500 bg-white"><option value="" disabled selected>請選擇</option><option>BU1</option><option>BU2</option></select></div>
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">公告分類 <span class="text-red-500">*</span></label><select id="bu-category" onchange="buCategoryChange(this.value)" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option value="" disabled selected>請選擇</option><option>一般公告</option><option>重要公告(無合同)</option><option>重要公告(有合同)</option><option>壞帳</option><option>賠付</option><option>佣金返點</option></select></div>
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">公告類別 <span class="text-red-500">*</span></label><select id="bu-subcategory" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option value="" disabled selected>請先選擇公告分類</option></select></div>
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">貨幣</label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>CNY</option><option>TWD</option><option>USD</option></select></div>
@@ -3208,23 +3209,14 @@
                                             <label class="block mb-1.5 text-[13px] text-gray-700">資產狀態 <span class="text-red-500">*</span></label>
                                             <select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option></select>
                                         </div>
-                                        <div>
-                                            <label class="block mb-1.5 text-[13px] text-gray-700">所屬項目 <span class="text-red-500">*</span></label>
-                                            <select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option></select>
-                                        </div>
-                                        <div>
-                                            <label class="block mb-1.5 text-[13px] text-gray-700">所屬部門 <span class="text-red-500">*</span></label>
-                                            <select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option></select>
-                                        </div>
                                         <div class="relative person-combo">
                                             <label class="block mb-1.5 text-[13px] text-gray-700">使用人 <span class="text-red-500">*</span></label>
                                             <input type="text" autocomplete="off" placeholder="搜尋工號 / 姓名" class="person-input w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500">
                                             <div class="person-list hidden absolute z-30 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto text-[13px]"></div>
                                         </div>
-                                        <div class="relative person-combo">
-                                            <label class="block mb-1.5 text-[13px] text-gray-700">管理者 <span class="text-red-500">*</span></label>
-                                            <input type="text" autocomplete="off" placeholder="搜尋工號 / 姓名" class="person-input w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500">
-                                            <div class="person-list hidden absolute z-30 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto text-[13px]"></div>
+                                        <div>
+                                            <label class="block mb-1.5 text-[13px] text-gray-700">管理人 <span class="text-red-500">*</span></label>
+                                            <select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500 bg-white"><option value="" disabled selected>請選擇</option><option>地區資產管理人</option><option>中心資產管理人</option></select>
                                         </div>
                                     </div>
 
