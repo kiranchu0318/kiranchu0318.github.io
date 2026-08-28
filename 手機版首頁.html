@@ -339,7 +339,7 @@
                 <div class="flex items-start gap-2.5 min-w-0">
                     <span class="w-7 h-7 rounded-full bg-blue-50 text-[#4A90E2] flex items-center justify-center text-[12px] font-bold shrink-0">${i+1}</span>
                     <div class="text-[13px] min-w-0">
-                        <div class="text-gray-800 font-medium mb-1 break-words">${o.reason}</div>
+                        <div class="flex items-start gap-1.5 text-gray-800 font-medium mb-1 min-w-0"><i data-lucide="clipboard-list" class="w-3.5 h-3.5 text-[#4A90E2] mt-0.5 shrink-0"></i><span class="min-w-0 break-words whitespace-normal"><span class="text-gray-400 font-normal">事由：</span>${o.reason}</span></div>
                         <div class="flex items-center gap-1.5 text-gray-700"><i data-lucide="door-open" class="w-3.5 h-3.5 text-amber-500"></i> 外出 <span class="font-bold ml-0.5">${o.out}</span></div>
                         <div class="flex items-center gap-1.5 text-gray-700 mt-0.5"><i data-lucide="door-closed" class="w-3.5 h-3.5 text-emerald-500"></i> 返回 <span class="font-bold ml-0.5">${o.back ?? '—'}</span></div>
                     </div>
