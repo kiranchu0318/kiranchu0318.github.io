@@ -340,6 +340,23 @@
       const [activeExportModal, setActiveExportModal] = useState(null);
       const [selectedBookkeeping, setSelectedBookkeeping] = useState([]);
       const [pendingApprovalOnly, setPendingApprovalOnly] = useState(false);
+      // 匯出彈窗的篩選維度（地區 / 事業部・中心 / 部門 / 組別 / 公司），各維度可複選
+      const EXPORT_DIMENSIONS = [
+        { key: 'region',  label: '地區',      options: ['D', 'F', 'IM', 'J', 'K', 'M', 'S', 'T1', 'T2', 'T3', 'T4'] },
+        { key: 'bu',      label: '事業部/中心', options: ['BU1', 'BU2', 'BU4', 'GT', 'RDC', 'NOC', 'CSC', 'FAC', 'HRC', 'ADC'] },
+        { key: 'dept',    label: '部門',      options: ['行政部', '人事部', '財務部', '研發部', '運維部', '客服部', '法務部', '內審部'] },
+        { key: 'team',    label: '組別',      options: ['API', 'YL', 'LY', 'KX', 'SP', 'BUZ', 'BST', 'MIS'] },
+        { key: 'company', label: '公司',      options: ['RG', 'LKG', 'KX', 'BOSS'] },
+      ];
+      const [exportDims, setExportDims] = useState({ region: [], bu: [], dept: [], team: [], company: [] });
+      const toggleExportDim = (dimKey, opt) => setExportDims(prev => {
+        const cur = prev[dimKey] || [];
+        return { ...prev, [dimKey]: cur.includes(opt) ? cur.filter(x => x !== opt) : [...cur, opt] };
+      });
+      const toggleExportDimAll = (dim) => setExportDims(prev => {
+        const cur = prev[dim.key] || [];
+        return { ...prev, [dim.key]: cur.length === dim.options.length ? [] : [...dim.options] };
+      });
       const [withdrawConfirmItem, setWithdrawConfirmItem] = useState(null);
 
       // 批量審批相關狀態與假資料
@@ -910,7 +927,7 @@
 
                     {/* 匯出按鈕 */}
                     <div className="flex flex-wrap gap-2 justify-end">
-                      {['記帳匯出', '資金支付匯出', '費用會計匯出', '匯出 Excel', '匯出資料'].map((btn, i) => (
+                      {['記帳匯出', '資金支付匯出', '費用會計匯出', '匯出 Excel'].map((btn, i) => (
                         <button 
                           key={i} 
                           onClick={() => {
@@ -1715,7 +1732,7 @@
                             >
                               <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${showOpinions ? 'translate-x-6' : 'translate-x-1'}`} />
                             </button>
-                            {(modalRow?.label || '').includes('招聘需求單') && (
+                            {((modalRow?.label || '').includes('招聘需求單') || (modalRow?.label || '').includes('員工帳號申請')) && (
                               <button onClick={addCountersign} className="ui-btn ui-btn-sm bg-white text-[#3F51B5] border border-[#3F51B5]/40 hover:bg-[#3F51B5]/5">＋ 加簽</button>
                             )}
                           </div>
@@ -2592,60 +2609,49 @@
                   </button>
                 </div>
 
-                {/* 內容區 */}
-                <div className="p-6 bg-white">
-                  {activeExportModal === 'bookkeeping' ? (
-                    <div className="space-y-3">
-                      <label className="block text-gray-700 text-sm font-medium mb-2">地區</label>
-                      <div className="border border-red-500 rounded p-4 max-h-[350px] overflow-y-auto">
-                        <div 
-                          onClick={() => {
-                            const bookkeepingList = ['D', 'F', 'IM', 'J', 'K', 'M', 'S', 'T1', 'T2', 'T3', 'T4'];
-                            if (selectedBookkeeping.length === bookkeepingList.length) {
-                              setSelectedBookkeeping([]);
-                            } else {
-                              setSelectedBookkeeping([...bookkeepingList]);
-                            }
-                          }}
-                          className="text-[#4CAF50] text-[13px] font-bold cursor-pointer hover:underline mb-2.5 inline-block"
-                        >
-                          Select All
+                {/* 內容區：五個篩選維度（地區 / 事業部・中心 / 部門 / 組別 / 公司）*/}
+                <div className="p-6 bg-white max-h-[420px] overflow-y-auto space-y-4">
+                  {EXPORT_DIMENSIONS.map(dim => {
+                    const sel = exportDims[dim.key] || [];
+                    const allOn = sel.length === dim.options.length;
+                    return (
+                      <div key={dim.key}>
+                        <div className="flex items-center justify-between mb-2">
+                          <label className="block text-gray-700 text-sm font-medium">{dim.label}</label>
+                          <span
+                            onClick={() => toggleExportDimAll(dim)}
+                            className="text-[#4CAF50] text-[12px] font-bold cursor-pointer hover:underline"
+                          >
+                            {allOn ? '取消全選' : '全選'}
+                          </span>
                         </div>
-                        <div className="h-px bg-gray-100 mb-2"></div>
-                        <div className="space-y-1">
-                          {['D', 'F', 'IM', 'J', 'K', 'M', 'S', 'T1', 'T2', 'T3', 'T4'].map(opt => (
-                            <label key={opt} className="flex items-center gap-3 py-1.5 px-2 hover:bg-gray-50 rounded cursor-pointer transition-colors">
-                              <input 
-                                type="checkbox"
-                                checked={selectedBookkeeping.includes(opt)}
-                                onChange={() => {
-                                  if (selectedBookkeeping.includes(opt)) {
-                                    setSelectedBookkeeping(selectedBookkeeping.filter(x => x !== opt));
-                                  } else {
-                                    setSelectedBookkeeping([...selectedBookkeeping, opt]);
-                                  }
-                                }}
-                                className="w-4 h-4 rounded border-gray-300 text-[#4A90E2] focus:ring-[#4A90E2] cursor-pointer" 
-                              />
-                              <span className="text-[13px] text-gray-700">{opt}</span>
-                            </label>
-                          ))}
+                        <div className="border border-gray-200 rounded p-3">
+                          <div className="flex flex-wrap gap-x-4 gap-y-1.5">
+                            {dim.options.map(opt => (
+                              <label key={opt} className="flex items-center gap-2 py-1 px-1.5 hover:bg-gray-50 rounded cursor-pointer transition-colors">
+                                <input
+                                  type="checkbox"
+                                  checked={sel.includes(opt)}
+                                  onChange={() => toggleExportDim(dim.key, opt)}
+                                  className="w-4 h-4 rounded border-gray-300 text-[#4A90E2] focus:ring-[#4A90E2] cursor-pointer"
+                                />
+                                <span className="text-[13px] text-gray-700">{opt}</span>
+                              </label>
+                            ))}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ) : (
-                    <div className="py-4">
-                      <label className="flex items-center gap-3 py-2 px-1 hover:bg-gray-50 rounded cursor-pointer transition-colors">
-                        <input 
-                          type="checkbox"
-                          checked={pendingApprovalOnly}
-                          onChange={(e) => setPendingApprovalOnly(e.target.checked)}
-                          className="w-4 h-4 rounded border-gray-300 text-[#4A90E2] focus:ring-[#4A90E2] cursor-pointer" 
-                        />
-                        <span className="text-[13px] text-gray-700">待我審核</span>
-                      </label>
-                    </div>
-                  )}
+                    );
+                  })}
+                  <label className="flex items-center gap-3 py-2 px-1 hover:bg-gray-50 rounded cursor-pointer transition-colors border-t border-gray-100 mt-2 pt-3">
+                    <input
+                      type="checkbox"
+                      checked={pendingApprovalOnly}
+                      onChange={(e) => setPendingApprovalOnly(e.target.checked)}
+                      className="w-4 h-4 rounded border-gray-300 text-[#4A90E2] focus:ring-[#4A90E2] cursor-pointer"
+                    />
+                    <span className="text-[13px] text-gray-700">待我審核</span>
+                  </label>
                 </div>
 
                 {/* 底部按鈕區 */}
