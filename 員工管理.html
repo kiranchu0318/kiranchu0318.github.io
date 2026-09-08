@@ -1420,101 +1420,94 @@
 
                         <!-- （三）假期總表配置 -->
                         <div>
-                            <h4 class="text-base font-bold text-gray-800 mb-4">假期總表配置</h4>
+                            <div class="flex items-center justify-between mb-4">
+                                <h4 class="text-base font-bold text-gray-800">假期總表配置</h4>
+                                <div class="flex items-center gap-2">
+                                    <button type="button" onclick="openLeaveAdjustModal()" class="px-3 py-1.5 text-sm font-medium text-primary border border-primary rounded-md hover:bg-blue-50 transition-colors whitespace-nowrap"><i class="fa-solid fa-pen-to-square mr-1.5"></i>異動假期時數</button>
+                                    <button type="button" onclick="openLeaveLogModal()" class="px-3 py-1.5 text-sm font-medium text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors whitespace-nowrap"><i class="fa-solid fa-clock-rotate-left mr-1.5"></i>變更記錄</button>
+                                </div>
+                            </div>
                             <div class="border border-gray-200 rounded-lg overflow-x-auto">
                                 <table class="w-full min-w-[720px] text-sm text-gray-800">
                                     <thead>
                                         <tr class="bg-gray-50 text-gray-700 text-left">
                                             <th class="px-4 py-3 font-bold">假期名稱</th>
                                             <th class="px-4 py-3 font-bold">支薪類型</th>
-                                            <th class="px-4 py-3 font-bold">時間單位定義</th>
-                                            <th class="px-4 py-3 font-bold">Increase / Decrease</th>
+                                            <th class="px-4 py-3 font-bold">增減方式</th>
                                             <th class="px-4 py-3 font-bold text-right">總生成時數*</th>
                                         </tr>
                                     </thead>
                                     <tbody class="divide-y divide-gray-100">
                                         <tr>
                                             <td class="px-4 py-2.5">帶薪年假</td>
-                                            <td class="px-4 py-2.5">Paid</td>
-                                            <td class="px-4 py-2.5">8 hours</td>
-                                            <td class="px-4 py-2.5"><span class="inline-block px-2 py-0.5 rounded text-xs font-medium bg-red-50 text-red-600">Decrease</span></td>
+                                            <td class="px-4 py-2.5">支薪</td>
+                                            <td class="px-4 py-2.5"><span class="inline-block px-2 py-0.5 rounded text-xs font-medium bg-red-50 text-red-600">遞減</span></td>
                                             <td class="px-4 py-2.5 text-right">160</td>
                                         </tr>
                                         <tr>
                                             <td class="px-4 py-2.5">事假</td>
-                                            <td class="px-4 py-2.5">Unpaid</td>
-                                            <td class="px-4 py-2.5">8 hours</td>
-                                            <td class="px-4 py-2.5"><span class="inline-block px-2 py-0.5 rounded text-xs font-medium bg-red-50 text-red-600">Decrease</span></td>
+                                            <td class="px-4 py-2.5">不支薪</td>
+                                            <td class="px-4 py-2.5"><span class="inline-block px-2 py-0.5 rounded text-xs font-medium bg-red-50 text-red-600">遞減</span></td>
                                             <td class="px-4 py-2.5 text-right">112</td>
                                         </tr>
                                         <tr>
                                             <td class="px-4 py-2.5">病假</td>
-                                            <td class="px-4 py-2.5">Paid</td>
-                                            <td class="px-4 py-2.5">8 hours</td>
-                                            <td class="px-4 py-2.5"><span class="inline-block px-2 py-0.5 rounded text-xs font-medium bg-red-50 text-red-600">Decrease</span></td>
+                                            <td class="px-4 py-2.5">支薪</td>
+                                            <td class="px-4 py-2.5"><span class="inline-block px-2 py-0.5 rounded text-xs font-medium bg-red-50 text-red-600">遞減</span></td>
                                             <td class="px-4 py-2.5 text-right">16</td>
                                         </tr>
                                         <tr>
                                             <td class="px-4 py-2.5">喪假</td>
-                                            <td class="px-4 py-2.5">Paid</td>
-                                            <td class="px-4 py-2.5">8 hours</td>
-                                            <td class="px-4 py-2.5"><span class="inline-block px-2 py-0.5 rounded text-xs font-medium bg-red-50 text-red-600">Decrease</span></td>
+                                            <td class="px-4 py-2.5">支薪</td>
+                                            <td class="px-4 py-2.5"><span class="inline-block px-2 py-0.5 rounded text-xs font-medium bg-red-50 text-red-600">遞減</span></td>
                                             <td class="px-4 py-2.5 text-right">40</td>
                                         </tr>
                                         <tr>
                                             <td class="px-4 py-2.5">婚假</td>
-                                            <td class="px-4 py-2.5">Paid</td>
-                                            <td class="px-4 py-2.5">8 hours</td>
-                                            <td class="px-4 py-2.5"><span class="inline-block px-2 py-0.5 rounded text-xs font-medium bg-red-50 text-red-600">Decrease</span></td>
+                                            <td class="px-4 py-2.5">支薪</td>
+                                            <td class="px-4 py-2.5"><span class="inline-block px-2 py-0.5 rounded text-xs font-medium bg-red-50 text-red-600">遞減</span></td>
                                             <td class="px-4 py-2.5 text-right">24</td>
                                         </tr>
                                         <tr>
                                             <td class="px-4 py-2.5">生理假</td>
-                                            <td class="px-4 py-2.5">Paid</td>
-                                            <td class="px-4 py-2.5">8 hours</td>
-                                            <td class="px-4 py-2.5"><span class="inline-block px-2 py-0.5 rounded text-xs font-medium bg-red-50 text-red-600">Decrease</span></td>
+                                            <td class="px-4 py-2.5">支薪</td>
+                                            <td class="px-4 py-2.5"><span class="inline-block px-2 py-0.5 rounded text-xs font-medium bg-red-50 text-red-600">遞減</span></td>
                                             <td class="px-4 py-2.5 text-right">8</td>
                                         </tr>
                                         <tr>
                                             <td class="px-4 py-2.5">产假</td>
-                                            <td class="px-4 py-2.5">Paid</td>
-                                            <td class="px-4 py-2.5">8 hours</td>
-                                            <td class="px-4 py-2.5"><span class="inline-block px-2 py-0.5 rounded text-xs font-medium bg-red-50 text-red-600">Decrease</span></td>
+                                            <td class="px-4 py-2.5">支薪</td>
+                                            <td class="px-4 py-2.5"><span class="inline-block px-2 py-0.5 rounded text-xs font-medium bg-red-50 text-red-600">遞減</span></td>
                                             <td class="px-4 py-2.5 text-right">320</td>
                                         </tr>
                                         <tr>
                                             <td class="px-4 py-2.5">产检假</td>
-                                            <td class="px-4 py-2.5">Paid</td>
-                                            <td class="px-4 py-2.5">8 hours</td>
-                                            <td class="px-4 py-2.5"><span class="inline-block px-2 py-0.5 rounded text-xs font-medium bg-red-50 text-red-600">Decrease</span></td>
+                                            <td class="px-4 py-2.5">支薪</td>
+                                            <td class="px-4 py-2.5"><span class="inline-block px-2 py-0.5 rounded text-xs font-medium bg-red-50 text-red-600">遞減</span></td>
                                             <td class="px-4 py-2.5 text-right">40</td>
                                         </tr>
                                         <tr>
                                             <td class="px-4 py-2.5">安胎假</td>
-                                            <td class="px-4 py-2.5">Paid</td>
-                                            <td class="px-4 py-2.5">8 hours</td>
-                                            <td class="px-4 py-2.5"><span class="inline-block px-2 py-0.5 rounded text-xs font-medium bg-green-50 text-green-600">Increase</span></td>
+                                            <td class="px-4 py-2.5">支薪</td>
+                                            <td class="px-4 py-2.5"><span class="inline-block px-2 py-0.5 rounded text-xs font-medium bg-green-50 text-green-600">遞增</span></td>
                                             <td class="px-4 py-2.5 text-right">0</td>
                                         </tr>
                                         <tr>
                                             <td class="px-4 py-2.5">陪产假</td>
-                                            <td class="px-4 py-2.5">Paid</td>
-                                            <td class="px-4 py-2.5">8 hours</td>
-                                            <td class="px-4 py-2.5"><span class="inline-block px-2 py-0.5 rounded text-xs font-medium bg-green-50 text-green-600">Increase</span></td>
+                                            <td class="px-4 py-2.5">支薪</td>
+                                            <td class="px-4 py-2.5"><span class="inline-block px-2 py-0.5 rounded text-xs font-medium bg-green-50 text-green-600">遞增</span></td>
                                             <td class="px-4 py-2.5 text-right">0</td>
                                         </tr>
                                         <tr>
                                             <td class="px-4 py-2.5">加班调休</td>
-                                            <td class="px-4 py-2.5">Paid</td>
-                                            <td class="px-4 py-2.5">8 hours</td>
-                                            <td class="px-4 py-2.5"><span class="inline-block px-2 py-0.5 rounded text-xs font-medium bg-green-50 text-green-600">Increase</span></td>
+                                            <td class="px-4 py-2.5">支薪</td>
+                                            <td class="px-4 py-2.5"><span class="inline-block px-2 py-0.5 rounded text-xs font-medium bg-green-50 text-green-600">遞增</span></td>
                                             <td class="px-4 py-2.5 text-right">0</td>
                                         </tr>
                                         <tr>
                                             <td class="px-4 py-2.5">公假</td>
-                                            <td class="px-4 py-2.5">Paid</td>
-                                            <td class="px-4 py-2.5">8 hours</td>
-                                            <td class="px-4 py-2.5"><span class="inline-block px-2 py-0.5 rounded text-xs font-medium bg-green-50 text-green-600">Increase</span></td>
+                                            <td class="px-4 py-2.5">支薪</td>
+                                            <td class="px-4 py-2.5"><span class="inline-block px-2 py-0.5 rounded text-xs font-medium bg-green-50 text-green-600">遞增</span></td>
                                             <td class="px-4 py-2.5 text-right">0</td>
                                         </tr>
                                     </tbody>
@@ -2186,6 +2179,103 @@
     </div>
 
     <!-- ========================================== -->
+    <!-- 異動假期時數 彈窗 -->
+    <!-- ========================================== -->
+    <div id="leaveAdjustModal" class="fixed inset-0 z-[70] hidden" role="dialog" aria-modal="true">
+        <div class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm" onclick="closeLeaveAdjustModal()"></div>
+        <div class="fixed inset-0 flex items-center justify-center p-4">
+            <div class="relative bg-white rounded-xl shadow-2xl w-full max-w-[520px] max-h-[90vh] flex flex-col overflow-hidden">
+                <div class="px-6 py-4 flex items-center justify-between border-b border-gray-100 shrink-0">
+                    <h3 class="text-lg font-bold text-gray-900">異動假期時數</h3>
+                    <button onclick="closeLeaveAdjustModal()" class="text-gray-400 hover:text-gray-600 transition-colors"><i class="fa-solid fa-xmark text-xl"></i></button>
+                </div>
+                <div class="flex-1 overflow-y-auto p-6 space-y-4">
+                    <div class="grid grid-cols-2 gap-x-5 gap-y-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-500 mb-1.5">工號</label>
+                            <input type="text" id="la-empno" readonly class="w-full px-3 py-2 bg-[#e9ecef] border border-transparent rounded-md text-sm text-gray-500 outline-none cursor-not-allowed">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-500 mb-1.5">姓名</label>
+                            <input type="text" id="la-empname" readonly class="w-full px-3 py-2 bg-[#e9ecef] border border-transparent rounded-md text-sm text-gray-500 outline-none cursor-not-allowed">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-500 mb-1.5">假別 <span class="text-red-500">*</span></label>
+                            <div class="relative">
+                                <select id="la-type" class="w-full appearance-none px-3 py-2 bg-white border border-gray-300 rounded-md text-sm outline-none focus:border-primary">
+                                    <option value="">請選擇</option>
+                                    <option>帶薪年假</option><option>事假</option><option>病假</option><option>喪假</option><option>婚假</option><option>生理假</option><option>产假</option><option>产检假</option><option>安胎假</option><option>陪产假</option><option>加班调休</option><option>公假</option>
+                                </select>
+                                <i class="fa-solid fa-caret-down absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 pointer-events-none"></i>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-500 mb-1.5">時數 <span class="text-red-500">*</span></label>
+                            <div class="flex items-center border border-gray-300 rounded-md overflow-hidden focus-within:border-primary">
+                                <input type="number" id="la-hours" step="0.5" placeholder="可為正負值" class="w-full px-3 py-2 text-sm outline-none">
+                                <span class="px-3 py-2 bg-gray-50 border-l border-gray-200 text-sm text-gray-500 shrink-0">小時</span>
+                            </div>
+                        </div>
+                        <div class="col-span-2">
+                            <label class="block text-xs font-semibold text-gray-500 mb-1.5">有效區間 <span class="text-red-500">*</span></label>
+                            <div class="flex items-center gap-2">
+                                <input type="date" id="la-start" onclick="this.showPicker && this.showPicker()" class="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm outline-none focus:border-primary cursor-pointer">
+                                <span class="text-gray-400 shrink-0">~</span>
+                                <input type="date" id="la-end" onclick="this.showPicker && this.showPicker()" class="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm outline-none focus:border-primary cursor-pointer">
+                            </div>
+                        </div>
+                        <div class="col-span-2">
+                            <label class="block text-xs font-semibold text-gray-500 mb-1.5">備註</label>
+                            <textarea id="la-note" rows="3" placeholder="請輸入異動原因或備註" class="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm outline-none resize-none focus:border-primary"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-end gap-2.5 shrink-0">
+                    <button onclick="closeLeaveAdjustModal()" class="ui-btn ui-btn-secondary">取消</button>
+                    <button onclick="submitLeaveAdjust()" class="ui-btn ui-btn-primary">確認異動</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 假期時數 變更記錄 彈窗 -->
+    <!-- ========================================== -->
+    <div id="leaveLogModal" class="fixed inset-0 z-[70] hidden" role="dialog" aria-modal="true">
+        <div class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm" onclick="closeLeaveLogModal()"></div>
+        <div class="fixed inset-0 flex items-center justify-center p-4">
+            <div class="relative bg-white rounded-xl shadow-2xl w-full max-w-[900px] max-h-[90vh] flex flex-col overflow-hidden">
+                <div class="px-6 py-4 flex items-center justify-between border-b border-gray-100 shrink-0">
+                    <h3 class="text-lg font-bold text-gray-900">假期時數變更記錄</h3>
+                    <button onclick="closeLeaveLogModal()" class="text-gray-400 hover:text-gray-600 transition-colors"><i class="fa-solid fa-xmark text-xl"></i></button>
+                </div>
+                <div class="flex-1 overflow-auto p-6">
+                    <div class="border border-gray-200 rounded-lg overflow-x-auto">
+                        <table class="w-full min-w-[760px] text-sm text-gray-800">
+                            <thead>
+                                <tr class="bg-gray-50 text-gray-700 text-left whitespace-nowrap">
+                                    <th class="px-4 py-3 font-bold">異動假別</th>
+                                    <th class="px-4 py-3 font-bold text-right">異動時數</th>
+                                    <th class="px-4 py-3 font-bold text-right">變動前時數</th>
+                                    <th class="px-4 py-3 font-bold text-right">變動後時數</th>
+                                    <th class="px-4 py-3 font-bold">備註</th>
+                                    <th class="px-4 py-3 font-bold">異動時間</th>
+                                    <th class="px-4 py-3 font-bold">異動人員</th>
+                                </tr>
+                            </thead>
+                            <tbody id="leave-log-tbody" class="divide-y divide-gray-100"></tbody>
+                        </table>
+                    </div>
+                    <div id="leave-log-empty" class="hidden py-12 text-center text-sm text-gray-400">尚無變更記錄</div>
+                </div>
+                <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-end shrink-0">
+                    <button onclick="closeLeaveLogModal()" class="ui-btn ui-btn-secondary">關閉</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
     <!-- 工號申請：問題流程（回答問題自動核發工號，題庫同「工號創建管理」）-->
     <!-- ========================================== -->
     <div id="qflow-modal" class="fixed inset-0 z-[70] hidden" role="dialog" aria-modal="true">
@@ -2442,6 +2532,78 @@
            ----------------------- */
         let currentEmpId = '';
         let currentEmpName = '';
+        /* ===== 異動假期時數 彈窗 ===== */
+        function openLeaveAdjustModal() {
+            document.getElementById('la-empno').value = currentEmpId || '';
+            document.getElementById('la-empname').value = currentEmpName || '';
+            document.getElementById('la-type').value = '';
+            document.getElementById('la-hours').value = '';
+            document.getElementById('la-start').value = '';
+            document.getElementById('la-end').value = '';
+            document.getElementById('la-note').value = '';
+            document.getElementById('leaveAdjustModal').classList.remove('hidden');
+        }
+        function closeLeaveAdjustModal() { document.getElementById('leaveAdjustModal').classList.add('hidden'); }
+        function submitLeaveAdjust() {
+            const type = document.getElementById('la-type').value;
+            const hours = document.getElementById('la-hours').value;
+            const start = document.getElementById('la-start').value;
+            const end = document.getElementById('la-end').value;
+            if (!type) { alert('請選擇假別'); return; }
+            if (hours === '') { alert('請填寫時數'); return; }
+            if (!start || !end) { alert('請填寫有效區間'); return; }
+            // 記入變更記錄（變動前 → 變動後）
+            const prev = (leaveBalances[type] != null) ? leaveBalances[type] : 0;
+            const delta = parseFloat(hours) || 0;
+            const next = prev + delta;
+            leaveBalances[type] = next;
+            leaveAdjustLog.unshift({
+                account: currentEmpId || '—',
+                type,
+                delta,
+                before: prev,
+                after: next,
+                note: document.getElementById('la-note').value.trim(),
+                time: leaveNowStr()
+            });
+            closeLeaveAdjustModal();
+        }
+
+        /* ===== 假期時數 變更記錄 ===== */
+        // 各假別目前累計時數（示範基準）
+        const leaveBalances = { '帶薪年假': 160, '事假': 112, '病假': 16, '喪假': 40, '婚假': 24, '生理假': 8, '产假': 320, '产检假': 40, '安胎假': 0, '陪产假': 0, '加班调休': 0, '公假': 0 };
+        // 變更記錄（示範資料，最新在上）
+        let leaveAdjustLog = [
+            { account: '100423', type: '帶薪年假', delta: 8,  before: 152, after: 160, note: '年度調整', time: '2026-08-15 10:24:00' },
+            { account: '100344', type: '病假',     delta: -8, before: 24,  after: 16,  note: '病假扣抵', time: '2026-07-30 14:05:00' },
+            { account: '100423', type: '加班调休', delta: 4,  before: 0,   after: 4,   note: '加班補休', time: '2026-07-12 09:40:00' }
+        ];
+        function leaveNowStr() {
+            const d = new Date();
+            const p = n => String(n).padStart(2, '0');
+            return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds());
+        }
+        function fmtHr(n) { const v = Number(n) || 0; return (v > 0 ? '+' : '') + v; }
+        function openLeaveLogModal() {
+            const tbody = document.getElementById('leave-log-tbody');
+            const empty = document.getElementById('leave-log-empty');
+            if (!leaveAdjustLog.length) { tbody.innerHTML = ''; empty.classList.remove('hidden'); }
+            else {
+                empty.classList.add('hidden');
+                tbody.innerHTML = leaveAdjustLog.map(r => `
+                    <tr class="whitespace-nowrap">
+                        <td class="px-4 py-2.5">${r.type}</td>
+                        <td class="px-4 py-2.5 text-right font-medium ${r.delta < 0 ? 'text-red-600' : 'text-emerald-600'}">${fmtHr(r.delta)}</td>
+                        <td class="px-4 py-2.5 text-right text-gray-500">${r.before}</td>
+                        <td class="px-4 py-2.5 text-right font-semibold">${r.after}</td>
+                        <td class="px-4 py-2.5 text-gray-600">${r.note || '—'}</td>
+                        <td class="px-4 py-2.5 text-gray-500">${r.time}</td>
+                        <td class="px-4 py-2.5 font-mono">${r.account}</td>
+                    </tr>`).join('');
+            }
+            document.getElementById('leaveLogModal').classList.remove('hidden');
+        }
+        function closeLeaveLogModal() { document.getElementById('leaveLogModal').classList.add('hidden'); }
         function openEditModal(empId, empName) {
             currentEmpId = empId || 'EMP001';
             currentEmpName = empName || '';

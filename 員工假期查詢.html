@@ -110,7 +110,7 @@
                             <th class="text-right">給假時數</th>
                             <th class="text-right">已用時數</th>
                             <th class="text-right">剩餘時數</th>
-                            <th>到期日</th>
+                            <th>有效區間</th>
                         </tr>
                     </thead>
                     <tbody id="tbody"></tbody>
@@ -131,17 +131,17 @@
     <script>
         // 員工假期額度（工號 / 姓名 / 事業部 / 部門 / 假別 / 給假 / 已用 / 到期日）
         const rows = [
-            { id: 'EMP001', region: 'TW', name: 'Logan',   bu: '研發事業部 (RD BU)',   dept: '前端架構組', type: '特休', grant: 120, used: 40, due: '2026-12-31' },
-            { id: 'EMP001', region: 'TW', name: 'Logan',   bu: '研發事業部 (RD BU)',   dept: '前端架構組', type: '病假', grant: 240, used: 16, due: '2026-12-31' },
-            { id: 'EMP001', region: 'TW', name: 'Logan',   bu: '研發事業部 (RD BU)',   dept: '前端架構組', type: '補休', grant: 24,  used: 8,  due: '2026-09-30' },
-            { id: 'EMP042', region: 'US', name: 'Jackson', bu: '營運中心 (Ops)',       dept: '客戶成功部', type: '特休', grant: 96,  used: 88, due: '2026-12-31' },
-            { id: 'EMP042', region: 'US', name: 'Jackson', bu: '營運中心 (Ops)',       dept: '客戶成功部', type: '事假', grant: 56,  used: 0,  due: '2026-12-31' },
-            { id: 'EMP089', region: 'JP', name: 'Levi',    bu: '業務行銷部 (Sales)',   dept: '華南區銷售', type: '特休', grant: 80,  used: 24, due: '2026-12-31' },
-            { id: 'EMP089', region: 'JP', name: 'Levi',    bu: '業務行銷部 (Sales)',   dept: '華南區銷售', type: '婚假', grant: 64,  used: 64, due: '2026-08-15' },
-            { id: 'EMP156', region: 'TW', name: 'Mia',     bu: '研發事業部 (RD BU)',   dept: '後端開發組', type: '特休', grant: 112, used: 12, due: '2026-12-31' },
-            { id: 'EMP156', region: 'TW', name: 'Mia',     bu: '研發事業部 (RD BU)',   dept: '後端開發組', type: '喪假', grant: 24,  used: 0,  due: '2026-12-31' },
-            { id: 'EMP201', region: 'TW', name: 'Luna',    bu: '財務行政部 (Finance)', dept: '會計組',     type: '特休', grant: 144, used: 96, due: '2026-12-31' },
-            { id: 'EMP201', region: 'TW', name: 'Luna',    bu: '財務行政部 (Finance)', dept: '會計組',     type: '補休', grant: 16,  used: 4,  due: '2026-10-31' }
+            { id: 'EMP001', region: 'TW', name: 'Logan',   bu: '研發事業部 (RD BU)',   dept: '前端架構組', type: '特休', grant: 120, used: 40, start: '2026-01-01', due: '2026-12-31' },
+            { id: 'EMP001', region: 'TW', name: 'Logan',   bu: '研發事業部 (RD BU)',   dept: '前端架構組', type: '病假', grant: 240, used: 16, start: '2026-01-01', due: '2026-12-31' },
+            { id: 'EMP001', region: 'TW', name: 'Logan',   bu: '研發事業部 (RD BU)',   dept: '前端架構組', type: '補休', grant: 24,  used: 8,  start: '2026-04-01', due: '2026-09-30' },
+            { id: 'EMP042', region: 'US', name: 'Jackson', bu: '營運中心 (Ops)',       dept: '客戶成功部', type: '特休', grant: 96,  used: 88, start: '2026-01-01', due: '2026-12-31' },
+            { id: 'EMP042', region: 'US', name: 'Jackson', bu: '營運中心 (Ops)',       dept: '客戶成功部', type: '事假', grant: 56,  used: 0,  start: '2026-01-01', due: '2026-12-31' },
+            { id: 'EMP089', region: 'JP', name: 'Levi',    bu: '業務行銷部 (Sales)',   dept: '華南區銷售', type: '特休', grant: 80,  used: 24, start: '2026-01-01', due: '2026-12-31' },
+            { id: 'EMP089', region: 'JP', name: 'Levi',    bu: '業務行銷部 (Sales)',   dept: '華南區銷售', type: '婚假', grant: 64,  used: 64, start: '2026-02-15', due: '2026-08-15' },
+            { id: 'EMP156', region: 'TW', name: 'Mia',     bu: '研發事業部 (RD BU)',   dept: '後端開發組', type: '特休', grant: 112, used: 12, start: '2026-01-01', due: '2026-12-31' },
+            { id: 'EMP156', region: 'TW', name: 'Mia',     bu: '研發事業部 (RD BU)',   dept: '後端開發組', type: '喪假', grant: 24,  used: 0,  start: '2026-01-01', due: '2026-12-31' },
+            { id: 'EMP201', region: 'TW', name: 'Luna',    bu: '財務行政部 (Finance)', dept: '會計組',     type: '特休', grant: 144, used: 96, start: '2026-01-01', due: '2026-12-31' },
+            { id: 'EMP201', region: 'TW', name: 'Luna',    bu: '財務行政部 (Finance)', dept: '會計組',     type: '補休', grant: 16,  used: 4,  start: '2026-05-01', due: '2026-10-31' }
         ];
 
         const typeBadge = (t) => {
@@ -180,7 +180,7 @@
                     '<td class="text-right text-gray-600">' + hrs(r.grant) + '</td>' +
                     '<td class="text-right text-gray-600">' + hrs(r.used) + '</td>' +
                     '<td class="text-right ' + remainCls + '">' + hrs(remain) + '</td>' +
-                    '<td class="text-gray-500">' + r.due + '</td>' +
+                    '<td class="text-gray-500 whitespace-nowrap">' + r.start + ' ~ ' + r.due + '</td>' +
                     '</tr>';
             }).join('');
             document.getElementById('count-badge').innerText = list.length + ' 筆';

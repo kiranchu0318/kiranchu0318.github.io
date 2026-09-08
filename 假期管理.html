@@ -372,27 +372,15 @@
                 </div>
 
                 <!-- 群組 3：生成量（無初始時數時整排隱藏） -->
-                <div id="lf-gen-row" class="grid grid-cols-1 sm:grid-cols-3 gap-x-6 gap-y-4">
+                <div id="lf-gen-row" class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
                     <div>
                         <label class="block text-xs font-semibold text-text-muted mb-1.5">生成頻率</label>
                         <select id="lf-freq" class="ui-select"><option>每年</option><option>每半年</option><option>每季</option><option>每月</option><option>每日</option></select>
                     </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-text-muted mb-1.5">總生成時數</label>
-                        <input type="number" id="lf-total" placeholder="小時" class="ui-input">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-text-muted mb-1.5">生效時間</label>
-                        <input type="date" id="lf-effective" class="ui-input">
-                    </div>
                 </div>
 
-                <!-- 群組 4：使用週期與計算 -->
+                <!-- 群組 4：計算方式 -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
-                    <div>
-                        <label class="block text-xs font-semibold text-text-muted mb-1.5">使用週期</label>
-                        <select id="lf-cycle" class="ui-select"><option>每年</option><option>每半年</option><option>每季</option><option>每月</option><option>每日</option></select>
-                    </div>
                     <div>
                         <label class="block text-xs font-semibold text-text-muted mb-1.5">假期計算方式</label>
                         <select id="lf-method" class="ui-select"><option>遞增</option><option>遞減</option></select>
@@ -416,10 +404,6 @@
                     <div>
                         <label class="block text-xs font-semibold text-text-muted mb-1.5">人員是否可見假期</label>
                         <label class="flex items-center gap-2 h-[38px] cursor-pointer text-sm text-gray-700"><input type="checkbox" id="lf-visible" class="w-4 h-4 text-primary rounded"> 可見</label>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-text-muted mb-1.5">前 6 個月時數顯示 0（T2 專用）</label>
-                        <label class="flex items-center gap-2 h-[38px] cursor-pointer text-sm text-gray-700"><input type="checkbox" id="lf-t2zero" class="w-4 h-4 text-primary rounded"> 啟用</label>
                     </div>
                 </div>
 
@@ -694,10 +678,6 @@
             document.getElementById('lf-freq').value = l.freq || '每年';
             setRadio('lf-gen', (l.gen === false) ? 'false' : 'true');
             document.getElementById('lf-cond').value = l.cond || '指定日期';
-            document.getElementById('lf-effective').value = l.effective || '';
-            document.getElementById('lf-total').value = l.total || '';
-            document.getElementById('lf-t2zero').checked = !!l.t2zero;
-            document.getElementById('lf-cycle').value = l.cycle || '每年';
             document.getElementById('lf-inherit').checked = !!l.inherit;
             document.getElementById('lf-inheritcap').value = l.inheritCap || '';
             document.getElementById('lf-method').value = l.method || '遞增';
@@ -800,10 +780,6 @@
                 freq: document.getElementById('lf-freq').value,
                 gen: getRadio('lf-gen') === 'true',
                 cond: document.getElementById('lf-cond').value,
-                effective: document.getElementById('lf-effective').value,
-                total: document.getElementById('lf-total').value,
-                t2zero: document.getElementById('lf-t2zero').checked,
-                cycle: document.getElementById('lf-cycle').value,
                 inherit: document.getElementById('lf-inherit').checked,
                 inheritCap: document.getElementById('lf-inheritcap').value,
                 method: document.getElementById('lf-method').value,
