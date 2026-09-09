@@ -7303,12 +7303,25 @@
             const card = btn.closest('.rounded-md');
             const box = card && card.querySelector('.js-asset-extra');
             if (!box) return;
-            const cell = document.createElement('div');
-            cell.className = 'relative';
-            cell.innerHTML =
-                '<button type="button" onclick="this.closest(\'div\').remove()" class="absolute -top-2 -right-2 w-5 h-5 flex items-center justify-center bg-white text-gray-400 hover:text-red-500 border border-gray-200 hover:border-red-200 shadow-sm rounded-full" title="移除"><i data-lucide="x" class="w-3 h-3"></i></button>'
-                + '<input type="text" placeholder="項目名稱" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] mb-1.5 focus:border-blue-500 outline-none">'
-                + '<input type="text" placeholder="編號" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none">';
+            // 以第一個資產編號欄位為版型，複製出相同規格的下拉/其他切換欄位（另加移除鈕）
+            const tpl = card.querySelector('.pta-asset-field');
+            const cell = tpl ? tpl.cloneNode(true) : document.createElement('div');
+            cell.classList.add('relative', 'pta-asset-field');
+            // 重置狀態：下拉還原、其他 checkbox 取消、輸入框清空隱藏
+            const cb = cell.querySelector('input[type="checkbox"]');
+            const sel = cell.querySelector('.pta-asset-select');
+            const inp = cell.querySelector('.pta-asset-input');
+            if (cb) cb.checked = false;
+            if (sel) { sel.selectedIndex = 0; sel.classList.remove('hidden'); }
+            if (inp) { inp.value = ''; inp.classList.add('hidden'); }
+            // 移除鈕
+            const rm = document.createElement('button');
+            rm.type = 'button';
+            rm.setAttribute('onclick', "this.closest('.pta-asset-field').remove()");
+            rm.className = 'absolute -top-2 -right-2 w-5 h-5 flex items-center justify-center bg-white text-gray-400 hover:text-red-500 border border-gray-200 hover:border-red-200 shadow-sm rounded-full';
+            rm.title = '移除';
+            rm.innerHTML = '<i data-lucide="x" class="w-3 h-3"></i>';
+            cell.appendChild(rm);
             box.appendChild(cell);
             if (window.lucide) lucide.createIcons();
         }
