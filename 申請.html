@@ -1488,8 +1488,16 @@
                                     <button type="button" onclick="ptaAddAssetItem(this)" class="text-[12px] text-blue-600 border border-blue-200 rounded px-2.5 py-1 hover:bg-blue-50 flex items-center gap-1"><i data-lucide="plus" class="w-3.5 h-3.5"></i>新增項目</button>
                                 </div>
                                 <div class="grid grid-cols-2 gap-5">
-                                    <div><label class="block mb-1.5 text-[13px]">手機編號</label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"></div>
-                                    <div><label class="block mb-1.5 text-[13px]">電腦編號</label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"></div>
+                                    <div class="pta-asset-field">
+                                        <div class="flex items-center justify-between mb-1.5"><label class="text-[13px]">資產編號</label><label class="inline-flex items-center gap-1 text-[12px] text-gray-500 cursor-pointer"><input type="checkbox" onchange="ptaAssetOtherToggle(this)" class="w-3.5 h-3.5 rounded border-gray-300 text-blue-600"> 其他</label></div>
+                                        <select class="pta-asset-select w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none bg-white"><option value="" disabled selected>請選擇資產編號</option><option>MB-100962</option><option>PC-100962</option><option>USB-100962</option><option>MON-100962</option></select>
+                                        <input type="text" placeholder="請輸入資產編號" class="pta-asset-input hidden w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none">
+                                    </div>
+                                    <div class="pta-asset-field">
+                                        <div class="flex items-center justify-between mb-1.5"><label class="text-[13px]">資產編號</label><label class="inline-flex items-center gap-1 text-[12px] text-gray-500 cursor-pointer"><input type="checkbox" onchange="ptaAssetOtherToggle(this)" class="w-3.5 h-3.5 rounded border-gray-300 text-blue-600"> 其他</label></div>
+                                        <select class="pta-asset-select w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none bg-white"><option value="" disabled selected>請選擇資產編號</option><option>MB-100962</option><option>PC-100962</option><option>USB-100962</option><option>MON-100962</option></select>
+                                        <input type="text" placeholder="請輸入資產編號" class="pta-asset-input hidden w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none">
+                                    </div>
                                 </div>
                                 <div class="js-asset-extra grid grid-cols-2 gap-5 mt-5"></div>
                             </div>
@@ -7247,8 +7255,6 @@
                 const name = (combo.querySelector('.applicant-input').value || '').replace(/\(.*$/, '').trim();
                 const tail = String(empId).slice(-3);
                 const setVal = (el, v) => { if (el) el.value = v; };
-                setVal(af('手機編號'), 'MB-' + empId);
-                setVal(af('電腦編號'), 'PC-' + empId);
                 setVal(af('聯絡電話'), '0912-' + String(empId).slice(0, 3) + '-' + tail);
                 setVal(af('郵箱'), (name ? name.toLowerCase().replace(/\s+/g, '.') : 'user' + empId) + '@company.com');
             }
@@ -7282,6 +7288,17 @@
         }
 
         // 差旅申請單 隨身資產：新增一筆自訂項目（名稱 + 編號），可多筆、可移除
+        // 隨身資產「資產編號」：勾「其他」→ 改為輸入框；取消 → 回下拉選單
+        function ptaAssetOtherToggle(cb) {
+            const field = cb.closest('.pta-asset-field');
+            if (!field) return;
+            const sel = field.querySelector('.pta-asset-select');
+            const inp = field.querySelector('.pta-asset-input');
+            if (!sel || !inp) return;
+            const other = cb.checked;
+            sel.classList.toggle('hidden', other);
+            inp.classList.toggle('hidden', !other);
+        }
         function ptaAddAssetItem(btn) {
             const card = btn.closest('.rounded-md');
             const box = card && card.querySelector('.js-asset-extra');
