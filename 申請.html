@@ -1183,8 +1183,8 @@
                                 <div class="col-span-2"><label class="block mb-1.5 text-[13px] text-gray-700">文件編號</label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed" value="自動生成" disabled></div>
                                 <div><label class="block mb-1.5 text-[13px] text-gray-700">申請日期</label><div class="border border-gray-300 rounded px-3 py-1.5 bg-white flex items-center"><i data-lucide="calendar" class="w-4 h-4 text-gray-400"></i><input type="text" class="w-full ml-2 text-[13px] outline-none" disabled></div></div>
                                 <div><label class="block mb-1 text-[13px] text-gray-700">主旨</label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none" placeholder="填寫後串接於文件編號後作為標題"></div>
-                                <div><label class="block mb-1 text-[13px] text-gray-700">費用類型 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option value="">請選擇</option><option>一般费用</option><option>人力成本及猎头费</option><option>佣金返点</option><option>其他壞帳審批</option><option>區域備用金（僅限資金部使用）</option><option>员工福利及團建費</option><option>子表單B（申請費用）</option><option>差旅報銷線</option><option>應收壞帳</option><option>私帳</option><option>私帳項目審批線</option><option>績效審批線</option></select></div>
-                                <div class="col-start-1"><label class="block mb-1 text-[13px] text-gray-700">使用人 <span class="text-red-500">*</span></label><div class="relative applicant-combo" id="ptac-applicant-combo"><input type="text" autocomplete="off" placeholder="搜尋人名 / 工號" class="applicant-input w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><div class="applicant-list hidden absolute z-30 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto text-[13px]"></div></div></div>
+                                <div><label class="block mb-1 text-[13px] text-gray-700">出差類型 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option value="">請選擇</option><option>一般费用</option><option>人力成本及猎头费</option><option>佣金返点</option><option>其他壞帳審批</option><option>區域備用金（僅限資金部使用）</option><option>员工福利及團建費</option><option>子表單B（申請費用）</option><option>差旅報銷線</option><option>應收壞帳</option><option>私帳</option><option>私帳項目審批線</option><option>績效審批線</option></select></div>
+                                <div class="col-start-1"><label class="block mb-1 text-[13px] text-gray-700">出差人員 <span class="text-red-500">*</span></label><div class="relative applicant-combo" id="ptac-applicant-combo"><input type="text" autocomplete="off" placeholder="搜尋人名 / 工號" class="applicant-input w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><div class="applicant-list hidden absolute z-30 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto text-[13px]"></div></div></div>
                                 <div><label class="block mb-1 text-[13px] text-gray-700">區域 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option>請選擇</option></select></div>
                                 <div><label class="block mb-1 text-[13px] text-gray-700">部門 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option>請選擇</option></select></div>
                                 <div><label class="block mb-1 text-[13px] text-gray-700">組別 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option>請選擇</option></select></div>
@@ -1211,7 +1211,6 @@
                                 </div>
                                 <div class="grid grid-cols-2 sm:grid-cols-5 gap-x-5 gap-y-4">
                                     <div><label class="block mb-1 text-[13px] text-gray-700">公司別 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option>請選擇</option></select></div>
-                                    <div><label class="block mb-1 text-[13px] text-gray-700">部門主管 <span class="text-red-500">*</span></label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"></div>
                                     <div><label class="block mb-1 text-[13px] text-gray-700">貨幣</label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option>CNY</option></select></div>
                                     <div class="sm:col-start-1"><label class="block mb-1 text-[13px] text-gray-700">開戶行姓名</label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"></div>
                                     <div><label class="block mb-1 text-[13px] text-gray-700">開戶銀行</label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"></div>
@@ -1230,7 +1229,110 @@
                             <div class="p-4 space-y-5">
                                 <div class="pta-trip-list space-y-5">
                                     <div class="pta-trip-block border border-gray-200 rounded-lg p-4 space-y-5">
-                                        <div class="flex items-center justify-between -mx-4 -mt-4 mb-1 px-4 py-2.5 bg-[#EAF2FC] border-b border-blue-100 rounded-t-lg"><span class="inline-flex items-center gap-2 text-[14px] font-bold text-[#2b3b84]"><span class="w-1.5 h-4 bg-[#4A90E2] rounded-full"></span><span class="pta-trip-title">出差行程-1</span></span><button type="button" onclick="ptaRemoveTripBlock(this)" class="pta-trip-remove hidden text-[12px] text-rose-600 border border-rose-200 rounded px-2 py-1 hover:bg-rose-50 bg-white">移除</button></div>
+                                        <div class="flex items-center justify-between -mx-4 -mt-4 mb-1 px-4 py-2.5 bg-[#EAF2FC] border-b border-blue-100 rounded-t-lg"><span class="inline-flex items-center gap-2 text-[14px] font-bold text-[#2b3b84]"><span class="w-1.5 h-4 bg-[#4A90E2] rounded-full"></span><span class="pta-trip-title">出差行程-1</span></span><button type="button" onclick="ptacToggleTripCollapse(this)" class="pta-collapse-btn text-[12px] text-[#4A90E2] border border-blue-200 rounded px-2 py-1 hover:bg-blue-50 bg-white mr-2 inline-flex items-center gap-1"><i data-lucide="chevron-down" class="w-3.5 h-3.5"></i><span class="pta-collapse-label">展開</span></button><button type="button" onclick="ptaRemoveTripBlock(this)" class="pta-trip-remove hidden text-[12px] text-rose-600 border border-rose-200 rounded px-2 py-1 hover:bg-rose-50 bg-white">移除</button></div>
+                                <div class="pta-trip-collapse space-y-5 hidden">
+                                <!-- 地點 / 限額區 -->
+                                <div class="grid grid-cols-5 gap-5">
+                                    <div><label class="block mb-1 text-[13px]">出發地 *</label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"></div>
+                                    <div><label class="block mb-1 text-[13px]">目的地 *</label><select onchange="ptaDestinationChange(this)" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none">
+                                        <option value="" disabled selected>請選擇</option>
+                                        <optgroup label="限額區">
+                                            <option data-zone="U區">U 區</option>
+                                            <option data-zone="M區">M 區</option>
+                                            <option data-zone="S區">S 區</option>
+                                            <option data-zone="D區">D 區</option>
+                                            <option data-zone="K區">K 區</option>
+                                            <option data-zone="J區">J 區</option>
+                                            <option data-zone="F區">F 區</option>
+                                            <option data-zone="T區">T 區</option>
+                                        </optgroup>
+                                        <optgroup label="歐洲">
+                                            <option data-zone="U區">歐洲 A 類國家/地區（參照 U 區）：瑞士、挪威、丹麥、瑞典、芬蘭</option>
+                                            <option data-zone="M區">歐洲 B 類國家/地區（參照 M 區）：上述未列明的其他歐洲國家</option>
+                                        </optgroup>
+                                        <optgroup label="美洲">
+                                            <option data-zone="M區">美洲 A 類國家/地區（參照 M 區）：美國、加拿大</option>
+                                            <option data-zone="K區">美洲 B 類國家/地區（參照 K 區）：巴西</option>
+                                            <option data-zone="S區">美洲 C 類國家/地區（參照 S 區）：上述未列明的其他北美及南美國家</option>
+                                        </optgroup>
+                                        <optgroup label="亞洲">
+                                            <option data-zone="K區">亞洲 A 類國家/地區（參照 K 區）：北京、上海、廣州、深圳</option>
+                                            <option data-zone="M區">亞洲 B 區國家/地區（參照 M 區）：香港、澳門、新加坡、土耳其</option>
+                                            <option data-zone="S區">亞洲 C 區國家/地區（參照 S 區）：上述未列明的其他亞洲國家</option>
+                                        </optgroup>
+                                        <optgroup label="大洋洲">
+                                            <option data-zone="M區">大洋洲國家/地區（參照 M 區）：所有大洋洲國家</option>
+                                        </optgroup>
+                                        <optgroup label="非洲">
+                                            <option data-zone="T區">非洲國家/地區（參照 T 區）：所有非洲國家</option>
+                                        </optgroup>
+                                    </select></div>
+                                    <div><label class="block mb-1 text-[13px]">適用限額區 *</label><select onchange="ptaUpdateDayPackCurrency()" class="js-quota-zone w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option value="" disabled selected>請選擇</option><option>U區</option><option>M區</option><option>S區</option><option>D區</option><option>K區</option><option>J區</option><option>F區</option><option>T區</option></select></div>
+                                    <div><label class="block mb-1 text-[13px]">住宿 *</label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option value="" disabled selected>請選擇</option><option>宿舍</option><option>酒店</option></select></div>
+                                    <div><label class="block mb-1 text-[13px]">是否領月餐補 *</label><select onchange="ptaToggleMeal(this)" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option value="" disabled selected>請選擇</option><option>是</option><option>否</option></select></div>
+                                </div>
+                                <!-- 去程 -->
+                                <div class="border-t border-gray-100 pt-4">
+                                    <div class="flex items-center gap-2 mb-2.5"><i data-lucide="plane-takeoff" class="w-4 h-4 text-[#4A90E2]"></i><span class="text-[13px] font-bold text-gray-700">去程</span></div>
+                                    <div class="grid grid-cols-3 gap-5">
+                                        <div><label class="block mb-1 text-[13px]">出發日 *</label><input type="date" onchange="ptaUpdateDayPack()" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"></div>
+                                        <div><label class="block mb-1 text-[13px]">出發離境時間 *</label><input type="time" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"></div>
+                                        <div><label class="block mb-1 text-[13px]">出發抵達日 *</label><input type="date" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"></div>
+                                    </div>
+                                </div>
+                                <!-- 回程 -->
+                                <div class="border-t border-gray-100 pt-4">
+                                    <div class="flex items-center gap-2 mb-2.5"><i data-lucide="plane-landing" class="w-4 h-4 text-[#4A90E2]"></i><span class="text-[13px] font-bold text-gray-700">回程</span></div>
+                                    <div class="grid grid-cols-3 gap-5">
+                                        <div><label class="block mb-1 text-[13px]">回程日 *</label><input type="date" onchange="ptaUpdateDayPack()" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"></div>
+                                        <div><label class="block mb-1 text-[13px]">回程抵達時間 *</label><input type="time" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"></div>
+                                        <div><label class="block mb-1 text-[13px]">回程出發日 *</label><input type="date" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"></div>
+                                    </div>
+                                </div>
+                                <!-- 日包計算 -->
+                                <div class="scroll-mt-24 bg-white border border-gray-300 rounded-md shadow-sm mb-5">
+                                    <div class="px-4 py-2.5 border-b border-gray-200 flex items-center gap-2"><h3 class="font-bold text-[15px] text-[#2b3b84]">日包計算</h3><span class="text-[12px] text-gray-400">（依上方目的地與出發/回程日期自動連動幣別、天數與餐數試算，不可編輯）</span></div>
+                                    <div class="p-4">
+                                        <div class="overflow-x-auto border border-gray-100 rounded-lg">
+                                            <table class="w-full text-left text-sm border-collapse whitespace-nowrap">
+                                                <thead>
+                                                    <tr class="border-b border-gray-200 bg-gray-50 text-gray-700 font-bold text-xs">
+                                                        <th class="px-3 py-2">項目</th>
+                                                        <th class="px-3 py-2 w-28">幣別</th>
+                                                        <th class="px-3 py-2 w-32">限額參照</th>
+                                                        <th class="px-3 py-2 w-28">餐數/天數</th>
+                                                        <th class="px-3 py-2 w-36">可領總金額</th>
+                                                        <th class="px-3 py-2 w-28">領取幣別</th>
+                                                        <th class="px-3 py-2 w-28">匯率</th>
+                                                        <th class="px-3 py-2 w-36">應領金額</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody class="divide-y divide-gray-100 [&_input]:bg-[#f3f4f6] [&_input]:text-gray-500 [&_input]:cursor-not-allowed [&_input]:border-gray-200 [&_input]:outline-none [&_input]:w-full [&_input]:rounded [&_input]:px-2 [&_input]:py-1 [&_input]:text-sm [&_input]:border">
+                                                    <tr class="pta-meal-row">
+                                                        <td class="px-3 py-1.5 font-medium text-gray-700">餐補總額</td>
+                                                        <td class="px-3 py-1.5"><input type="text" disabled class="text-center pta-quota-currency" value="CNY"></td>
+                                                        <td class="px-3 py-1.5"><input type="text" disabled class="text-right" value="0"></td>
+                                                        <td class="px-3 py-1.5"><input type="text" disabled class="text-right" value="0 餐"></td>
+                                                        <td class="px-3 py-1.5"><input type="text" disabled class="text-right" value="0"></td>
+                                                        <td class="px-3 py-1.5"><input type="text" disabled class="text-center pta-quota-currency" value="CNY"></td>
+                                                        <td class="px-3 py-1.5"><input type="text" disabled class="text-right" value="1"></td>
+                                                        <td class="px-3 py-1.5"><input type="text" disabled class="text-right pta-daypack-claim" value="0"></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="px-3 py-1.5 font-medium text-gray-700">酒店費總額</td>
+                                                        <td class="px-3 py-1.5"><input type="text" disabled class="text-center pta-quota-currency" value="CNY"></td>
+                                                        <td class="px-3 py-1.5"><input type="text" disabled class="text-right" value="0"></td>
+                                                        <td class="px-3 py-1.5"><input type="text" disabled class="text-right" value="0 天"></td>
+                                                        <td class="px-3 py-1.5"><input type="text" disabled class="text-right" value="0"></td>
+                                                        <td class="px-3 py-1.5"><input type="text" disabled class="text-center pta-quota-currency" value="CNY"></td>
+                                                        <td class="px-3 py-1.5"><input type="text" disabled class="text-right" value="1"></td>
+                                                        <td class="px-3 py-1.5"><input type="text" disabled class="text-right pta-daypack-claim" value="0"></td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
                         <!-- 4. 差旅預算明細 -->
                         <div class="scroll-mt-24 bg-white border border-gray-300 rounded-md shadow-sm mb-5 pta-budget-card">
                             <div class="px-4 py-2.5 flex justify-between items-center border-b border-gray-200">
@@ -1274,6 +1376,8 @@
                                 </div>
                             </div>
                         </div>
+                                </div>
+                                <!-- /可收合區 -->
 
                                 <div class="plan-group">
                                     <div class="flex items-center justify-between mb-1.5"><label class="text-[13px] font-bold text-gray-700">出差目的及欲達成目標 *</label><button type="button" onclick="ptaPlanAddRow(this)" class="text-[12px] text-blue-600 border border-blue-200 rounded px-2.5 py-1 hover:bg-blue-50 flex items-center gap-1"><i data-lucide="plus" class="w-3.5 h-3.5"></i>添加</button></div>
@@ -1294,8 +1398,13 @@
                                     </div>
                                 </div>
                                 <div class="plan-group">
-                                    <label class="block mb-1.5 text-[13px] font-bold text-gray-700">出差實際達成結果</label>
-                                    <input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-[#4A90E2]" placeholder="請填寫此次出差的實際達成結果">
+                                    <div class="flex items-center justify-between mb-1.5"><label class="text-[13px] font-bold text-gray-700">出差實際達成結果</label><button type="button" onclick="ptaPlanAddRow(this)" class="text-[12px] text-blue-600 border border-blue-200 rounded px-2.5 py-1 hover:bg-blue-50 flex items-center gap-1"><i data-lucide="plus" class="w-3.5 h-3.5"></i>添加</button></div>
+                                    <div class="overflow-x-auto border border-gray-100 rounded-lg">
+                                        <table class="w-full text-left text-sm border-collapse whitespace-nowrap">
+                                            <thead><tr class="border-b border-gray-200 bg-gray-50 text-gray-700 font-bold text-xs"><th class="px-2 py-2">內容</th><th class="px-2 py-2 w-16 text-center">操作</th></tr></thead>
+                                            <tbody class="divide-y divide-gray-100"><tr><td class="px-2 py-1.5"><input type="text" class="w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2]"></td><td class="px-2 py-1.5 text-center"><button type="button" onclick="ptaPlanRemoveRow(this)" class="text-[12px] text-rose-600 border border-rose-200 rounded px-2.5 py-1 hover:bg-rose-50 inline-flex items-center gap-1 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i>移除</button></td></tr></tbody>
+                                        </table>
+                                    </div>
                                 </div>
                                     </div>
                                 </div>
@@ -1313,23 +1422,23 @@
                                     <table class="w-full text-left text-sm border-collapse whitespace-nowrap">
                                         <thead>
                                             <tr class="border-b border-gray-200 bg-gray-50 text-gray-700 font-bold text-xs">
-                                                <th class="px-3 py-2 w-28">項目</th>
                                                 <th class="px-3 py-2 w-28">部門</th>
+                                                <th class="px-3 py-2 w-28">組別</th>
                                                 <th class="px-3 py-2">目的</th>
                                                 <th class="px-3 py-2 w-40">金額</th>
                                                 <th class="px-3 py-2">其他意見</th>
                                                 <th class="px-3 py-2 w-20 text-center">操作</th>
                                             </tr>
                                         </thead>
-                                        <tbody class="divide-y divide-gray-100">
+                                        <tbody class="divide-y divide-gray-100" id="ptac-claim-tbody">
                                             <tr>
                                                 <td class="px-3 py-1.5"><select class="w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2]"><option>請選擇</option></select></td>
                                                 <td class="px-3 py-1.5"><select class="w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2]"><option>請選擇</option></select></td>
-                                                <td class="px-3 py-1.5"><input type="text" class="w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2]"></td>
+                                                <td class="px-3 py-1.5"><input type="text" class="ptac-claim-purpose w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2]"></td>
                                                 <td class="px-3 py-1.5">
                                                     <div class="flex items-center border border-gray-300 rounded overflow-hidden">
                                                         <span class="bg-gray-50 border-r border-gray-300 px-2 py-1 text-xs text-gray-500 select-none">¥</span>
-                                                        <input type="text" class="w-full px-2 py-1 text-sm text-right outline-none" value="0">
+                                                        <input type="text" class="ptac-claim-amt w-full px-2 py-1 text-sm text-right outline-none" value="0" oninput="ptacUpdateTotal()">
                                                     </div>
                                                 </td>
                                                 <td class="px-3 py-1.5"><input type="text" class="w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2]"></td>
@@ -5762,7 +5871,11 @@
                 const code = card.getAttribute('data-form');
                 if (!code) return;
                 const modal = document.getElementById(formModalMap[code]);
-                if (modal) { modal.classList.remove('hidden'); if (window.lucide) lucide.createIcons(); }
+                if (modal) {
+                    modal.classList.remove('hidden');
+                    if (code === 'PTAC') { if (window.ptacFillDemo) ptacFillDemo(); else if (window.ptacSyncClaimFromBudget) ptacSyncClaimFromBudget(); }
+                    if (window.lucide) lucide.createIcons();
+                }
             });
         }
         const appGrid = document.getElementById('app-grid');
@@ -5785,6 +5898,7 @@
                     // 週期性請購單：初始化 RPU 引擎
                     if (code === 'RPU') { modal.dataset.formCode = 'RPU'; if (window.rpuInit) rpuInit('rpu'); }
                     if (code === 'PU' || code === 'APU') { if (window.rpuInit) rpuInit('pu'); }
+                    if (code === 'PTAC') { if (window.ptacFillDemo) ptacFillDemo(); else if (window.ptacSyncClaimFromBudget) ptacSyncClaimFromBudget(); } // 帶入 demo 並彙整費用報銷明細
                     lucide.createIcons();
                 }
             });
@@ -6650,8 +6764,150 @@
         /* ====== 應領金額：幣別 → 即時匯率 → 應領金額 ====== */
         // 模擬即時匯率（以 1 CNY 兌換目標幣別）
         const PTA_FX_RATE = { TWD: 4.38, USD: 0.14, JPY: 21.6, EUR: 0.13, GBP: 0.11, MYR: 0.62, AED: 0.51, KRW: 188.5, PHP: 7.85 };
+        // PTAC 出差行程：收合／展開（出發地 ~ 差旅預算明細）
+        function ptacToggleTripCollapse(btn) {
+            const block = btn.closest('.pta-trip-block');
+            const box = block && block.querySelector('.pta-trip-collapse');
+            if (!box) return;
+            const collapsed = box.classList.toggle('hidden');
+            const label = btn.querySelector('.pta-collapse-label');
+            const icon = btn.querySelector('[data-lucide]');
+            if (label) label.textContent = collapsed ? '展開' : '收合';
+            if (icon) { icon.setAttribute('data-lucide', collapsed ? 'chevron-down' : 'chevron-up'); if (window.lucide) lucide.createIcons(); }
+        }
+        // PTAC：填入 demo 資料（差旅預算明細金額 → 會自動加總帶入費用報銷明細）
+        function ptacFillDemo() {
+            const modal = document.getElementById('ptac-modal');
+            if (!modal) return;
+            const setByLabel = (prefix, value, dispatch) => {
+                const lb = [...modal.querySelectorAll('label')].find(l => l.textContent.trim().startsWith(prefix));
+                if (!lb) return null;
+                const wrap = lb.closest('div');
+                const el = wrap && wrap.querySelector('input, select');
+                if (!el) return null;
+                if (el.tagName === 'SELECT') {
+                    const opt = [...el.options].find(o => o.value === value || o.text === value || o.text.includes(value));
+                    if (opt) { el.value = opt.value || opt.text; if (dispatch) el.dispatchEvent(new Event('change', { bubbles: true })); }
+                } else { el.value = value; }
+                return el;
+            };
+            // 基本資訊
+            setByLabel('主旨', '2026 華南出差費用報銷');
+            setByLabel('出差類型', '差旅報銷線');
+            const appl = modal.querySelector('#ptac-applicant-combo .applicant-input');
+            if (appl) appl.value = 'Nick（100064）';
+            setByLabel('區域', 'T1');
+            setByLabel('部門', 'GT', true);   // 部門（觸發連動帶出組別選項）
+            setByLabel('組別', 'RD');
+            // 費用報銷
+            const bNo = modal.querySelector('input[placeholder="請輸入B單單號"]'); if (bNo) bNo.value = 'B-THQ-000012';
+            const relNo = modal.querySelector('input[placeholder="請輸入關聯單號"]'); if (relNo) relNo.value = 'PTA-THQ-000001';
+            setByLabel('開戶行姓名', 'Nick Chen');
+            setByLabel('開戶銀行', '中國銀行 深圳分行');
+            setByLabel('銀行賬號', '6212-8888-1234-5678');
+            // 出差行程（第一個行程 block）
+            const trip = modal.querySelector('.pta-trip-block');
+            if (trip) {
+                const t = (prefix, value, dispatch) => {
+                    const lb = [...trip.querySelectorAll('label')].find(l => l.textContent.trim().startsWith(prefix));
+                    const el = lb && lb.parentElement.querySelector('input, select');
+                    if (!el) return;
+                    if (el.tagName === 'SELECT') { const opt = [...el.options].find(o => o.text.includes(value) || o.value === value); if (opt) { el.value = opt.value || opt.text; if (dispatch) el.dispatchEvent(new Event('change', { bubbles: true })); } }
+                    else el.value = value;
+                };
+                t('出發地', 'THQ');
+                t('目的地', '深圳', true);      // 觸發連動帶出適用限額區
+                t('適用限額區', 'K區', true);
+                t('住宿', '酒店');
+                t('是否領月餐補', '否', true);
+                t('出發日', '2026-03-10');
+                t('出發離境時間', '09:30');
+                t('出發抵達日', '2026-03-10');
+                t('回程日', '2026-03-14');
+                t('回程抵達時間', '18:40');
+                t('回程出發日', '2026-03-14');
+            }
+            // 差旅預算明細金額（依預算項目帶入）
+            const BUDGET = { '機票': 3500, '交通': 1200, '住宿': 3000, '餐費': 1500, '保險': 500, '預計採購項': 2000 };
+            modal.querySelectorAll('.pta-budget-tbody tr').forEach(tr => {
+                const nameEl = tr.querySelector('td:nth-child(2) input');
+                const amtEl = tr.querySelector('.pta-budget-amt');
+                if (nameEl && amtEl && BUDGET[(nameEl.value || '').trim()] != null) amtEl.value = BUDGET[nameEl.value.trim()];
+            });
+            // 出差目的 / 週末節日 / 實際達成結果（各取第一個表格首列）
+            const planGroups = modal.querySelectorAll('.plan-group');
+            if (planGroups[0]) { const r = planGroups[0].querySelectorAll('tbody tr td input'); if (r[0]) r[0].value = '拜訪客戶並簽署年度合約'; if (r[1]) r[1].value = '完成合約簽署'; if (r[2]) r[2].value = '—'; }
+            if (planGroups[1]) { const r = planGroups[1].querySelector('tbody tr td input'); if (r) r.value = '3/14（六）加班處理交接'; }
+            if (planGroups[2]) { const r = planGroups[2].querySelector('tbody tr td input'); if (r) r.value = '已完成客戶合約簽署與交接，達成預期目標'; }
+            // 依差旅預算明細彙整帶入費用報銷明細金額
+            if (window.ptaUpdateClaim) ptaUpdateClaim(); else ptacSyncClaimFromBudget();
+        }
+        // PTAC：費用報銷明細「目的」自動帶入差旅預算明細的預算項目；同項目累加金額、不同項目新增一列
+        function ptacSyncClaimFromBudget() {
+            const modal = document.getElementById('ptac-modal');
+            const tbody = document.getElementById('ptac-claim-tbody');
+            if (!modal || !tbody) return;
+            // 彙整：預算項目名稱 → 金額加總（掃描 PTAC 內所有差旅預算明細列）
+            const agg = new Map();
+            modal.querySelectorAll('.pta-budget-tbody tr').forEach(tr => {
+                if (tr.classList.contains('hidden')) return;
+                const nameEl = tr.querySelector('td:nth-child(2) input');
+                const amtEl = tr.querySelector('.pta-budget-amt');
+                if (!nameEl) return;
+                const name = (nameEl.value || '').trim();
+                if (!name) return;
+                const amt = parseFloat(String(amtEl ? amtEl.value : '0').replace(/[^0-9.\-]/g, '')) || 0;
+                agg.set(name, (agg.get(name) || 0) + amt);
+            });
+            const tpl = tbody.querySelector('tr');
+            if (!tpl) return;
+            // 取基本資訊的 部門 / 組別 值，帶入費用報銷明細的部門・組別
+            const byLabel = (prefix) => {
+                const lb = [...modal.querySelectorAll('label')].find(l => l.textContent.trim().startsWith(prefix));
+                const el = lb && lb.closest('div') && lb.closest('div').querySelector('select, input');
+                return el ? (el.value || '') : '';
+            };
+            const deptVal = byLabel('部門');   // 基本資訊「部門」（最先出現者）
+            const teamVal = byLabel('組別');
+            const setSel = (sel, val) => {
+                if (!sel || !val) return;
+                if (![...sel.options].some(o => o.value === val || o.text === val)) sel.add(new Option(val, val));
+                sel.value = ([...sel.options].find(o => o.text === val) || {}).value ?? val;
+            };
+            const entries = [...agg.entries()];
+            // 依彙整結果重建列（保留第一列為模板結構）
+            const rows = entries.length ? entries : [['', 0]];
+            tbody.innerHTML = '';
+            rows.forEach(([name, amt]) => {
+                const row = tpl.cloneNode(true);
+                const purpose = row.querySelector('.ptac-claim-purpose');
+                const amtInput = row.querySelector('.ptac-claim-amt');
+                const sels = row.querySelectorAll('td select'); // [0]=部門 [1]=組別
+                if (purpose) purpose.value = name;
+                if (amtInput) amtInput.value = (Number(amt) || 0).toLocaleString('en-US');
+                setSel(sels[0], deptVal);
+                setSel(sels[1], teamVal);
+                tbody.appendChild(row);
+            });
+            if (window.lucide) lucide.createIcons();
+            ptacUpdateTotal();
+        }
+        // PTAC：懸浮「總計金額」= 費用報銷明細各列金額加總
+        function ptacUpdateTotal() {
+            const tbody = document.getElementById('ptac-claim-tbody');
+            if (!tbody) return;
+            let sum = 0;
+            tbody.querySelectorAll('.ptac-claim-amt').forEach(inp => {
+                sum += parseFloat(String(inp.value).replace(/[^0-9.\-]/g, '')) || 0;
+            });
+            const t = document.getElementById('ptac-total');
+            const cny = document.getElementById('ptac-total-cny');
+            if (t) t.textContent = sum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            if (cny) cny.textContent = sum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
         function ptaUpdateClaim() {
             ptaAggregateBudget(); // 同步外層差旅預算明細（各行程加總）
+            ptacSyncClaimFromBudget(); // PTAC：帶入費用報銷明細目的（自身無此表則略過）
             const totalEl = document.getElementById('pta-claim-total');
             const curSel = document.getElementById('pta-claim-currency');
             const rateEl = document.getElementById('pta-claim-rate');
