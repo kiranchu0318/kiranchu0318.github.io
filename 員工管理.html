@@ -784,21 +784,45 @@
                     <section class="space-y-3">
                         <h4 class="text-sm font-bold text-blue-600 flex items-center gap-2"><span class="w-1 h-4 bg-blue-600 rounded-full"></span>公司信息</h4>
                         <div class="space-y-3">
-                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border border-slate-100 rounded-lg px-3 py-2.5">
-                                <span class="text-sm text-slate-700">1. 是否接觸公司敏感信息？（如公司賬戶與印鑒／員工個薪／系統權限管理存取等）</span>
-                                <span class="flex gap-4 shrink-0"><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="ci1" class="w-4 h-4"> 是</label><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="ci1" class="w-4 h-4"> 否</label></span>
+                            <div class="border border-slate-100 rounded-lg px-3 py-2.5 space-y-2.5">
+                                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                                    <span class="text-sm text-slate-700">1. 是否接觸公司敏感信息？（如公司賬戶與印鑒／員工個薪／系統權限管理存取等）</span>
+                                    <span class="flex gap-4 shrink-0"><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="ci1" value="yes" onchange="resignCiToggle(this)" class="w-4 h-4"> 是</label><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="ci1" value="no" onchange="resignCiToggle(this)" class="w-4 h-4"> 否</label></span>
+                                </div>
+                                <div class="ci-note hidden"><label class="block text-xs text-slate-500 mb-1">接觸內容 <span class="text-rose-500">*</span></label><textarea rows="2" placeholder="請說明所接觸的敏感信息內容與交接處理方式" class="ui-input resize-none"></textarea></div>
                             </div>
-                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border border-slate-100 rounded-lg px-3 py-2.5">
-                                <span class="text-sm text-slate-700">2. 是否負責或保管財務相關財產？（如資金、銀行賬戶、支付工具、印鑒、憑證等）</span>
-                                <span class="flex gap-4 shrink-0"><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="ci2" class="w-4 h-4"> 是</label><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="ci2" class="w-4 h-4"> 否</label></span>
+                            <div class="border border-slate-100 rounded-lg px-3 py-2.5 space-y-2.5">
+                                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                                    <span class="text-sm text-slate-700">2. 是否負責或保管財務相關財產？（如資金、銀行賬戶、支付工具、印鑒、憑證等）</span>
+                                    <span class="flex gap-4 shrink-0"><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="ci2" value="yes" onchange="resignCiToggle(this)" class="w-4 h-4"> 是</label><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="ci2" value="no" onchange="resignCiToggle(this)" class="w-4 h-4"> 否</label></span>
+                                </div>
+                                <div class="ci-note hidden space-y-2.5">
+                                    <div><label class="block text-xs text-slate-500 mb-1">保管內容 <span class="text-rose-500">*</span></label><textarea rows="2" placeholder="請說明負責或保管的財務相關財產及交接方式" class="ui-input resize-none"></textarea></div>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                        <div><label class="block text-xs text-slate-500 mb-1">保管金額 <span class="text-rose-500">*</span></label><input type="text" placeholder="請輸入保管金額" class="ui-input"></div>
+                                        <div><label class="block text-xs text-slate-500 mb-1">交接人 <span class="text-rose-500">*</span></label><input type="text" placeholder="請輸入交接人" class="ui-input"></div>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border border-slate-100 rounded-lg px-3 py-2.5">
-                                <span class="text-sm text-slate-700">3. 是否有代墊費用／未核銷費用？</span>
-                                <span class="flex gap-4 shrink-0"><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="ci3" class="w-4 h-4"> 是</label><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="ci3" class="w-4 h-4"> 否</label></span>
+                            <div class="border border-slate-100 rounded-lg px-3 py-2.5 space-y-2.5">
+                                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                                    <span class="text-sm text-slate-700">3. 是否有代墊費用／未核銷費用？</span>
+                                    <span class="flex gap-4 shrink-0"><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="ci3" value="yes" onchange="resignCiToggle(this)" class="w-4 h-4"> 是</label><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="ci3" value="no" onchange="resignCiToggle(this)" class="w-4 h-4"> 否</label></span>
+                                </div>
+                                <div class="ci-note hidden space-y-2.5">
+                                    <div><label class="block text-xs text-slate-500 mb-1">金額 <span class="text-rose-500">*</span></label><textarea rows="2" placeholder="請說明代墊費用／未核銷費用之金額" class="ui-input resize-none"></textarea></div>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                        <div><label class="block text-xs text-slate-500 mb-1">預計完成日期 <span class="text-rose-500">*</span></label><input type="date" onclick="this.showPicker && this.showPicker()" class="ui-input cursor-pointer"></div>
+                                        <div><label class="block text-xs text-slate-500 mb-1">原因說明 <span class="text-rose-500">*</span></label><input type="text" placeholder="請輸入原因說明" class="ui-input"></div>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border border-slate-100 rounded-lg px-3 py-2.5">
-                                <span class="text-sm text-slate-700">4. 是否負責簽署或保管對內或對外正式文件？（如客戶／供應商合約、保密協議、授權書等）</span>
-                                <span class="flex gap-4 shrink-0"><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="ci4" class="w-4 h-4"> 是</label><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="ci4" class="w-4 h-4"> 否</label></span>
+                            <div class="border border-slate-100 rounded-lg px-3 py-2.5 space-y-2.5">
+                                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                                    <span class="text-sm text-slate-700">4. 是否負責簽署或保管對內或對外正式文件？（如客戶／供應商合約、保密協議、授權書等）</span>
+                                    <span class="flex gap-4 shrink-0"><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="ci4" value="yes" onchange="resignCiToggle(this)" class="w-4 h-4"> 是</label><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="ci4" value="no" onchange="resignCiToggle(this)" class="w-4 h-4"> 否</label></span>
+                                </div>
+                                <div class="ci-note hidden"><label class="block text-xs text-slate-500 mb-1">交接人 <span class="text-rose-500">*</span></label><input type="text" placeholder="請輸入交接人" class="ui-input"></div>
                             </div>
                         </div>
                     </section>
@@ -808,70 +832,122 @@
                         <h4 class="text-sm font-bold text-blue-600 flex items-center gap-2"><span class="w-1 h-4 bg-blue-600 rounded-full"></span>工作交接</h4>
 
                         <div class="border border-slate-100 rounded-lg px-3 py-3 space-y-2.5">
-                            <p class="text-sm font-semibold text-slate-700">1. 賬號／軟體 <span class="text-xs font-normal text-slate-400">（自動代入）</span></p>
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                <div><label class="block text-xs text-slate-500 mb-1">Mobile</label><input type="text" disabled value="+886-912-345-678" class="ui-input bg-slate-100 text-slate-500 cursor-not-allowed"></div>
-                                <div><label class="block text-xs text-slate-500 mb-1">MM</label><input type="text" disabled value="nora.chen" class="ui-input bg-slate-100 text-slate-500 cursor-not-allowed"></div>
-                                <div><label class="block text-xs text-slate-500 mb-1">E-mail</label><input type="text" disabled value="nora.chen@company.com" class="ui-input bg-slate-100 text-slate-500 cursor-not-allowed"></div>
-                                <div><label class="block text-xs text-slate-500 mb-1">Jira</label><input type="text" disabled value="nora.chen" class="ui-input bg-slate-100 text-slate-500 cursor-not-allowed"></div>
-                                <div><label class="block text-xs text-slate-500 mb-1">Apple ID</label><input type="text" disabled value="nora@icloud.com" class="ui-input bg-slate-100 text-slate-500 cursor-not-allowed"></div>
+                            <p class="text-sm font-semibold text-slate-700">1. 賬號／軟體 <span class="text-xs font-normal text-slate-400">（帳號自動代入，請填寫各帳號密碼）</span></p>
+                            <div class="space-y-3">
+                                <div class="acc-handover">
+                                    <div class="flex flex-wrap gap-3 items-end">
+                                        <div class="flex-1 min-w-[150px]"><label class="block text-xs text-slate-500 mb-1">Mobile</label><input type="text" disabled value="+886-912-345-678" class="ui-input bg-slate-100 text-slate-500 cursor-not-allowed"></div>
+                                        <div class="flex-1 min-w-[150px]"><label class="block text-xs text-slate-500 mb-1">密碼 <span class="text-rose-500">*</span></label><input type="password" placeholder="請輸入密碼" class="ui-input"></div>
+                                        <div class="w-32 shrink-0"><label class="block text-xs text-slate-500 mb-1">關閉類型 <span class="text-rose-500">*</span></label><select onchange="resignCloseTypeToggle(this)" class="ui-select"><option selected>立即刪除</option><option>資料轉移</option><option value="hold">暫時保留</option></select></div>
+                                    <div class="acc-hold invisible w-44 shrink-0"><label class="block text-xs text-slate-500 mb-1">保留期限 <span class="text-rose-500">*</span></label><input type="date" onclick="this.showPicker && this.showPicker()" class="ui-input cursor-pointer"></div>
+                                    </div>
+                                </div>
+                                <div class="acc-handover">
+                                    <div class="flex flex-wrap gap-3 items-end">
+                                        <div class="flex-1 min-w-[150px]"><label class="block text-xs text-slate-500 mb-1">MM</label><input type="text" disabled value="nora.chen" class="ui-input bg-slate-100 text-slate-500 cursor-not-allowed"></div>
+                                        <div class="flex-1 min-w-[150px]"><label class="block text-xs text-slate-500 mb-1">密碼 <span class="text-rose-500">*</span></label><input type="password" placeholder="請輸入密碼" class="ui-input"></div>
+                                        <div class="w-32 shrink-0"><label class="block text-xs text-slate-500 mb-1">關閉類型 <span class="text-rose-500">*</span></label><select onchange="resignCloseTypeToggle(this)" class="ui-select"><option selected>立即刪除</option><option>資料轉移</option><option value="hold">暫時保留</option></select></div>
+                                    <div class="acc-hold invisible w-44 shrink-0"><label class="block text-xs text-slate-500 mb-1">保留期限 <span class="text-rose-500">*</span></label><input type="date" onclick="this.showPicker && this.showPicker()" class="ui-input cursor-pointer"></div>
+                                    </div>
+                                </div>
+                                <div class="acc-handover">
+                                    <div class="flex flex-wrap gap-3 items-end">
+                                        <div class="flex-1 min-w-[150px]"><label class="block text-xs text-slate-500 mb-1">E-mail</label><input type="text" disabled value="nora.chen@company.com" class="ui-input bg-slate-100 text-slate-500 cursor-not-allowed"></div>
+                                        <div class="flex-1 min-w-[150px]"><label class="block text-xs text-slate-500 mb-1">密碼 <span class="text-rose-500">*</span></label><input type="password" placeholder="請輸入密碼" class="ui-input"></div>
+                                        <div class="w-32 shrink-0"><label class="block text-xs text-slate-500 mb-1">關閉類型 <span class="text-rose-500">*</span></label><select onchange="resignCloseTypeToggle(this)" class="ui-select"><option selected>立即刪除</option><option>資料轉移</option><option value="hold">暫時保留</option></select></div>
+                                    <div class="acc-hold invisible w-44 shrink-0"><label class="block text-xs text-slate-500 mb-1">保留期限 <span class="text-rose-500">*</span></label><input type="date" onclick="this.showPicker && this.showPicker()" class="ui-input cursor-pointer"></div>
+                                    </div>
+                                </div>
+                                <div class="acc-handover">
+                                    <div class="flex flex-wrap gap-3 items-end">
+                                        <div class="flex-1 min-w-[150px]"><label class="block text-xs text-slate-500 mb-1">Jira</label><input type="text" disabled value="nora.chen" class="ui-input bg-slate-100 text-slate-500 cursor-not-allowed"></div>
+                                        <div class="flex-1 min-w-[150px]"><label class="block text-xs text-slate-500 mb-1">密碼 <span class="text-rose-500">*</span></label><input type="password" placeholder="請輸入密碼" class="ui-input"></div>
+                                        <div class="w-32 shrink-0"><label class="block text-xs text-slate-500 mb-1">關閉類型 <span class="text-rose-500">*</span></label><select onchange="resignCloseTypeToggle(this)" class="ui-select"><option selected>立即刪除</option><option>資料轉移</option><option value="hold">暫時保留</option></select></div>
+                                    <div class="acc-hold invisible w-44 shrink-0"><label class="block text-xs text-slate-500 mb-1">保留期限 <span class="text-rose-500">*</span></label><input type="date" onclick="this.showPicker && this.showPicker()" class="ui-input cursor-pointer"></div>
+                                    </div>
+                                </div>
+                                <div class="acc-handover">
+                                    <div class="flex flex-wrap gap-3 items-end">
+                                        <div class="flex-1 min-w-[150px]"><label class="block text-xs text-slate-500 mb-1">Apple ID</label><input type="text" disabled value="nora@icloud.com" class="ui-input bg-slate-100 text-slate-500 cursor-not-allowed"></div>
+                                        <div class="flex-1 min-w-[150px]"><label class="block text-xs text-slate-500 mb-1">密碼 <span class="text-rose-500">*</span></label><input type="password" placeholder="請輸入密碼" class="ui-input"></div>
+                                        <div class="w-32 shrink-0"><label class="block text-xs text-slate-500 mb-1">關閉類型 <span class="text-rose-500">*</span></label><select onchange="resignCloseTypeToggle(this)" class="ui-select"><option selected>立即刪除</option><option>資料轉移</option><option value="hold">暫時保留</option></select></div>
+                                    <div class="acc-hold invisible w-44 shrink-0"><label class="block text-xs text-slate-500 mb-1">保留期限 <span class="text-rose-500">*</span></label><input type="date" onclick="this.showPicker && this.showPicker()" class="ui-input cursor-pointer"></div>
+                                    </div>
+                                </div>
+                                <div class="acc-handover">
+                                    <div class="flex flex-wrap gap-3 items-end">
+                                        <div class="flex-1 min-w-[150px]"><label class="block text-xs text-slate-500 mb-1">門禁卡</label><input type="text" disabled value="THQ-3F" class="ui-input bg-slate-100 text-slate-500 cursor-not-allowed"></div>
+                                        <div class="w-32 shrink-0"><label class="block text-xs text-slate-500 mb-1">關閉類型 <span class="text-rose-500">*</span></label><select onchange="resignCloseTypeToggle(this)" class="ui-select"><option selected>立即刪除</option><option>資料轉移</option><option value="hold">暫時保留</option></select></div>
+                                    <div class="acc-hold invisible w-44 shrink-0"><label class="block text-xs text-slate-500 mb-1">保留期限 <span class="text-rose-500">*</span></label><input type="date" onclick="this.showPicker && this.showPicker()" class="ui-input cursor-pointer"></div>
+                                    </div>
+                                </div>
+                                <div class="acc-handover">
+                                    <div class="flex flex-wrap gap-3 items-end">
+                                        <div class="flex-1 min-w-[150px]"><label class="block text-xs text-slate-500 mb-1">指紋設定</label><input type="text" disabled value="THQ-3F" class="ui-input bg-slate-100 text-slate-500 cursor-not-allowed"></div>
+                                        <div class="w-32 shrink-0"><label class="block text-xs text-slate-500 mb-1">關閉類型 <span class="text-rose-500">*</span></label><select onchange="resignCloseTypeToggle(this)" class="ui-select"><option selected>立即刪除</option><option>資料轉移</option><option value="hold">暫時保留</option></select></div>
+                                    <div class="acc-hold invisible w-44 shrink-0"><label class="block text-xs text-slate-500 mb-1">保留期限 <span class="text-rose-500">*</span></label><input type="date" onclick="this.showPicker && this.showPicker()" class="ui-input cursor-pointer"></div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
                         <div class="border border-slate-100 rounded-lg px-3 py-2.5 space-y-2.5">
                             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                                 <span class="text-sm text-slate-700">2. 是否使用或擁有特定後台權限／管理賬號權限？</span>
-                                <span class="flex gap-4 shrink-0"><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="wh2" class="w-4 h-4"> 是</label><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="wh2" class="w-4 h-4"> 否</label></span>
+                                <span class="flex gap-4 shrink-0"><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="wh2" value="yes" onchange="resignWhToggle('wh2-note', this, 'yes')" class="w-4 h-4"> 是</label><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="wh2" value="no" onchange="resignWhToggle('wh2-note', this, 'yes')" class="w-4 h-4"> 否</label></span>
                             </div>
+                            <div id="wh2-note" class="hidden"><label class="block text-xs text-slate-500 mb-1">平台名稱 <span class="text-rose-500">*</span></label><input type="text" placeholder="請輸入平台名稱" class="ui-input"></div>
                             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pl-4">
                                 <span class="text-sm text-slate-600">2-1. 是否刪除權限？</span>
-                                <span class="flex gap-4 shrink-0"><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="wh2s" class="w-4 h-4"> 是</label><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="wh2s" class="w-4 h-4"> 否</label></span>
+                                <span class="flex gap-4 shrink-0"><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="wh2s" value="yes" onchange="resignWhToggle('wh2s-note', this, 'no')" class="w-4 h-4"> 是</label><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="wh2s" value="no" onchange="resignWhToggle('wh2s-note', this, 'no')" class="w-4 h-4"> 否</label></span>
                             </div>
+                            <div id="wh2s-note" class="hidden pl-4"><label class="block text-xs text-slate-500 mb-1">原因及預計完成期限 <span class="text-rose-500">*</span></label><input type="text" placeholder="請輸入未刪除原因及預計完成期限" class="ui-input"></div>
                         </div>
 
                         <div class="border border-slate-100 rounded-lg px-3 py-2.5 space-y-2.5">
                             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                                 <span class="text-sm text-slate-700">3. 是否以私人號碼註冊郵箱或通訊軟件？</span>
-                                <span class="flex gap-4 shrink-0"><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="wh3" class="w-4 h-4"> 是</label><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="wh3" class="w-4 h-4"> 否</label></span>
+                                <span class="flex gap-4 shrink-0"><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="wh3" value="yes" onchange="resignWhToggle('wh3-note', this, 'yes')" class="w-4 h-4"> 是</label><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="wh3" value="no" onchange="resignWhToggle('wh3-note', this, 'yes')" class="w-4 h-4"> 否</label></span>
                             </div>
+                            <div id="wh3-note" class="hidden"><label class="block text-xs text-slate-500 mb-1">交接人 <span class="text-rose-500">*</span></label><input type="text" placeholder="請輸入交接人" class="ui-input"></div>
                             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pl-4">
                                 <span class="text-sm text-slate-600">3-1. 是否完成註銷？</span>
-                                <span class="flex gap-4 shrink-0"><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="wh3s" class="w-4 h-4"> 是</label><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="wh3s" class="w-4 h-4"> 否</label></span>
+                                <span class="flex gap-4 shrink-0"><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="wh3s" value="yes" onchange="resignWhToggle('wh3s-note', this, 'no')" class="w-4 h-4"> 是</label><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="wh3s" value="no" onchange="resignWhToggle('wh3s-note', this, 'no')" class="w-4 h-4"> 否</label></span>
                             </div>
+                            <div id="wh3s-note" class="hidden pl-4"><label class="block text-xs text-slate-500 mb-1">原因及預計完成期限 <span class="text-rose-500">*</span></label><input type="text" placeholder="請輸入未完成註銷原因及預計完成期限" class="ui-input"></div>
                         </div>
 
                         <div class="border border-slate-100 rounded-lg px-3 py-2.5 space-y-2.5">
                             <p class="text-sm text-slate-700">4. 其他</p>
                             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pl-4">
                                 <span class="text-sm text-slate-600">4-1. 工作簽證</span>
-                                <span class="flex gap-4 shrink-0"><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="wh41" class="w-4 h-4"> 是</label><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="wh41" class="w-4 h-4"> 否</label></span>
+                                <span class="flex gap-4 shrink-0"><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="wh41" value="yes" onchange="resignWhToggle('wh41-note', this, 'yes')" class="w-4 h-4"> 有</label><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="wh41" value="no" onchange="resignWhToggle('wh41-note', this, 'yes')" class="w-4 h-4"> 無</label></span>
                             </div>
+                            <div id="wh41-note" class="hidden pl-4 space-y-2"><label class="inline-flex items-center gap-2 text-sm text-slate-700 cursor-pointer"><input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-primary"> 確認完成撤銷申請 <span class="text-rose-500">*</span></label><div class="sm:max-w-xs"><label class="block text-xs text-slate-500 mb-1">處理人員 <span class="text-rose-500">*</span></label><input type="text" placeholder="請輸入處理人員" class="ui-input"></div></div>
                             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pl-4">
                                 <span class="text-sm text-slate-600">4-2. 員工宿舍</span>
-                                <span class="flex gap-4 shrink-0"><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="wh42" class="w-4 h-4"> 是</label><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="wh42" class="w-4 h-4"> 否</label></span>
+                                <span class="flex gap-4 shrink-0"><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="wh42" value="yes" onchange="resignWhToggle('wh42-note', this, 'yes')" class="w-4 h-4"> 有</label><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="wh42" value="no" onchange="resignWhToggle('wh42-note', this, 'yes')" class="w-4 h-4"> 無</label></span>
                             </div>
+                            <div id="wh42-note" class="hidden pl-4 space-y-2"><label class="inline-flex items-center gap-2 text-sm text-slate-700 cursor-pointer"><input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-primary"> 確認完成遷出申請 <span class="text-rose-500">*</span></label><div class="sm:max-w-xs"><label class="block text-xs text-slate-500 mb-1">處理人員 <span class="text-rose-500">*</span></label><input type="text" placeholder="請輸入處理人員" class="ui-input"></div></div>
                         </div>
 
                         <div class="border border-slate-100 rounded-lg px-3 py-2.5 space-y-2.5">
                             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                                 <span class="text-sm text-slate-700">5. 是否完成工作交接？</span>
-                                <span class="flex gap-4 shrink-0"><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="wh5" class="w-4 h-4"> 是</label><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="wh5" class="w-4 h-4"> 否</label></span>
+                                <span class="flex gap-4 shrink-0"><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="wh5" value="yes" onchange="resignWhToggle('wh5-yes-note', this, 'yes'); resignWhToggle('wh5-no-note', this, 'no')" class="w-4 h-4"> 是</label><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="wh5" value="no" onchange="resignWhToggle('wh5-yes-note', this, 'yes'); resignWhToggle('wh5-no-note', this, 'no')" class="w-4 h-4"> 否</label></span>
                             </div>
-                            <div>
-                                <label class="block text-xs text-slate-500 mb-1 pl-4">原因及預計完成期限</label>
-                                <input type="text" class="ui-input" placeholder="請輸入原因及預計完成期限">
-                            </div>
+                            <div id="wh5-yes-note" class="hidden pl-4"><label class="block text-xs text-slate-500 mb-1">交接人 <span class="text-rose-500">*</span></label><input type="text" placeholder="請輸入交接人" class="ui-input"></div>
+                            <div id="wh5-no-note" class="hidden pl-4"><label class="block text-xs text-slate-500 mb-1">原因及預計完成期限 <span class="text-rose-500">*</span></label><input type="text" placeholder="請輸入原因及預計完成期限" class="ui-input"></div>
                         </div>
 
-                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border border-slate-100 rounded-lg px-3 py-2.5">
-                            <span class="text-sm text-slate-700">6. 是否部門主管／交接人確認辦公設備或儲存裝置無公司機密資料？</span>
-                            <span class="flex gap-4 shrink-0"><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="wh6" class="w-4 h-4"> 是</label><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="wh6" class="w-4 h-4"> 否</label></span>
+                        <div class="border border-slate-100 rounded-lg px-3 py-2.5 space-y-2.5">
+                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                                <span class="text-sm text-slate-700">6. 是否部門主管／交接人確認辦公設備或儲存裝置無公司機密資料？</span>
+                                <span class="flex gap-4 shrink-0"><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="wh6" value="yes" onchange="resignWhToggle('wh6-note', this, 'no')" class="w-4 h-4"> 是</label><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="wh6" value="no" onchange="resignWhToggle('wh6-note', this, 'no')" class="w-4 h-4"> 否</label></span>
+                            </div>
+                            <div id="wh6-note" class="hidden"><label class="block text-xs text-slate-500 mb-1">原因及預計完成期限 <span class="text-rose-500">*</span></label><input type="text" placeholder="請輸入原因及預計完成期限" class="ui-input"></div>
                         </div>
 
-                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border border-slate-100 rounded-lg px-3 py-2.5">
-                            <span class="text-sm text-slate-700">7. 是否設有『公司門禁卡』及『指紋打卡』？</span>
-                            <span class="flex gap-4 shrink-0"><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="wh7" class="w-4 h-4"> 是</label><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="wh7" class="w-4 h-4"> 否</label></span>
-                        </div>
                     </section>
 
                     <!-- 公司資產列表（從人員資產自動帶出） -->
@@ -2473,6 +2549,21 @@
         }
         function closeResignAudit() {
             document.getElementById('resignAuditModal').classList.add('hidden');
+        }
+        // 離職審計：公司信息／工作交接 條件填寫（比照個人資訊「離職申請」）
+        function resignCiToggle(radio) {
+            const box = radio.closest('.border');
+            const note = box && box.querySelector('.ci-note');
+            if (note) note.classList.toggle('hidden', radio.value !== 'yes');
+        }
+        function resignWhToggle(noteId, radio, showVal) {
+            const note = document.getElementById(noteId);
+            if (note) note.classList.toggle('hidden', radio.value !== showVal);
+        }
+        function resignCloseTypeToggle(sel) {
+            const box = sel.closest('.acc-handover');
+            const hold = box && box.querySelector('.acc-hold');
+            if (hold) hold.classList.toggle('invisible', sel.value !== 'hold');
         }
         function submitResignAudit() {
             closeResignAudit();

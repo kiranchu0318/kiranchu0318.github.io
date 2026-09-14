@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>打卡機對應清單</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: { extend: {
+                colors: { primary: '#4A90E2', 'primary-light': '#EAF2FC', background: '#F8F9FB', card: '#FFFFFF',
+                    text: { main: '#1F2937', muted: '#6B7280', light: '#9CA3AF' } },
+                fontFamily: { sans: ['"Inter"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'] },
+                boxShadow: { 'card': '0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03)', 'modal': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)' }
+            } }
+        }
+    </script>
+    <style>
+        body { background-color: theme('colors.background'); font-family: theme('fontFamily.sans'); }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+    <link rel="stylesheet" href="shared-ui.css">
+</head>
+<body class="ui-page text-text-main antialiased relative">
+
+    <div class="relative mx-auto w-full space-y-6">
+        <header class="ui-page-header">
+            <h1 class="ui-page-title">打卡機對應清單</h1>
+        </header>
+
+        <section class="ui-card flex flex-col p-4 sm:p-6 space-y-4">
+            <!-- 工具列 -->
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                <div class="flex flex-wrap items-center gap-2">
+                    <div class="ui-search w-full sm:w-72">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="f-search" oninput="renderTable()" placeholder="搜尋打卡機人名 / 系統人名 / 工號..." class="ui-input ui-search-input">
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button id="btn-edit" onclick="enterEditMode()" class="ui-btn ui-btn-primary"><i class="fa-solid fa-pen"></i> 修改</button>
+                    <button id="btn-save" onclick="saveAll()" class="ui-btn ui-btn-primary hidden"><i class="fa-solid fa-floppy-disk"></i> 儲存對應</button>
+                    <button id="btn-cancel" onclick="exitEditMode()" class="ui-btn ui-btn-secondary hidden">取消</button>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <h2 class="text-lg font-bold text-gray-900 whitespace-nowrap">打卡機人名對應</h2>
+                <span id="count-badge" class="bg-blue-50 text-primary text-xs px-2.5 py-1 rounded-md font-bold">0 筆</span>
+                <span class="text-xs text-text-muted">未對應 <span id="unmapped-count" class="font-semibold text-rose-500">0</span> 筆</span>
+            </div>
+
+            <div class="overflow-x-auto rounded-lg border border-gray-100">
+                <table class="ui-table whitespace-nowrap">
+                    <thead>
+                        <tr>
+                            <th class="text-center w-16">#</th>
+                            <th class="text-left">打卡機人名</th>
+                            <th class="text-left">對應系統人名</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody"></tbody>
+                </table>
+            </div>
+
+            <div id="no-data" class="hidden py-16 text-center space-y-3">
+                <div class="inline-flex p-4 bg-gray-50 text-gray-400 rounded-full"><i class="fa-solid fa-fingerprint text-3xl"></i></div>
+                <p class="text-sm text-text-muted font-medium">查無符合條件的資料</p>
+            </div>
+        </section>
+    </div>
+
+    <div id="toast" class="fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+        <i id="toast-icon" class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
+        <span id="toast-text" class="text-sm font-medium">操作成功！</span>
+    </div>
+
+    <script>
+        // 系統員工主檔（供對應選擇）
+        const EMPLOYEES = [
+            { id: '100962', name: 'Oliver' }, { id: '101517', name: 'James' }, { id: '100064', name: 'Nick' },
+            { id: '101366', name: 'Dev' }, { id: '100120', name: 'Stella' }, { id: '101081', name: 'Cora' },
+            { id: '100016', name: 'Henry' }, { id: '100324', name: 'Lucas' }, { id: '101023', name: 'Arthur' },
+            { id: '100052', name: 'Daniel' }, { id: '101372', name: 'William' }, { id: '100344', name: 'Thomas' }
+        ];
+
+        // 打卡機名單（deviceName = 打卡機顯示人名；empId = 已對應的系統工號，空字串為未對應）
+        let rows = [
+            { device: '陳大文',   no: 'DEV-001', empId: '100064' },
+            { device: '林小美',   no: 'DEV-002', empId: '100120' },
+            { device: 'Oliver C', no: 'DEV-003', empId: '100962' },
+            { device: '王建国',   no: 'DEV-004', empId: '' },
+            { device: 'Henry L',  no: 'DEV-005', empId: '100016' },
+            { device: '张伟',     no: 'DEV-006', empId: '' },
+            { device: 'Lucas W',  no: 'DEV-007', empId: '100324' },
+            { device: '李娜',     no: 'DEV-008', empId: '' },
+            { device: 'Thomas H', no: 'DEV-009', empId: '100344' },
+            { device: 'Arthur',   no: 'DEV-010', empId: '101023' }
+        ];
+
+        const empInfo = (id) => EMPLOYEES.find(e => e.id === id);
+        const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+
+        function empOptions(selectedId) {
+            return '<option value="">— 未對應 —</option>' + EMPLOYEES.map(e =>
+                `<option value="${e.id}" ${e.id === selectedId ? 'selected' : ''}>${esc(e.name)}（${e.id}）</option>`).join('');
+        }
+
+        let editMode = false;
+        function enterEditMode() {
+            editMode = true;
+            document.getElementById('btn-edit').classList.add('hidden');
+            document.getElementById('btn-save').classList.remove('hidden');
+            document.getElementById('btn-cancel').classList.remove('hidden');
+            renderTable();
+        }
+        function exitEditMode() {
+            editMode = false;
+            document.getElementById('btn-edit').classList.remove('hidden');
+            document.getElementById('btn-save').classList.add('hidden');
+            document.getElementById('btn-cancel').classList.add('hidden');
+            renderTable();
+        }
+
+        function renderTable() {
+            const kw = (document.getElementById('f-search').value || '').trim().toLowerCase();
+            const list = rows.map((r, i) => ({ r, i })).filter(({ r }) => {
+                const e = empInfo(r.empId);
+                if (!kw) return true;
+                const hay = [r.device, r.no, e ? e.name : '', e ? e.id : ''].join(' ').toLowerCase();
+                return hay.includes(kw);
+            });
+            const tbody = document.getElementById('tbody');
+            tbody.innerHTML = list.map(({ r, i }) => {
+                const e = empInfo(r.empId);
+                const mapped = !!e;
+                const cell = editMode
+                    ? `<div class="relative inline-block w-full max-w-xs">
+                            <select onchange="setMapping(${i}, this.value)" class="w-full appearance-none px-3 py-1.5 pr-8 border ${mapped ? 'border-gray-300' : 'border-rose-300 bg-rose-50/40'} rounded-md text-sm outline-none focus:border-primary">${empOptions(r.empId)}</select>
+                            <i class="fa-solid fa-caret-down absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 pointer-events-none"></i>
+                        </div>`
+                    : (mapped ? `<span class="text-gray-800">${esc(e.name)}（${e.id}）</span>` : '<span class="text-rose-500">未對應</span>');
+                return `<tr class="hover:bg-gray-50/70 transition-colors">
+                    <td class="text-center text-gray-400">${i + 1}</td>
+                    <td class="text-left font-bold text-gray-800">${esc(r.device)}</td>
+                    <td class="text-left">${cell}</td>
+                </tr>`;
+            }).join('');
+            document.getElementById('count-badge').innerText = list.length + ' 筆';
+            document.getElementById('unmapped-count').innerText = rows.filter(r => !empInfo(r.empId)).length;
+            const empty = list.length === 0;
+            document.getElementById('no-data').classList.toggle('hidden', !empty);
+            tbody.parentElement.classList.toggle('hidden', empty);
+        }
+
+        function setMapping(i, empId) {
+            if (!rows[i]) return;
+            rows[i].empId = empId || '';
+            renderTable();
+        }
+
+        function saveAll() {
+            const unmapped = rows.filter(r => !empInfo(r.empId)).length;
+            if (unmapped > 0) showToast('info', `已儲存對應（仍有 ${unmapped} 筆未對應）`);
+            else showToast('success', '已儲存所有打卡機人名對應');
+            exitEditMode();
+        }
+
+        function showToast(type, text) {
+            const toast = document.getElementById('toast');
+            const icon = document.getElementById('toast-icon');
+            document.getElementById('toast-text').innerText = text;
+            const base = 'fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform transition-all duration-300 border ';
+            if (type === 'error') { toast.className = base + 'border-rose-500/20'; icon.className = 'fa-solid fa-circle-xmark text-rose-400 text-base'; }
+            else if (type === 'info') { toast.className = base + 'border-blue-500/20'; icon.className = 'fa-solid fa-circle-info text-blue-400 text-base'; }
+            else { toast.className = base + 'border-emerald-500/20'; icon.className = 'fa-solid fa-circle-check text-emerald-400 text-base'; }
+            toast.style.transform = 'translateY(0)'; toast.style.opacity = '1';
+            clearTimeout(window.__t); window.__t = setTimeout(() => { toast.style.transform = 'translateY(5rem)'; toast.style.opacity = '0'; }, 2600);
+        }
+
+        renderTable();
+    </script>
+</body>
+</html>
