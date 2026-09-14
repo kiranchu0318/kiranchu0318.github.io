@@ -349,6 +349,7 @@
         { key: 'company', label: '公司',      options: ['RG', 'LKG', 'KX', 'BOSS'] },
       ];
       const [exportDims, setExportDims] = useState({ region: [], bu: [], dept: [], team: [], company: [] });
+      const [exportIncludeAttachment, setExportIncludeAttachment] = useState(false);
       const toggleExportDim = (dimKey, opt) => setExportDims(prev => {
         const cur = prev[dimKey] || [];
         return { ...prev, [dimKey]: cur.includes(opt) ? cur.filter(x => x !== opt) : [...cur, opt] };
@@ -1374,34 +1375,38 @@
                               <tr className="border-b border-gray-200 bg-gray-50 text-gray-700 font-bold text-xs">
                                 <th className="px-3 py-2">欄位</th>
                                 <th className="px-3 py-2">目前值</th>
-                                <th className="px-3 py-2 w-20 text-center">異動類型</th>
-                                <th className="px-3 py-2">異動內容 / 刪除方式</th>
-                                <th className="px-3 py-2">備註</th>
+                                <th className="px-3 py-2 w-56">異動類型</th>
+                                <th className="px-3 py-2">申請說明</th>
                               </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100 font-medium">
                               {(modalRow?._isPrev ? [
-                                { field: '職稱 Title', rows: [{ cur: '工程師', chg: '修改', detail: '資深工程師', note: '年度升遷' }] },
-                                { field: '部門 Department', rows: [{ cur: 'RD / API', chg: '修改', detail: 'RD / GT', note: '專案轉調' }] },
-                                { field: 'VPN 權限', rows: [{ cur: '（未開通）', chg: '新增', detail: '開通遠端 VPN', note: '遠距辦公需求' }] },
-                                { field: 'GitHub', rows: [{ cur: '（未綁定）', chg: '新增', detail: 'gibson-yang', note: '程式碼協作' }] },
-                                { field: '門禁卡', rows: [{ cur: 'THQ-2F', chg: '修改', detail: 'THQ-3F', note: '座位調整' }] },
+                                { field: '職稱 Title', rows: [{ cur: '工程師', chg: '修改', note: '年度升遷' }] },
+                                { field: '部門 Department', rows: [{ cur: 'RD / API', chg: '修改', note: '專案轉調' }] },
+                                { field: 'VPN 權限', rows: [{ cur: '（未開通）', chg: '新增', note: '遠距辦公需求' }] },
+                                { field: 'GitHub', rows: [{ cur: '（未綁定）', chg: '新增', note: '程式碼協作' }] },
+                                { field: '門禁卡', rows: [{ cur: 'THQ-2F', chg: '修改', sel: 'THQ-3F', note: '座位調整' }] },
                               ] : [
-                                { field: 'Mobile / WhatsApp', rows: [{ cur: '「T2」601114372701', chg: '修改', detail: '「T2」602233445566', note: '門號更換' }] },
-                                { field: 'E-mail', rows: [
-                                    { cur: 'gibsonyang@roycetechnology.com', chg: '刪除', detail: '離職停用（保留 30 天）', note: '轉調前先停用' },
-                                    { cur: 'gibson.y@roycetech.com', chg: '刪除', detail: '停用備援信箱', note: '整併信箱後移除' },
+                                { field: 'Mobile / WhatsApp', rows: [
+                                    { region: 'T2', cur: '601114372701', chg: '修改', note: '門號更換' },
+                                    { region: 'T1', cur: '（未綁定）', chg: '新增', sel: '區域：T1', note: '外派新增門號' },
                                 ] },
-                                { field: 'Apple ID', rows: [{ cur: '（未綁定）', chg: '新增', detail: 'gibson.apple@icloud.com', note: '公務設備綁定' }] },
-                                { field: 'Jira', rows: [{ cur: '（未綁定）', chg: '新增', detail: 'gibson.yang', note: '專案協作需求' }] },
-                                { field: '門禁卡', rows: [{ cur: 'THQ-3F', chg: '修改', detail: 'THQ-5F', note: '辦公室搬遷' }] },
-                                { field: '指紋', rows: [{ cur: 'THQ-3F', chg: '修改', detail: 'THQ-5F', note: '辦公室搬遷' }] },
+                                { field: 'E-mail', rows: [
+                                    { cur: 'gibsonyang@roycetechnology.com', chg: '刪除', sel: '立即刪除', note: '轉調前先停用' },
+                                    { cur: '（未綁定）', chg: '新增', sel: '@ez2attain.com', note: '新增公務信箱' },
+                                ] },
+                                { field: 'Apple ID', rows: [{ cur: '（未綁定）', chg: '新增', note: '公務設備綁定' }] },
+                                { field: 'Jira', rows: [{ cur: '（未綁定）', chg: '新增', note: '專案協作需求' }] },
+                                { field: '門禁卡', rows: [{ cur: 'THQ-3F', chg: '修改', sel: 'THQ-5F', note: '辦公室搬遷' }] },
+                                { field: '指紋', rows: [{ cur: 'THQ-3F', chg: '修改', sel: 'THQ-5F', note: '辦公室搬遷' }] },
                               ]).flatMap((f, fi) => f.rows.map((r, ri) => (
                                 <tr key={`${fi}-${ri}`}>
                                   {ri === 0 && <td className="px-3 py-1.5 text-gray-800 align-top border-r border-gray-100" rowSpan={f.rows.length}>{f.field}</td>}
-                                  <td className="px-3 py-1.5 text-gray-600 font-mono">{r.cur}</td>
-                                  <td className="px-3 py-1.5 text-center"><span className={`ui-badge ${r.chg === '刪除' ? 'ui-badge-danger' : r.chg === '新增' ? 'ui-badge-success' : 'ui-badge-info'}`}>{r.chg}</span></td>
-                                  <td className="px-3 py-1.5 text-gray-800 font-mono">{r.detail}</td>
+                                  <td className="px-3 py-1.5 text-gray-600 font-mono">{r.region && <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-blue-50 text-primary text-[11px] font-semibold mr-2 font-sans align-middle">{r.region}</span>}{r.cur}</td>
+                                  <td className="px-3 py-1.5 align-top">
+                                    <span className={`ui-badge ${r.chg === '刪除' ? 'ui-badge-danger' : r.chg === '新增' ? 'ui-badge-success' : 'ui-badge-info'}`}>{r.chg}</span>
+                                    {r.sel && <div className="mt-1 text-gray-700 text-[13px]">{r.sel}</div>}
+                                  </td>
                                   <td className="px-3 py-1.5 text-gray-500">{r.note}</td>
                                 </tr>
                               )))}
@@ -2609,9 +2614,9 @@
                   </button>
                 </div>
 
-                {/* 內容區：五個篩選維度（地區 / 事業部・中心 / 部門 / 組別 / 公司）*/}
+                {/* 內容區：僅「記帳匯出」顯示五個篩選維度；其餘僅保留「待我審核」*/}
                 <div className="p-6 bg-white max-h-[420px] overflow-y-auto space-y-4">
-                  {EXPORT_DIMENSIONS.map(dim => {
+                  {activeExportModal === 'bookkeeping' && EXPORT_DIMENSIONS.map(dim => {
                     const sel = exportDims[dim.key] || [];
                     const allOn = sel.length === dim.options.length;
                     return (
@@ -2643,7 +2648,7 @@
                       </div>
                     );
                   })}
-                  <label className="flex items-center gap-3 py-2 px-1 hover:bg-gray-50 rounded cursor-pointer transition-colors border-t border-gray-100 mt-2 pt-3">
+                  <label className={`flex items-center gap-3 py-2 px-1 hover:bg-gray-50 rounded cursor-pointer transition-colors ${activeExportModal === 'bookkeeping' ? 'border-t border-gray-100 mt-2 pt-3' : ''}`}>
                     <input
                       type="checkbox"
                       checked={pendingApprovalOnly}
@@ -2652,6 +2657,17 @@
                     />
                     <span className="text-[13px] text-gray-700">待我審核</span>
                   </label>
+                  {activeExportModal === 'excel' && (
+                    <label className="flex items-center gap-3 py-2 px-1 hover:bg-gray-50 rounded cursor-pointer transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={exportIncludeAttachment}
+                        onChange={(e) => setExportIncludeAttachment(e.target.checked)}
+                        className="w-4 h-4 rounded border-gray-300 text-[#4A90E2] focus:ring-[#4A90E2] cursor-pointer"
+                      />
+                      <span className="text-[13px] text-gray-700">包含附件</span>
+                    </label>
+                  )}
                 </div>
 
                 {/* 底部按鈕區 */}
