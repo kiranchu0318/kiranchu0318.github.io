@@ -174,6 +174,7 @@
                                 <th scope="col">日期</th>
                                 <th scope="col">上下班時間</th>
                                 <th scope="col" class="min-w-[160px]">打卡地點</th>
+                                <th scope="col" class="min-w-[120px]">打卡方式</th>
                                 <th scope="col" class="min-w-[120px]">外出時間</th>
                                 <th scope="col" class="min-w-[140px]">出勤狀況</th>
                                 <th scope="col" class="w-24">狀態</th>
@@ -1399,6 +1400,20 @@
                     return `<div class="${i > 0 ? 'border-t border-dashed border-gray-200 pt-1 mt-1' : ''} whitespace-nowrap">${inLoc}<span class="text-gray-400 mx-0.5">/</span>${outLoc}</div>`;
                 }).join('');
 
+                // 打卡方式：顯示為「上班打卡方式/下班打卡方式」，未打卡則顯示「-」
+                const WAYS = ['指紋', '線上'];
+                const wayOf = (s, leg) => {
+                    const w = leg === 'ci' ? s.ciWay : s.coWay;
+                    if (w) return w;
+                    const h = String(record.id).split('').reduce((a, c) => a + (+c || 0), 0);
+                    return WAYS[(h + (leg === 'ci' ? 0 : 1)) % WAYS.length];
+                };
+                const wayCell = shifts.map((s, i) => {
+                    const inWay = s.ci === '--:--' ? '<span class="text-gray-300">-</span>' : wayOf(s, 'ci');
+                    const outWay = s.co === '--:--' ? '<span class="text-gray-300">-</span>' : wayOf(s, 'co');
+                    return `<div class="${i > 0 ? 'border-t border-dashed border-gray-200 pt-1 mt-1' : ''} whitespace-nowrap text-gray-700">${inWay}<span class="text-gray-400 mx-0.5">/</span>${outWay}</div>`;
+                }).join('');
+
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-gray-50/70 transition-colors";
                 tr.innerHTML = `
@@ -1411,6 +1426,7 @@
                     <td class="text-primary font-bold">${record.date}</td>
                     <td>${timeCell}</td>
                     <td class="text-left">${locCell}</td>
+                    <td class="text-left">${wayCell}</td>
                     <td class="text-left">${outingTimesCell(record.id, record.date)}</td>
                     <td class="text-left">${attendanceDocsCell(record.id, record.date)}</td>
                     <td>${statusBadgeHtml(record)}</td>

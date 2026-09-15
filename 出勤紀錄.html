@@ -119,6 +119,7 @@
                             <th scope="col">日期</th>
                             <th scope="col">上下班時間</th>
                             <th scope="col" class="min-w-[180px]">打卡地點</th>
+                            <th scope="col" class="min-w-[120px]">打卡方式</th>
                             <th scope="col" class="min-w-[120px]">外出時間</th>
                             <th scope="col" class="min-w-[140px]">出勤狀況</th>
                             <th scope="col" class="w-28">狀態</th>
@@ -505,12 +506,25 @@
                     : `<span title="下班打卡地點：${r.loc}（${r.method}）">${truncLoc(r.loc)}</span>`;
                 const locCell = `<div class="whitespace-nowrap">${inLoc}<span class="text-gray-400 mx-0.5">/</span>${outLoc}</div>`;
 
+                // 打卡方式：顯示為「上班打卡方式/下班打卡方式」，未打卡則顯示「-」
+                const WAYS = ['指紋', '線上'];
+                const wayOf = (leg) => {
+                    const w = leg === 'ci' ? r.ciWay : r.coWay;
+                    if (w) return w;
+                    const h = String(r.date).replace(/\D/g, '').split('').reduce((a, c) => a + (+c || 0), 0);
+                    return WAYS[(h + (leg === 'ci' ? 0 : 1)) % WAYS.length];
+                };
+                const inWay = r.ci === '--:--' ? '<span class="text-gray-300">-</span>' : wayOf('ci');
+                const outWay = r.co === '--:--' ? '<span class="text-gray-300">-</span>' : wayOf('co');
+                const wayCell = `<div class="whitespace-nowrap text-gray-700">${inWay}<span class="text-gray-400 mx-0.5">/</span>${outWay}</div>`;
+
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-gray-50/70 transition-colors";
                 tr.innerHTML = `
                     <td class="text-primary font-bold">${r.date}</td>
                     <td class="text-left">${timeCell}</td>
                     <td class="text-left">${locCell}</td>
+                    <td class="text-left">${wayCell}</td>
                     <td class="text-left">${outingTimesCell(r.date)}</td>
                     <td class="text-left">${attendanceDocsCell(r.date)}</td>
                     <td>${statusBadgeHtml(r)}</td>
