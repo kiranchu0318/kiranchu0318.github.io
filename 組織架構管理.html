@@ -90,7 +90,7 @@
                 <div class="overflow-x-auto rounded-lg border border-gray-100 custom-scrollbar">
                     <table class="ui-table text-center">
                         <thead>
-                            <tr>
+                            <tr id="table-head">
                                 <th scope="col" class="text-left">名稱</th>
                                 <th scope="col">狀態</th>
                                 <th scope="col" class="text-center">操作</th>
@@ -131,6 +131,11 @@
                 <div>
                     <label class="block text-xs font-semibold text-text-muted mb-1.5">名稱 <span class="text-rose-500">*</span></label>
                     <input type="text" id="field-name" placeholder="請輸入名稱" class="ui-input">
+                </div>
+                <!-- 公司 / 事業部中心 專屬欄位：區域（多選） -->
+                <div id="region-field" class="hidden">
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">區域 <span class="text-rose-500">*</span><span class="font-normal text-text-light">（可多選）</span></label>
+                    <div id="field-region" class="flex flex-wrap gap-x-4 gap-y-2 border border-gray-300 rounded-md p-3"></div>
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-text-muted mb-1.5">狀態</label>
@@ -175,16 +180,16 @@
                 { code: 'SG', name: '新加坡', active: false }
             ],
             company: [
-                { code: 'KH-TW', name: '知為股份有限公司', active: true },
-                { code: 'KH-US', name: 'KnowHow USA Inc.', active: true },
-                { code: 'KH-JP', name: 'ノウハウ株式会社', active: true },
-                { code: 'KH-CN', name: '知為（上海）科技有限公司', active: false }
+                { code: 'KH-TW', name: '知為股份有限公司', regions: ['T1'], active: true },
+                { code: 'KH-US', name: 'KnowHow USA Inc.', regions: ['U'], active: true },
+                { code: 'KH-JP', name: 'ノウハウ株式会社', regions: ['J'], active: true },
+                { code: 'KH-CN', name: '知為（上海）科技有限公司', regions: ['S'], active: false }
             ],
             bu: [
-                { code: 'BU01', name: '軟體事業部', active: true },
-                { code: 'BU02', name: '硬體事業部', active: true },
-                { code: 'BU03', name: '雲端服務事業部', active: true },
-                { code: 'BU04', name: '行銷事業部', active: false }
+                { code: 'BU01', name: '軟體事業部', regions: ['T1', 'T2'], active: true },
+                { code: 'BU02', name: '硬體事業部', regions: ['T1'], active: true },
+                { code: 'BU03', name: '雲端服務事業部', regions: ['T1', 'J'], active: true },
+                { code: 'BU04', name: '行銷事業部', regions: ['T1'], active: false }
             ],
             project: [
                 { code: 'GT', name: 'GT 專案', active: true },
@@ -246,6 +251,24 @@
             return CATEGORIES.find(c => c.key === activeCat).label;
         }
 
+        // 公司 / 事業部中心 需顯示「區域」欄
+        const hasRegion = () => activeCat === 'company' || activeCat === 'bu';
+        // 區域多選選項（比照費用歸屬）
+        const REGIONS = ['T1', 'T2', 'U', 'J', 'S'];
+        function regionOptions() { return REGIONS; }
+        // 依分頁設定表頭
+        function renderHead() {
+            document.getElementById('table-head').innerHTML = hasRegion()
+                ? '<th scope="col" class="text-left">名稱</th><th scope="col" class="text-left min-w-[160px]">區域</th><th scope="col">狀態</th><th scope="col" class="text-center">操作</th>'
+                : '<th scope="col" class="text-left">名稱</th><th scope="col">狀態</th><th scope="col" class="text-center">操作</th>';
+        }
+        // 渲染區域多選 checkbox（selected 為已勾選陣列）
+        function renderRegionField(selected) {
+            const chosen = new Set(selected || []);
+            document.getElementById('field-region').innerHTML = regionOptions().map(v =>
+                `<label class="flex items-center gap-1.5 text-sm text-gray-700"><input type="checkbox" class="field-region-chk" value="${v}" ${chosen.has(v) ? 'checked' : ''}> ${v}</label>`).join('');
+        }
+
         // 渲染頁籤
         function renderTabs() {
             const bar = document.getElementById('tab-bar');
@@ -266,6 +289,7 @@
 
         // 渲染列表（套用搜尋）
         function render() {
+            renderHead();
             const tbody = document.getElementById('org-tbody');
             const noData = document.getElementById('no-data-view');
             const kw = document.getElementById('search-input').value.trim().toLowerCase();
@@ -296,8 +320,12 @@
                 const toggleBtn = r.active
                     ? `<button onclick="toggleStatus(${i})" class="ui-btn ui-btn-sm text-amber-600 border border-amber-200 hover:bg-amber-50"><i class="fa-solid fa-ban"></i> 停用</button>`
                     : `<button onclick="toggleStatus(${i})" class="ui-btn ui-btn-sm text-emerald-600 border border-emerald-200 hover:bg-emerald-50"><i class="fa-solid fa-circle-check"></i> 啟用</button>`;
+                const regionCell = hasRegion()
+                    ? `<td class="text-left"><div class="flex flex-wrap gap-1">${(r.regions && r.regions.length) ? r.regions.map(v => `<span class="ui-badge bg-teal-50 text-teal-600">${v}</span>`).join(' ') : '<span class="text-gray-300">—</span>'}</div></td>`
+                    : '';
                 tr.innerHTML = `
                     <td class="text-left font-medium text-gray-800">${r.name}</td>
+                    ${regionCell}
                     <td>${statusBadge}</td>
                     <td>
                         <div class="flex items-center justify-center gap-2">
@@ -327,6 +355,8 @@
             document.getElementById('modal-title').innerText = `新增${currentLabel()}`;
             document.getElementById('field-name').value = '';
             document.getElementById('field-status').value = 'true';
+            document.getElementById('region-field').classList.toggle('hidden', !hasRegion());
+            if (hasRegion()) renderRegionField([]);
             document.getElementById('edit-modal').classList.remove('hidden');
         }
 
@@ -336,6 +366,8 @@
             document.getElementById('modal-title').innerText = `編輯${currentLabel()}`;
             document.getElementById('field-name').value = rec.name;
             document.getElementById('field-status').value = String(rec.active);
+            document.getElementById('region-field').classList.toggle('hidden', !hasRegion());
+            if (hasRegion()) renderRegionField(rec.regions || []);
             document.getElementById('edit-modal').classList.remove('hidden');
         }
 
@@ -360,11 +392,18 @@
                 return;
             }
 
+            let extra = {};
+            if (hasRegion()) {
+                const regions = Array.from(document.querySelectorAll('#field-region .field-region-chk:checked')).map(c => c.value);
+                if (!regions.length) { showToast('error', '請至少勾選一個區域'); return; }
+                extra = { regions };
+            }
+
             if (editIndex === -1) {
-                list.push({ name, active });
+                list.push({ name, active, ...extra });
                 showToast('success', `已新增${currentLabel()}「${name}」`);
             } else {
-                list[editIndex] = { ...list[editIndex], name, active };
+                list[editIndex] = { ...list[editIndex], name, active, ...extra };
                 showToast('success', `已更新${currentLabel()}「${name}」`);
             }
             closeModal();

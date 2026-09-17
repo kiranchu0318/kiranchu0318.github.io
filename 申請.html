@@ -276,7 +276,7 @@
                                                 <td class="px-3 py-1.5"><div class="relative"><input type="text" readonly onclick="aaOpenAssetCheck(this)" class="w-full border border-gray-300 rounded px-2 py-1 pr-7 text-sm outline-none focus:border-[#4A90E2] cursor-pointer bg-white" placeholder="點擊輸入資產編號"><button type="button" disabled onclick="event.stopPropagation(); aaAssetDetail(this)" title="檢視詳情" class="aa-eye-btn absolute inset-y-0 right-1.5 flex items-center text-gray-400 opacity-40 cursor-not-allowed disabled:pointer-events-none"><i data-lucide="eye" class="w-4 h-4"></i></button></div></td>
                                                 <td class="px-3 py-1.5"><input type="date" onclick="this.showPicker && this.showPicker()" class="w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2]"></td>
                                                 <td class="px-3 py-1.5"><div class="flex items-center border border-gray-300 rounded overflow-hidden"><span class="bg-gray-50 border-r border-gray-300 px-2 py-1 text-xs text-gray-500">¥</span><input type="text" class="w-full px-2 py-1 text-sm text-right outline-none" value="0"></div></td>
-                                                <td class="px-3 py-1.5"><div class="relative person-combo"><input type="text" autocomplete="off" placeholder="新使用人" class="person-input w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2]"><div class="person-list hidden absolute z-30 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto text-[13px]"></div></div></td>
+                                                <td class="px-3 py-1.5"><div class="flex items-center gap-2"><div class="relative person-combo flex-1 min-w-0"><input type="text" autocomplete="off" placeholder="新使用人" class="person-input w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2]"><div class="person-list hidden absolute z-30 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto text-[13px]"></div></div><label class="inline-flex items-center gap-1 text-xs text-gray-500 cursor-pointer shrink-0"><input type="checkbox" onchange="anSharedToggle(this)" class="w-3.5 h-3.5 rounded border-gray-300 text-blue-600"> 共用</label></div></td>
                                                 <td class="px-3 py-1.5"><select class="w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2] bg-white"><option value="" disabled selected>請選擇</option><option>地區資產管理人</option><option>中心資產管理人</option></select></td>
                                                 <td class="px-3 py-1.5"><select class="w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2] bg-white"><option value="" disabled selected>請選擇</option><option>人員入職</option><option>人員離職</option><option>在職更換資產</option><option>在職退回資產</option><option>其他</option></select></td>
                                                 <td class="px-3 py-1.5 text-center"><button type="button" onclick="blockRemove(this)" class="text-[12px] text-rose-600 border border-rose-200 rounded px-2.5 py-1 hover:bg-rose-50 inline-flex items-center gap-1 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i>移除</button></td>
@@ -458,7 +458,8 @@
                             <div class="px-4 py-2.5 border-b border-gray-200 flex justify-between items-center"><h3 class="text-[#2b3b84] font-bold text-[15px]">費用申請明細</h3><button type="button" onclick="blockAdd(this)" class="text-[12px] text-blue-600 border border-blue-200 rounded px-2.5 py-1 hover:bg-blue-50 flex items-center gap-1"><i data-lucide="plus" class="w-3.5 h-3.5"></i>添加項目</button></div>
                             <div class="p-4"><div class="space-y-3">
                                 <div class="grid grid-cols-12 gap-4 items-end border border-gray-200 rounded-md p-3 bg-gray-50/40">
-                                    <div class="col-span-7"><span class="block mb-1 text-[13px] font-bold">內容</span><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"></div>
+                                    <div class="col-span-2"><span class="block mb-1 text-[13px] font-bold">費用歸屬</span><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none bg-white"><option value="" disabled selected>請選擇</option><option>API</option><option>YL</option><option>LY</option><option>KX</option><option>MP</option><option>VN</option><option>V8</option><option>SY</option><option>OB</option><option>Africa365</option><option>SEO</option><option>VV</option><option>OPS</option><option>Best Winner</option><option>Boldplay</option><option>KYTW</option><option>369</option><option>KYPH</option><option>GT</option><option>私帳</option><option>IFG-GLI</option><option>J-CH</option><option>Sapay</option><option>U-CH</option><option>IM</option></select></div>
+                                    <div class="col-span-5"><span class="block mb-1 text-[13px] font-bold">內容</span><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"></div>
                                     <div class="col-span-3"><span class="block mb-1 text-[13px] font-bold">金額</span><div class="flex border border-gray-300 rounded overflow-hidden"><span class="bg-gray-100 border-r px-3 py-1.5 text-[13px] text-gray-500">CNY</span><input type="number" class="w-full px-3 py-1.5 text-[13px] outline-none text-right" value="0"></div></div>
                                     <div class="col-span-2 flex justify-center"><button type="button" onclick="blockRemove(this)" class="text-[12px] text-rose-600 border border-rose-200 rounded px-2.5 py-1 hover:bg-rose-50 inline-flex items-center gap-1 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i>移除</button></div>
                                 </div>
@@ -775,6 +776,7 @@
                                     <table class="w-full text-left text-sm border-collapse whitespace-nowrap">
                                         <thead>
                                             <tr class="border-b border-gray-200 bg-gray-50 text-gray-700 font-bold text-xs">
+                                                <th class="px-3 py-2 w-28">費用歸屬</th>
                                                 <th class="px-3 py-2 w-28">項目</th>
                                                 <th class="px-3 py-2 w-28">部門</th>
                                                 <th class="px-3 py-2">目的</th>
@@ -785,6 +787,7 @@
                                         </thead>
                                         <tbody class="divide-y divide-gray-100">
                                             <tr>
+                                                <td class="px-3 py-1.5"><select class="w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2] bg-white"><option value="" disabled selected>請選擇</option><option>API</option><option>YL</option><option>LY</option><option>KX</option><option>MP</option><option>VN</option><option>V8</option><option>SY</option><option>OB</option><option>Africa365</option><option>SEO</option><option>VV</option><option>OPS</option><option>Best Winner</option><option>Boldplay</option><option>KYTW</option><option>369</option><option>KYPH</option><option>GT</option><option>私帳</option><option>IFG-GLI</option><option>J-CH</option><option>Sapay</option><option>U-CH</option><option>IM</option></select></td>
                                                 <td class="px-3 py-1.5"><select class="w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2]"><option>請選擇</option></select></td>
                                                 <td class="px-3 py-1.5"><select class="w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2]"><option>請選擇</option></select></td>
                                                 <td class="px-3 py-1.5"><input type="text" class="w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2]"></td>
@@ -1564,7 +1567,7 @@
             <div class="flex flex-1 overflow-hidden bg-[#f4f5f8]">
                 <div class="relative flex-1 flex flex-col overflow-hidden">
                     <!-- 錨點導覽 -->
-                    <div id="pta-anchor-nav" class="shrink-0 px-5 py-2.5 bg-white border-b border-gray-200 flex flex-wrap gap-2 items-center"><button type="button" onclick="ptaScrollTo('pta-sec-basic')" class="text-[12px] px-3 py-1 rounded-full border border-gray-200 text-gray-600 hover:bg-[#EAF2FC] hover:text-[#4A90E2] hover:border-[#4A90E2] transition-colors">基本資訊</button><button type="button" onclick="ptaScrollTo('pta-sec-asset')" class="text-[12px] px-3 py-1 rounded-full border border-gray-200 text-gray-600 hover:bg-[#EAF2FC] hover:text-[#4A90E2] hover:border-[#4A90E2] transition-colors">隨身資產／聯絡方式</button><button type="button" onclick="ptaScrollTo('pta-sec-trip')" class="text-[12px] px-3 py-1 rounded-full border border-gray-200 text-gray-600 hover:bg-[#EAF2FC] hover:text-[#4A90E2] hover:border-[#4A90E2] transition-colors">出差行程</button><button type="button" onclick="ptaScrollTo('pta-sec-daypack')" class="text-[12px] px-3 py-1 rounded-full border border-gray-200 text-gray-600 hover:bg-[#EAF2FC] hover:text-[#4A90E2] hover:border-[#4A90E2] transition-colors">日包計算</button><button type="button" onclick="ptaScrollTo('pta-sec-claim')" class="text-[12px] px-3 py-1 rounded-full border border-gray-200 text-gray-600 hover:bg-[#EAF2FC] hover:text-[#4A90E2] hover:border-[#4A90E2] transition-colors">應領金額</button><button type="button" onclick="ptaScrollTo('pta-sec-budget')" class="text-[12px] px-3 py-1 rounded-full border border-gray-200 text-gray-600 hover:bg-[#EAF2FC] hover:text-[#4A90E2] hover:border-[#4A90E2] transition-colors">差旅預算明細</button><button type="button" onclick="ptaScrollTo('pta-sec-progress')" class="text-[12px] px-3 py-1 rounded-full border border-gray-200 text-gray-600 hover:bg-[#EAF2FC] hover:text-[#4A90E2] hover:border-[#4A90E2] transition-colors">審批進度追蹤</button></div>
+                    <div id="pta-anchor-nav" class="shrink-0 px-5 py-2.5 bg-white border-b border-gray-200 flex flex-wrap gap-2 items-center"><button type="button" onclick="ptaScrollTo('pta-sec-basic')" class="text-[12px] px-3 py-1 rounded-full border border-gray-200 text-gray-600 hover:bg-[#EAF2FC] hover:text-[#4A90E2] hover:border-[#4A90E2] transition-colors">基本資訊</button><button type="button" onclick="ptaScrollTo('pta-sec-asset')" class="text-[12px] px-3 py-1 rounded-full border border-gray-200 text-gray-600 hover:bg-[#EAF2FC] hover:text-[#4A90E2] hover:border-[#4A90E2] transition-colors">隨身資產／聯絡方式</button><button type="button" onclick="ptaScrollTo('pta-sec-trip')" class="text-[12px] px-3 py-1 rounded-full border border-gray-200 text-gray-600 hover:bg-[#EAF2FC] hover:text-[#4A90E2] hover:border-[#4A90E2] transition-colors">出差行程</button><button type="button" onclick="ptaScrollTo('pta-sec-daypack')" class="text-[12px] px-3 py-1 rounded-full border border-gray-200 text-gray-600 hover:bg-[#EAF2FC] hover:text-[#4A90E2] hover:border-[#4A90E2] transition-colors">日包計算</button><button type="button" onclick="ptaScrollTo('pta-sec-claim')" class="text-[12px] px-3 py-1 rounded-full border border-gray-200 text-gray-600 hover:bg-[#EAF2FC] hover:text-[#4A90E2] hover:border-[#4A90E2] transition-colors">應領金額</button><button type="button" onclick="ptaScrollTo('pta-sec-compare')" class="text-[12px] px-3 py-1 rounded-full border border-gray-200 text-gray-600 hover:bg-[#EAF2FC] hover:text-[#4A90E2] hover:border-[#4A90E2] transition-colors">品項比價</button><button type="button" onclick="ptaScrollTo('pta-sec-budget')" class="text-[12px] px-3 py-1 rounded-full border border-gray-200 text-gray-600 hover:bg-[#EAF2FC] hover:text-[#4A90E2] hover:border-[#4A90E2] transition-colors">差旅預算明細</button><button type="button" onclick="ptaScrollTo('pta-sec-progress')" class="text-[12px] px-3 py-1 rounded-full border border-gray-200 text-gray-600 hover:bg-[#EAF2FC] hover:text-[#4A90E2] hover:border-[#4A90E2] transition-colors">審批進度追蹤</button></div>
                     <div class="flex-1 overflow-y-auto p-5 pb-8">
                         <!-- 是否緊急 -->
                         <label class="flex items-center gap-2 cursor-pointer select-none mb-4 bg-amber-50 border border-amber-200 rounded-md px-4 py-2.5">
@@ -1728,6 +1731,16 @@
                                         </div>
                                     </div>
                                 </div>
+                        <!-- 品項與供應商比價（植入自 請購單 PU）-->
+                        <div id="pta-sec-compare" class="scroll-mt-24 bg-white border border-gray-300 rounded-md shadow-sm mb-5">
+                            <div class="px-4 py-2.5 border-b border-gray-200">
+                                <h3 class="text-[#2b3b84] font-bold text-[15px]">品項與供應商比價</h3>
+                                <p class="text-[12px] text-gray-400 mt-0.5">品項對照「差旅預算明細」的預算項目，不可編輯；每個品項各自一組獨立比價。</p>
+                            </div>
+                            <div class="p-4">
+                                <div id="pta-items" class="space-y-4"></div>
+                            </div>
+                        </div>
                         <!-- 4. 差旅預算明細 -->
                         <div class="scroll-mt-24 bg-white border border-gray-300 rounded-md shadow-sm mb-5 pta-budget-card">
                             <div class="px-4 py-2.5 flex justify-between items-center border-b border-gray-200">
@@ -2310,6 +2323,20 @@
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">關聯PU單</label><select id="ic-has-relpu" onchange="icToggleRelPU()" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option value="">否</option><option value="1">是</option></select></div>
                             <div id="ic-relpu-wrap" class="hidden"><label class="block mb-1.5 text-[13px] text-gray-700">PU單號 <span class="text-red-500">*</span></label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500" placeholder="請輸入PU單號"></div>
                             <div class="col-span-2 col-start-1"><label class="block mb-1.5 text-[13px] text-gray-700">對方簽字人郵箱地址</label><input type="email" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500" placeholder="example@company.com"></div>
+                        </div>
+                    </div>
+
+                    <!-- 上傳合同 -->
+                    <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5">
+                        <div class="px-4 py-2.5 border-b border-gray-200"><h3 class="text-[#2b3b84] font-bold text-[15px]">上傳合同</h3></div>
+                        <div class="p-4 file-upload">
+                            <input type="file" class="hidden file-input" multiple>
+                            <div class="dropzone border-2 border-dashed border-gray-300 rounded-lg py-4 flex flex-col items-center justify-center gap-2 text-gray-400 cursor-pointer hover:border-blue-400 hover:text-blue-500 transition-colors">
+                                <i data-lucide="upload-cloud" class="w-7 h-7"></i>
+                                <div class="text-[13px]"><span class="text-blue-600 font-medium">點擊上傳</span> 或將合同檔案拖曳至此</div>
+                                <div class="text-[12px] text-gray-400">支援 PDF / Word 等合同檔案</div>
+                            </div>
+                            <ul class="file-list mt-2 space-y-1"></ul>
                         </div>
                     </div>
 
@@ -3226,7 +3253,7 @@
                                             <select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option></select>
                                         </div>
                                         <div class="relative person-combo">
-                                            <label class="block mb-1.5 text-[13px] text-gray-700">使用人 <span class="text-red-500">*</span></label>
+                                            <div class="flex items-center justify-between mb-1.5"><label class="text-[13px] text-gray-700">使用人 <span class="text-red-500">*</span></label><label class="inline-flex items-center gap-1 text-[12px] text-gray-500 cursor-pointer"><input type="checkbox" onchange="anSharedToggle(this)" class="w-3.5 h-3.5 rounded border-gray-300 text-blue-600"> 共用</label></div>
                                             <input type="text" autocomplete="off" placeholder="搜尋工號 / 姓名" class="person-input w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500">
                                             <div class="person-list hidden absolute z-30 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto text-[13px]"></div>
                                         </div>
@@ -5874,6 +5901,7 @@
                 if (modal) {
                     modal.classList.remove('hidden');
                     if (code === 'PTAC') { if (window.ptacFillDemo) ptacFillDemo(); else if (window.ptacSyncClaimFromBudget) ptacSyncClaimFromBudget(); }
+                    if (code === 'PTA') { if (window.rpuInitPta) rpuInitPta(); }
                     if (window.lucide) lucide.createIcons();
                 }
             });
@@ -5898,6 +5926,7 @@
                     // 週期性請購單：初始化 RPU 引擎
                     if (code === 'RPU') { modal.dataset.formCode = 'RPU'; if (window.rpuInit) rpuInit('rpu'); }
                     if (code === 'PU' || code === 'APU') { if (window.rpuInit) rpuInit('pu'); }
+                    if (code === 'PTA') { if (window.rpuInitPta) rpuInitPta(); }
                     if (code === 'PTAC') { if (window.ptacFillDemo) ptacFillDemo(); else if (window.ptacSyncClaimFromBudget) ptacSyncClaimFromBudget(); } // 帶入 demo 並彙整費用報銷明細
                     lucide.createIcons();
                 }
@@ -6427,6 +6456,18 @@
             person.classList.toggle('hidden', isUnit);
             unit.classList.toggle('hidden', !isUnit);
         }
+        // 新增資產申請 (AN) / 資產調撥 (AA)：勾「共用」→ 停用使用人欄位
+        function anSharedToggle(cb) {
+            const wrap = cb.closest('.person-combo') || cb.closest('td') || cb.closest('div');
+            const combo = (wrap && wrap.classList.contains('person-combo')) ? wrap : (wrap && wrap.querySelector('.person-combo')) || wrap;
+            const input = combo && combo.querySelector('.person-input');
+            if (!input) return;
+            input.disabled = cb.checked;
+            input.classList.toggle('bg-[#e9ecef]', cb.checked);
+            input.classList.toggle('text-gray-500', cb.checked);
+            input.classList.toggle('cursor-not-allowed', cb.checked);
+            if (cb.checked) { input.value = ''; const list = combo.querySelector('.person-list'); if (list) list.classList.add('hidden'); }
+        }
         // 商務公告 (BU)：公告分類 → 公告類別 連動
         const BU_CATEGORY_MAP = {
             '一般公告': ['一般點位調整', '一般階梯交收', '統一交收', '模式調整', '商務調整', '其他公告'],
@@ -6577,7 +6618,7 @@
             const tr = document.createElement('tr');
             tr.innerHTML =
                 '<td class="px-3 py-1.5 text-center font-medium pta-seq"></td>' +
-                '<td class="px-3 py-1.5"><input type="text" class="w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2]" placeholder="預算項目"></td>' +
+                '<td class="px-3 py-1.5"><input type="text" class="w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2]" placeholder="預算項目" oninput="ptaResyncItems()"></td>' +
                 '<td class="px-3 py-1.5"><select class="w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2]"><option>CNY</option></select></td>' +
                 '<td class="px-3 py-1.5"><input type="text" class="pta-budget-amt w-full border border-gray-300 rounded px-2 py-1 text-sm text-right outline-none focus:border-[#4A90E2]" oninput="ptaUpdateClaim()" value="0"></td>' +
                 '<td class="px-3 py-1.5"><input type="text" class="w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2]"></td>' +
@@ -6592,6 +6633,7 @@
             const tbody = tr.closest('tbody');
             tr.remove();
             ptaRenumberBudget(tbody);
+            if (window.ptaResyncItems) ptaResyncItems();
         }
         // 傳入 tbody 則只重編該筆；否則重編全部（多段出差行程各自一張表）
         function ptaRenumberBudget(tbody) {
@@ -6989,10 +7031,13 @@
         // 兩個實例（RPU 與 PU 各自獨立），以 RPU_NS 切換目前作用的實例
         const RPU_STORE = {
             rpu: { currency: 'CNY', periods: 12, applyType: 'sub', items: [], extraFiles: [] },
-            pu:  { currency: 'CNY', periods: 1,  applyType: 'sub', items: [], extraFiles: [] }
+            pu:  { currency: 'CNY', periods: 1,  applyType: 'sub', items: [], extraFiles: [] },
+            pta: { currency: 'CNY', periods: 1,  applyType: 'sub', items: [], extraFiles: [] }
         };
         let RPU_NS = 'rpu';
         const S = () => RPU_STORE[RPU_NS];
+        // 一次性採購（請購單 PU 與差旅品項 PTA）：與週期性請購（RPU）行為不同
+        const rpuOneTime = () => RPU_NS === 'pu' || RPU_NS === 'pta';
 
         function rpuMakeSupplier(key) {
             return { key, name: '', specSame: 'same', specDiffNote: '', brandModel: '', deliveryTime: '', warranty: '', unitPrice: 0, oneTime: 0, oneTimeNote: '',
@@ -7013,17 +7058,17 @@
         // ===== 共用計算函式（摘要、供應商卡片、右側預算共用）=====
         function rpuPerPeriod(sup, it) { return rpuNum(sup.unitPrice) * rpuNum(it.qty); }
         function rpuPeriodFee(sup, it) { return rpuPerPeriod(sup, it) * rpuPeriods(); }
-        function rpuEstTax(sup) { return (sup.tax === '未稅' || RPU_NS === 'pu') ? rpuNum(sup.estTax) : 0; }
+        function rpuEstTax(sup) { return (sup.tax === '未稅' || rpuOneTime()) ? rpuNum(sup.estTax) : 0; }
         function rpuFull(sup, it) { return rpuPeriodFee(sup, it) + rpuNum(sup.oneTime) + rpuEstTax(sup); }
         function rpuActiveSuppliers(it) { return it.method === 'three' ? it.suppliers : [it.suppliers[0]]; }
         // 供應商是否報價完整 → { complete, missing[] }
         function rpuComplete(sup, it) {
             const miss = [];
             if (!sup.name.trim()) miss.push('供應商名稱');
-            if (rpuNum(sup.unitPrice) <= 0) miss.push(RPU_NS === 'pu' ? '報價單價' : '每期單價');
+            if (rpuNum(sup.unitPrice) <= 0) miss.push(rpuOneTime() ? '報價單價' : '每期單價');
             if (!sup.quoteLink.trim()) miss.push('報價連結');
             if (!sup.quoteFile) miss.push('報價附件');
-            if (RPU_NS === 'pu') {
+            if (rpuOneTime()) {
                 // 請購單（一次性採購）：品牌／型號必填；無稅務方式
                 if (!sup.brandModel.trim()) miss.push('品牌／型號');
             } else {
@@ -7123,7 +7168,7 @@
                     <span class="text-[12px] text-gray-500 shrink-0">每期 <span class="rpu-cur-prefix">${cur}</span> <span id="${RPU_NS}_hd_perfee_${it.id}_${s.key}">0.00</span> · 總價 <span class="rpu-cur-prefix">${cur}</span> <span id="${RPU_NS}_hd_full_${it.id}_${s.key}">0.00</span></span>
                 </button>
                 <div class="${s.expanded ? '' : 'hidden'} p-3 space-y-3">
-                    ${RPU_NS === 'pu' ? `
+                    ${rpuOneTime() ? `
                     <div class="text-[12px] font-bold text-gray-500">必要報價資料</div>
                     <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-3">
                         <div><label class="block mb-1 text-[12px] text-gray-600">供應商名稱 <span class="text-red-500">*</span></label><input type="text" value="${s.name.replace(/"/g,'&quot;')}" oninput="rpuSupSet(${it.id},'${s.key}','name',this.value)" class="${inp}"></div>
@@ -7200,6 +7245,11 @@
         function rpuItemHtml(it, idx) {
             const cur = S().currency;
             const inp = 'w-full border border-gray-300 rounded px-2 py-1 text-[13px] outline-none focus:border-blue-500';
+            // 差旅申請單(PTA)：品項名稱鎖定，對照「差旅預算明細」的預算項目，不可編輯／刪除
+            const nameLocked = RPU_NS === 'pta';
+            const nameInputHtml = nameLocked
+                ? `<input type="text" value="${it.name.replace(/"/g,'&quot;')}" disabled class="${inp} bg-[#e9ecef] text-gray-500 cursor-not-allowed">`
+                : `<input type="text" value="${it.name.replace(/"/g,'&quot;')}" oninput="rpuSet(${it.id},'name',this.value)" class="${inp}">`;
             const methodBtn = (m, label) => `<button type="button" onclick="rpuSetMethod(${it.id},'${m}')" class="text-[12px] px-3 py-1 rounded-full border ${it.method === m ? 'border-blue-500 bg-blue-50 text-blue-600 font-semibold' : 'border-gray-300 bg-white text-gray-600 hover:border-blue-300'}">${label}</button>`;
             let detail = '';
             if (it.expanded) {
@@ -7223,14 +7273,14 @@
             return `
             <div class="border border-gray-200 rounded-lg bg-white">
                 <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between gap-2">
-                    <span class="text-[13px] font-bold text-gray-800">品項 ${idx + 1}</span>
-                    <button type="button" onclick="rpuRemoveItem(${it.id})" ${S().items.length <= 1 ? 'disabled' : ''} class="text-[12px] text-rose-600 border border-rose-200 rounded px-2.5 py-1 hover:bg-rose-50 inline-flex items-center gap-1 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i>刪除品項</button>
+                    <span class="text-[13px] font-bold text-gray-800">品項 ${idx + 1}<span class="ml-2 text-[12px] font-normal text-gray-400">${nameLocked ? '（對照差旅預算明細）' : ''}</span></span>
+                    ${nameLocked ? '' : `<button type="button" onclick="rpuRemoveItem(${it.id})" ${S().items.length <= 1 ? 'disabled' : ''} class="text-[12px] text-rose-600 border border-rose-200 rounded px-2.5 py-1 hover:bg-rose-50 inline-flex items-center gap-1 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i>刪除品項</button>`}
                 </div>
                 <div class="p-4">
                     <!-- 品項基本資料 -->
-                    ${RPU_NS === 'pu' ? `
+                    ${rpuOneTime() ? `
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-                        <div><label class="block mb-1 text-[12px] text-gray-600">品項名稱 <span class="text-red-500">*</span></label><input type="text" value="${it.name.replace(/"/g,'&quot;')}" oninput="rpuSet(${it.id},'name',this.value)" class="${inp}"></div>
+                        <div><label class="block mb-1 text-[12px] text-gray-600">品項名稱 <span class="text-red-500">*</span></label>${nameInputHtml}</div>
                         <div><label class="block mb-1 text-[12px] text-gray-600">規格／型號 <span class="text-red-500">*</span></label><input type="text" value="${(it.spec||'').replace(/"/g,'&quot;')}" oninput="rpuSet(${it.id},'spec',this.value)" class="${inp}"></div>
                         <div><label class="block mb-1 text-[12px] text-gray-600">數量 <span class="text-red-500">*</span></label><input type="number" min="1" value="${it.qty}" oninput="rpuSet(${it.id},'qty',this.value)" class="${inp} text-right"></div>
                         <div><label class="block mb-1 text-[12px] text-gray-600">預估單價 <span class="text-red-500">*</span></label><div class="flex items-center border border-gray-300 rounded overflow-hidden"><span class="bg-gray-50 border-r border-gray-300 px-2 py-1 text-[11px] text-gray-500 rpu-cur-prefix">${cur}</span><input type="number" min="0" value="${it.unitPrice}" oninput="rpuSet(${it.id},'unitPrice',this.value)" class="w-full px-2 py-1 text-[13px] text-right outline-none"></div></div>
@@ -7239,7 +7289,7 @@
                     </div>
                     ` : `
                         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                        <div><label class="block mb-1 text-[12px] text-gray-600">品項／方案名稱 <span class="text-red-500">*</span></label><input type="text" value="${it.name.replace(/"/g,'&quot;')}" oninput="rpuSet(${it.id},'name',this.value)" class="${inp}"></div>
+                        <div><label class="block mb-1 text-[12px] text-gray-600">品項／方案名稱 <span class="text-red-500">*</span></label>${nameInputHtml}</div>
                         <div><label class="block mb-1 text-[12px] text-gray-600">計價單位 <span class="text-red-500">*</span></label><select onchange="rpuSet(${it.id},'unit',this.value)" class="${inp} bg-white">${RPU_UNITS.map(u => `<option ${it.unit === u ? 'selected' : ''}>${u}</option>`).join('')}</select></div>
                         <div><label class="block mb-1 text-[12px] text-gray-600">數量 <span class="text-red-500">*</span></label><input type="number" min="1" value="${it.qty}" oninput="rpuSet(${it.id},'qty',this.value)" class="${inp} text-right"></div>
                         <div><label class="block mb-1 text-[12px] text-gray-600">預估每期單價 <span class="text-red-500">*</span></label><div class="flex items-center border border-gray-300 rounded overflow-hidden"><span class="bg-gray-50 border-r border-gray-300 px-2 py-1 text-[11px] text-gray-500 rpu-cur-prefix">${cur}</span><input type="number" min="0" value="${it.unitPrice}" oninput="rpuSet(${it.id},'unitPrice',this.value)" class="w-full px-2 py-1 text-[13px] text-right outline-none"></div></div>
@@ -7324,7 +7374,7 @@
                     }
                 });
                 // 右側預算
-                if (RPU_NS === 'pu') {
+                if (rpuOneTime()) {
                     // 請購單：依選用供應商的報價資料計算
                     if (sel) { bPer += rpuPerPeriod(sel, it); bPeriod += rpuPeriodFee(sel, it); bOne += rpuNum(sel.oneTime); bTax += rpuEstTax(sel); bFull += rpuFull(sel, it); bDep += rpuNum(sel.deposit); }
                 } else {
@@ -7332,7 +7382,7 @@
                     bPer += sel ? rpuPerPeriod(sel, it) : (rpuNum(it.unitPrice) * rpuNum(it.qty));
                 }
             });
-            if (RPU_NS !== 'pu') { bPeriod = bPer * rpuPeriods(); bFull = bPeriod + bOne + bTax; }
+            if (!rpuOneTime()) { bPeriod = bPer * rpuPeriods(); bFull = bPeriod + bOne + bTax; }
             setTxt(RPU_NS + '-bs-perperiod', rpuMoney(bPer));
             setTxt(RPU_NS + '-bs-periods', rpuPeriods());
             setTxt(RPU_NS + '-bs-period', rpuMoney(bPeriod));
@@ -7354,6 +7404,48 @@
             if (RPU_NS === 'rpu') rpuSetApplyType(S().applyType);
             rpuRenderItems();
             rpuRenderExtra();
+        }
+        // ===== 差旅申請單 (PTA) 品項比價：品項對照「差旅預算明細」的預算項目 =====
+        const PTA_DEFAULT_ITEMS = ['機票', '交通', '住宿', '餐費', '保險', '預計採購項'];
+        // 讀取 pta-modal「差旅預算明細」的預算項目名稱（固定列 + 已命名的自訂列）
+        function ptaBudgetItemNames() {
+            const modal = document.getElementById('pta-modal');
+            if (!modal) return [];
+            let names = [];
+            modal.querySelectorAll('.pta-budget-tbody').forEach(tb => {
+                if (names.length || !tb.querySelector('.pta-fixed')) return;   // 僅取含固定項目的主明細表
+                names = Array.from(tb.querySelectorAll('tr')).map(tr => {
+                    const inp = tr.querySelector('td:nth-child(2) input');
+                    return inp ? inp.value.trim() : '';
+                }).filter(Boolean);
+            });
+            return names;
+        }
+        // 依預算項目名稱重建 pta 品項，保留既有比價資料（依名稱對應）
+        function ptaBuildItems() {
+            const src = ptaBudgetItemNames();
+            const names = src.length ? src : PTA_DEFAULT_ITEMS;
+            const prev = RPU_STORE.pta.items;
+            RPU_STORE.pta.items = names.map(nm => {
+                const found = prev.find(x => x.name === nm);
+                if (found) return found;
+                const it = rpuMakeItem(); it.name = nm; return it;
+            });
+        }
+        function rpuInitPta() {
+            RPU_NS = 'pta';
+            ptaBuildItems();
+            RPU_STORE.pta.currency = 'CNY';
+            rpuRenderItems();
+            rpuRenderExtra();
+        }
+        // 差旅預算明細變動時（新增／刪除／改名預算項目）即時同步品項
+        function ptaResyncItems() {
+            const modal = document.getElementById('pta-modal');
+            if (!modal || modal.classList.contains('hidden') || !document.getElementById('pta-items')) return;
+            RPU_NS = 'pta';
+            ptaBuildItems();
+            rpuRenderItems();
         }
     </script>
 

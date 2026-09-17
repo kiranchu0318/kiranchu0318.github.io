@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>合同專區</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: { extend: {
+                colors: { primary: '#4A90E2', 'primary-light': '#EAF2FC', background: '#F8F9FB', card: '#FFFFFF',
+                    text: { main: '#1F2937', muted: '#6B7280', light: '#9CA3AF' } },
+                fontFamily: { sans: ['"Inter"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'] },
+                boxShadow: { 'card': '0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03)', 'modal': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)' }
+            } }
+        }
+    </script>
+    <style>
+        body { background-color: theme('colors.background'); font-family: theme('fontFamily.sans'); }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+    <link rel="stylesheet" href="shared-ui.css">
+</head>
+<body class="ui-page text-text-main antialiased relative">
+
+    <div class="relative mx-auto w-full space-y-6">
+        <header class="ui-page-header">
+            <h1 class="ui-page-title">合同專區</h1>
+        </header>
+
+        <section class="ui-card flex flex-col p-4 sm:p-6 space-y-4">
+            <!-- 工具列 -->
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                <div class="flex flex-wrap items-center gap-2">
+                    <div class="ui-search w-full sm:w-72">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="f-search" oninput="renderTable()" placeholder="搜尋單號 / 合同檔案名稱" class="ui-input ui-search-input">
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <h2 class="text-lg font-bold text-gray-900 whitespace-nowrap">合同檔案清單</h2>
+                <span id="count-badge" class="bg-blue-50 text-primary text-xs px-2.5 py-1 rounded-md font-bold">0 筆</span>
+            </div>
+
+            <div class="overflow-x-auto rounded-lg border border-gray-100">
+                <table class="ui-table whitespace-nowrap">
+                    <thead>
+                        <tr>
+                            <th class="text-left w-40">單號</th>
+                            <th class="text-left">合同檔案</th>
+                            <th class="text-center w-40">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody"></tbody>
+                </table>
+            </div>
+
+            <div id="no-data" class="hidden py-16 text-center space-y-3">
+                <div class="inline-flex p-4 bg-gray-50 text-gray-400 rounded-full"><i class="fa-solid fa-file-contract text-3xl"></i></div>
+                <p class="text-sm text-text-muted font-medium">查無符合條件的合同</p>
+            </div>
+        </section>
+    </div>
+
+    <!-- 合同審批單 (IC) 檢視彈窗（UI 比照 申請.html IC 表單，唯讀）-->
+    <div id="viewModal" class="fixed inset-0 bg-black/40 z-50 flex justify-center items-center hidden p-4" onclick="if(event.target===this) closeView()">
+        <div class="bg-white w-[98vw] max-w-[1400px] h-[95vh] rounded-md shadow-2xl flex flex-col relative overflow-hidden">
+            <div class="bg-[#EAF2FC] flex justify-between items-center px-4 py-3 border-b border-blue-100">
+                <h2 class="text-[#2b3b84] font-bold text-[16px]">合同審批單 (IC) <span id="v-ic" class="text-[#4A90E2] font-mono ml-1"></span></h2>
+                <button onclick="closeView()" class="bg-blue-500 hover:bg-blue-600 text-white rounded p-1 transition-colors"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="flex flex-1 overflow-hidden bg-[#f4f5f8]">
+                <div class="flex-1 flex flex-col overflow-hidden">
+                    <div class="flex-1 overflow-y-auto p-5 pb-8">
+
+                        <!-- 是否緊急 -->
+                        <label class="flex items-center gap-2 select-none mb-4 bg-amber-50 border border-amber-200 rounded-md px-4 py-2.5">
+                            <span class="text-[13px] font-medium text-gray-700">是否緊急：</span><span id="v-urgent" class="text-[13px] text-gray-800"></span>
+                        </label>
+
+                        <!-- 基本資訊 -->
+                        <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5">
+                            <div class="px-4 py-2.5 border-b border-gray-200"><h3 class="text-[#2b3b84] font-bold text-[15px]">基本資訊</h3></div>
+                            <div class="px-4 pt-4 grid grid-cols-5 gap-x-5 gap-y-5 mb-4">
+                                <div class="col-span-2"><label class="block mb-1.5 text-[13px] text-gray-700">文件編號</label><input type="text" id="v-ic2" disabled class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed"></div>
+                                <div><label class="block mb-1.5 text-[13px] text-gray-700">申請日期</label><div class="border border-gray-300 rounded px-3 py-1.5 bg-[#e9ecef] flex items-center"><i class="fa-regular fa-calendar text-gray-400"></i><input type="text" id="v-date" disabled class="w-full ml-2 text-[13px] outline-none bg-transparent text-gray-500 cursor-not-allowed"></div></div>
+                                <div><label class="block mb-1.5 text-[13px] text-gray-700">主旨</label><input type="text" id="v-name" disabled class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed"></div>
+                                <div class="col-start-1"><label class="block mb-1.5 text-[13px] text-gray-700">使用人</label><input type="text" id="v-applicant" disabled class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed"></div>
+                                <div><label class="block mb-1.5 text-[13px] text-gray-700">區域</label><input type="text" id="v-region" disabled class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed"></div>
+                                <div><label class="block mb-1.5 text-[13px] text-gray-700">部門</label><input type="text" id="v-dept" disabled class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed"></div>
+                                <div><label class="block mb-1.5 text-[13px] text-gray-700">組別</label><input type="text" id="v-team" disabled class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed"></div>
+                                <div><label class="block mb-1.5 text-[13px] text-gray-700">是否為遊戲供應商帳單</label><input type="text" id="v-game" disabled class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed"></div>
+                                <div><label class="block mb-1.5 text-[13px] text-gray-700">是否用印</label><input type="text" id="v-seal" disabled class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed"></div>
+                            </div>
+                        </div>
+
+                        <!-- 合同資訊 -->
+                        <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5">
+                            <div class="px-4 py-2.5 border-b border-gray-200"><h3 class="text-[#2b3b84] font-bold text-[15px]">合同資訊</h3></div>
+                            <div class="p-4 grid grid-cols-2 sm:grid-cols-4 gap-x-5 gap-y-5">
+                                <div><label class="block mb-1.5 text-[13px] text-gray-700">簽約主體</label><input type="text" id="v-our" disabled class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed"></div>
+                                <div><label class="block mb-1.5 text-[13px] text-gray-700">對方主體</label><input type="text" id="v-party" disabled class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed"></div>
+                                <div><label class="block mb-1.5 text-[13px] text-gray-700">幣種</label><input type="text" id="v-currency" disabled class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed"></div>
+                                <div><label class="block mb-1.5 text-[13px] text-gray-700">金額</label><input type="text" id="v-amount" disabled class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed"></div>
+                                <div><label class="block mb-1.5 text-[13px] text-gray-700">關聯PU單</label><input type="text" id="v-hasrelpu" disabled class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed"></div>
+                                <div><label class="block mb-1.5 text-[13px] text-gray-700">PU單號</label><input type="text" id="v-relpu" disabled class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed"></div>
+                                <div class="col-span-2 col-start-1"><label class="block mb-1.5 text-[13px] text-gray-700">對方簽字人郵箱地址</label><input type="text" id="v-email" disabled class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed"></div>
+                            </div>
+                        </div>
+
+                        <!-- 備註 -->
+                        <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5">
+                            <div class="px-4 py-2.5 border-b border-gray-200"><h3 class="text-[#2b3b84] font-bold text-[15px]">備註</h3></div>
+                            <div class="p-4"><textarea id="v-note" disabled class="w-full min-h-[120px] outline-none resize-y text-[13px] border border-gray-300 rounded p-3 bg-[#e9ecef] text-gray-500 cursor-not-allowed"></textarea></div>
+                        </div>
+
+                        <!-- 附件 -->
+                        <div class="mb-5">
+                            <label class="block mb-2 text-[14px] text-gray-700">附件</label>
+                            <ul class="space-y-1"><li class="flex items-center justify-between gap-3 px-3 py-2 bg-white border border-gray-200 rounded-lg text-[13px]"><span class="flex items-center gap-2 min-w-0 text-gray-700"><i class="fa-solid fa-file-pdf text-rose-500 shrink-0"></i><span id="v-file" class="truncate"></span></span><button onclick="downloadCurrent()" class="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-blue-600 border border-blue-200 rounded-md hover:bg-blue-50 transition-colors"><i class="fa-solid fa-download"></i> 下載</button></li></ul>
+                        </div>
+
+                        <!-- 區塊：審批進度追蹤 -->
+                        <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5">
+                            <div class="px-4 py-2.5 border-b border-gray-200"><h3 class="text-[#2b3b84] font-bold text-[15px]">審批進度追蹤</h3></div>
+                            <div class="p-4">
+                                <div class="py-10 text-center text-gray-400 text-[13px] leading-relaxed"><i class="fa-solid fa-code-merge text-2xl mb-2 text-gray-300"></i><br>合同已簽署完成，審批流程已結束</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-[#f4f5f8] border-t border-gray-200 py-4 flex justify-center shadow-sm"><button onclick="closeView()" class="ui-btn ui-btn-secondary px-8">關閉</button></div>
+                </div>
+                <div class="w-[300px] border-l border-gray-300 bg-white hidden md:block overflow-y-auto">
+                    <div class="bg-[#17a2b8] text-white px-4 py-2 text-[14px] font-bold sticky top-0">審批流程</div>
+                    <div class="px-4 py-12 text-center text-gray-400 text-[12px] leading-relaxed"><i class="fa-solid fa-code-merge text-2xl mb-2 text-gray-300"></i><br>合同已簽署完成，<br>審批流程已結束</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+        <i id="toast-icon" class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
+        <span id="toast-text" class="text-sm font-medium">操作成功！</span>
+    </div>
+
+    <script>
+        // 合同資料（IC 單號 / 合同名稱 / 對方單位 / 簽署日期 / 狀態 / 檔案 / 金額 / 期間）
+        const contracts = [
+            { ic: 'IC-THQ-000001', name: '雲端主機服務採購合約', party: 'AWS 亞太', date: '2026-01-15', status: '生效中', file: 'IC-THQ-000001_雲端主機服務.pdf', amount: 'CNY 480,000', period: '2026-01-15 ~ 2027-01-14',
+              applicant: 'Nick（100064）', region: 'THQ', dept: 'RD', team: 'API', game: '否', seal: '是', ourParty: 'GT 科技股份有限公司', currency: 'CNY', amtRaw: '480,000', relPU: 'PU-THQ-000021', email: 'contract@aws-ap.com', note: '年度雲端主機服務採購，含技術支援與 SLA 保證。' },
+            { ic: 'IC-THQ-000002', name: '辦公室租賃合約', party: '信義房屋管理', date: '2026-02-01', status: '生效中', file: 'IC-THQ-000002_辦公室租賃.pdf', amount: 'CNY 2,400,000', period: '2026-02-01 ~ 2028-01-31',
+              applicant: 'Stella（100120）', region: 'T1', dept: 'AD', team: 'GA1', game: '否', seal: '是', ourParty: 'GT 科技股份有限公司', currency: 'CNY', amtRaw: '2,400,000', relPU: '—', email: 'lease@sinyi.com.tw', note: '總部辦公室兩年期租賃合約，含公共設施與車位。' },
+            { ic: 'IC-THQ-000003', name: '軟體授權年度合約', party: 'Atlassian', date: '2026-03-10', status: '生效中', file: 'IC-THQ-000003_軟體授權.pdf', amount: 'CNY 156,000', period: '2026-03-10 ~ 2027-03-09',
+              applicant: 'Dev（101366）', region: 'THQ', dept: 'RD', team: 'MIS', game: '否', seal: '否', ourParty: 'GT 科技股份有限公司', currency: 'CNY', amtRaw: '156,000', relPU: 'PU-THQ-000033', email: 'sales@atlassian.com', note: 'Jira / Confluence 年度授權續約。' },
+            { ic: 'IC-THQ-000004', name: '行銷代理服務合約', party: '藍海行銷顧問', date: '2026-04-05', status: '待簽署', file: 'IC-THQ-000004_行銷代理.pdf', amount: 'CNY 300,000', period: '2026-05-01 ~ 2026-12-31',
+              applicant: 'Cora（101081）', region: 'T2', dept: 'MKT', team: 'MKT', game: '否', seal: '是', ourParty: 'GT 科技股份有限公司', currency: 'CNY', amtRaw: '300,000', relPU: '—', email: 'service@blueocean.com', note: '第三季行銷代理與活動執行服務。' },
+            { ic: 'IC-THQ-000005', name: '設備維護保養合約', party: '宏達設備維護', date: '2025-06-01', status: '已到期', file: 'IC-THQ-000005_設備維護.pdf', amount: 'CNY 88,000', period: '2025-06-01 ~ 2026-05-31',
+              applicant: 'Henry（100016）', region: 'T1', dept: 'AD', team: 'GA2', game: '否', seal: '否', ourParty: 'GT 科技股份有限公司', currency: 'CNY', amtRaw: '88,000', relPU: 'PU-THQ-000008', email: 'support@hongda.com', note: '辦公設備年度維護保養（已到期，評估續約）。' },
+            { ic: 'IC-THQ-000006', name: '保密協議（NDA）', party: 'Boldplay Ltd.', date: '2026-05-20', status: '生效中', file: 'IC-THQ-000006_NDA.pdf', amount: '—', period: '2026-05-20 ~ 長期',
+              applicant: 'James（101517）', region: 'THQ', dept: 'LGL', team: 'LGL', game: '是', seal: '是', ourParty: 'GT 科技股份有限公司', currency: '—', amtRaw: '0', relPU: '—', email: 'legal@boldplay.com', note: '與 Boldplay 合作前簽署之雙向保密協議。' }
+        ];
+
+        const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+        const statusBadge = (st) => {
+            const map = { '生效中': 'ui-badge-success', '待簽署': 'ui-badge-warning', '已到期': 'ui-badge-gray' };
+            return `<span class="ui-badge ${map[st] || 'ui-badge-gray'}">${st}</span>`;
+        };
+        let current = null;
+
+        function renderTable() {
+            const kw = (document.getElementById('f-search').value || '').trim().toLowerCase();
+            const list = contracts.filter(c =>
+                !kw || [c.ic, c.name, c.party, c.file].join(' ').toLowerCase().includes(kw));
+            const tbody = document.getElementById('tbody');
+            tbody.innerHTML = list.map(c => `
+                <tr class="hover:bg-gray-50/70 transition-colors">
+                    <td class="text-left"><button onclick="openView('${c.ic}')" class="font-mono font-semibold text-primary hover:underline">${esc(c.ic)}</button></td>
+                    <td class="text-left"><span class="inline-flex items-center gap-1.5 text-gray-600 text-[13px]"><i class="fa-solid fa-file-pdf text-rose-500"></i><span>${esc(c.file)}</span></span></td>
+                    <td class="text-center">
+                        <div class="flex items-center justify-center gap-2">
+                            <button onclick="downloadFile('${c.ic}')" class="ui-btn ui-btn-primary ui-btn-sm"><i class="fa-solid fa-download"></i> 下載</button>
+                        </div>
+                    </td>
+                </tr>`).join('');
+            document.getElementById('count-badge').innerText = list.length + ' 筆';
+            const empty = list.length === 0;
+            document.getElementById('no-data').classList.toggle('hidden', !empty);
+            tbody.parentElement.classList.toggle('hidden', empty);
+        }
+
+        function findC(ic) { return contracts.find(c => c.ic === ic); }
+        function openView(ic) {
+            const c = findC(ic); if (!c) return;
+            current = c;
+            const set = (id, v) => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') el.value = v;
+                else el.textContent = v;
+            };
+            set('v-ic', c.ic);
+            set('v-ic2', c.ic);
+            set('v-date', c.date);
+            set('v-name', c.name);
+            set('v-applicant', c.applicant);
+            set('v-region', c.region);
+            set('v-dept', c.dept);
+            set('v-team', c.team);
+            set('v-game', c.game);
+            set('v-seal', c.seal);
+            set('v-our', c.ourParty);
+            set('v-party', c.party);
+            set('v-currency', c.currency);
+            set('v-amount', c.amount);
+            set('v-urgent', c.urgent || '否');
+            set('v-hasrelpu', (c.relPU && c.relPU !== '—') ? '是' : '否');
+            set('v-relpu', c.relPU);
+            set('v-email', c.email);
+            set('v-note', c.note);
+            set('v-file', c.file);
+            document.getElementById('viewModal').classList.remove('hidden');
+        }
+        function closeView() { document.getElementById('viewModal').classList.add('hidden'); }
+        function downloadFile(ic) { const c = findC(ic); if (c) showToast('success', '開始下載：' + c.file); }
+        function downloadCurrent() { if (current) downloadFile(current.ic); }
+
+        function showToast(type, text) {
+            const toast = document.getElementById('toast');
+            const icon = document.getElementById('toast-icon');
+            document.getElementById('toast-text').innerText = text;
+            const base = 'fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform transition-all duration-300 border ';
+            if (type === 'error') { toast.className = base + 'border-rose-500/20'; icon.className = 'fa-solid fa-circle-xmark text-rose-400 text-base'; }
+            else { toast.className = base + 'border-emerald-500/20'; icon.className = 'fa-solid fa-circle-check text-emerald-400 text-base'; }
+            toast.style.transform = 'translateY(0)'; toast.style.opacity = '1';
+            clearTimeout(window.__t); window.__t = setTimeout(() => { toast.style.transform = 'translateY(5rem)'; toast.style.opacity = '0'; }, 2600);
+        }
+
+        renderTable();
+    </script>
+</body>
+</html>

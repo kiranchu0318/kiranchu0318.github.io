@@ -795,7 +795,10 @@
                                 <span class="flex gap-4 shrink-0"><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="wh5" value="yes" onchange="resignWhToggle('wh5-yes-note', this, 'yes'); resignWhToggle('wh5-no-note', this, 'no')" class="w-4 h-4"> 是</label><label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="wh5" value="no" onchange="resignWhToggle('wh5-yes-note', this, 'yes'); resignWhToggle('wh5-no-note', this, 'no')" class="w-4 h-4"> 否</label></span>
                             </div>
                             <div id="wh5-yes-note" class="hidden pl-4"><label class="block text-xs text-slate-500 mb-1">交接人 <span class="text-rose-500">*</span></label><input type="text" placeholder="請輸入交接人" class="ui-input"></div>
-                            <div id="wh5-no-note" class="hidden pl-4"><label class="block text-xs text-slate-500 mb-1">原因及預計完成期限 <span class="text-rose-500">*</span></label><input type="text" placeholder="請輸入原因及預計完成期限" class="ui-input"></div>
+                            <div id="wh5-no-note" class="hidden pl-4 space-y-2.5">
+                                <div><label class="block text-xs text-slate-500 mb-1">交接人 <span class="text-rose-500">*</span></label><input type="text" placeholder="請輸入交接人" class="ui-input"></div>
+                                <div><label class="block text-xs text-slate-500 mb-1">原因及預計完成期限 <span class="text-rose-500">*</span></label><input type="text" placeholder="請輸入原因及預計完成期限" class="ui-input"></div>
+                            </div>
                         </div>
 
                         <div class="border border-slate-100 rounded-lg px-3 py-2.5 space-y-2.5">

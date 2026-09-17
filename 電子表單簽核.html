@@ -265,12 +265,14 @@
         return nr;
       }));
       const removePayRow = (i) => setPayRows(prev => prev.length > 1 ? prev.filter((_, idx) => idx !== i) : prev);
-      const addCostAcctRow = () => setCostAcctRows(prev => [...prev, { subj3: '', subj4: '', subjectNote: '', project: 'GT', dept: '', currency: 'TWD', amount: '' }]);
+      const addCostAcctRow = () => setCostAcctRows(prev => [...prev, { subj3: '', subj4: '', subjectNote: '', costAttr: '', project: 'GT', dept: '', currency: 'TWD', amount: '' }]);
       const removeCostAcctRow = (i) => setCostAcctRows(prev => prev.filter((_, idx) => idx !== i));
       // 費用報銷明細（供表格顯示與「項目金額」計算共用）
+      // 費用歸屬清單（同步財務設定）
+      const COST_ATTR = ['API', 'YL', 'LY', 'KX', 'MP', 'VN', 'V8', 'SY', 'OB', 'Africa365', 'SEO', 'VV', 'OPS', 'Best Winner', 'Boldplay', 'KYTW', '369', 'KYPH', 'GT', '私帳', 'IFG-GLI', 'J-CH', 'Sapay', 'U-CH', 'IM'];
       const reimburseDetail = [
-        { project: 'GT', dept: 'RD', subj3: '辦公費用', subj4: '文具用品', purpose: '辦公室文具採購', currency: 'TWD', amount: '1,200', note: '—' },
-        { project: 'GT', dept: 'HR', subj3: '辦公費用', subj4: '清潔用品', purpose: '茶水間用品補充', currency: 'TWD', amount: '800', note: '—' },
+        { costAttr: 'API', project: 'GT', dept: 'RD', subj3: '辦公費用', subj4: '文具用品', purpose: '辦公室文具採購', currency: 'TWD', amount: '1,200', note: '—' },
+        { costAttr: 'YL', project: 'GT', dept: 'HR', subj3: '辦公費用', subj4: '清潔用品', purpose: '茶水間用品補充', currency: 'TWD', amount: '800', note: '—' },
       ];
       // 匯率：換算成人民幣（CNY per 1 單位）
       const FX_TO_CNY = { TWD: 451.47 / 2000, CNY: 1 };
@@ -1691,7 +1693,11 @@
                           </div>
                         ) : (
                           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                            <div className="lg:col-span-8">
+                            <div className="lg:col-span-3">
+                              <label className="block text-gray-700 text-xs mb-1.5 font-semibold">費用歸屬</label>
+                              <input type="text" disabled value="API" className="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-sm text-gray-800 font-medium" />
+                            </div>
+                            <div className="lg:col-span-5">
                               <label className="block text-gray-700 text-xs mb-1.5 font-semibold">內容</label>
                               <input type="text" disabled value="客戶業務餐敘 / 出差住宿 / 文具耗材採購" className="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-sm text-gray-800 font-medium" />
                             </div>
@@ -2377,8 +2383,9 @@
                       <table className="w-full text-left text-sm border-collapse whitespace-nowrap">
                         <thead>
                           <tr className="border-b border-gray-200 bg-gray-50 text-gray-700 font-bold text-xs">
-                            <th className="px-3 py-2 w-28">專案</th>
+                            <th className="px-3 py-2 w-28">費用歸屬</th>
                             <th className="px-3 py-2 w-28">部門</th>
+                            <th className="px-3 py-2 w-28">組別</th>
                             <th className="px-3 py-2 w-32">三級科目</th>
                             <th className="px-3 py-2 w-32">四級科目</th>
                             <th className="px-3 py-2 w-48">目的</th>
@@ -2389,6 +2396,7 @@
                         <tbody className="divide-y divide-gray-100 text-gray-700">
                           {reimburseDetail.map((r, i) => (
                             <tr key={i}>
+                              <td className="px-3 py-2">{r.costAttr}</td>
                               <td className="px-3 py-2">{r.project}</td>
                               <td className="px-3 py-2">{r.dept}</td>
                               <td className="px-3 py-2">{r.subj3}</td>
@@ -2416,8 +2424,9 @@
                             <th className="px-3 py-2 w-36">三級科目</th>
                             <th className="px-3 py-2 w-36">四級科目</th>
                             <th className="px-3 py-2 w-48">說明</th>
-                            <th className="px-3 py-2 w-28">專案</th>
+                            <th className="px-3 py-2 w-28">費用歸屬</th>
                             <th className="px-3 py-2 w-28">部門</th>
+                            <th className="px-3 py-2 w-28">組別</th>
                             <th className="px-3 py-2 w-24">貨幣</th>
                             <th className="px-3 py-2 w-40">金額</th>
                             <th className="px-3 py-2 w-16 text-center">操作</th>
@@ -2425,7 +2434,7 @@
                         </thead>
                         <tbody className="divide-y divide-gray-100">
                           {costAcctRows.length === 0 ? (
-                            <tr><td colSpan="8" className="px-3 py-6 text-center text-gray-400 text-sm">尚無資料，請點「＋ 添加」新增分錄</td></tr>
+                            <tr><td colSpan="9" className="px-3 py-6 text-center text-gray-400 text-sm">尚無資料，請點「＋ 添加」新增分錄</td></tr>
                           ) : costAcctRows.map((r, i) => (
                             <tr key={i}>
                               <td className="px-3 py-1.5">
@@ -2442,6 +2451,12 @@
                               </td>
                               <td className="px-3 py-1.5">
                                 <input type="text" value={r.subjectNote} onChange={(e) => setCostAcctRows(prev => prev.map((x, idx) => idx === i ? { ...x, subjectNote: e.target.value } : x))} className="w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2]" placeholder="科目說明" />
+                              </td>
+                              <td className="px-3 py-1.5">
+                                <select value={r.costAttr} onChange={(e) => setCostAcctRows(prev => prev.map((x, idx) => idx === i ? { ...x, costAttr: e.target.value } : x))} className="w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2]">
+                                  <option value="">請選擇</option>
+                                  {COST_ATTR.map(v => <option key={v}>{v}</option>)}
+                                </select>
                               </td>
                               <td className="px-3 py-1.5">
                                 <select value={r.project} onChange={(e) => setCostAcctRows(prev => prev.map((x, idx) => idx === i ? { ...x, project: e.target.value } : x))} className="w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2]"><option>GT</option></select>

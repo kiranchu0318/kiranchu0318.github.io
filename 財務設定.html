@@ -141,6 +141,11 @@
                     <label id="field-name-label" class="block text-xs font-semibold text-text-muted mb-1.5">名稱 <span class="text-rose-500">*</span></label>
                     <input type="text" id="field-name" placeholder="請輸入名稱" class="ui-input">
                 </div>
+                <!-- 費用歸屬 專屬欄位：區域（多選） -->
+                <div id="costattr-fields" class="hidden">
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">區域 <span class="text-rose-500">*</span><span class="font-normal text-text-light">（可多選）</span></label>
+                    <div id="field-region" class="flex flex-wrap gap-x-4 gap-y-2 border border-gray-300 rounded-md p-3"></div>
+                </div>
                 <!-- OA申請單 專屬欄位 -->
                 <div id="oaform-fields" class="hidden space-y-4">
                     <div>
@@ -194,7 +199,8 @@
         const CATEGORIES = [
             { key: 'currency',       label: '貨幣' },
             { key: 'expenseAccount', label: '費用會計科目' },
-            { key: 'payment',        label: '支付方式' }
+            { key: 'payment',        label: '支付方式' },
+            { key: 'costAttribution', label: '費用歸屬' }
         ];
 
         // 各分頁資料庫（名稱 / 啟用狀態）
@@ -263,6 +269,17 @@
                 { name: '維修中', active: true },
                 { name: '報廢', active: true },
                 { name: '遺失', active: false }
+            ],
+            costAttribution: [
+                { name: 'API', active: true }, { name: 'YL', active: true },
+                { name: 'LY', active: true }, { name: 'KX', active: true }, { name: 'MP', active: true },
+                { name: 'VN', active: true }, { name: 'V8', active: true }, { name: 'SY', active: true },
+                { name: 'OB', active: true }, { name: 'Africa365', active: true }, { name: 'SEO', active: true },
+                { name: 'VV', active: true }, { name: 'OPS', active: true }, { name: 'Best Winner', active: true },
+                { name: 'Boldplay', active: true }, { name: 'KYTW', active: true }, { name: '369', active: true },
+                { name: 'KYPH', active: true }, { name: 'GT', active: true }, { name: '私帳', active: true },
+                { name: 'IFG-GLI', active: true }, { name: 'J-CH', active: true }, { name: 'Sapay', active: true },
+                { name: 'U-CH', active: true }, { name: 'IM', active: true }
             ]
         };
 
@@ -293,13 +310,24 @@
         }
 
         const isFormCat = () => activeCat === 'oaForm';
+        const isCostAttr = () => activeCat === 'costAttribution';
+        // 費用歸屬「區域」多選選項
+        const REGIONS = ['T1', 'T2', 'U', 'J', 'S'];
+        // 渲染區域多選 checkbox（selected 為已勾選陣列）
+        function renderRegionField(selected) {
+            const chosen = new Set(selected || []);
+            document.getElementById('field-region').innerHTML = REGIONS.map(v =>
+                `<label class="flex items-center gap-1.5 text-sm text-gray-700"><input type="checkbox" class="field-region-chk" value="${v}" ${chosen.has(v) ? 'checked' : ''}> ${v}</label>`).join('');
+        }
 
         // 依分頁設定表頭
         function renderHead() {
             const head = document.getElementById('table-head');
             head.innerHTML = isFormCat()
                 ? '<th scope="col" class="text-left">表單名稱</th><th scope="col" class="w-24 text-center">分類</th><th scope="col" class="w-16 text-center">排序</th><th scope="col" class="w-24 text-center">狀態</th><th scope="col" class="text-left min-w-[200px]">說明</th><th scope="col" class="text-center w-52">操作</th>'
-                : '<th scope="col" class="text-left">名稱</th><th scope="col" class="text-center">操作</th>';
+                : isCostAttr()
+                    ? '<th scope="col" class="text-left w-48">名稱</th><th scope="col" class="text-left min-w-[200px]">區域</th><th scope="col" class="text-center w-52">操作</th>'
+                    : '<th scope="col" class="text-left">名稱</th><th scope="col" class="text-center">操作</th>';
         }
 
         // 渲染列表（套用搜尋）
@@ -350,6 +378,15 @@
                         <td class="text-left text-gray-600 text-sm">${r.desc || '<span class="text-gray-300">—</span>'}</td>
                         <td><div class="flex items-center justify-center gap-2">${editBtn}${toggleBtn}</div></td>
                     `;
+                } else if (isCostAttr()) {
+                    const regionTags = (r.regions && r.regions.length)
+                        ? r.regions.map(v => `<span class="ui-badge bg-teal-50 text-teal-600">${v}</span>`).join(' ')
+                        : '<span class="text-gray-300">—</span>';
+                    tr.innerHTML = `
+                        <td class="text-left font-medium text-gray-800">${r.name} ${r.active ? '' : '<span class="ui-badge bg-gray-100 text-gray-500 ml-1">停用</span>'}</td>
+                        <td class="text-left"><div class="flex flex-wrap gap-1">${regionTags}</div></td>
+                        <td><div class="flex items-center justify-center gap-2">${editBtn}${toggleBtn}</div></td>
+                    `;
                 } else {
                     tr.innerHTML = `
                         <td class="text-left font-medium text-gray-800">${r.name} ${r.active ? '' : '<span class="ui-badge bg-gray-100 text-gray-500 ml-1">停用</span>'}</td>
@@ -383,6 +420,7 @@
         function applyModalFields() {
             const form = isFormCat();
             document.getElementById('oaform-fields').classList.toggle('hidden', !form);
+            document.getElementById('costattr-fields').classList.toggle('hidden', !isCostAttr());
             document.getElementById('field-name-label').innerHTML = (form ? '表單名稱' : '名稱') + ' <span class="text-rose-500">*</span>';
         }
 
@@ -392,6 +430,7 @@
             document.getElementById('modal-title').innerText = `新增${currentLabel()}`;
             document.getElementById('field-name').value = '';
             document.getElementById('field-status').value = 'true';
+            if (isCostAttr()) renderRegionField([]);
             if (isFormCat()) {
                 document.getElementById('field-category').value = '行政';
                 document.getElementById('field-desc').value = '';
@@ -408,6 +447,7 @@
             document.getElementById('modal-title').innerText = `編輯${currentLabel()}`;
             document.getElementById('field-name').value = rec.name;
             document.getElementById('field-status').value = String(rec.active);
+            if (isCostAttr()) renderRegionField(rec.regions || []);
             if (isFormCat()) {
                 document.getElementById('field-category').value = rec.category || '行政';
                 document.getElementById('field-desc').value = rec.desc || '';
@@ -443,6 +483,11 @@
                     desc: document.getElementById('field-desc').value.trim(),
                     sort: Math.max(1, parseInt(document.getElementById('field-sort').value, 10) || 1)
                 };
+            }
+            if (isCostAttr()) {
+                const regions = Array.from(document.querySelectorAll('#field-region .field-region-chk:checked')).map(c => c.value);
+                if (!regions.length) { showToast('error', '請至少勾選一個區域'); return; }
+                extra = { regions };
             }
 
             if (editIndex === -1) {
@@ -488,6 +533,10 @@
 
         // 初始化
         window.onload = function () {
+            // 為費用歸屬帶入示範區域（循環指派 1～2 個區域）
+            dataStore.costAttribution.forEach((r, i) => {
+                if (!r.regions) r.regions = (i % 2 === 0) ? [REGIONS[i % REGIONS.length]] : [REGIONS[i % REGIONS.length], REGIONS[(i + 1) % REGIONS.length]];
+            });
             renderTabs();
             document.getElementById('list-title').innerText = `${currentLabel()}列表`;
             render();
