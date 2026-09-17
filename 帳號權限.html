@@ -333,24 +333,22 @@
 
     <!-- ============ 新增帳號 彈窗（輸入工號、選擇套用權限角色）============ -->
     <div id="account-modal" class="fixed inset-0 bg-black/40 z-50 flex justify-center items-center hidden p-4">
-        <div class="bg-white rounded-2xl shadow-modal w-full max-w-md overflow-hidden">
+        <div class="bg-white rounded-2xl shadow-modal w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden">
             <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
                 <h3 class="text-base font-bold text-gray-900">新增帳號</h3>
                 <button onclick="closeAccountModal()" class="text-gray-400 hover:text-gray-600 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
-            <div class="px-6 py-5 space-y-4">
+            <div class="px-6 py-5 space-y-4 overflow-y-auto flex-1">
                 <div>
                     <label class="block text-xs font-semibold text-text-muted mb-1.5">工號 <span class="text-rose-500">*</span></label>
-                    <div class="flex items-center gap-2">
-                        <input type="text" id="account-empno" placeholder="請輸入工號" class="ui-input flex-1" oninput="clearEmployeeResult()" onkeydown="if(event.key==='Enter'){event.preventDefault();queryEmployee();}">
-                        <button onclick="queryEmployee()" class="ui-btn ui-btn-secondary ui-btn-sm shrink-0"><i class="fa-solid fa-magnifying-glass"></i> 查詢</button>
-                    </div>
-                    <!-- 查詢到的姓名顯示於工號下方 -->
-                    <div id="account-emp-result" class="hidden mt-2 text-sm">
-                        <span class="text-xs text-text-muted">姓名</span>
+                    <select id="account-empno" onchange="onEmpSelect()" class="ui-select w-full"></select>
+                    <!-- 查詢到的姓名以綠底方塊顯示於工號下方 -->
+                    <div id="account-emp-result" class="hidden mt-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm">
+                        <span class="text-xs text-emerald-600">姓名</span>
                         <span class="font-semibold text-gray-800 ml-1" id="account-emp-name"></span>
+                        <span id="account-emp-extra" class="text-gray-500 ml-2 text-xs"></span>
                     </div>
                 </div>
 
@@ -367,8 +365,16 @@
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold text-text-muted mb-1.5">各角色的負責區域 / 負責項目 <span class="text-rose-500">*</span></label>
-                    <div id="account-scopes" class="space-y-2"></div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">各角色的負責區域 / 負責部門 <span class="text-rose-500">*</span></label>
+                    <div class="grid grid-cols-1 sm:grid-cols-[220px_1fr] border border-gray-200 rounded-lg overflow-hidden">
+                        <div id="account-role-list" class="sm:border-r border-gray-100 divide-y divide-gray-100 max-h-[360px] overflow-y-auto bg-gray-50/40 custom-scrollbar"></div>
+                        <div id="account-scope-panel" class="p-4 max-h-[360px] overflow-y-auto custom-scrollbar"></div>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">申請權限範圍 <span class="text-rose-500">*</span><span class="font-normal text-text-light">（可申請區域，可多選）</span></label>
+                    <div id="account-apply" class="flex flex-wrap gap-x-4 gap-y-2 border border-gray-200 rounded-lg p-3"></div>
                 </div>
             </div>
             <div class="flex justify-end gap-2.5 px-6 py-4 bg-gray-50 border-t border-gray-100">
@@ -960,11 +966,22 @@
         function msSync(id) {
             const vals = msGet(id);
             const txt = document.querySelector(`#${id} .ms-text`);
-            if (vals.length) { txt.textContent = vals.join('、'); txt.classList.remove('text-gray-400'); txt.classList.add('text-gray-800'); }
+            if (id === 'account-role') {
+                // 已選角色以可移除的標籤（chip）呈現
+                if (vals.length) {
+                    txt.classList.remove('text-gray-400');
+                    txt.innerHTML = vals.map(v => `<span class="inline-flex items-center gap-1 bg-primary-light text-primary rounded px-2 py-0.5 text-xs font-medium mr-1 mb-0.5"><span>${v}</span><span role="button" onclick="event.stopPropagation();msRemove('${id}','${v}')" class="cursor-pointer text-primary/60 hover:text-primary">×</span></span>`).join('');
+                } else { txt.classList.add('text-gray-400'); txt.textContent = '請選擇'; }
+            } else if (vals.length) { txt.textContent = vals.join('、'); txt.classList.remove('text-gray-400'); txt.classList.add('text-gray-800'); }
             else { txt.textContent = '請選擇'; txt.classList.add('text-gray-400'); txt.classList.remove('text-gray-800'); }
-            // 角色多選變動時，同步各角色的負責區域／項目編輯區
-            if (id === 'account-role') renderRoleScopes('account-scopes', vals, null);
+            // 角色多選變動時，同步各角色的負責區域／部門編輯區
+            if (id === 'account-role') acctSyncFromRoles();
             if (id === 'editperm-role') renderRoleScopes('editperm-scopes', vals, null);
+        }
+        // 從多選清單移除某一值
+        function msRemove(id, val) {
+            const cb = document.querySelector(`#${id} .ms-panel input[value="${val}"]`);
+            if (cb) { cb.checked = false; msSync(id); }
         }
         // 區域徽章（列表用）
         function regionCell(regions) {
@@ -1057,6 +1074,78 @@
             }
             return { scopes };
         }
+        /* ===== 新增帳號：各角色負責範圍（左角色清單 / 右範圍面板，樣式比照編輯權限角色）===== */
+        let acctScopes = {};   // role -> {regions:[], projects:[]}
+        let acctActive = null;
+        function acctSyncFromRoles() {
+            const roleNames = msGet('account-role');
+            const next = {};
+            roleNames.forEach(r => next[r] = acctScopes[r] || { regions: [], projects: [] });
+            acctScopes = next;
+            if (!acctActive || !(acctActive in acctScopes)) acctActive = roleNames.length ? roleNames[0] : null;
+            acctRenderList(); acctRenderPanel();
+        }
+        function acctRenderList() {
+            const box = document.getElementById('account-role-list'); if (!box) return;
+            const roleNames = Object.keys(acctScopes);
+            if (!roleNames.length) { box.innerHTML = '<div class="px-3 py-6 text-xs text-text-light text-center">請先於上方選擇套用權限角色</div>'; return; }
+            box.innerHTML = roleNames.map(role => {
+                const active = acctActive === role;
+                return `<div class="flex items-center gap-2 px-3 py-2.5 cursor-pointer transition-colors ${active ? 'bg-primary-light' : 'hover:bg-white'}" onclick="acctSetActive('${role}')">
+                        <span class="w-1.5 h-1.5 rounded-full ${active ? 'bg-primary' : 'bg-gray-300'} shrink-0"></span>
+                        <span class="text-sm ${active ? 'text-primary font-semibold' : 'text-gray-700'}">${role}</span>
+                    </div>`;
+            }).join('');
+        }
+        function acctRenderPanel() {
+            const panel = document.getElementById('account-scope-panel'); if (!panel) return;
+            if (!acctActive || !(acctActive in acctScopes)) { panel.innerHTML = '<div class="text-sm text-text-light py-12 text-center">請於左側選擇角色，<br>設定其負責區域／負責部門</div>'; return; }
+            const rs = acctScopes[acctActive]; const regs = new Set(rs.regions || []); const projs = new Set(rs.projects || []);
+            const box = (label, list, attr, chosen) => `<div class="mb-4 last:mb-0">
+                    <div class="text-xs font-semibold text-text-muted mb-2">${label} <span class="text-rose-500">*</span></div>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-2">${list.map(v => `<label class="flex items-center gap-1.5 text-sm text-gray-700"><input type="checkbox" class="perm-check" ${attr} value="${v}" ${chosen.has(v) ? 'checked' : ''} onchange="acctUpdateScope()"> ${v}</label>`).join('')}</div>
+                </div>`;
+            panel.innerHTML = box('負責區域', REGION_VALUES, 'data-region', regs) + box('負責部門', PROJECT_VALUES, 'data-project', projs);
+        }
+        function acctUpdateScope() {
+            if (!acctActive || !(acctActive in acctScopes)) return;
+            const panel = document.getElementById('account-scope-panel');
+            acctScopes[acctActive] = {
+                regions: Array.from(panel.querySelectorAll('input[data-region]:checked')).map(c => c.value),
+                projects: Array.from(panel.querySelectorAll('input[data-project]:checked')).map(c => c.value),
+            };
+        }
+        function acctSetActive(role) {
+            acctUpdateScope();
+            if (!(role in acctScopes)) acctScopes[role] = { regions: [], projects: [] };
+            acctActive = role;
+            acctRenderList(); acctRenderPanel();
+        }
+        // 由 acctScopes 組出 scopes，缺區域／部門回傳錯誤字串
+        function collectAcctScopes() {
+            acctUpdateScope();
+            const roleNames = Object.keys(acctScopes);
+            if (!roleNames.length) return { error: '請至少選擇一個套用權限角色' };
+            const scopes = [];
+            for (const role of roleNames) {
+                const rs = acctScopes[role];
+                if (!rs.regions.length) return { error: `請為角色「${role}」選擇負責區域` };
+                if (!rs.projects.length) return { error: `請為角色「${role}」選擇負責部門` };
+                scopes.push({ role, regions: rs.regions, projects: rs.projects });
+            }
+            return { scopes };
+        }
+        // 工號下拉選擇 → 帶出姓名（綠底方塊）
+        function onEmpSelect() {
+            const empno = document.getElementById('account-empno').value;
+            const emp = empno ? EMPLOYEE_DIRECTORY[empno] : null;
+            if (!emp) { clearEmployeeResult(); return; }
+            queriedEmployee = { empno, ...emp };
+            document.getElementById('account-emp-name').innerText = `${emp.name}（${empno}）`;
+            const extra = document.getElementById('account-emp-extra');
+            if (extra) extra.innerText = [emp.bu, emp.project, emp.dept].filter(Boolean).map(x => '· ' + x).join(' ');
+            document.getElementById('account-emp-result').classList.remove('hidden');
+        }
         function pickSome(arr, n) { return arr.slice().sort(() => Math.random() - 0.5).slice(0, Math.min(n, arr.length)); }
         // 項目徽章（列表用）
         function projectCell(projects) {
@@ -1070,13 +1159,19 @@
         });
 
         function openAccountModal() {
-            // 以現有（啟用中）權限角色填入多選清單
+            // 工號下拉：由員工主檔帶出
+            const sel = document.getElementById('account-empno');
+            sel.innerHTML = '<option value="">請選擇工號 / 姓名</option>'
+                + Object.entries(EMPLOYEE_DIRECTORY).map(([no, e]) => `<option value="${no}">${e.name}（${no}）</option>`).join('');
+            sel.value = '';
+            // 重置各角色負責範圍
+            acctScopes = {}; acctActive = null;
+            // 以現有（啟用中）權限角色填入多選清單（msInit→msSync→acctSyncFromRoles 會渲染左右欄）
             msInit('account-role', [], activeRoleNames());
-            document.getElementById('account-empno').value = '';
-            renderRoleScopes('account-scopes', [], {});
+            document.getElementById('account-apply').innerHTML = REGION_VALUES.map(v =>
+                `<label class="flex items-center gap-1.5 text-sm text-gray-700"><input type="checkbox" class="acct-apply-chk" value="${v}"> ${v}</label>`).join('');
             clearEmployeeResult();
             document.getElementById('account-modal').classList.remove('hidden');
-            setTimeout(() => document.getElementById('account-empno').focus(), 50);
         }
 
         function closeAccountModal() { document.getElementById('account-modal').classList.add('hidden'); }
@@ -1107,13 +1202,18 @@
         }
 
         function saveAccount() {
-            if (!queriedEmployee) { showToast('error', '請先輸入工號並查詢員工'); return; }
-            const res = collectScopes('account-role', 'account-scopes');
+            if (!queriedEmployee) { showToast('error', '請先選擇工號'); return; }
+            const res = collectAcctScopes();
             if (res.error) { showToast('error', res.error); return; }
             const scopes = res.scopes;
+            const applyRegions = Array.from(document.querySelectorAll('#account-apply .acct-apply-chk:checked')).map(c => c.value);
+            if (!applyRegions.length) { showToast('error', '請選擇申請權限範圍（至少一個可申請區域）'); return; }
 
             const { empno, name, project, dept, bu } = queriedEmployee;
-            // 新增一列至帳號清單（事業部/項目/部門/姓名由工號帶出；各角色的負責區域/項目存於 data-role-scopes）
+            const dup = Array.from(document.querySelectorAll('#account-tbody tr'))
+                .some(tr => tr.children[3] && (tr.children[3].innerText.match(/[（(]([^）)]+)[）)]/) || [])[1] === empno);
+            if (dup) { showToast('error', `工號「${empno}」已存在於帳號清單`); return; }
+            // 新增一列至帳號清單（事業部/項目/部門/姓名由工號帶出；各角色的負責區域/部門存於 data-role-scopes）
             const tbody = document.getElementById('account-tbody');
             const tr = document.createElement('tr');
             tr.innerHTML = `
@@ -1131,8 +1231,8 @@
                 </td>`;
             tr.dataset.region = [...new Set(scopes.flatMap(s => s.regions || []))].join(',');
             tr.dataset.projects = project || '';
-            // 申請權限預設：帶入所屬區域，可再於「編輯申請權限」調整
-            tr.dataset.apply = JSON.stringify({ regions: tr.dataset.region ? tr.dataset.region.split(',') : [] });
+            // 申請權限範圍：使用彈窗中勾選的可申請區域
+            tr.dataset.apply = JSON.stringify({ regions: applyRegions });
             applyRowScopes(tr, scopes);
             applyRowApplyScope(tr);
             tbody.insertBefore(tr, tbody.firstElementChild);

@@ -238,6 +238,7 @@
       // 單據覆寫（指派後更新簽核/工作狀態）：{ [docNo]: { status, workStatus } }
       const [docOverrides, setDocOverrides] = useState({});
       const [approveFiles, setApproveFiles] = useState([]); // [{ name, size }]
+      const [icContractFile, setIcContractFile] = useState(null); // 合同資料（IC 必填，單檔）
       // 費用會計彈窗
       const [costAcctOpen, setCostAcctOpen] = useState(false);
       const [costAcctRows, setCostAcctRows] = useState([]); // 費用會計分錄，初始為空
@@ -286,6 +287,7 @@
       ]);
       const noteFileInputRef = React.useRef(null);
       const approveFileInputRef = React.useRef(null);
+      const icContractInputRef = React.useRef(null);
       const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
       const formatFileSize = (bytes) => {
         if (bytes >= 1024 * 1024) return (bytes / 1024 / 1024).toFixed(1) + ' MB';
@@ -319,9 +321,15 @@
       const openApproveAction = () => {
         setApproveDecision('審批');
         setApproveFiles([]);
+        setIcContractFile(null);
         setApproveActionOpen(true);
       };
       const submitApproveAction = () => {
+        // 內部合同審批單(IC) 審批通過時，須上傳合同資料
+        if (modalRow?.type === 'IC' && approveDecision === '審批' && !icContractFile) {
+          window.alert('請上傳合同資料（必填）。');
+          return;
+        }
         setApproveActionOpen(false);
         // C-THQ-000002 審批通過 → 開啟「指派工作單」彈窗
         if (modalRow?.docNo === 'C-THQ-000002' && approveDecision === '審批') {
@@ -687,6 +695,7 @@
         { oa: '行政', location: 'THQ', type: 'AUTH', docNo: 'HROA_AUTH_000001', label: 'HROA_AUTH_000001_系統權限異動申請', applicant: 'Nick', signature: 'Nick', amounts: ['-'], date: '2026-06-04 14:20:00', approver: 'James', refNo: '-', status: '待我簽核', isGreen: false, workStatus: '未派工' },
         { oa: '財務', location: 'THQ', type: 'B',  docNo: 'B-THQ-000003',  applicant: 'Oliver', signature: 'Oliver', amounts: ['TWD 8,000', 'CNY 2137.09'],        date: '2026-05-30 15:36:45', approver: 'James', refNo: '-', status: '待我簽核', isGreen: false, workStatus: '未派工' },
         { oa: '合同', location: 'THQ', type: 'IC', docNo: 'IC-THQ-000002', applicant: 'Oliver', signature: 'Oliver', amounts: ['TWD 2,000,000', 'CNY 427407.40'], date: '2026-05-20 15:36:45', approver: 'James', refNo: '-', status: '簽核完成', isGreen: true, workStatus: '已完成' },
+        { oa: '合同', location: 'THQ', type: 'IC', docNo: 'IC-THQ-000003', applicant: 'Dev', signature: 'Dev', amounts: ['USD 50,000', 'CNY 358500.00'], date: '2026-06-08 10:15:20', approver: 'James', refNo: '-', status: '待我簽核', isGreen: false, workStatus: '未派工' },
         { oa: '行政', location: 'THQ', type: 'PU', docNo: 'PU-THQ-000003', applicant: 'Oliver', signature: 'Oliver', amounts: ['TWD 8,000', 'CNY 2137.09'],        date: '2026-05-12 15:36:45', approver: 'James', refNo: '-', status: '未簽核', isGreen: false, workStatus: '未派工', urgent: true },
         { oa: '行政', location: 'THQ', type: 'PU', docNo: 'PU-THQ-000002', applicant: 'Oliver', signature: 'Oliver', amounts: ['TWD 2,000,000', 'CNY 427407.40'], date: '2026-04-30 12:36:10', approver: 'James', refNo: '-', status: '簽核完成', isGreen: true, workStatus: '處理中' },
         { oa: '財務', location: 'THQ', type: 'C',  docNo: 'C-THQ-000001',  applicant: 'Oliver', signature: 'Oliver', amounts: ['TWD 2,000', 'CNY 451.47'],          date: '2026-04-26 19:00:45', approver: 'James', refNo: '-', status: '待我簽核', isGreen: false, workStatus: '未派工' },
@@ -695,6 +704,12 @@
         { oa: '財務', location: 'THQ', type: 'C',  docNo: 'C-THQ-000002',  applicant: 'Dev', signature: 'Dev', amounts: ['TWD 3,500', 'CNY 789.25'],          date: '2026-05-18 10:22:30', approver: 'James', refNo: '-', status: '待我簽核', isGreen: false, workStatus: '處理中' },
         { oa: '行政', location: 'THQ', type: 'PU', docNo: 'PU-THQ-000001', applicant: 'Oliver', signature: 'Oliver', amounts: ['TWD 2,000', 'CNY 451.47'],          date: '2026-04-25 19:00:45', approver: 'James', refNo: '-', status: '簽核完成', isGreen: true, workStatus: '已完成' },
       ];
+
+      // 合同審批單(IC) 內容 demo（比照 申請.html 合同審批單 (IC) 彈窗欄位）
+      const IC_DETAIL = {
+        'IC-THQ-000002': { subject: '媒體投放合作合約審批', team: 'API', game: '否', seal: '是', our: '知為股份有限公司', party: 'Skyline Media Ltd.', currency: 'TWD', amount: '2,000,000', hasRelPU: '是', relPU: 'PU-THQ-000002', email: 'contract@skyline.com', note: '年度媒體投放合作合約，合約期間 2026/06/01 ~ 2027/05/31，內容包含廣告版位、投放量與結算方式。' },
+        'IC-THQ-000003': { subject: '遊戲供應商授權合約審批', team: 'RD', game: '是', seal: '是', our: '知為股份有限公司', party: 'Aurora Game Studio', currency: 'USD', amount: '50,000', hasRelPU: '否', relPU: '-', email: 'legal@auroragame.com', note: '遊戲供應商內容授權合約，授權期一年，含技術對接與分潤條款，須法務審閱後用印。' },
+      };
 
       // 關聯單號對應（PU 與 IC / B / C 互相關聯，依單號末碼配對）
       const relatedDocMap = {
@@ -1336,7 +1351,7 @@
                           </div>
                           <div>
                             <label className="block text-gray-700 text-xs mb-1.5 font-medium">{['C-THQ-000001', 'C-THQ-000002'].includes(modalRow?.docNo) ? '目的' : '主旨'}</label>
-                            <input type="text" disabled value={modalRow ? (['C-THQ-000001', 'C-THQ-000002'].includes(modalRow.docNo) ? '辦公室用品費用報銷' : modalRow.type === 'AUTH' ? '系統權限異動申請' : `${modalRow.oa || ''}申請單`) : ''} className="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-sm text-gray-800 font-medium" />
+                            <input type="text" disabled value={modalRow ? (['C-THQ-000001', 'C-THQ-000002'].includes(modalRow.docNo) ? '辦公室用品費用報銷' : modalRow.type === 'AUTH' ? '系統權限異動申請' : modalRow.type === 'IC' ? (IC_DETAIL[modalRow.docNo]?.subject || '合同審批單') : `${modalRow.oa || ''}申請單`) : ''} className="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-sm text-gray-800 font-medium" />
                           </div>
                           <div className="lg:col-start-1">
                             <label className="block text-gray-700 text-xs mb-1.5 font-medium">申請人</label>
@@ -1356,6 +1371,46 @@
                           </div>
                         </div>
                       </div>
+
+                      {/* 合同審批單(IC)：比照 申請.html 合同審批單 (IC) 彈窗內容 */}
+                      {modalRow?.type === 'IC' && (() => {
+                        const ic = IC_DETAIL[modalRow.docNo] || {};
+                        const roInp = "w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed";
+                        const field = (label, value, span) => (
+                          <div className={span || ''}>
+                            <label className="block text-gray-700 text-xs mb-1.5 font-medium">{label}</label>
+                            <input type="text" disabled value={value || '-'} className={roInp} />
+                          </div>
+                        );
+                        return (
+                          <>
+                            <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-5">
+                              <div className="text-[#2b3b84] font-bold text-[15px] border-b border-gray-100 pb-2">合同基本資訊</div>
+                              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-5 gap-y-4">
+                                {field('組別', ic.team)}
+                                {field('是否為遊戲供應商帳單', ic.game)}
+                                {field('是否用印', ic.seal)}
+                              </div>
+                            </div>
+                            <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-5">
+                              <div className="text-[#2b3b84] font-bold text-[15px] border-b border-gray-100 pb-2">合同資訊</div>
+                              <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-5 gap-y-4">
+                                {field('簽約主體', ic.our)}
+                                {field('對方主體', ic.party)}
+                                {field('幣種', ic.currency)}
+                                {field('金額', ic.amount)}
+                                {field('關聯PU單', ic.hasRelPU)}
+                                {field('PU單號', ic.relPU)}
+                                {field('對方簽字人郵箱地址', ic.email, 'col-span-2 col-start-1')}
+                              </div>
+                            </div>
+                            <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-3">
+                              <div className="text-[#2b3b84] font-bold text-[15px] border-b border-gray-100 pb-2">備註</div>
+                              <textarea disabled value={ic.note || ''} className="w-full min-h-[100px] resize-y text-sm border border-gray-200 rounded p-3 bg-[#EAECEF] text-gray-700 cursor-not-allowed" />
+                            </div>
+                          </>
+                        );
+                      })()}
 
                       {/* 人員帳號異動明細（HR 專用；由員工管理「提交異動申請」帶入）*/}
                       {modalRow?.type === 'HR' && !(modalRow?.label || '').includes('招聘需求單') && !(modalRow?.label || '').includes('錄用審批單') && (
@@ -1642,8 +1697,8 @@
                       </div>
                       )}
 
-                      {/* 費用申請明細 / 費用報銷明細卡片（HR 不顯示）*/}
-                      {modalRow?.type !== 'HR' && modalRow?.type !== 'AUTH' && (
+                      {/* 費用申請明細 / 費用報銷明細卡片（HR / AUTH / IC 不顯示）*/}
+                      {modalRow?.type !== 'HR' && modalRow?.type !== 'AUTH' && modalRow?.type !== 'IC' && (
                       <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-5">
                         <div className="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2">{['C-THQ-000001', 'C-THQ-000002'].includes(modalRow?.docNo) ? '費用報銷明細' : '費用申請明細'}</div>
                         {['C-THQ-000001', 'C-THQ-000002'].includes(modalRow?.docNo) ? (
@@ -1924,8 +1979,8 @@
 
                     </div>
 
-                    {/* 懸浮總計金額（參考申請.html 請購單 PU 浮動區塊；人員帳號異動不涉及金額，故不顯示）*/}
-                    {modalRow?.type !== 'HR' && modalRow?.type !== 'AUTH' && modalRow?.amounts && (
+                    {/* 懸浮總計金額（參考申請.html 請購單 PU 浮動區塊；HR / AUTH / IC 不涉及金額明細，故不顯示）*/}
+                    {modalRow?.type !== 'HR' && modalRow?.type !== 'AUTH' && modalRow?.type !== 'IC' && modalRow?.amounts && (
                       <div className="absolute right-6 bottom-[88px] z-30 bg-white border border-gray-200 rounded-xl shadow-xl px-5 py-3 min-w-[210px]">
                         <div className="text-[11px] text-gray-400 font-medium">總計金額</div>
                         <div className="flex items-baseline gap-1.5">
@@ -2134,6 +2189,48 @@
                       </ul>
                     )}
                   </div>
+
+                  {/* 上傳合同資料（IC 專用，必填，僅限單檔）*/}
+                  {modalRow?.type === 'IC' && (
+                    <div>
+                      <div className="text-sm font-semibold text-gray-700 mb-2">上傳合同資料 <span className="text-red-500">*</span></div>
+                      <input
+                        ref={icContractInputRef}
+                        type="file"
+                        className="hidden"
+                        onChange={(e) => {
+                          const f = e.target.files && e.target.files[0];
+                          if (f) {
+                            if (f.size > MAX_FILE_SIZE) window.alert('檔案超過 20MB 上限');
+                            else setIcContractFile({ name: f.name, size: f.size });
+                          }
+                          e.target.value = '';
+                        }}
+                      />
+                      {!icContractFile ? (
+                        <button
+                          type="button"
+                          onClick={() => icContractInputRef.current && icContractInputRef.current.click()}
+                          className="w-full border-2 border-dashed border-gray-300 rounded-lg py-4 flex flex-col items-center justify-center gap-1 text-gray-400 hover:border-[#4A90E2] hover:text-[#4A90E2] transition-colors"
+                        >
+                          <i className="fas fa-cloud-upload-alt text-xl"></i>
+                          <span className="text-xs font-medium">點擊上傳合同檔案（僅限一個檔案）</span>
+                        </button>
+                      ) : (
+                        <div className="flex items-center justify-between bg-gray-50 border border-gray-100 rounded px-3 py-2 text-xs text-gray-700">
+                          <span className="flex items-center gap-2 min-w-0">
+                            <i className="fas fa-file-contract text-[#2b3b84]"></i>
+                            <span className="truncate">{icContractFile.name}</span>
+                            <span className="text-gray-400 flex-shrink-0">{formatFileSize(icContractFile.size)}</span>
+                          </span>
+                          <button onClick={() => setIcContractFile(null)} className="text-gray-400 hover:text-red-500 flex-shrink-0 ml-2">
+                            <i className="fas fa-times"></i>
+                          </button>
+                        </div>
+                      )}
+                      <p className="text-xs text-amber-600 mt-2">若有多個合同附件，請合併在一份壓縮檔再進行上傳。</p>
+                    </div>
+                  )}
                 </div>
 
                 {/* 底部按鈕 */}
