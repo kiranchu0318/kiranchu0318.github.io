@@ -220,22 +220,6 @@
                             </div>
                         </div>
 
-                        <!-- 區塊 2：可審批的申請單 -->
-                        <div>
-                            <div class="flex items-center justify-between gap-2 mb-3">
-                                <div class="flex items-center gap-2">
-                                    <i class="fa-solid fa-file-circle-check text-primary"></i>
-                                    <h4 class="text-sm font-bold text-gray-800">可提交的申請單</h4>
-                                </div>
-                                <div class="flex items-center gap-2 shrink-0">
-                                    <button onclick="setAllApprove(true)" class="text-xs text-primary font-semibold hover:underline">全選</button>
-                                    <span class="text-gray-300">|</span>
-                                    <button onclick="setAllApprove(false)" class="text-xs text-gray-500 font-semibold hover:underline">清除</button>
-                                </div>
-                            </div>
-                            <div id="approve-list" class="grid grid-cols-3 sm:grid-cols-6 gap-2"><!-- 動態渲染 --></div>
-                        </div>
-
                     </div>
 
                     <!-- 儲存列 -->
@@ -590,7 +574,7 @@
                 const specialOps = p.specialOps || [];
                 const opCheckbox = (op, display) =>
                     `<label class="inline-flex items-center gap-1.5 cursor-pointer">`
-                    + `<input type="checkbox" class="perm-check" ${permDraft.data[p.key].has(op) ? 'checked' : ''} onchange="togglePerm('${p.key}','${op}',this.checked)">`
+                    + `<input type="checkbox" class="perm-check" ${permDraft.data[p.key].has(op) ? 'checked' : ''} onchange="togglePerm('${p.key}','${op}',this.checked,this)">`
                     + `<span class="text-sm text-gray-600">${display ?? op}</span></label>`;
                 let opsCell;
                 if (ops.length || specialOps.length) {
@@ -604,22 +588,79 @@
                             + specialOps.map(op => opCheckbox(op)).join('') + `</div>`;
                     }
                     if (ops.length) {
-                        // 特殊操作細項分類：檢視（檢視…）／編輯（修改…）／其他
-                        const CAT_STYLE = { '檢視': ['text-sky-600', 'bg-sky-500', 'bg-sky-50/60', 'border-sky-200'], '編輯': ['text-emerald-600', 'bg-emerald-500', 'bg-emerald-50/60', 'border-emerald-200'], '其他': ['text-gray-500', 'bg-gray-400', 'bg-gray-50/70', 'border-gray-200'] };
-                        const opCats = [
-                            ['檢視', ops.filter(o => o.startsWith('檢視'))],
-                            ['編輯', ops.filter(o => o.startsWith('修改'))],
-                            ['其他', ops.filter(o => !o.startsWith('檢視') && !o.startsWith('修改'))],
-                        ].filter(([, list]) => list.length);
-                        detail += `<div class="${specialOps.length ? 'mt-2.5 pt-2.5 border-t border-dashed border-gray-300' : ''} space-y-2.5">`
-                            + opCats.map(([label, list]) => {
-                                const [txt, dot, bg, bd] = CAT_STYLE[label];
-                                // 檢視／編輯區塊：項目文字移除開頭的「檢視」／「修改」（僅顯示用，權限值不變）
-                                const disp = op => label === '檢視' ? op.replace(/^檢視/, '') : label === '編輯' ? op.replace(/^修改/, '') : op;
-                                return `<div class="rounded-md border ${bd} ${bg} px-3 py-2">`
-                                    + `<div class="text-[11px] font-bold ${txt} mb-2 flex items-center gap-1.5"><span class="inline-block w-1.5 h-1.5 rounded-full ${dot}"></span>${label}</div>`
-                                    + `<div class="grid grid-cols-4 gap-x-6 gap-y-2">` + list.map(op => opCheckbox(op, disp(op))).join('') + `</div></div>`;
-                            }).join('') + `</div>`;
+                        // 分類配色（依區塊順序循環）
+                        const PALETTE = [
+                            ['text-sky-600', 'bg-sky-500', 'bg-sky-50/60', 'border-sky-200'],
+                            ['text-emerald-600', 'bg-emerald-500', 'bg-emerald-50/60', 'border-emerald-200'],
+                            ['text-violet-600', 'bg-violet-500', 'bg-violet-50/60', 'border-violet-200'],
+                            ['text-amber-600', 'bg-amber-500', 'bg-amber-50/60', 'border-amber-200'],
+                            ['text-rose-600', 'bg-rose-500', 'bg-rose-50/60', 'border-rose-200'],
+                            ['text-cyan-600', 'bg-cyan-500', 'bg-cyan-50/60', 'border-cyan-200'],
+                            ['text-indigo-600', 'bg-indigo-500', 'bg-indigo-50/60', 'border-indigo-200'],
+                            ['text-gray-500', 'bg-gray-400', 'bg-gray-50/70', 'border-gray-200'],
+                        ];
+                        const isView = o => o.startsWith('檢視');
+                        const isEdit = o => o.startsWith('修改');
+                        const selCount = arr => arr.filter(o => permDraft.data[p.key].has(o)).length;
+                        if (p.key === 'pg_employee') {
+                            // 員工管理：特殊操作以「頁面」為分類；每個頁面再依「檢視／修改」分列，項目僅顯示欄位名稱
+                            const PAGE_KWS = ['個人信息', '職位信息', '人員帳號', '考勤', '假期', '薪資', '資產'];
+                            const used = new Set();
+                            const blocks = [];
+                            PAGE_KWS.forEach(kw => {
+                                const list = ops.filter(o => o.includes(kw));
+                                list.forEach(o => used.add(o));
+                                if (list.length) blocks.push([kw, list, kw]);
+                            });
+                            const others = ops.filter(o => !used.has(o));
+                            if (others.length) blocks.push(['員工操作', others, null]);
+                            // 統一配色（不再依區塊變色）
+                            const UNI = ['text-gray-700', 'bg-primary', 'bg-gray-50/70', 'border-gray-200'];
+                            const OP_DISPLAY = { '檢視薪資單': '檢視頁籤' };
+                            // 顯示時移除頁面關鍵字；單純「檢視」／「檢視信息」統一顯示為「檢視頁籤」（權限值不變）
+                            const disp = (op, kw) => {
+                                if (OP_DISPLAY[op]) return OP_DISPLAY[op];
+                                if (!kw) return op;
+                                const d = op.replace(kw, '').replace(/^[-\s]+/, '').replace(/[-\s]+$/, '');
+                                if (d === '檢視' || d === '檢視信息') return '檢視頁籤';
+                                return d || op;
+                            };
+                            detail += `<div class="${specialOps.length ? 'mt-2.5 pt-2.5 border-t border-dashed border-gray-300' : ''} space-y-2.5">`
+                                + blocks.map(([label, list, kw]) => {
+                                    const [txt, dot, bg, bd] = UNI;
+                                    const views = list.filter(isView), edits = list.filter(isEdit), rest = list.filter(o => !isView(o) && !isEdit(o));
+                                    // 檢視、修改各自成一排
+                                    const row = arr => arr.length
+                                        ? `<div class="grid grid-cols-4 gap-x-6 gap-y-2">` + arr.map(op => opCheckbox(op, disp(op, kw))).join('') + `</div>`
+                                        : '';
+                                    return `<div class="op-block rounded-lg border ${bd} ${bg} px-3 py-2.5">`
+                                        + `<div class="flex items-center justify-between mb-2">`
+                                        +   `<div class="text-[12px] font-bold ${txt} flex items-center gap-1.5"><span class="inline-block w-1.5 h-1.5 rounded-full ${dot}"></span>${label}</div>`
+                                        +   `<span class="op-block-count text-[10px] font-medium text-primary bg-primary-light rounded-full px-2 py-0.5 whitespace-nowrap">已選 ${selCount(list)}/${list.length}</span>`
+                                        + `</div>`
+                                        + `<div class="space-y-2">${row(views)}${row(edits)}${row(rest)}</div>`
+                                        + `</div>`;
+                                }).join('') + `</div>`;
+                        } else {
+                            // 其他頁面：維持檢視（檢視…）／編輯（修改…）／其他
+                            const opCats = [
+                                ['檢視', ops.filter(isView), '檢視'],
+                                ['編輯', ops.filter(isEdit), '修改'],
+                                ['其他', ops.filter(o => !isView(o) && !isEdit(o)), null],
+                            ].filter(([, list]) => list.length);
+                            detail += `<div class="${specialOps.length ? 'mt-2.5 pt-2.5 border-t border-dashed border-gray-300' : ''} space-y-2.5">`
+                                + opCats.map(([label, list, stripKw], ci) => {
+                                    const [txt, dot, bg, bd] = PALETTE[ci % PALETTE.length];
+                                    const disp = op => {
+                                        if (!stripKw) return op;
+                                        const d = op.replace(stripKw, '').replace(/^[-\s]+/, '').replace(/[-\s]+$/, '');
+                                        return d || op;
+                                    };
+                                    return `<div class="rounded-md border ${bd} ${bg} px-3 py-2">`
+                                        + `<div class="text-[11px] font-bold ${txt} mb-2 flex items-center gap-1.5"><span class="inline-block w-1.5 h-1.5 rounded-full ${dot}"></span>${label}</div>`
+                                        + `<div class="grid grid-cols-4 gap-x-6 gap-y-2">` + list.map(op => opCheckbox(op, disp(op))).join('') + `</div></div>`;
+                                }).join('') + `</div>`;
+                        }
                     }
                     // 收合式：預設只顯示摘要（已選 x/總數），點擊展開細項
                     opsCell = `<details class="op-details">`
@@ -636,18 +677,26 @@
             });
             tbody.innerHTML = html;
 
-            // 可審批的申請單
+            // 可提交的申請單區塊已移除；若存在容器才渲染
             const al = document.getElementById('approve-list');
-            al.innerHTML = APPROVAL_FORMS.map(f => `
-                <label class="flex items-center gap-2.5 p-2.5 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
-                    <input type="checkbox" class="perm-check" ${permDraft.approve.has(f.key) ? 'checked' : ''} onchange="toggleApprove('${f.key}',this.checked)">
-                    <span class="text-sm text-gray-700">${f.name}</span>
-                </label>`).join('');
+            if (al) {
+                al.innerHTML = APPROVAL_FORMS.map(f => `
+                    <label class="flex items-center gap-2.5 p-2.5 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+                        <input type="checkbox" class="perm-check" ${permDraft.approve.has(f.key) ? 'checked' : ''} onchange="toggleApprove('${f.key}',this.checked)">
+                        <span class="text-sm text-gray-700">${f.name}</span>
+                    </label>`).join('');
+            }
         }
 
-        function togglePerm(pageKey, action, checked) {
+        function togglePerm(pageKey, action, checked, el) {
             if (checked) permDraft.data[pageKey].add(action); else permDraft.data[pageKey].delete(action);
             refreshOpCount(pageKey);
+            // 更新所屬頁面區塊的「已選 x/y」計數
+            const blk = el && el.closest('.op-block');
+            if (blk) {
+                const cs = blk.querySelector('.op-block-count');
+                if (cs) cs.textContent = `已選 ${blk.querySelectorAll('.perm-check:checked').length}/${blk.querySelectorAll('.perm-check').length}`;
+            }
         }
         // 設定頁面權限層級：無 / 檢視 / 編輯（編輯含檢視）
         function setPageLevel(pageKey, level) {

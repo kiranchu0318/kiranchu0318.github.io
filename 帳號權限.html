@@ -373,7 +373,10 @@
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold text-text-muted mb-1.5">申請權限範圍 <span class="text-rose-500">*</span><span class="font-normal text-text-light">（左側勾選並點選地區，右側設定該地區可申請的單據）</span></label>
+                    <div class="flex items-center justify-between gap-2 mb-1.5">
+                        <label class="block text-xs font-semibold text-text-muted">申請權限範圍 <span class="text-rose-500">*</span><span class="font-normal text-text-light">（左側勾選並點選地區，右側設定該地區可申請的單據）</span></label>
+                        <button type="button" onclick="openAcctBulk()" class="shrink-0 inline-flex items-center gap-1.5 text-xs font-semibold text-primary border border-primary/30 rounded-md px-2.5 py-1 hover:bg-primary-light transition-colors"><i class="fa-solid fa-layer-group"></i> 多區域套用</button>
+                    </div>
                     <div class="grid grid-cols-1 sm:grid-cols-[220px_1fr] border border-gray-200 rounded-lg overflow-hidden">
                         <div id="account-apply-list" class="sm:border-r border-gray-100 divide-y divide-gray-100 max-h-[360px] overflow-y-auto bg-gray-50/40 custom-scrollbar"></div>
                         <div id="account-apply-panel" class="p-4 max-h-[360px] overflow-y-auto custom-scrollbar"></div>
@@ -431,7 +434,10 @@
                     <div id="editapply-empno" class="ui-input bg-gray-50 text-gray-500 flex items-center"></div>
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-text-muted mb-1.5">申請權限範圍 <span class="text-rose-500">*</span><span class="font-normal text-text-light">（左側勾選並點選地區，右側設定該地區可申請的單據）</span></label>
+                    <div class="flex items-center justify-between gap-2 mb-1.5">
+                        <label class="block text-xs font-semibold text-text-muted">申請權限範圍 <span class="text-rose-500">*</span><span class="font-normal text-text-light">（左側勾選並點選地區，右側設定該地區可申請的單據）</span></label>
+                        <button type="button" onclick="openEapBulk()" class="shrink-0 inline-flex items-center gap-1.5 text-xs font-semibold text-primary border border-primary/30 rounded-md px-2.5 py-1 hover:bg-primary-light transition-colors"><i class="fa-solid fa-layer-group"></i> 多區域套用</button>
+                    </div>
                     <div class="grid grid-cols-1 sm:grid-cols-[220px_1fr] border border-gray-200 rounded-lg overflow-hidden">
                         <div id="editapply-list" class="sm:border-r border-gray-100 divide-y divide-gray-100 max-h-[360px] overflow-y-auto bg-gray-50/40 custom-scrollbar"></div>
                         <div id="editapply-panel" class="p-4 max-h-[360px] overflow-y-auto custom-scrollbar"></div>
@@ -441,6 +447,32 @@
             <div class="flex justify-end gap-2.5 px-6 py-4 bg-gray-50 border-t border-gray-100">
                 <button onclick="closeEditApplyModal()" class="ui-btn ui-btn-secondary">取消</button>
                 <button onclick="saveEditApply()" class="ui-btn ui-btn-primary"><i class="fa-solid fa-check"></i> 儲存變更</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ 多區域套用 彈窗（選地區＋單種，一次帶入多區域）============ -->
+    <div id="eapbulk-modal" class="fixed inset-0 bg-black/40 z-[60] flex justify-center items-center hidden p-4">
+        <div class="bg-white rounded-2xl shadow-modal w-full max-w-lg overflow-hidden">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                <h3 class="text-base font-bold text-gray-900">多區域套用</h3>
+                <button onclick="closeEapBulk()" class="text-gray-400 hover:text-gray-600 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="px-6 py-5 space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">① 選擇地區 <span class="text-rose-500">*</span><span class="font-normal text-text-light">（可複選）</span></label>
+                    <div id="eapbulk-regions" class="flex flex-wrap gap-x-4 gap-y-2 border border-gray-200 rounded-lg p-3"></div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">② 選擇單種 <span class="text-rose-500">*</span><span class="font-normal text-text-light">（將一次帶入上方所選地區）</span></label>
+                    <div id="eapbulk-docs" class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-x-4 gap-y-2 border border-gray-200 rounded-lg p-3"></div>
+                </div>
+            </div>
+            <div class="flex justify-end gap-2.5 px-6 py-4 bg-gray-50 border-t border-gray-100">
+                <button onclick="closeEapBulk()" class="ui-btn ui-btn-secondary">取消</button>
+                <button onclick="applyEapBulk()" class="ui-btn ui-btn-primary"><i class="fa-solid fa-check"></i> 套用</button>
             </div>
         </div>
     </div>
@@ -1474,6 +1506,36 @@
         }
         // 點背景關閉編輯申請權限彈窗
         document.getElementById('editapply-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeEditApplyModal(); });
+
+        /* ===== 多區域套用：選地區（可複選）＋單種，一次帶入多區域（編輯申請權限 / 新增帳號 共用）===== */
+        let bulkTarget = 'eap';   // 'eap' = 編輯申請權限；'acct' = 新增帳號
+        function openBulkModal() {
+            document.getElementById('eapbulk-regions').innerHTML = REGION_VALUES.map(v =>
+                `<label class="flex items-center gap-1.5 text-sm text-gray-700"><input type="checkbox" class="eapbulk-region" value="${v}"> ${v}</label>`).join('');
+            document.getElementById('eapbulk-docs').innerHTML = DOC_TYPES.map(t =>
+                `<label class="flex items-center gap-1.5 text-sm text-gray-700"><input type="checkbox" class="eapbulk-doc" value="${t}"> ${t}</label>`).join('');
+            document.getElementById('eapbulk-modal').classList.remove('hidden');
+        }
+        function openEapBulk() { bulkTarget = 'eap'; eapUpdateDocs(); openBulkModal(); }
+        function openAcctBulk() { bulkTarget = 'acct'; acctApplyUpdateDocs(); openBulkModal(); }
+        function closeEapBulk() { document.getElementById('eapbulk-modal').classList.add('hidden'); }
+        function applyEapBulk() {
+            const regions = Array.from(document.querySelectorAll('#eapbulk-regions .eapbulk-region:checked')).map(c => c.value);
+            const docs = Array.from(document.querySelectorAll('#eapbulk-docs .eapbulk-doc:checked')).map(c => c.value);
+            if (!regions.length) { showToast('error', '請至少選擇一個地區'); return; }
+            if (!docs.length) { showToast('error', '請至少選擇一個單種'); return; }
+            const map = bulkTarget === 'acct' ? applyDocMap : eapDocMap;
+            // 將所選單種合併帶入各所選地區（不覆蓋既有勾選）
+            regions.forEach(r => {
+                if (!(r in map)) map[r] = [];
+                docs.forEach(d => { if (!map[r].includes(d)) map[r].push(d); });
+            });
+            if (bulkTarget === 'acct') { applyActive = regions[0]; closeEapBulk(); acctApplyRenderList(); acctApplyRenderPanel(); }
+            else { eapActive = regions[0]; closeEapBulk(); eapRenderList(); eapRenderPanel(); }
+            showToast('success', `已將 ${docs.length} 種單據套用至 ${regions.length} 個地區（${regions.join('、')}）`);
+        }
+        // 點背景關閉多區域套用彈窗
+        document.getElementById('eapbulk-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeEapBulk(); });
 
         /* ============ Toast 提示控制 ============ */
         /* ============ 權限異動申請清單 ============ */
