@@ -422,9 +422,10 @@
       // 共用：控制篩選下拉選單開啟
       const [openDropdown, setOpenDropdown] = useState(null);
 
-      // 電子表單簽核：篩選器設定
+      // 「其他單據」分頁的狀態篩選（不含「待我簽核」，該狀態已獨立為分頁）
+      const otherStatusConfig = { id: 'formStatus', label: '狀態', type: 'multi', options: ['未簽核', '簽核中(7)', '簽核完成', '撤回', '駁回', 'CC', '待補件'] };
+      // 電子表單簽核：篩選器設定（狀態已改由上方「當關簽核／其他單據」分頁區隔）
       const filterConfigs = [
-        { id: 'status', label: '狀態', type: 'multi', options: ['未簽核', '待我簽核', '簽核中(7)', '簽核完成', '撤回', '駁回', 'CC', '待補件'] },
         { id: 'oa', label: 'OA 類型', type: 'multi', options: ['商務', '合同', '財務', '行政', 'PMO'] },
         { id: 'project', label: '項目', type: 'multi', options: ['GT'] },
         { id: 'location', label: '地點', type: 'multi', options: ['T1', 'T2', 'THQ', 'T3', 'T4'] },
@@ -438,9 +439,12 @@
         { id: 'ltDept', label: '部門', type: 'multi', options: ['API', 'RD'] },
       ];
 
+      // 電子表單簽核：當關簽核（待我簽核）／其他單據 分頁
+      const [formScope, setFormScope] = useState('mine');
       // 統一狀態管理
       const [selectedFilters, setSelectedFilters] = useState({
         status: ['未簽核', '待我簽核', '簽核中(7)'], // 預設選中
+        formStatus: [], // 其他單據分頁的狀態篩選（空＝全部）
         oa: [], project: [], location: [], title: [], docType: [],
         ltStatus: ['未簽核', '待我簽核', '簽核中(7)'], ltProject: [], ltDept: []
       });
@@ -764,12 +768,18 @@
       // 計算各頁籤未處理數量
       const formPendingCount = mockData.filter(d => d.status === '未簽核' || d.status === '待我簽核').length;
 
-      // 電子表單簽核：依篩選器（狀態 / OA 類型 / 地點，多選；未選代表全部）過濾列表
-      const filteredFormData = mockData.filter(d =>
-        (selectedFilters.status.length === 0 || selectedFilters.status.includes(d.status)) &&
+      // 電子表單簽核：先依 OA 類型 / 地點 篩選，再由分頁區隔「當關簽核（待我簽核）／其他單據」
+      const formScopeBase = mockData.filter(d =>
         (selectedFilters.oa.length === 0 || selectedFilters.oa.includes(d.oa)) &&
         (selectedFilters.location.length === 0 || selectedFilters.location.includes(d.location))
       );
+      const isCurrentGate = (d) => d.status === '待我簽核';
+      const myFormCount = formScopeBase.filter(isCurrentGate).length;
+      const otherFormCount = formScopeBase.length - myFormCount;
+      const filteredFormData = formScope === 'mine'
+        ? formScopeBase.filter(isCurrentGate)
+        : formScopeBase.filter(d => !isCurrentGate(d) &&
+            (selectedFilters.formStatus.length === 0 || selectedFilters.formStatus.includes(d.status)));
       const leavePendingCount = mockLeaveData.filter(d => d.status === '待我簽核').length;
       const timesheetPendingCount = mockTimesheetData.filter(d => d.status === '待我簽核').length;
       const cancelPendingCount = mockCancelData.filter(d => d.status === '待我簽核').length;
@@ -817,8 +827,27 @@
             <div className="p-6 space-y-5">
               {activeTab === '電子表單簽核' ? (
                 <>
-                  {/* 1. 下拉選單區塊 */}
-                  {renderFilterBar(filterConfigs)}
+                  {/* 0. 當關簽核／其他單據 分頁（取代狀態篩選）*/}
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <div className="inline-flex rounded-lg border border-gray-200 bg-gray-50 p-1">
+                      {[
+                        { key: 'mine', label: `待我簽核（${myFormCount}）`, hint: '目前輪到我簽核的單子' },
+                        { key: 'others', label: `其他單據（${otherFormCount}）`, hint: '其餘狀態的單子' },
+                      ].map(t => (
+                        <button
+                          key={t.key}
+                          onClick={() => setFormScope(t.key)}
+                          title={t.hint}
+                          className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-md text-sm font-semibold transition-colors ${formScope === t.key ? 'bg-white text-[#2b3b84] shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                        >
+                          {t.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* 1. 下拉選單區塊（其他單據分頁額外提供狀態篩選）*/}
+                  {renderFilterBar(formScope === 'others' ? [otherStatusConfig, ...filterConfigs] : filterConfigs)}
 
                   {/* 2. 搜尋與日期操作列（關鍵字已移至上方篩選列「職稱」位置）*/}
                   {renderSearchBar(false, startDate, setStartDate, endDate, setEndDate, () => {
