@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>審批歷程</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4A90E2',
+                        'primary-light': '#EAF2FC',
+                        background: '#F8F9FB',
+                        card: '#FFFFFF',
+                        text: { main: '#1F2937', muted: '#6B7280', light: '#9CA3AF' }
+                    },
+                    fontFamily: { sans: ['"Inter"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'] },
+                    boxShadow: {
+                        'card': '0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03)',
+                        'modal': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: theme('colors.background'); font-family: theme('fontFamily.sans'); }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+    </style>
+    <link rel="stylesheet" href="shared-ui.css">
+</head>
+<body class="ui-page text-text-main antialiased relative">
+
+    <div class="relative mx-auto w-full space-y-6">
+
+        <header class="ui-page-header">
+            <h1 class="ui-page-title">審批歷程</h1>
+        </header>
+
+        <!-- 檢視切換 -->
+        <div class="inline-flex rounded-lg border border-gray-200 bg-white p-1 shadow-card">
+            <button id="tab-stats" onclick="switchView('stats')" class="px-4 py-1.5 rounded-md text-sm font-semibold transition-colors">統計總覽</button>
+            <button id="tab-timeline" onclick="switchView('timeline')" class="px-4 py-1.5 rounded-md text-sm font-semibold transition-colors">單據歷程</button>
+        </div>
+
+        <!-- 檢視一：統計總覽 -->
+        <div id="view-stats" class="space-y-6">
+            <div class="ui-card p-4 flex flex-col sm:flex-row sm:items-center gap-3">
+                <div class="text-sm font-semibold text-gray-700 flex items-center gap-2"><i class="fa-regular fa-calendar text-primary"></i>統計時間區間</div>
+                <div class="flex items-center gap-2">
+                    <input type="date" id="stats-date-start" onchange="renderStats()" class="ui-input text-sm py-1.5">
+                    <span class="text-gray-400 text-sm">~</span>
+                    <input type="date" id="stats-date-end" onchange="renderStats()" class="ui-input text-sm py-1.5">
+                    <button onclick="clearStatsRange()" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-eraser"></i> 清除</button>
+                </div>
+                <span id="stats-range-hint" class="text-xs text-text-light sm:ml-auto"></span>
+            </div>
+            <div id="stats-body" class="space-y-6"></div>
+        </div>
+
+        <!-- 檢視二：單據歷程（主從式）-->
+        <div id="view-timeline" class="ui-card overflow-hidden flex flex-col lg:flex-row min-h-[640px] hidden">
+            <aside class="lg:w-[360px] shrink-0 border-b lg:border-b-0 lg:border-r border-gray-100 flex flex-col">
+                <div class="p-4 border-b border-gray-100 space-y-3">
+                    <div class="ui-search w-full">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="search-input" oninput="renderList()" placeholder="搜尋單號 / 申請人 / 工號 / 類型" class="ui-input ui-search-input">
+                    </div>
+                    <div>
+                        <div class="text-[11px] text-text-light mb-1 flex items-center gap-1"><i class="fa-regular fa-calendar"></i>依時間區間搜尋（歷程期間）</div>
+                        <div class="flex items-center gap-2">
+                            <input type="date" id="date-start" onchange="renderList()" class="ui-input flex-1 text-xs py-1.5">
+                            <span class="text-gray-400 text-xs shrink-0">~</span>
+                            <input type="date" id="date-end" onchange="renderList()" class="ui-input flex-1 text-xs py-1.5">
+                            <button onclick="clearDateRange()" title="清除區間" class="shrink-0 text-gray-400 hover:text-gray-600 w-7 h-7 flex items-center justify-center rounded-lg hover:bg-gray-100"><i class="fa-solid fa-eraser text-xs"></i></button>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 flex-wrap" id="status-chips"></div>
+                </div>
+                <div id="form-list" class="flex-1 overflow-y-auto custom-scrollbar divide-y divide-gray-100 lg:max-h-[560px]"></div>
+            </aside>
+            <section class="flex-1 min-w-0 flex flex-col">
+                <div id="detail-view" class="flex-1 overflow-y-auto custom-scrollbar p-5 sm:p-6"></div>
+            </section>
+        </div>
+
+        <!-- 行為統計：相關單號彈窗 -->
+        <div id="behavior-modal" class="fixed inset-0 bg-black/40 z-50 flex justify-center items-center hidden p-4" onclick="if(event.target===this)closeBehaviorModal()">
+            <div class="bg-white rounded-2xl shadow-modal w-full max-w-lg max-h-[85vh] flex flex-col overflow-hidden">
+                <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                    <h3 id="behavior-modal-title" class="text-base font-bold text-gray-900"></h3>
+                    <button onclick="closeBehaviorModal()" class="text-gray-400 hover:text-gray-600 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <div id="behavior-modal-body" class="px-6 py-4 overflow-y-auto custom-scrollbar"></div>
+                <div class="px-6 py-3 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
+                    <span class="text-xs text-text-light">點擊單號可跳至該單的行為歷程</span>
+                    <button onclick="closeBehaviorModal()" class="ui-btn ui-btn-secondary">關閉</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 事件類型：標籤 / 圖標 / 配色
+        const EVENT_TYPES = {
+            open:      { label: '開單',     icon: 'fa-file-circle-plus',  color: 'text-primary',    ring: 'border-primary bg-primary-light' },
+            submit:    { label: '提交送審', icon: 'fa-paper-plane',       color: 'text-sky-600',    ring: 'border-sky-300 bg-sky-50' },
+            approve:   { label: '簽核通過', icon: 'fa-check',             color: 'text-emerald-600', ring: 'border-emerald-300 bg-emerald-50' },
+            reject:    { label: '駁回',     icon: 'fa-xmark',             color: 'text-rose-600',   ring: 'border-rose-300 bg-rose-50' },
+            supplement:{ label: '要求補件', icon: 'fa-folder-open',       color: 'text-amber-600',  ring: 'border-amber-300 bg-amber-50' },
+            resubmit:  { label: '重新上單', icon: 'fa-rotate-right',      color: 'text-indigo-600', ring: 'border-indigo-300 bg-indigo-50' },
+            cc:        { label: '抄送',     icon: 'fa-envelope',          color: 'text-gray-500',   ring: 'border-gray-300 bg-gray-50' },
+            withdraw:  { label: '撤回',     icon: 'fa-arrow-rotate-left', color: 'text-slate-500',  ring: 'border-slate-300 bg-slate-50' },
+            cancel:    { label: '取消',     icon: 'fa-ban',               color: 'text-zinc-600',   ring: 'border-zinc-300 bg-zinc-100' },
+            complete:  { label: '簽核完成', icon: 'fa-flag-checkered',    color: 'text-emerald-700', ring: 'border-emerald-400 bg-emerald-100' },
+        };
+
+        // 狀態設定（順序 / 徽章 / 圖表配色 / 圖標）
+        const STATUS_META = [
+            { key: '簽核完成', badge: 'ui-badge-success', bar: 'bg-emerald-500', text: 'text-emerald-600', soft: 'bg-emerald-50', icon: 'fa-flag-checkered' },
+            { key: '簽核中',   badge: 'ui-badge-info',    bar: 'bg-sky-500',     text: 'text-sky-600',     soft: 'bg-sky-50',     icon: 'fa-hourglass-half' },
+            { key: '待補件',   badge: 'ui-badge-warning', bar: 'bg-amber-500',   text: 'text-amber-600',   soft: 'bg-amber-50',   icon: 'fa-folder-open' },
+            { key: '駁回',     badge: 'ui-badge-danger',  bar: 'bg-rose-500',    text: 'text-rose-600',    soft: 'bg-rose-50',    icon: 'fa-xmark' },
+            { key: '已撤回',   badge: 'ui-badge-gray',    bar: 'bg-slate-400',   text: 'text-slate-500',   soft: 'bg-slate-50',   icon: 'fa-arrow-rotate-left' },
+            { key: '已取消',   badge: 'ui-badge-gray',    bar: 'bg-zinc-400',    text: 'text-zinc-500',    soft: 'bg-zinc-50',    icon: 'fa-ban' },
+        ];
+        const statusMeta = (s) => STATUS_META.find(m => m.key === s) || { badge: 'ui-badge-gray', bar: 'bg-gray-400', text: 'text-gray-500', soft: 'bg-gray-50', icon: 'fa-circle' };
+        const statusBadge = (s) => `<span class="ui-badge ${statusMeta(s).badge}">${s}</span>`;
+
+        // 行為統計定義（含符合條件的判斷式）
+        const BEHAVIOR_DEFS = {
+            reject:     { label: '曾被駁回',   icon: 'fa-xmark',             cls: 'text-rose-600',  soft: 'bg-rose-50',   match: f => f.events.some(e => e.type === 'reject') },
+            supplement: { label: '曾要求補件', icon: 'fa-folder-open',       cls: 'text-amber-600', soft: 'bg-amber-50',  match: f => f.events.some(e => e.type === 'supplement') },
+            resubmit:   { label: '曾重新上單', icon: 'fa-rotate-right',      cls: 'text-indigo-600', soft: 'bg-indigo-50', match: f => f.events.some(e => e.type === 'resubmit') },
+            withdraw:   { label: '已撤回',     icon: 'fa-arrow-rotate-left', cls: 'text-slate-500', soft: 'bg-slate-50',  match: f => f.status === '已撤回' },
+            cancel:     { label: '已取消',     icon: 'fa-ban',               cls: 'text-zinc-600',  soft: 'bg-zinc-50',   match: f => f.status === '已取消' },
+        };
+
+        // ===== 示範資料：詳細歷程 =====
+        const DETAILED = [
+            { docNo: 'B-THQ-000003', type: '費用申請單 (B)', applicant: 'Oliver', oa: '財務', status: '簽核中', events: [
+                { time: '2026-05-30 15:36:45', type: 'open',    actor: 'Oliver', node: '申請人',   note: '建立費用申請單' },
+                { time: '2026-05-30 15:40:10', type: 'submit',  actor: 'Oliver', node: '申請人',   note: '提交送審' },
+                { time: '2026-05-31 09:12:03', type: 'approve', actor: 'James',  node: '部門主管', note: '同意，金額合理' },
+                { time: '2026-06-01 10:05:00', type: 'cc',      actor: 'Cora',   node: '財務抄送', note: '知會財務' },
+            ]},
+            { docNo: 'C-THQ-000002', type: '費用報銷單 (C)', applicant: 'Dev', oa: '財務', status: '待補件', events: [
+                { time: '2026-05-18 10:22:30', type: 'open',       actor: 'Dev',   node: '申請人',   note: '建立報銷單' },
+                { time: '2026-05-18 10:30:00', type: 'submit',     actor: 'Dev',   node: '申請人',   note: '提交送審' },
+                { time: '2026-05-19 14:02:11', type: 'supplement', actor: 'James', node: '費用會計', note: '發票金額與明細不符，請補正確發票' },
+            ]},
+            { docNo: 'IC-THQ-000003', type: '內部合同審批單 (IC)', applicant: 'Dev', oa: '合同', status: '簽核中', events: [
+                { time: '2026-06-08 10:15:20', type: 'open',    actor: 'Dev',   node: '申請人',   note: '建立合同審批單' },
+                { time: '2026-06-08 10:40:00', type: 'submit',  actor: 'Dev',   node: '申請人',   note: '提交送審' },
+                { time: '2026-06-09 09:30:15', type: 'reject',  actor: 'Grace', node: '法務審核', note: '合約條款需修正付款方式' },
+                { time: '2026-06-10 11:00:00', type: 'resubmit',actor: 'Dev',   node: '申請人',   note: '修正條款後重新上單' },
+                { time: '2026-06-11 15:20:40', type: 'approve', actor: 'Grace', node: '法務審核', note: '條款確認無誤' },
+            ]},
+            { docNo: 'PU-THQ-000002', type: '請購申請 (PU)', applicant: 'Oliver', oa: '行政', status: '簽核完成', events: [
+                { time: '2026-04-28 09:00:00', type: 'open',     actor: 'Oliver', node: '申請人',   note: '建立請購單' },
+                { time: '2026-04-28 09:20:00', type: 'submit',   actor: 'Oliver', node: '申請人',   note: '提交送審' },
+                { time: '2026-04-28 16:30:00', type: 'approve',  actor: 'James',  node: '部門主管', note: '同意採購' },
+                { time: '2026-04-29 10:10:00', type: 'approve',  actor: 'Nick',   node: '行政主管', note: '核准' },
+                { time: '2026-04-30 12:36:10', type: 'complete', actor: '系統',   node: '流程結束', note: '全部節點簽核完成' },
+            ]},
+            { docNo: 'SA-THQ-000005', type: '用印申請 (SA)', applicant: 'Stella', oa: '行政', status: '已撤回', events: [
+                { time: '2026-06-02 11:00:00', type: 'open',     actor: 'Stella', node: '申請人', note: '建立用印申請' },
+                { time: '2026-06-02 11:05:00', type: 'submit',   actor: 'Stella', node: '申請人', note: '提交送審' },
+                { time: '2026-06-02 15:40:00', type: 'withdraw', actor: 'Stella', node: '申請人', note: '合約暫緩，撤回申請' },
+            ]},
+            { docNo: 'HR_THQ-000001', type: '人員帳號異動 (HR)', applicant: 'Nick', oa: '人事', status: '簽核完成', events: [
+                { time: '2026-06-03 09:00:00', type: 'open',       actor: 'Nick',  node: '申請人',   note: '建立帳號異動申請' },
+                { time: '2026-06-03 09:10:00', type: 'submit',     actor: 'Nick',  node: '申請人',   note: '提交送審' },
+                { time: '2026-06-03 11:20:00', type: 'supplement', actor: 'James', node: '部門主管', note: '請補附到職通知' },
+                { time: '2026-06-03 14:00:00', type: 'resubmit',   actor: 'Nick',  node: '申請人',   note: '補齊附件後重新上單' },
+                { time: '2026-06-04 10:30:00', type: 'approve',    actor: 'James', node: '部門主管', note: '同意' },
+                { time: '2026-06-04 16:00:00', type: 'complete',   actor: '系統',  node: '流程結束', note: '各帳號管理人皆已簽核' },
+            ]},
+        ];
+
+        // ===== 產生更多示範資料，讓統計更具代表性 =====
+        const OA_LIST = ['財務', '行政', '合同', '人事', '商務', 'PMO'];
+        const TYPE_BY_OA = { 財務: '費用申請單 (B)', 行政: '請購申請 (PU)', 合同: '內部合同審批單 (IC)', 人事: '人員帳號異動 (HR)', 商務: '商務公告 (BU)', PMO: '專案申請 (PMOA)' };
+        const ACTORS = ['Oliver', 'Dev', 'Nick', 'Stella', 'Miles', 'Grace', 'James', 'Cora'];
+        // 姓名 → 工號；顯示時於申請人名字後加上工號
+        const EMP_NO = { Oliver: '100201', Dev: '100202', Nick: '100203', Stella: '100204', Miles: '100205', Grace: '100206', James: '100207', Cora: '100208' };
+        const withEmpNo = (name) => EMP_NO[name] ? `${name}（${EMP_NO[name]}）` : name;
+        const SELF_STEPS = new Set(['open', 'submit', 'resubmit', 'withdraw', 'cancel']);
+        const SCENARIOS = [
+            { status: '簽核完成', steps: [['open', '申請人', '建立單據'], ['submit', '申請人', '提交送審'], ['approve', '部門主管', '同意'], ['approve', '財務負責人', '核准'], ['complete', '流程結束', '簽核完成']] },
+            { status: '簽核中',   steps: [['open', '申請人', '建立單據'], ['submit', '申請人', '提交送審'], ['approve', '部門主管', '同意']] },
+            { status: '簽核完成', steps: [['open', '申請人', '建立單據'], ['submit', '申請人', '提交送審'], ['reject', '部門主管', '資料有誤，駁回'], ['resubmit', '申請人', '修正後重新上單'], ['approve', '部門主管', '同意'], ['complete', '流程結束', '簽核完成']] },
+            { status: '待補件',   steps: [['open', '申請人', '建立單據'], ['submit', '申請人', '提交送審'], ['supplement', '審核人', '請補附件']] },
+            { status: '已撤回',   steps: [['open', '申請人', '建立單據'], ['submit', '申請人', '提交送審'], ['withdraw', '申請人', '撤回申請']] },
+            { status: '駁回',     steps: [['open', '申請人', '建立單據'], ['submit', '申請人', '提交送審'], ['reject', '審核人', '不符規範，駁回']] },
+            { status: '簽核中',   steps: [['open', '申請人', '建立單據'], ['submit', '申請人', '提交送審'], ['supplement', '審核人', '請補件'], ['resubmit', '申請人', '補齊重送'], ['approve', '審核人', '同意']] },
+            { status: '簽核完成', steps: [['open', '申請人', '建立單據'], ['submit', '申請人', '提交送審'], ['approve', '部門主管', '同意'], ['complete', '流程結束', '簽核完成']] },
+            { status: '已取消',   steps: [['open', '申請人', '建立單據'], ['submit', '申請人', '提交送審'], ['approve', '部門主管', '同意'], ['cancel', '申請人', '需求變更，取消此單']] },
+        ];
+        const pad2 = (n) => String(n).padStart(2, '0');
+        const GENERATED = [];
+        for (let n = 1; n <= 30; n++) {
+            const sc = SCENARIOS[n % SCENARIOS.length];
+            const oa = OA_LIST[n % OA_LIST.length];
+            const applicant = ACTORS[n % ACTORS.length];
+            const day = (n % 27) + 1;
+            const events = sc.steps.map((st, si) => ({
+                time: `2026-07-${pad2(day)} ${pad2(8 + si)}:${pad2((n * 7 + si * 11) % 60)}:00`,
+                type: st[0],
+                node: st[1],
+                actor: SELF_STEPS.has(st[0]) ? applicant : ACTORS[(n + si) % ACTORS.length],
+                note: st[2],
+            }));
+            GENERATED.push({ docNo: `FM-THQ-${String(1000 + n)}`, type: TYPE_BY_OA[oa], applicant, oa, status: sc.status, events });
+        }
+        const FORMS = DETAILED.concat(GENERATED);
+
+        /* ============ 統計總覽 ============ */
+        // 統計時間區間：單據歷程中有任一事件落在區間內即計入
+        function inStatsRange(f) {
+            const ds = document.getElementById('stats-date-start').value;
+            const de = document.getElementById('stats-date-end').value;
+            if (!ds && !de) return true;
+            return f.events.some(e => { const d = e.time.slice(0, 10); return (!ds || d >= ds) && (!de || d <= de); });
+        }
+        function statsForms() { return FORMS.filter(inStatsRange); }
+        function clearStatsRange() {
+            document.getElementById('stats-date-start').value = '';
+            document.getElementById('stats-date-end').value = '';
+            renderStats();
+        }
+        function renderStats() {
+            const box = document.getElementById('stats-body');
+            const SF = statsForms();
+            const ds = document.getElementById('stats-date-start').value;
+            const de = document.getElementById('stats-date-end').value;
+            document.getElementById('stats-range-hint').textContent = (ds || de)
+                ? `區間：${ds || '不限'} ~ ${de || '不限'}，共 ${SF.length} 單`
+                : `全部區間，共 ${SF.length} 單`;
+            const total = SF.length;
+            const byStatus = {}; STATUS_META.forEach(m => byStatus[m.key] = 0);
+            SF.forEach(f => byStatus[f.status] = (byStatus[f.status] || 0) + 1);
+            const pct = (n) => total ? Math.round(n / total * 100) : 0;
+            const has = (f, t) => f.events.some(e => e.type === t);
+            const rejectForms = SF.filter(f => has(f, 'reject')).length;
+            const suppForms = SF.filter(f => has(f, 'supplement')).length;
+            const resubmitForms = SF.filter(f => has(f, 'resubmit')).length;
+            const done = byStatus['簽核完成'] || 0;
+
+            // 狀態統計卡
+            const statCards = STATUS_META.map(m => `
+                <div class="ui-card p-4 flex items-center gap-3">
+                    <div class="w-11 h-11 rounded-lg ${m.soft} ${m.text} flex items-center justify-center text-lg"><i class="fa-solid ${m.icon}"></i></div>
+                    <div class="min-w-0">
+                        <div class="text-xs text-text-muted">${m.key}</div>
+                        <div class="text-xl font-bold text-gray-900 leading-tight">${byStatus[m.key] || 0} <span class="text-xs font-medium text-text-light">單 · ${pct(byStatus[m.key] || 0)}%</span></div>
+                    </div>
+                </div>`).join('');
+
+            // 比率卡
+            const rateCard = (label, val, sub, cls) => `
+                <div class="ui-card p-4">
+                    <div class="text-xs text-text-muted">${label}</div>
+                    <div class="text-2xl font-bold ${cls} leading-tight mt-1">${val}</div>
+                    <div class="text-[11px] text-text-light mt-0.5">${sub}</div>
+                </div>`;
+
+            // 依分類（OA）狀態分佈
+            const oaSet = OA_LIST.filter(oa => SF.some(f => f.oa === oa));
+            const oaRows = oaSet.map(oa => {
+                const list = SF.filter(f => f.oa === oa);
+                const cells = STATUS_META.map(m => {
+                    const c = list.filter(f => f.status === m.key).length;
+                    return `<td class="text-center ${c ? m.text + ' font-semibold' : 'text-gray-300'}">${c || '—'}</td>`;
+                }).join('');
+                return `<tr class="hover:bg-gray-50/70"><td class="text-left font-medium text-gray-700">${oa}</td>${cells}<td class="text-center font-bold text-gray-800">${list.length}</td></tr>`;
+            }).join('');
+            const oaHead = STATUS_META.map(m => `<th class="text-center">${m.key}</th>`).join('');
+
+            // 行為統計（以「單」為單位；點擊列出相關單號）
+            const behavior = Object.entries(BEHAVIOR_DEFS).map(([key, b]) => {
+                const n = SF.filter(b.match).length;
+                return `
+                <button type="button" onclick="openBehaviorModal('${key}')" class="w-full flex items-center justify-between px-4 py-3 border border-gray-100 rounded-lg hover:border-primary/40 hover:bg-primary-light/40 transition-colors text-left">
+                    <span class="inline-flex items-center gap-2 text-sm text-gray-600"><span class="w-8 h-8 rounded-lg ${b.soft} ${b.cls} flex items-center justify-center"><i class="fa-solid ${b.icon}"></i></span>${b.label}</span>
+                    <span class="inline-flex items-center gap-2"><span class="text-lg font-bold text-gray-900">${n} <span class="text-xs font-medium text-text-light">單</span></span><i class="fa-solid fa-chevron-right text-xs text-gray-300"></i></span>
+                </button>`;
+            }).join('');
+
+            box.innerHTML = `
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">${statCards}</div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                    ${rateCard('總單數', total + ' 單', '所有已建立單據', 'text-gray-900')}
+                    ${rateCard('簽核完成率', pct(done) + '%', `${done} / ${total} 單`, 'text-emerald-600')}
+                    ${rateCard('駁回率', pct(rejectForms) + '%', `${rejectForms} 單曾被駁回`, 'text-rose-600')}
+                    ${rateCard('補件率', pct(suppForms) + '%', `${suppForms} 單曾要求補件`, 'text-amber-600')}
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <div class="ui-card p-5">
+                        <h3 class="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2"><i class="fa-solid fa-table-cells text-primary"></i>依分類 × 狀態</h3>
+                        <div class="overflow-x-auto">
+                            <table class="ui-table text-center text-sm">
+                                <thead><tr><th class="text-left">分類</th>${oaHead}<th class="text-center">合計</th></tr></thead>
+                                <tbody>${oaRows}</tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="ui-card p-5">
+                        <h3 class="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2"><i class="fa-solid fa-list-check text-primary"></i>行為統計</h3>
+                        <div class="space-y-2.5">${behavior}</div>
+                    </div>
+                </div>`;
+        }
+
+        /* ============ 單據歷程（主從式）============ */
+        let selectedIndex = 0;
+        let statusFilter = '';
+
+        function renderStatusChips() {
+            const box = document.getElementById('status-chips');
+            const counts = {};
+            FORMS.forEach(f => counts[f.status] = (counts[f.status] || 0) + 1);
+            const chips = [['', '全部', FORMS.length]].concat(STATUS_META.filter(m => counts[m.key]).map(m => [m.key, m.key, counts[m.key]]));
+            box.innerHTML = chips.map(([val, label, n]) => {
+                const on = statusFilter === val;
+                return `<button onclick="setStatusFilter('${val}')" class="text-xs font-medium px-2.5 py-1 rounded-full border transition-colors ${on ? 'border-primary bg-primary-light text-primary' : 'border-gray-200 text-gray-500 hover:bg-gray-50'}">${label} ${n}</button>`;
+            }).join('');
+        }
+        function setStatusFilter(v) { statusFilter = v; renderStatusChips(); renderList(); }
+
+        function clearDateRange() {
+            document.getElementById('date-start').value = '';
+            document.getElementById('date-end').value = '';
+            renderList();
+        }
+
+        function renderList() {
+            const kw = document.getElementById('search-input').value.trim().toLowerCase();
+            const ds = document.getElementById('date-start').value;
+            const de = document.getElementById('date-end').value;
+            const box = document.getElementById('form-list');
+            const rows = FORMS.map((f, i) => ({ f, i }))
+                .filter(({ f }) => !statusFilter || f.status === statusFilter)
+                .filter(({ f }) => !kw || (f.docNo + f.applicant + (EMP_NO[f.applicant] || '') + f.type).toLowerCase().includes(kw))
+                .filter(({ f }) => (!ds && !de) || f.events.some(e => { const d = e.time.slice(0, 10); return (!ds || d >= ds) && (!de || d <= de); }));
+            if (!rows.length) { box.innerHTML = '<div class="p-8 text-center text-sm text-text-light">查無符合條件的單據</div>'; return; }
+            box.innerHTML = rows.map(({ f, i }) => {
+                const active = i === selectedIndex;
+                const last = f.events[f.events.length - 1];
+                return `<button onclick="selectForm(${i})" class="w-full text-left px-4 py-3 transition-colors ${active ? 'bg-primary-light' : 'hover:bg-gray-50'}">
+                        <div class="flex items-center justify-between gap-2">
+                            <span class="font-semibold text-sm ${active ? 'text-primary' : 'text-gray-800'} truncate">${f.docNo}</span>
+                            ${statusBadge(f.status)}
+                        </div>
+                        <div class="text-xs text-text-muted mt-1 truncate">${f.type}</div>
+                        <div class="text-[11px] text-text-light mt-1 flex items-center gap-2">
+                            <span><i class="fa-regular fa-user mr-1"></i>${withEmpNo(f.applicant)}</span>
+                            <span><i class="fa-regular fa-clock mr-1"></i>${last.time}</span>
+                        </div>
+                    </button>`;
+            }).join('');
+        }
+
+        function selectForm(i) { selectedIndex = i; renderList(); renderDetail(); }
+
+        function renderDetail() {
+            const f = FORMS[selectedIndex];
+            const view = document.getElementById('detail-view');
+            if (!f) { view.innerHTML = '<div class="py-20 text-center text-text-light">請於左側選擇一張單據</div>'; return; }
+            const opened = f.events.find(e => e.type === 'open');
+            const last = f.events[f.events.length - 1];
+            const info = (label, val) => `<div><div class="text-[11px] text-text-light">${label}</div><div class="text-sm font-medium text-gray-800 mt-0.5">${val}</div></div>`;
+
+            const rows = f.events.map((e, idx) => {
+                const t = EVENT_TYPES[e.type] || EVENT_TYPES.submit;
+                return `<tr class="hover:bg-gray-50/70">
+                        <td class="text-center text-gray-400">${idx + 1}</td>
+                        <td class="whitespace-nowrap text-gray-600">${e.time}</td>
+                        <td><span class="inline-flex items-center gap-1.5 font-semibold ${t.color}"><i class="fa-solid ${t.icon}"></i>${t.label}</span></td>
+                        <td class="text-gray-700">${e.node}</td>
+                        <td class="text-gray-700">${e.actor}</td>
+                        <td class="text-left text-gray-600">${e.note || '<span class="text-gray-300">—</span>'}</td>
+                    </tr>`;
+            }).join('');
+
+            view.innerHTML = `
+                <div class="flex items-start justify-between gap-3 flex-wrap mb-4">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h2 class="text-lg font-bold text-gray-900">${f.docNo}</h2>
+                            ${statusBadge(f.status)}
+                        </div>
+                        <div class="text-sm text-text-muted mt-0.5">${f.type}</div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 bg-gray-50 border border-gray-100 rounded-lg px-4 py-3 mb-6">
+                    ${info('申請人', withEmpNo(f.applicant))}
+                    ${info('分類', f.oa)}
+                    ${info('開單時間', opened ? opened.time : '—')}
+                    ${info('最後更新', last.time)}
+                </div>
+                <div class="flex items-center gap-2 mb-4">
+                    <i class="fa-solid fa-list-ul text-primary"></i>
+                    <h3 class="text-sm font-bold text-gray-800">行為歷程</h3>
+                    <span class="text-xs text-text-light">共 ${f.events.length} 筆</span>
+                </div>
+                <div class="overflow-x-auto border border-gray-100 rounded-lg">
+                    <table class="ui-table text-center text-sm whitespace-nowrap">
+                        <thead>
+                            <tr>
+                                <th class="w-12">序</th>
+                                <th class="text-left">時間</th>
+                                <th class="text-left">行為</th>
+                                <th class="text-left">節點</th>
+                                <th class="text-left">經手人</th>
+                                <th class="text-left min-w-[200px]">說明</th>
+                            </tr>
+                        </thead>
+                        <tbody>${rows}</tbody>
+                    </table>
+                </div>`;
+        }
+
+        // 行為統計：開啟相關單號彈窗
+        function openBehaviorModal(key) {
+            const def = BEHAVIOR_DEFS[key];
+            const list = FORMS.map((f, i) => ({ f, i })).filter(({ f }) => def.match(f) && inStatsRange(f));
+            document.getElementById('behavior-modal-title').innerHTML = `<i class="fa-solid ${def.icon} ${def.cls} mr-2"></i>${def.label}（${list.length} 單）`;
+            const body = document.getElementById('behavior-modal-body');
+            body.innerHTML = list.length ? list.map(({ f, i }) => `
+                <button onclick="jumpToForm(${i})" class="w-full text-left flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg border border-gray-100 hover:border-primary/40 hover:bg-primary-light/40 transition-colors mb-1.5">
+                    <span class="min-w-0">
+                        <span class="font-semibold text-sm text-primary">${f.docNo}</span>
+                        <span class="text-xs text-text-muted ml-2">${f.type}</span>
+                        <div class="text-[11px] text-text-light mt-0.5"><i class="fa-regular fa-user mr-1"></i>${withEmpNo(f.applicant)}</div>
+                    </span>
+                    ${statusBadge(f.status)}
+                </button>`).join('') : '<div class="py-8 text-center text-sm text-text-light">沒有相關單據</div>';
+            document.getElementById('behavior-modal').classList.remove('hidden');
+        }
+        function closeBehaviorModal() { document.getElementById('behavior-modal').classList.add('hidden'); }
+        // 由彈窗跳至該單的行為歷程
+        function jumpToForm(i) {
+            closeBehaviorModal();
+            selectedIndex = i;
+            statusFilter = '';
+            document.getElementById('search-input').value = '';
+            document.getElementById('date-start').value = '';
+            document.getElementById('date-end').value = '';
+            switchView('timeline');
+            renderStatusChips();
+            renderList();
+            renderDetail();
+        }
+
+        // 檢視切換
+        function switchView(v) {
+            const on = 'px-4 py-1.5 rounded-md text-sm font-semibold transition-colors bg-primary-light text-primary';
+            const off = 'px-4 py-1.5 rounded-md text-sm font-semibold transition-colors text-gray-500 hover:text-gray-700';
+            document.getElementById('tab-stats').className = v === 'stats' ? on : off;
+            document.getElementById('tab-timeline').className = v === 'timeline' ? on : off;
+            document.getElementById('view-stats').classList.toggle('hidden', v !== 'stats');
+            document.getElementById('view-timeline').classList.toggle('hidden', v !== 'timeline');
+        }
+
+        window.onload = function () {
+            renderStats();
+            renderStatusChips();
+            renderList();
+            renderDetail();
+            switchView('stats');
+        };
+    </script>
+</body>
+</html>
