@@ -276,7 +276,7 @@
                                                 <td class="px-3 py-1.5"><div class="relative"><input type="text" readonly onclick="aaOpenAssetCheck(this)" class="w-full border border-gray-300 rounded px-2 py-1 pr-7 text-sm outline-none focus:border-[#4A90E2] cursor-pointer bg-white" placeholder="點擊輸入資產編號"><button type="button" disabled onclick="event.stopPropagation(); aaAssetDetail(this)" title="檢視詳情" class="aa-eye-btn absolute inset-y-0 right-1.5 flex items-center text-gray-400 opacity-40 cursor-not-allowed disabled:pointer-events-none"><i data-lucide="eye" class="w-4 h-4"></i></button></div></td>
                                                 <td class="px-3 py-1.5"><input type="date" onclick="this.showPicker && this.showPicker()" class="w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2]"></td>
                                                 <td class="px-3 py-1.5"><div class="flex items-center border border-gray-300 rounded overflow-hidden"><span class="bg-gray-50 border-r border-gray-300 px-2 py-1 text-xs text-gray-500">¥</span><input type="text" class="w-full px-2 py-1 text-sm text-right outline-none" value="0"></div></td>
-                                                <td class="px-3 py-1.5"><div class="flex items-center gap-2 flex-wrap"><div class="relative person-combo flex-1 min-w-0"><input type="text" autocomplete="off" placeholder="新使用人" class="person-input w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2]"><div class="person-list hidden absolute z-30 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto text-[13px]"></div></div><label class="inline-flex items-center gap-1 text-xs text-gray-500 cursor-pointer shrink-0"><input type="checkbox" onchange="aaOtherToggle(this)" class="w-3.5 h-3.5 rounded border-gray-300 text-blue-600"> 其他</label><select class="aa-other-state hidden basis-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2]"><option selected>單位共用</option><option>閒置保管</option><option>借用</option></select></div></td>
+                                                <td class="px-3 py-1.5"><div class="flex items-center gap-2 flex-wrap"><div class="relative person-combo flex-1 min-w-0"><input type="text" autocomplete="off" placeholder="新使用人" class="person-input w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2]"><div class="person-list hidden absolute z-30 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto text-[13px]"></div></div><label class="inline-flex items-center gap-1 text-xs text-gray-500 cursor-pointer shrink-0"><input type="checkbox" onchange="aaOtherToggle(this)" class="w-3.5 h-3.5 rounded border-gray-300 text-blue-600"> 其他</label><select onchange="aaOtherStateChange(this)" class="aa-other-state hidden basis-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2]"><option selected>單位共用</option><option>行政閒置</option><option>項目保管</option><option>外借</option></select><input type="text" placeholder="外借人" class="aa-lend-person hidden basis-full mt-1 border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2]"></div></td>
                                                 <td class="px-3 py-1.5"><select class="w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2] bg-white"><option value="" disabled selected>請選擇</option><option>地區資產管理人</option><option>中心資產管理人</option></select></td>
                                                 <td class="px-3 py-1.5"><select class="w-full border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#4A90E2] bg-white"><option value="" disabled selected>請選擇</option><option>人員入職</option><option>人員離職</option><option>在職更換資產</option><option>在職退回資產</option><option>其他</option></select></td>
                                                 <td class="px-3 py-1.5 text-center"><button type="button" onclick="blockRemove(this)" class="text-[12px] text-rose-600 border border-rose-200 rounded px-2.5 py-1 hover:bg-rose-50 inline-flex items-center gap-1 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i>移除</button></td>
@@ -6454,7 +6454,7 @@
             input.classList.toggle('cursor-not-allowed', cb.checked);
             if (cb.checked) { input.value = ''; const list = combo.querySelector('.person-list'); if (list) list.classList.add('hidden'); }
         }
-        // 資產異動申請 (AA)：勾「其他」→ 停用使用人欄位並展開狀態下拉（單位共用／閒置保管／借用）
+        // 資產異動申請 (AA)：勾「其他」→ 停用使用人欄位並展開狀態下拉（單位共用／行政閒置／項目保管／外借）
         function aaOtherToggle(cb) {
             anSharedToggle(cb);
             const td = cb.closest('td');
@@ -6462,6 +6462,16 @@
             if (!sel) return;
             sel.classList.toggle('hidden', !cb.checked);
             if (!cb.checked) sel.selectedIndex = 0;
+            aaOtherStateChange(sel);
+        }
+        // 狀態選「外借」→ 顯示「外借人」欄位
+        function aaOtherStateChange(sel) {
+            const td = sel.closest('td');
+            const lend = td && td.querySelector('.aa-lend-person');
+            if (!lend) return;
+            const show = !sel.classList.contains('hidden') && sel.value === '外借';
+            lend.classList.toggle('hidden', !show);
+            if (!show) lend.value = '';
         }
         // 商務公告 (BU)：公告分類 → 公告類別 連動
         const BU_CATEGORY_MAP = {
