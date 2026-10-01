@@ -82,8 +82,8 @@
                         <i data-lucide="settings" class="w-4 h-4 text-gray-600"></i>
                         <span>密碼變更</span>
                     </div>
-                    <div class="px-4 py-2 text-[14px] text-gray-700 hover:bg-gray-50 cursor-pointer flex items-center gap-2.5 transition-colors">
-                        <i data-lucide="settings" class="w-4 h-4 text-gray-600"></i>
+                    <div id="open-notify-settings" class="px-4 py-2 text-[14px] text-gray-700 hover:bg-gray-50 cursor-pointer flex items-center gap-2.5 transition-colors">
+                        <i data-lucide="bell" class="w-4 h-4 text-gray-600"></i>
                         <span>通知設定</span>
                     </div>
                     <div id="open-mobile-home" class="px-4 py-2 text-[14px] text-gray-700 hover:bg-gray-50 cursor-pointer flex items-center gap-2.5 transition-colors">
@@ -160,6 +160,32 @@
                 <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-end gap-2.5">
                     <button onclick="closePasswordModal()" class="px-4 py-2 text-sm rounded-md border border-gray-300 text-gray-600 hover:bg-gray-100 transition-colors">取消</button>
                     <button onclick="submitPasswordChange()" class="px-4 py-2 text-sm rounded-md bg-blue-500 text-white hover:bg-blue-600 transition-colors">確認變更</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 通知設定 彈窗 -->
+    <div id="notify-modal" class="fixed inset-0 z-[100] hidden">
+        <div class="fixed inset-0 bg-gray-900/40" onclick="closeNotifyModal()"></div>
+        <div class="fixed inset-0 flex items-center justify-center p-4">
+            <div class="relative bg-white rounded-xl shadow-xl w-full max-w-6xl max-h-[92vh] flex flex-col overflow-hidden">
+                <div class="px-6 py-4 flex items-center justify-between border-b border-gray-100 flex-shrink-0">
+                    <h3 class="text-base font-bold text-gray-900">通知設定</h3>
+                    <button onclick="closeNotifyModal()" class="text-gray-400 hover:text-gray-600 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"><i data-lucide="x" class="w-4 h-4"></i></button>
+                </div>
+                <div class="px-6 py-4 overflow-y-auto">
+                    <div class="flex items-center gap-3 mb-5">
+                        <span class="text-sm font-bold text-gray-800">全部開啟/關閉</span>
+                        <button type="button" role="switch" aria-checked="false" onclick="toggleAllNotify(this)" class="notify-master shrink-0 relative inline-flex h-6 w-11 items-center rounded-full transition-colors bg-gray-300">
+                            <span class="inline-block h-5 w-5 rounded-full bg-white shadow transform transition-transform translate-x-0.5"></span>
+                        </button>
+                    </div>
+                    <div id="notify-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"></div>
+                </div>
+                <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-end gap-2.5 flex-shrink-0">
+                    <button onclick="closeNotifyModal()" class="px-4 py-2 text-sm rounded-md border border-gray-300 text-gray-600 hover:bg-gray-100 transition-colors">關閉</button>
+                    <button onclick="saveNotify()" class="px-4 py-2 text-sm rounded-md bg-blue-500 text-white hover:bg-blue-600 transition-colors">保存</button>
                 </div>
             </div>
         </div>
@@ -370,6 +396,70 @@
         function submitPasswordChange() {
             document.getElementById('password-modal').classList.add('hidden');
         }
+
+        // 4-3. 通知設定彈窗（由頭像選單開啟）
+        const NOTIFY_ROWS = ['申請人上單通知', '待我審批通知', '審批完成通知', '駁回通知', '補件通知', '撤單通知', '留言通知', '加簽通知'];
+        const NOTIFY_CARDS = [
+            { t: '休假', on: [] },
+            { t: '補打卡', on: [] },
+            { t: '員工一般人事異動', on: [] },
+            { t: '錄用審批單', on: [], extra: ['取消入職通知'] },
+            { t: '招聘需求單', on: [] },
+            { t: '薪資、職級異動單', on: ['駁回通知'] },
+            { t: '離職通知', on: [] },
+            { t: '員工帳號申請', on: [] },
+            { t: '離職申請&工作交接表', on: 'all' },
+            { t: '發佈公告', on: 'all' },
+            { t: '其他電子表單', on: 'all' },
+        ];
+        // 單一開關 HTML
+        function notifySwitchHtml(on) {
+            return `<button type="button" role="switch" aria-checked="${on}" onclick="toggleNotify(this)" class="notify-sw shrink-0 relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${on ? 'bg-blue-500' : 'bg-gray-300'}">`
+                + `<span class="inline-block h-5 w-5 rounded-full bg-white shadow transform transition-transform ${on ? 'translate-x-[22px]' : 'translate-x-0.5'}"></span></button>`;
+        }
+        function setNotifySwitch(btn, on) {
+            btn.setAttribute('aria-checked', on ? 'true' : 'false');
+            btn.classList.toggle('bg-blue-500', on);
+            btn.classList.toggle('bg-gray-300', !on);
+            const knob = btn.querySelector('span');
+            if (knob) { knob.classList.toggle('translate-x-[22px]', on); knob.classList.toggle('translate-x-0.5', !on); }
+        }
+        function toggleNotify(btn) { setNotifySwitch(btn, btn.getAttribute('aria-checked') !== 'true'); syncNotifyMaster(); }
+        function toggleAllNotify(btn) {
+            const on = btn.getAttribute('aria-checked') !== 'true';
+            setNotifySwitch(btn, on);
+            document.querySelectorAll('#notify-grid .notify-sw').forEach(sw => setNotifySwitch(sw, on));
+        }
+        // 全部開關狀態同步（全開才顯示開）
+        function syncNotifyMaster() {
+            const all = [...document.querySelectorAll('#notify-grid .notify-sw')];
+            const master = document.querySelector('.notify-master');
+            if (master) setNotifySwitch(master, all.length > 0 && all.every(sw => sw.getAttribute('aria-checked') === 'true'));
+        }
+        function renderNotifyGrid() {
+            const grid = document.getElementById('notify-grid');
+            grid.innerHTML = NOTIFY_CARDS.map(card => {
+                const rows = NOTIFY_ROWS.concat(card.extra || []);
+                const onSet = card.on === 'all' ? new Set(rows) : new Set(card.on || []);
+                return `<div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                        <div class="font-bold text-gray-800 text-[15px] border-b border-gray-100 pb-2 mb-3">${card.t}</div>
+                        <div class="space-y-3">`
+                    + rows.map(r => `<div class="flex items-center justify-between gap-3"><span class="text-sm text-gray-600">${r}</span>${notifySwitchHtml(onSet.has(r))}</div>`).join('')
+                    + `</div></div>`;
+            }).join('');
+            syncNotifyMaster();
+        }
+        const openNotifySettings = document.getElementById('open-notify-settings');
+        if (openNotifySettings) {
+            openNotifySettings.addEventListener('click', (e) => {
+                e.stopPropagation();
+                userDropdown.classList.add('hidden');
+                renderNotifyGrid();
+                document.getElementById('notify-modal').classList.remove('hidden');
+            });
+        }
+        function closeNotifyModal() { document.getElementById('notify-modal').classList.add('hidden'); }
+        function saveNotify() { document.getElementById('notify-modal').classList.add('hidden'); }
 
         // 5. 全螢幕切換
         const fullscreenBtn = document.getElementById('fullscreen-btn');
