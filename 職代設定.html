@@ -57,6 +57,10 @@
                         <i class="fa-solid fa-magnifying-glass"></i>
                         <input type="text" id="search-deputy" oninput="renderTable()" placeholder="搜尋職務代理人 / 工號" class="ui-input ui-search-input">
                     </div>
+                    <div class="flex items-center gap-1.5 shrink-0">
+                        <span class="text-xs text-text-muted whitespace-nowrap">代理日期</span>
+                        <input type="date" id="search-date" onchange="renderTable()" class="ui-input w-full sm:w-44">
+                    </div>
                     <button onclick="renderTable()" class="ui-btn ui-btn-primary ui-btn-sm shrink-0"><i class="fa-solid fa-magnifying-glass"></i> 查詢</button>
                 </div>
                 <button onclick="openCreate()" class="ui-btn ui-btn-primary w-full sm:w-auto"><i class="fa-solid fa-plus"></i> 新增職代</button>
@@ -74,6 +78,7 @@
                             <th scope="col" class="text-left">員工</th>
                             <th scope="col" class="text-left">職務代理人</th>
                             <th scope="col">代理期間</th>
+                            <th scope="col">代理狀態</th>
                             <th scope="col">狀態</th>
                             <th scope="col" class="text-center w-44">操作</th>
                         </tr>
@@ -176,15 +181,27 @@
             return `${date} ${ap} ${h12}:${String(m).padStart(2, '0')}`;
         };
         const fmtRange = (s, e) => `${fmtDateTime(s)} ~ ${fmtDateTime(e)}`;
+        // 依現在時間與代理期間判定代理狀態：尚未開始 / 進行中 / 已到期
+        function periodStatus(s, e) {
+            const now = new Date();
+            const st = s ? new Date(s) : null;
+            const en = e ? new Date(e) : null;
+            if (st && now < st) return { label: '尚未開始', cls: 'bg-gray-100 text-gray-500' };
+            if (en && now > en) return { label: '已到期', cls: 'bg-rose-50 text-rose-600' };
+            return { label: '進行中', cls: 'bg-emerald-50 text-emerald-600' };
+        }
+        const periodBadge = (s, e) => { const p = periodStatus(s, e); return `<span class="ui-badge ${p.cls}">${p.label}</span>`; };
 
         function renderTable() {
             const kwEmp = document.getElementById('search-emp').value.trim().toLowerCase();
             const kwDep = document.getElementById('search-deputy').value.trim().toLowerCase();
             const tbody = document.getElementById('deputy-tbody');
             const noData = document.getElementById('no-data-view');
+            const kwDate = document.getElementById('search-date').value; // YYYY-MM-DD；代理期間涵蓋該日即符合
             const rows = deputyData.map((r, i) => ({ r, i }))
                 .filter(({ r }) => !kwEmp || empLabel(r.emp).toLowerCase().includes(kwEmp))
-                .filter(({ r }) => !kwDep || empLabel(r.deputy).toLowerCase().includes(kwDep));
+                .filter(({ r }) => !kwDep || empLabel(r.deputy).toLowerCase().includes(kwDep))
+                .filter(({ r }) => !kwDate || ((r.start || '').slice(0, 10) <= kwDate && kwDate <= (r.end || '').slice(0, 10)));
             tbody.innerHTML = '';
             if (!rows.length) {
                 tbody.parentElement.classList.add('hidden');
@@ -205,6 +222,7 @@
                     <td class="text-left font-medium text-gray-800">${empLabel(r.emp)}</td>
                     <td class="text-left text-gray-700">${empLabel(r.deputy)}</td>
                     <td class="text-gray-600 text-sm whitespace-nowrap">${fmtRange(r.start, r.end)}</td>
+                    <td>${periodBadge(r.start, r.end)}</td>
                     <td>${statusBadge(r.active)}</td>
                     <td><div class="flex items-center justify-center gap-2">
                         <button onclick="openEdit(${i})" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-pen-to-square"></i> 編輯</button>
@@ -215,6 +233,8 @@
             document.getElementById('count-badge').innerText = `${rows.length} 筆資料`;
             document.getElementById('pagination-info').innerText = `顯示第 1 到 ${rows.length} 筆，共 ${rows.length} 筆記錄`;
         }
+
+        function clearSearchDate() { document.getElementById('search-date').value = ''; renderTable(); }
 
         function toggleStatus(i) {
             deputyData[i].active = !deputyData[i].active;
