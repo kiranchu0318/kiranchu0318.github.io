@@ -61,6 +61,15 @@
                         <span class="text-xs text-text-muted whitespace-nowrap">代理日期</span>
                         <input type="date" id="search-date" onchange="renderTable()" class="ui-input w-full sm:w-44">
                     </div>
+                    <div class="flex items-center gap-1.5 shrink-0">
+                        <span class="text-xs text-text-muted whitespace-nowrap">代理狀態</span>
+                        <select id="search-pstatus" onchange="renderTable()" class="ui-select w-full sm:w-36">
+                            <option value="">全部</option>
+                            <option value="尚未開始">尚未開始</option>
+                            <option value="進行中">進行中</option>
+                            <option value="已到期">已到期</option>
+                        </select>
+                    </div>
                     <button onclick="renderTable()" class="ui-btn ui-btn-primary ui-btn-sm shrink-0"><i class="fa-solid fa-magnifying-glass"></i> 查詢</button>
                 </div>
                 <button onclick="openCreate()" class="ui-btn ui-btn-primary w-full sm:w-auto"><i class="fa-solid fa-plus"></i> 新增職代</button>
@@ -198,10 +207,12 @@
             const tbody = document.getElementById('deputy-tbody');
             const noData = document.getElementById('no-data-view');
             const kwDate = document.getElementById('search-date').value; // YYYY-MM-DD；代理期間涵蓋該日即符合
+            const kwPStatus = document.getElementById('search-pstatus').value; // 代理狀態
             const rows = deputyData.map((r, i) => ({ r, i }))
                 .filter(({ r }) => !kwEmp || empLabel(r.emp).toLowerCase().includes(kwEmp))
                 .filter(({ r }) => !kwDep || empLabel(r.deputy).toLowerCase().includes(kwDep))
-                .filter(({ r }) => !kwDate || ((r.start || '').slice(0, 10) <= kwDate && kwDate <= (r.end || '').slice(0, 10)));
+                .filter(({ r }) => !kwDate || ((r.start || '').slice(0, 10) <= kwDate && kwDate <= (r.end || '').slice(0, 10)))
+                .filter(({ r }) => !kwPStatus || periodStatus(r.start, r.end).label === kwPStatus);
             tbody.innerHTML = '';
             if (!rows.length) {
                 tbody.parentElement.classList.add('hidden');
