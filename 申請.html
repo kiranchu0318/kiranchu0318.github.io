@@ -4269,6 +4269,93 @@
                         </div>
                     </div>
 
+                    <!-- 區塊：獎金異動（參考 員工詳細資料 → 獎金）-->
+                    <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5">
+                        <div class="px-4 py-2.5 border-b border-gray-200"><h3 class="text-[#2b3b84] font-bold text-[15px]">獎金異動</h3></div>
+                        <div class="p-4">
+                            <div class="overflow-x-auto">
+                                <table class="ui-table w-full text-[13px] whitespace-nowrap">
+                                    <thead>
+                                        <tr><th class="w-24 text-left">項目</th><th class="text-left">13薪 <span class="text-red-500">*</span></th><th class="text-left">獎金類型 <span class="text-red-500">*</span></th></tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr><td class="font-bold text-gray-700">異動前</td><td><input type="text" disabled class="w-full border border-gray-300 rounded px-2 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed"></td><td><input type="text" disabled class="w-full border border-gray-300 rounded px-2 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed"></td></tr>
+                                        <tr><td class="font-bold text-gray-700">異動後 <span class="text-red-500">*</span></td><td><select class="w-full border border-gray-300 rounded px-2 py-1.5 text-[13px] outline-none focus:border-blue-500"><option value="" disabled selected>請選擇</option><option>N</option><option>Y</option></select></td><td><select class="w-full border border-gray-300 rounded px-2 py-1.5 text-[13px] outline-none focus:border-blue-500"><option value="" disabled selected>請選擇</option><option>A</option><option>B</option><option>C</option></select></td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 區塊：福利異動（參考 員工詳細資料 → 其他福利）-->
+                    <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5">
+                        <div class="px-4 py-2.5 border-b border-gray-200"><h3 class="text-[#2b3b84] font-bold text-[15px]">福利異動</h3></div>
+                        <div class="p-4">
+                            <div class="overflow-x-auto">
+                                <table class="ui-table w-full text-[13px] whitespace-nowrap">
+                                    <thead>
+                                        <tr><th class="w-24 text-left">項目</th><th class="text-left">團建分類 <span class="text-red-500">*</span></th><th class="text-left">福利制度</th><th class="text-left">生日福利</th><th class="text-left">節日福利</th></tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr><td class="font-bold text-gray-700">異動前</td><td><input type="text" disabled class="w-full border border-gray-300 rounded px-2 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed"></td><td><input type="text" disabled class="w-full border border-gray-300 rounded px-2 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed"></td><td><input type="text" disabled class="w-full border border-gray-300 rounded px-2 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed"></td><td><input type="text" disabled class="w-full border border-gray-300 rounded px-2 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed"></td></tr>
+                                        <tr><td class="font-bold text-gray-700">異動後 <span class="text-red-500">*</span></td><td><select class="w-full border border-gray-300 rounded px-2 py-1.5 text-[13px] outline-none focus:border-blue-500"><option value="" disabled selected>請選擇</option><option>無</option><option>級別 A</option><option>級別 B</option></select></td><td><select onchange="taBenefitChange(this)" class="w-full border border-gray-300 rounded px-2 py-1.5 text-[13px] outline-none focus:border-blue-500"><option value="" disabled selected>請選擇</option><option>勞健保 + 團體保險</option><option>勞健保</option><option>無</option></select></td><td><input type="text" disabled placeholder="依福利制度帶出" class="ta-birth-benefit w-full border border-gray-300 rounded px-2 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed"></td><td><input type="text" disabled placeholder="依福利制度帶出" class="ta-festival-benefit w-full border border-gray-300 rounded px-2 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed"></td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 區塊：考勤設置異動（參考 員工詳細資料 → 考勤信息）-->
+                    <div id="ta-att-section" class="bg-white border border-gray-300 rounded-md shadow-sm mb-5">
+                        <div class="px-4 py-2.5 border-b border-gray-200"><h3 class="text-[#2b3b84] font-bold text-[15px]">考勤設置異動</h3></div>
+                        <div class="p-4 space-y-4">
+                            <!-- 配置方式（異動後）-->
+                            <div class="flex flex-wrap items-center gap-x-6 gap-y-2">
+                                <span class="text-[13px] text-gray-700 font-medium">配置方式（異動後）</span>
+                                <label class="inline-flex items-center gap-2 text-[13px] text-gray-700 cursor-pointer"><input type="radio" name="ta-att-mode" value="template" checked onchange="taAttModeChange(this)" class="w-4 h-4 text-blue-600"> 套用考勤模板</label>
+                                <label class="inline-flex items-center gap-2 text-[13px] text-gray-700 cursor-pointer"><input type="radio" name="ta-att-mode" value="custom" onchange="taAttModeChange(this)" class="w-4 h-4 text-blue-600"> 自定義考勤規則</label>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="ui-table w-full text-[13px] whitespace-nowrap">
+                                    <thead>
+                                        <tr><th class="w-24 text-left">項目</th><th class="text-left ta-th-template">考勤模板</th><th class="text-left ta-th-custom hidden">固定上班時間</th><th class="text-left ta-th-custom hidden">休息時間</th><th class="text-left ta-th-custom hidden">休息時間打卡</th><th class="text-left ta-th-custom hidden">工時</th><th class="text-left ta-th-custom hidden">彈性上班時間</th><th class="text-left">打卡方式</th></tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr><td class="font-bold text-gray-700">異動前</td><td class="ta-td-template"><input type="text" disabled class="w-full border border-gray-300 rounded px-2 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed"></td><td class="ta-td-custom hidden"><input type="text" disabled class="w-full border border-gray-300 rounded px-2 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed"></td><td class="ta-td-custom hidden"><input type="text" disabled class="w-full border border-gray-300 rounded px-2 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed"></td><td class="ta-td-custom hidden"><input type="text" disabled class="w-full border border-gray-300 rounded px-2 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed"></td><td class="ta-td-custom hidden"><input type="text" disabled class="w-full border border-gray-300 rounded px-2 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed"></td><td class="ta-td-custom hidden"><input type="text" disabled class="w-full border border-gray-300 rounded px-2 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed"></td><td><input type="text" disabled class="w-full border border-gray-300 rounded px-2 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed"></td></tr>
+                                        <tr>
+                                            <td class="font-bold text-gray-700">異動後</td>
+                                            <td class="ta-td-template"><select class="w-full border border-gray-300 rounded px-2 py-1.5 text-[13px] outline-none focus:border-blue-500"><option value="" disabled selected>請選擇</option><option>考勤設置1</option><option>總部標準班</option><option>免午休打卡班</option></select></td>
+                                            <td class="ta-td-custom hidden"><div class="flex items-center gap-1.5"><input type="time" value="09:00" class="border border-gray-300 rounded px-1.5 py-1.5 text-[13px] outline-none focus:border-blue-500"><span class="text-gray-400">~</span><input type="time" value="18:00" class="border border-gray-300 rounded px-1.5 py-1.5 text-[13px] outline-none focus:border-blue-500"></div></td>
+                                            <td class="ta-td-custom hidden"><div class="flex flex-col gap-1.5"><select onchange="taRestChange(this)" class="w-full border border-gray-300 rounded px-2 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>有</option><option>無</option></select><div class="ta-rest-detail flex items-center gap-1.5"><input type="time" value="12:00" class="border border-gray-300 rounded px-1.5 py-1.5 text-[13px] outline-none focus:border-blue-500"><span class="text-gray-400">~</span><input type="time" value="13:00" class="border border-gray-300 rounded px-1.5 py-1.5 text-[13px] outline-none focus:border-blue-500"></div></div></td>
+                                            <td class="ta-td-custom hidden"><select class="w-full border border-gray-300 rounded px-2 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>需打卡</option><option>免打卡</option></select></td>
+                                            <td class="ta-td-custom hidden"><input type="text" readonly value="8 小時 1 分" class="w-full border border-gray-300 rounded px-2 py-1.5 text-[13px] outline-none bg-[#f3f4f6] text-gray-600 cursor-default"></td>
+                                            <td class="ta-td-custom hidden"><div class="flex flex-col gap-1.5"><select onchange="taFlexChange(this)" class="w-full border border-gray-300 rounded px-2 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>否</option><option>有</option></select><div class="ta-flex-detail hidden flex items-center gap-1 text-[12px] text-gray-600 whitespace-nowrap">可提前 <input type="text" inputmode="numeric" value="30" class="w-10 border border-gray-300 rounded px-1 py-1 text-[12px] text-center outline-none focus:border-blue-500"> 分、延後 <input type="text" inputmode="numeric" value="30" class="w-10 border border-gray-300 rounded px-1 py-1 text-[12px] text-center outline-none focus:border-blue-500"> 分</div></div></td>
+                                            <td><div class="flex items-center gap-x-3 gap-y-1 flex-wrap"><label class="inline-flex items-center gap-1 text-[12px] text-gray-700 cursor-pointer"><input type="checkbox" checked class="w-3.5 h-3.5 rounded border-gray-300"> 指紋</label><label class="inline-flex items-center gap-1 text-[12px] text-gray-700 cursor-pointer"><input type="checkbox" checked class="w-3.5 h-3.5 rounded border-gray-300"> 網頁</label></div></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 區塊：假期政策異動（參考 員工詳細資料 → 假期信息）-->
+                    <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5">
+                        <div class="px-4 py-2.5 border-b border-gray-200"><h3 class="text-[#2b3b84] font-bold text-[15px]">假期政策異動</h3></div>
+                        <div class="p-4">
+                            <div class="overflow-x-auto">
+                                <table class="ui-table w-full text-[13px] whitespace-nowrap">
+                                    <thead>
+                                        <tr><th class="w-24 text-left">項目</th><th class="text-left">套用假期模板 <span class="text-red-500">*</span></th></tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr><td class="font-bold text-gray-700">異動前</td><td><input type="text" disabled class="w-full sm:max-w-md border border-gray-300 rounded px-2 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed"></td></tr>
+                                        <tr><td class="font-bold text-gray-700">異動後 <span class="text-red-500">*</span></td><td><select class="w-full sm:max-w-md border border-gray-300 rounded px-2 py-1.5 text-[13px] outline-none focus:border-blue-500"><option value="" disabled selected>請選擇假期模板</option><option>T區法幣</option><option>T區U幣</option><option>J區法幣</option><option>J區U幣</option></select></td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <p class="text-[12px] text-gray-400 mt-2">※ 變更假期模板後，假期總表（帶薪年假／事假／病假…）將依新模板重新生成。</p>
+                        </div>
+                    </div>
                     <!-- 區塊：其他項目 -->
                     <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5 other-section">
                         <div class="px-4 py-2.5 border-b border-gray-200 flex justify-between items-center">
@@ -6012,6 +6099,8 @@
                         input.value = eid;
                         const nameEl = document.getElementById(combo.id.replace('-empno-combo', '-emp-name'));
                         if (nameEl) nameEl.value = name;
+                        // 一般人事異動：帶入該員工目前配置至各區塊「異動前」
+                        if (combo.id === 'pc-empno-combo' && window.taFillBefore) taFillBefore(eid);
                     } else if (combo.id === 'pta-applicant-combo') {
                         ptaFillApplicantDefaults(combo, opt.getAttribute('data-id'));
                     } else if (combo.id === 'aa-import-combo') {
@@ -7560,6 +7649,71 @@
         }
 
         // 其他項目：新增一筆備註（標題 + 內容），可多筆、可移除
+        // 員工一般人事異動(TA)：各員工目前配置（demo），選定員工編號後帶入各區塊「異動前」
+        // 欄位順序：
+        //  hr      → 所在地區, 事業部, 分組, 部門, 職位, 直屬主管
+        //  bonus   → 13薪, 獎金類型
+        //  welfare → 團建分類, 福利制度, 生日福利, 節日福利
+        //  att     → 考勤模板, 固定上班時間, 休息時間, 休息時間打卡, 工時, 彈性上班時間, 打卡方式
+        //  leave   → 套用假期模板
+        const TA_EMP_DATA = {
+            '100962': { hr: ['T1', '海外事業部', 'GT', 'RD', '前端工程師', 'James（101517）'], bonus: ['Y', 'A'], welfare: ['級別 A', '勞健保 + 團體保險', '生日禮金 2,000', '三節禮金 / 禮品'], att: ['總部標準班', '09:00 ~ 18:00', '12:00 ~ 13:00', '需打卡', '8 小時', '否', '指紋 / 網頁'], leave: ['T區法幣'] },
+            '101517': { hr: ['T2', '海外事業部', 'GT', 'FIN', '財務主管', 'Daniel（100052）'], bonus: ['Y', 'B'], welfare: ['級別 B', '勞健保 + 團體保險', '生日禮金 2,000', '三節禮金 / 禮品'], att: ['免午休打卡班', '09:30 ~ 18:30', '無', '免打卡', '9 小時', '有（提前30/延後30）', '網頁'], leave: ['T區U幣'] },
+            '100064': { hr: ['THQ', '國內事業部', 'GT', 'RD', '後端工程師', 'Oliver（100962）'], bonus: ['N', 'C'], welfare: ['無', '勞健保', '生日禮金 1,000', '三節禮金'], att: ['考勤設置1', '09:00 ~ 18:00', '12:01 ~ 13:00', '免打卡', '8 小時 1 分', '否', '指紋'], leave: ['J區法幣'] },
+            '_default': { hr: ['T1', '海外事業部', 'GT', 'RD', '工程師', '—'], bonus: ['N', 'A'], welfare: ['無', '勞健保', '生日禮金 1,000', '三節禮金'], att: ['考勤設置1', '09:00 ~ 18:00', '12:00 ~ 13:00', '需打卡', '8 小時', '否', '指紋 / 網頁'], leave: ['T區法幣'] }
+        };
+        // 將某員工目前配置填入 TA 彈窗各區塊的「異動前」欄位
+        function taFillBefore(empId) {
+            const modal = document.getElementById('hr-pc-modal');
+            if (!modal) return;
+            const d = TA_EMP_DATA[empId] || TA_EMP_DATA['_default'];
+            const beforeInputs = (title) => {
+                const h = [...modal.querySelectorAll('h3')].find(x => x.textContent.trim() === title);
+                if (!h) return [];
+                const card = h.closest('.bg-white');
+                const row = card && [...card.querySelectorAll('tbody tr')].find(tr => (tr.querySelector('td') || {}).textContent && tr.querySelector('td').textContent.trim().startsWith('異動前'));
+                return row ? [...row.querySelectorAll('input, select')] : [];
+            };
+            const fill = (title, values) => { const els = beforeInputs(title); values.forEach((v, i) => { if (els[i]) els[i].value = v; }); };
+            fill('人事異動資訊', d.hr);
+            fill('獎金異動', d.bonus);
+            fill('福利異動', d.welfare);
+            fill('考勤設置異動', d.att);
+            fill('假期政策異動', d.leave);
+        }
+
+        // 員工一般人事異動(TA) 福利異動：生日福利 / 節日福利 由「福利制度」連動帶出（唯讀）
+        const TA_BENEFIT_MAP = {
+            '勞健保 + 團體保險': { birth: '生日禮金 2,000', festival: '三節禮金 / 禮品' },
+            '勞健保': { birth: '生日禮金 1,000', festival: '三節禮金' },
+            '無': { birth: '—', festival: '—' }
+        };
+        function taBenefitChange(sel) {
+            const row = sel.closest('tr');
+            const m = TA_BENEFIT_MAP[sel.value] || { birth: '', festival: '' };
+            const b = row.querySelector('.ta-birth-benefit');
+            const f = row.querySelector('.ta-festival-benefit');
+            if (b) b.value = m.birth;
+            if (f) f.value = m.festival;
+        }
+        // 休息時間：選「有」→ 顯示時段，「無」→ 隱藏
+        function taRestChange(sel) {
+            const detail = sel.closest('td').querySelector('.ta-rest-detail');
+            if (detail) detail.classList.toggle('hidden', sel.value !== '有');
+        }
+        // 彈性上班時間：選「有」→ 顯示「可提前／延後」分鐘輸入
+        function taFlexChange(sel) {
+            const detail = sel.closest('td').querySelector('.ta-flex-detail');
+            if (detail) detail.classList.toggle('hidden', sel.value !== '有');
+        }
+        // 考勤設置異動：套用考勤模板 / 自定義考勤規則 → 切換對應欄位顯示
+        function taAttModeChange(radio) {
+            const section = document.getElementById('ta-att-section');
+            if (!section) return;
+            const template = radio.value === 'template';
+            section.querySelectorAll('.ta-th-template, .ta-td-template').forEach(el => el.classList.toggle('hidden', !template));
+            section.querySelectorAll('.ta-th-custom, .ta-td-custom').forEach(el => el.classList.toggle('hidden', template));
+        }
         function addOtherNote(btn) {
             const list = btn.closest('.other-section') && btn.closest('.other-section').querySelector('.js-other-notes');
             if (!list) return;
