@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>職代設定</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4A90E2',
+                        'primary-light': '#EAF2FC',
+                        background: '#F8F9FB',
+                        card: '#FFFFFF',
+                        text: { main: '#1F2937', muted: '#6B7280', light: '#9CA3AF' }
+                    },
+                    fontFamily: { sans: ['"Inter"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'] },
+                    boxShadow: {
+                        'card': '0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03)',
+                        'modal': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: theme('colors.background'); font-family: theme('fontFamily.sans'); }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+    </style>
+    <link rel="stylesheet" href="shared-ui.css">
+</head>
+<body class="ui-page text-text-main antialiased relative">
+
+    <div class="relative mx-auto w-full space-y-6">
+
+        <header class="ui-page-header">
+            <h1 class="ui-page-title">職代設定</h1>
+        </header>
+
+        <section class="ui-card p-4 sm:p-6 space-y-4">
+
+            <!-- 工具列：搜尋 + 新增 -->
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                    <div class="ui-search w-full sm:w-60">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="search-emp" oninput="renderTable()" placeholder="搜尋員工 / 工號" class="ui-input ui-search-input">
+                    </div>
+                    <div class="ui-search w-full sm:w-60">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="search-deputy" oninput="renderTable()" placeholder="搜尋職務代理人 / 工號" class="ui-input ui-search-input">
+                    </div>
+                    <button onclick="renderTable()" class="ui-btn ui-btn-primary ui-btn-sm shrink-0"><i class="fa-solid fa-magnifying-glass"></i> 查詢</button>
+                </div>
+                <button onclick="openCreate()" class="ui-btn ui-btn-primary w-full sm:w-auto"><i class="fa-solid fa-plus"></i> 新增職代</button>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <h2 class="text-lg font-bold text-gray-900 whitespace-nowrap">職代清單</h2>
+                <span id="count-badge" class="bg-blue-50 text-primary text-xs px-2.5 py-1 rounded-md font-bold">0 筆資料</span>
+            </div>
+
+            <div class="overflow-x-auto rounded-lg border border-gray-100 custom-scrollbar">
+                <table class="ui-table text-center">
+                    <thead>
+                        <tr>
+                            <th scope="col" class="text-left">員工</th>
+                            <th scope="col" class="text-left">職務代理人</th>
+                            <th scope="col">代理期間</th>
+                            <th scope="col">狀態</th>
+                            <th scope="col" class="text-center w-44">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="deputy-tbody"></tbody>
+                </table>
+            </div>
+
+            <div id="no-data-view" class="hidden py-16 text-center space-y-3">
+                <div class="inline-flex p-4 bg-gray-50 text-gray-400 rounded-full"><i class="fa-solid fa-user-group text-3xl"></i></div>
+                <p class="text-sm text-text-muted font-medium">查無符合條件的資料</p>
+            </div>
+
+            <div class="flex items-center justify-between pt-2">
+                <span id="pagination-info" class="text-sm text-gray-500">顯示第 0 到 0 筆，共 0 筆記錄</span>
+            </div>
+        </section>
+    </div>
+
+    <!-- ============ 新增 / 編輯 彈窗 ============ -->
+    <div id="edit-modal" class="fixed inset-0 bg-black/40 z-50 flex justify-center items-center hidden p-4">
+        <div class="bg-white rounded-2xl shadow-modal w-full max-w-lg overflow-hidden">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                <h3 id="modal-title" class="text-base font-bold text-gray-900">新增職代</h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="px-6 py-5 space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">員工 <span class="text-rose-500">*</span></label>
+                    <select id="field-emp" class="ui-select w-full"></select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">職務代理人 <span class="text-rose-500">*</span></label>
+                    <select id="field-deputy" class="ui-select w-full"></select>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-text-muted mb-1.5">代理起始 <span class="text-rose-500">*</span></label>
+                        <input type="datetime-local" id="field-start" class="ui-input w-full">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-text-muted mb-1.5">代理結束 <span class="text-rose-500">*</span></label>
+                        <input type="datetime-local" id="field-end" class="ui-input w-full">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">狀態</label>
+                    <select id="field-status" class="ui-select w-full">
+                        <option value="true">啟用</option>
+                        <option value="false">停用</option>
+                    </select>
+                </div>
+            </div>
+            <div class="flex justify-end gap-2.5 px-6 py-4 bg-gray-50 border-t border-gray-100">
+                <button onclick="closeModal()" class="ui-btn ui-btn-secondary">取消</button>
+                <button onclick="saveRecord()" class="ui-btn ui-btn-primary">儲存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 提示消息 (Toast) -->
+    <div id="toast" class="fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+        <i id="toast-icon" class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
+        <span id="toast-text" class="text-sm font-medium">操作成功！</span>
+    </div>
+
+    <script>
+        // 員工主檔（示意）
+        const EMPLOYEES = [
+            { id: '100962', name: 'Oliver', dept: 'RD' }, { id: '101517', name: 'James', dept: 'FIN' },
+            { id: '100064', name: 'Nick', dept: 'RD' }, { id: '101366', name: 'Dev', dept: 'IA1' },
+            { id: '100120', name: 'Stella', dept: 'HR' }, { id: '101081', name: 'Cora', dept: 'MKT' },
+            { id: '100016', name: 'Henry', dept: 'HR' }, { id: '100324', name: 'Lucas', dept: 'RD' },
+            { id: '101023', name: 'Arthur', dept: 'FIN' }, { id: '100052', name: 'Daniel', dept: 'RD' }
+        ];
+        const empLabel = (id) => { const e = EMPLOYEES.find(x => x.id === id); return e ? `${e.name}（${e.id}）` : id; };
+
+        // 職代資料（示意）
+        let deputyData = [
+            { emp: '100962', deputy: '101517', start: '2026-10-10T10:00', end: '2026-10-11T14:00', active: true },
+            { emp: '100064', deputy: '100962', start: '2026-10-05T09:00', end: '2026-10-08T18:00', active: true },
+            { emp: '100120', deputy: '100016', start: '2026-09-20T13:30', end: '2026-09-25T12:00', active: false },
+            { emp: '101366', deputy: '100052', start: '2026-11-01T08:30', end: '2026-11-14T17:30', active: true }
+        ];
+
+        let editIndex = -1;
+
+        function statusBadge(a) {
+            return a ? '<span class="ui-badge ui-badge-success">啟用</span>' : '<span class="ui-badge bg-gray-100 text-gray-500">停用</span>';
+        }
+        // 將 datetime-local 值（2026-10-10T10:00）格式化為「2026/10/10 上午 10:00」
+        const fmtDateTime = (v) => {
+            if (!v) return '—';
+            const [d, t] = v.split('T');
+            const date = (d || '').replace(/-/g, '/');
+            if (!t) return date;
+            let [h, m] = t.split(':').map(Number);
+            const ap = h < 12 ? '上午' : '下午';
+            let h12 = h % 12; if (h12 === 0) h12 = 12;
+            return `${date} ${ap} ${h12}:${String(m).padStart(2, '0')}`;
+        };
+        const fmtRange = (s, e) => `${fmtDateTime(s)} ~ ${fmtDateTime(e)}`;
+
+        function renderTable() {
+            const kwEmp = document.getElementById('search-emp').value.trim().toLowerCase();
+            const kwDep = document.getElementById('search-deputy').value.trim().toLowerCase();
+            const tbody = document.getElementById('deputy-tbody');
+            const noData = document.getElementById('no-data-view');
+            const rows = deputyData.map((r, i) => ({ r, i }))
+                .filter(({ r }) => !kwEmp || empLabel(r.emp).toLowerCase().includes(kwEmp))
+                .filter(({ r }) => !kwDep || empLabel(r.deputy).toLowerCase().includes(kwDep));
+            tbody.innerHTML = '';
+            if (!rows.length) {
+                tbody.parentElement.classList.add('hidden');
+                noData.classList.remove('hidden');
+                document.getElementById('count-badge').innerText = '0 筆資料';
+                document.getElementById('pagination-info').innerText = '顯示第 0 到 0 筆，共 0 筆記錄';
+                return;
+            }
+            tbody.parentElement.classList.remove('hidden');
+            noData.classList.add('hidden');
+            rows.forEach(({ r, i }) => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-50/70 transition-colors';
+                const toggleBtn = r.active
+                    ? `<button onclick="toggleStatus(${i})" class="ui-btn ui-btn-sm text-amber-600 border border-amber-200 hover:bg-amber-50"><i class="fa-solid fa-ban"></i> 停用</button>`
+                    : `<button onclick="toggleStatus(${i})" class="ui-btn ui-btn-sm text-emerald-600 border border-emerald-200 hover:bg-emerald-50"><i class="fa-solid fa-circle-check"></i> 啟用</button>`;
+                tr.innerHTML = `
+                    <td class="text-left font-medium text-gray-800">${empLabel(r.emp)}</td>
+                    <td class="text-left text-gray-700">${empLabel(r.deputy)}</td>
+                    <td class="text-gray-600 text-sm whitespace-nowrap">${fmtRange(r.start, r.end)}</td>
+                    <td>${statusBadge(r.active)}</td>
+                    <td><div class="flex items-center justify-center gap-2">
+                        <button onclick="openEdit(${i})" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-pen-to-square"></i> 編輯</button>
+                        ${toggleBtn}
+                    </div></td>`;
+                tbody.appendChild(tr);
+            });
+            document.getElementById('count-badge').innerText = `${rows.length} 筆資料`;
+            document.getElementById('pagination-info').innerText = `顯示第 1 到 ${rows.length} 筆，共 ${rows.length} 筆記錄`;
+        }
+
+        function toggleStatus(i) {
+            deputyData[i].active = !deputyData[i].active;
+            showToast(deputyData[i].active ? 'success' : 'info', `已${deputyData[i].active ? '啟用' : '停用'}「${empLabel(deputyData[i].emp)}」的職代`);
+            renderTable();
+        }
+
+        // 下拉與範圍渲染
+        function fillEmpSelects(emp, deputy) {
+            const opts = '<option value="" disabled selected>請選擇</option>' + EMPLOYEES.map(e => `<option value="${e.id}">${e.name}（${e.id}）</option>`).join('');
+            const es = document.getElementById('field-emp'); es.innerHTML = opts; es.value = emp || '';
+            const ds = document.getElementById('field-deputy'); ds.innerHTML = opts; ds.value = deputy || '';
+        }
+        function openCreate() {
+            editIndex = -1;
+            document.getElementById('modal-title').innerText = '新增職代';
+            fillEmpSelects('', '');
+            document.getElementById('field-start').value = '';
+            document.getElementById('field-end').value = '';
+            document.getElementById('field-status').value = 'true';
+            document.getElementById('edit-modal').classList.remove('hidden');
+        }
+        function openEdit(i) {
+            editIndex = i;
+            const r = deputyData[i];
+            document.getElementById('modal-title').innerText = '編輯職代';
+            fillEmpSelects(r.emp, r.deputy);
+            document.getElementById('field-start').value = r.start || '';
+            document.getElementById('field-end').value = r.end || '';
+            document.getElementById('field-status').value = String(r.active);
+            document.getElementById('edit-modal').classList.remove('hidden');
+        }
+        function closeModal() { document.getElementById('edit-modal').classList.add('hidden'); }
+
+        function saveRecord() {
+            const emp = document.getElementById('field-emp').value;
+            const deputy = document.getElementById('field-deputy').value;
+            const start = document.getElementById('field-start').value;
+            const end = document.getElementById('field-end').value;
+            const active = document.getElementById('field-status').value === 'true';
+            if (!emp) { showToast('error', '請選擇員工'); return; }
+            if (!deputy) { showToast('error', '請選擇職務代理人'); return; }
+            if (emp === deputy) { showToast('error', '員工與職務代理人不可為同一人'); return; }
+            if (!start || !end) { showToast('error', '請填寫代理期間'); return; }
+            if (start > end) { showToast('error', '代理起日不可晚於迄日'); return; }
+            const rec = { emp, deputy, start, end, active };
+            if (editIndex === -1) { deputyData.unshift(rec); showToast('success', `已新增「${empLabel(emp)}」的職代`); }
+            else { deputyData[editIndex] = rec; showToast('success', `已更新「${empLabel(emp)}」的職代`); }
+            closeModal();
+            renderTable();
+        }
+
+        function showToast(type, text) {
+            const toast = document.getElementById('toast');
+            const icon = document.getElementById('toast-icon');
+            document.getElementById('toast-text').innerText = text;
+            const base = 'fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform transition-all duration-300 border ';
+            if (type === 'success') { toast.className = base + 'border-emerald-500/20'; icon.className = 'fa-solid fa-circle-check text-emerald-400 text-base'; }
+            else if (type === 'error') { toast.className = base + 'border-rose-500/20'; icon.className = 'fa-solid fa-circle-xmark text-rose-400 text-base'; }
+            else { toast.className = base + 'border-blue-500/20'; icon.className = 'fa-solid fa-circle-info text-blue-400 text-base'; }
+            toast.style.transform = 'translateY(0)'; toast.style.opacity = '1';
+            clearTimeout(window.__toastTimer);
+            window.__toastTimer = setTimeout(() => { toast.style.transform = 'translateY(5rem)'; toast.style.opacity = '0'; }, 2600);
+        }
+
+        document.getElementById('edit-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
+
+        window.onload = renderTable;
+    </script>
+</body>
+</html>

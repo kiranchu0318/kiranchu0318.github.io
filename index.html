@@ -123,6 +123,9 @@
             </div>
         </header>
 
+        <!-- 快捷頁籤列（點過的頁面會保留成頁籤，可切換 / 關閉）-->
+        <div id="tab-bar" class="h-9 bg-white flex items-center gap-1 px-2 border-b border-gray-100 shrink-0 overflow-x-auto no-scrollbar z-[5]"></div>
+
         <!-- 頁面內容區透過 iframe 載入 -->
         <iframe name="content-frame" id="content-frame" src="首頁.html" class="w-full h-full flex-1 border-none bg-transparent"></iframe>
 
@@ -222,7 +225,7 @@
             { title: '系統設定', icon: 'settings', groups: [
                 [ { title: '電子表單設定', dropdown: [ { title: '審批帳號' }, { title: '審批角色權限' }, { title: '審批流管理' }, { title: '分組管理' }, { title: '審批歷程' } ] },
                   { title: '系統權限設定', dropdown: [ { title: '帳號權限' }, { title: '權限設置' } ] } ],
-                [ { title: '組織設定', dropdown: [ { title: '組織圖設定' }, { title: '組織架構管理' } ] }, { title: '財務設定' }, { title: '行政設定' }, { title: '薪資密碼設定' }, { title: '系統日誌' }, { title: '封鎖設定' } ]
+                [ { title: '組織設定', dropdown: [ { title: '組織圖設定' }, { title: '組織架構管理' } ] }, { title: '財務設定' }, { title: '行政設定' }, { title: '職代設定' }, { title: '薪資密碼設定' }, { title: '系統日誌' }, { title: '封鎖設定' } ]
             ] }
         ];
 
@@ -235,6 +238,50 @@
         const CAT_OFF = 'menu-cat flex items-center px-3 py-2 text-gray-600 hover:bg-gray-50 rounded-md cursor-pointer transition-colors whitespace-nowrap shrink-0';
         const SUB_ON  = 'subnav-item flex items-center gap-1.5 px-3 py-1.5 text-blue-600 bg-blue-50 font-medium rounded-md cursor-pointer transition-colors whitespace-nowrap shrink-0';
         const SUB_OFF = 'subnav-item flex items-center gap-1.5 px-3 py-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md cursor-pointer transition-colors whitespace-nowrap shrink-0';
+
+        /* ===== 快捷頁籤 ===== */
+        const tabBar = document.getElementById('tab-bar');
+        let openTabs = [];        // [{ href, title }]
+        let activeTabHref = '';
+
+        // 導覽到某頁：載入 iframe + 開啟/切換頁籤
+        function navigate(href, title) {
+            if (!href) return;
+            iframe.src = href;
+            activeTabHref = href;
+            if (!openTabs.some(t => t.href === href)) openTabs.push({ href, title: title || href.replace(/\.html$/, '') });
+            renderTabs();
+        }
+        function renderTabs() {
+            tabBar.innerHTML = '';
+            openTabs.forEach(t => {
+                const active = t.href === activeTabHref;
+                const tab = document.createElement('div');
+                tab.className = `group/tab flex items-center gap-1.5 pl-3 pr-1.5 h-7 rounded-md cursor-pointer transition-colors whitespace-nowrap shrink-0 text-[13px] border ${active ? 'bg-[#EAF2FC] text-blue-600 border-blue-200 font-medium' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}`;
+                const label = document.createElement('span');
+                label.textContent = t.title;
+                label.addEventListener('click', () => { activeTabHref = t.href; iframe.src = t.href; renderTabs(); });
+                tab.appendChild(label);
+                const close = document.createElement('button');
+                close.className = `w-4 h-4 flex items-center justify-center rounded hover:bg-gray-200/80 ${active ? 'text-blue-400 hover:text-blue-600' : 'text-gray-300 hover:text-gray-600'}`;
+                close.innerHTML = '<i data-lucide="x" class="w-3 h-3"></i>';
+                close.addEventListener('click', (e) => { e.stopPropagation(); closeTab(t.href); });
+                tab.appendChild(close);
+                tabBar.appendChild(tab);
+            });
+            lucide.createIcons();
+        }
+        function closeTab(href) {
+            const idx = openTabs.findIndex(t => t.href === href);
+            if (idx === -1) return;
+            openTabs.splice(idx, 1);
+            if (activeTabHref === href) {
+                const next = openTabs[idx] || openTabs[idx - 1] || null;
+                if (next) { activeTabHref = next.href; iframe.src = next.href; }
+                else { activeTabHref = ''; iframe.src = 'about:blank'; }
+            }
+            renderTabs();
+        }
 
         // 渲染第一層分類
         MENU.forEach((cat, i) => {
@@ -278,7 +325,7 @@
                     opt.textContent = sub.title;
                     opt.addEventListener('click', (e) => {
                         e.stopPropagation();
-                        iframe.src = hrefOf(sub);
+                        navigate(hrefOf(sub), sub.title);
                         // 清掉其他子項高亮，將下拉開關設為 active
                         subnavBar.querySelectorAll('.subnav-item').forEach(s => s.className = SUB_OFF);
                         toggle.className = SUB_ON;
@@ -318,14 +365,14 @@
 
             // 無子項（例如首頁）→ 直接載入該分類頁面
             if (!cat.groups && (!cat.children || cat.children.length === 0)) {
-                iframe.src = hrefOf(cat);
+                navigate(hrefOf(cat), cat.title);
             }
             lucide.createIcons();
         }
 
         // 點子項 → 載入內容並高亮
         function loadPage(el) {
-            if (el.dataset.href) iframe.src = el.dataset.href;
+            if (el.dataset.href) navigate(el.dataset.href, (el.textContent || '').trim());
             subnavBar.querySelectorAll('.subnav-item').forEach(s => s.className = SUB_OFF);
             el.className = SUB_ON;
         }
@@ -339,6 +386,10 @@
         selectCategory(0);
         const homeItem = subnavBar.querySelector('[data-href="首頁.html"]');
         if (homeItem) homeItem.className = SUB_ON;
+        // 開啟「首頁」頁籤（iframe 預設已載入）
+        openTabs = [{ href: '首頁.html', title: '首頁' }];
+        activeTabHref = '首頁.html';
+        renderTabs();
         lucide.createIcons();
 
         // 3. 通知小鈴鐺下拉選單
