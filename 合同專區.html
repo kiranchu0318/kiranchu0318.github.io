@@ -53,7 +53,9 @@
                         <tr>
                             <th class="text-left w-40">單號</th>
                             <th class="text-left">合同檔案</th>
-                            <th class="text-center w-40">操作</th>
+                            <th class="text-left w-52">生效期間</th>
+                            <th class="text-left w-44">到期提醒</th>
+                            <th class="text-center w-[460px]">操作</th>
                         </tr>
                     </thead>
                     <tbody id="tbody"></tbody>
@@ -143,6 +145,45 @@
         </div>
     </div>
 
+    <!-- 異動生效期間 彈窗 -->
+    <div id="periodModal" class="fixed inset-0 bg-black/40 z-50 flex justify-center items-center hidden p-4" onclick="if(event.target===this)closeEditPeriod()">
+        <div class="bg-white rounded-2xl shadow-modal w-full max-w-md overflow-hidden">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                <h3 class="text-base font-bold text-gray-900">異動生效期間 <span id="period-ic" class="text-primary font-mono text-sm ml-1"></span></h3>
+                <button onclick="closeEditPeriod()" class="text-gray-400 hover:text-gray-600 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="px-6 py-5 space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div><label class="block text-xs font-semibold text-text-muted mb-1.5">生效起日 <span class="text-rose-500">*</span></label><input type="date" id="period-start" class="ui-input w-full"></div>
+                    <div><label class="block text-xs font-semibold text-text-muted mb-1.5">生效迄日 <span class="text-rose-500">*</span></label><input type="date" id="period-end" class="ui-input w-full"></div>
+                </div>
+                <label class="inline-flex items-center gap-1.5 text-sm text-gray-700 cursor-pointer"><input type="checkbox" id="period-longterm" onchange="document.getElementById('period-end').disabled=this.checked" class="w-4 h-4 rounded border-gray-300"> 長期（無固定迄日）</label>
+            </div>
+            <div class="flex justify-end gap-2.5 px-6 py-4 bg-gray-50 border-t border-gray-100">
+                <button onclick="closeEditPeriod()" class="ui-btn ui-btn-secondary">取消</button>
+                <button onclick="saveEditPeriod()" class="ui-btn ui-btn-primary">儲存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 異動到期提醒 彈窗 -->
+    <div id="remindModal" class="fixed inset-0 bg-black/40 z-50 flex justify-center items-center hidden p-4" onclick="if(event.target===this)closeEditRemind()">
+        <div class="bg-white rounded-2xl shadow-modal w-full max-w-md overflow-hidden">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                <h3 class="text-base font-bold text-gray-900">異動到期提醒 <span id="remind-ic" class="text-primary font-mono text-sm ml-1"></span></h3>
+                <button onclick="closeEditRemind()" class="text-gray-400 hover:text-gray-600 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="px-6 py-5">
+                <div class="text-xs font-semibold text-text-muted mb-2">合同到期提醒 <span class="font-normal text-text-light">（可複選）</span></div>
+                <div id="remind-opts" class="grid grid-cols-3 gap-x-5 gap-y-2"></div>
+            </div>
+            <div class="flex justify-end gap-2.5 px-6 py-4 bg-gray-50 border-t border-gray-100">
+                <button onclick="closeEditRemind()" class="ui-btn ui-btn-secondary">取消</button>
+                <button onclick="saveEditRemind()" class="ui-btn ui-btn-primary">儲存</button>
+            </div>
+        </div>
+    </div>
+
     <div id="toast" class="fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
         <i id="toast-icon" class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
         <span id="toast-text" class="text-sm font-medium">操作成功！</span>
@@ -165,6 +206,14 @@
               applicant: 'James（101517）', region: 'THQ', dept: 'LGL', team: 'LGL', game: '是', seal: '是', ourParty: 'GT 科技股份有限公司', currency: '—', amtRaw: '0', relPU: '—', email: 'legal@boldplay.com', note: '與 Boldplay 合作前簽署之雙向保密協議。' }
         ];
 
+        // 各合同的「到期提醒」月數（可複選，示意預設）
+        const DEFAULT_REMIND = {
+            'IC-THQ-000001': [1, 3], 'IC-THQ-000002': [1, 2, 3], 'IC-THQ-000003': [1],
+            'IC-THQ-000004': [2, 4], 'IC-THQ-000005': [], 'IC-THQ-000006': [6]
+        };
+        contracts.forEach(c => { if (!c.remind) c.remind = (DEFAULT_REMIND[c.ic] || []).slice(); });
+        const remindText = (arr) => (arr && arr.length) ? '到期前 ' + arr.join('、') + ' 個月' : '—';
+
         const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
         const statusBadge = (st) => {
             const map = { '生效中': 'ui-badge-success', '待簽署': 'ui-badge-warning', '已到期': 'ui-badge-gray' };
@@ -181,9 +230,13 @@
                 <tr class="hover:bg-gray-50/70 transition-colors">
                     <td class="text-left"><button onclick="openView('${c.ic}')" class="font-mono font-semibold text-primary hover:underline">${esc(c.ic)}</button></td>
                     <td class="text-left"><span class="inline-flex items-center gap-1.5 text-gray-600 text-[13px]"><i class="fa-solid fa-file-pdf text-rose-500"></i><span>${esc(c.file)}</span></span></td>
+                    <td class="text-left text-gray-600 text-[13px]">${esc(c.period || '—')}</td>
+                    <td class="text-left text-gray-600 text-[13px]">${esc(remindText(c.remind))}</td>
                     <td class="text-center">
-                        <div class="flex items-center justify-center gap-2">
-                            <button onclick="downloadFile('${c.ic}')" class="ui-btn ui-btn-primary ui-btn-sm"><i class="fa-solid fa-download"></i> 下載</button>
+                        <div class="flex items-center justify-center flex-nowrap gap-2 whitespace-nowrap">
+                            <button onclick="openEditPeriod('${c.ic}')" class="ui-btn ui-btn-secondary ui-btn-sm shrink-0"><i class="fa-solid fa-calendar-days"></i> 異動生效期間</button>
+                            <button onclick="openEditRemind('${c.ic}')" class="ui-btn ui-btn-secondary ui-btn-sm shrink-0"><i class="fa-solid fa-bell"></i> 異動到期提醒</button>
+                            <button onclick="downloadFile('${c.ic}')" class="ui-btn ui-btn-primary ui-btn-sm shrink-0"><i class="fa-solid fa-download"></i> 下載</button>
                         </div>
                     </td>
                 </tr>`).join('');
@@ -228,6 +281,56 @@
         function closeView() { document.getElementById('viewModal').classList.add('hidden'); }
         function downloadFile(ic) { const c = findC(ic); if (c) showToast('success', '開始下載：' + c.file); }
         function downloadCurrent() { if (current) downloadFile(current.ic); }
+
+        /* ====== 異動生效期間 ====== */
+        let editIc = null;
+        function openEditPeriod(ic) {
+            const c = findC(ic); if (!c) return;
+            editIc = ic;
+            document.getElementById('period-ic').textContent = ic;
+            const parts = (c.period || '').split('~').map(s => s.trim());
+            const start = parts[0] || '';
+            const end = parts[1] || '';
+            const longterm = end === '長期' || end === '';
+            document.getElementById('period-start').value = /^\d{4}-\d{2}-\d{2}$/.test(start) ? start : '';
+            document.getElementById('period-end').value = /^\d{4}-\d{2}-\d{2}$/.test(end) ? end : '';
+            document.getElementById('period-longterm').checked = longterm;
+            document.getElementById('period-end').disabled = longterm;
+            document.getElementById('periodModal').classList.remove('hidden');
+        }
+        function closeEditPeriod() { document.getElementById('periodModal').classList.add('hidden'); }
+        function saveEditPeriod() {
+            const c = findC(editIc); if (!c) return;
+            const start = document.getElementById('period-start').value;
+            const longterm = document.getElementById('period-longterm').checked;
+            const end = longterm ? '長期' : document.getElementById('period-end').value;
+            if (!start) { showToast('error', '請填寫生效起日'); return; }
+            if (!longterm && !end) { showToast('error', '請填寫生效迄日'); return; }
+            if (!longterm && start > end) { showToast('error', '生效起日不可晚於迄日'); return; }
+            c.period = start + ' ~ ' + end;
+            closeEditPeriod();
+            renderTable();
+            showToast('success', '已更新「' + editIc + '」的生效期間');
+        }
+
+        /* ====== 異動到期提醒 ====== */
+        function openEditRemind(ic) {
+            const c = findC(ic); if (!c) return;
+            editIc = ic;
+            document.getElementById('remind-ic').textContent = ic;
+            const chosen = new Set(c.remind || []);
+            document.getElementById('remind-opts').innerHTML = [1, 2, 3, 4, 5, 6].map(m =>
+                `<label class="inline-flex items-center gap-1.5 text-sm text-gray-700 cursor-pointer"><input type="checkbox" class="remind-chk w-4 h-4 rounded border-gray-300" value="${m}" ${chosen.has(m) ? 'checked' : ''}> 到期前 ${m} 個月</label>`).join('');
+            document.getElementById('remindModal').classList.remove('hidden');
+        }
+        function closeEditRemind() { document.getElementById('remindModal').classList.add('hidden'); }
+        function saveEditRemind() {
+            const c = findC(editIc); if (!c) return;
+            c.remind = Array.from(document.querySelectorAll('#remind-opts .remind-chk:checked')).map(x => parseInt(x.value, 10)).sort((a, b) => a - b);
+            closeEditRemind();
+            renderTable();
+            showToast('success', '已更新「' + editIc + '」的到期提醒');
+        }
 
         function showToast(type, text) {
             const toast = document.getElementById('toast');

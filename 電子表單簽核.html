@@ -239,6 +239,10 @@
       const [docOverrides, setDocOverrides] = useState({});
       const [approveFiles, setApproveFiles] = useState([]); // [{ name, size }]
       const [icContractFile, setIcContractFile] = useState(null); // 合同資料（IC 必填，單檔）
+      const [icContractStart, setIcContractStart] = useState(''); // 合約生效起日
+      const [icContractEnd, setIcContractEnd] = useState('');     // 合約生效迄日
+      const [icRemindMonths, setIcRemindMonths] = useState([]);   // 到期前提醒月數（可複選）
+      const toggleIcRemind = (m) => setIcRemindMonths(prev => prev.includes(m) ? prev.filter(x => x !== m) : [...prev, m].sort((a, b) => a - b));
       // 費用會計彈窗
       const [costAcctOpen, setCostAcctOpen] = useState(false);
       const [costAcctRows, setCostAcctRows] = useState([]); // 費用會計分錄，初始為空
@@ -322,13 +326,26 @@
         setApproveDecision('審批');
         setApproveFiles([]);
         setIcContractFile(null);
+        setIcContractStart('');
+        setIcContractEnd('');
+        setIcRemindMonths([]);
         setApproveActionOpen(true);
       };
       const submitApproveAction = () => {
-        // 內部合同審批單(IC) 審批通過時，須上傳合同資料
-        if (modalRow?.type === 'IC' && approveDecision === '審批' && !icContractFile) {
-          window.alert('請上傳合同資料（必填）。');
-          return;
+        // 內部合同審批單(IC) 審批通過時，須填寫合約生效期間並上傳合同資料
+        if (modalRow?.type === 'IC' && approveDecision === '審批') {
+          if (!icContractStart || !icContractEnd) {
+            window.alert('請填寫合約生效期間（起訖日期）。');
+            return;
+          }
+          if (icContractStart > icContractEnd) {
+            window.alert('合約生效起日不可晚於迄日。');
+            return;
+          }
+          if (!icContractFile) {
+            window.alert('請上傳合同資料（必填）。');
+            return;
+          }
         }
         setApproveActionOpen(false);
         // C-THQ-000002 審批通過 → 開啟「指派工作單」彈窗
@@ -2218,6 +2235,39 @@
                       </ul>
                     )}
                   </div>
+
+                  {/* 合約生效期間 + 到期提醒（IC 專用，必填）*/}
+                  {modalRow?.type === 'IC' && (
+                    <div>
+                      <div className="text-sm font-semibold text-gray-700 mb-2">合約生效期間 <span className="text-red-500">*</span></div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <input
+                          type="date"
+                          value={icContractStart}
+                          onChange={(e) => setIcContractStart(e.target.value)}
+                          className="border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-[#4A90E2]"
+                        />
+                        <span className="text-gray-400 text-sm">~</span>
+                        <input
+                          type="date"
+                          value={icContractEnd}
+                          onChange={(e) => setIcContractEnd(e.target.value)}
+                          className="border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-[#4A90E2]"
+                        />
+                      </div>
+                      <div className="mt-3">
+                        <div className="text-xs font-medium text-gray-600 mb-1.5">合同到期提醒 <span className="font-normal text-gray-400">（可複選）</span></div>
+                        <div className="grid grid-cols-3 gap-x-5 gap-y-2">
+                          {[1, 2, 3, 4, 5, 6].map(m => (
+                            <label key={m} className="inline-flex items-center gap-1.5 text-sm text-gray-700 cursor-pointer">
+                              <input type="checkbox" checked={icRemindMonths.includes(m)} onChange={() => toggleIcRemind(m)} className="w-4 h-4 rounded border-gray-300 text-[#4A90E2]" />
+                              到期前 {m} 個月
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                   {/* 上傳合同資料（IC 專用，必填，僅限單檔）*/}
                   {modalRow?.type === 'IC' && (
