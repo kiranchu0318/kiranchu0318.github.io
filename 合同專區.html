@@ -53,6 +53,8 @@
                         <tr>
                             <th class="text-left w-40">單號</th>
                             <th class="text-left">合同檔案</th>
+                            <th class="text-left w-56">合約文件名稱</th>
+                            <th class="text-left w-44">對方主體</th>
                             <th class="text-left w-52">生效期間</th>
                             <th class="text-left w-44">到期提醒</th>
                             <th class="text-center w-[460px]">操作</th>
@@ -230,6 +232,8 @@
                 <tr class="hover:bg-gray-50/70 transition-colors">
                     <td class="text-left"><button onclick="openView('${c.ic}')" class="font-mono font-semibold text-primary hover:underline">${esc(c.ic)}</button></td>
                     <td class="text-left"><span class="inline-flex items-center gap-1.5 text-gray-600 text-[13px]"><i class="fa-solid fa-file-pdf text-rose-500"></i><span>${esc(c.file)}</span></span></td>
+                    <td class="text-left text-gray-800 text-[13px] font-medium">${esc(c.name || '—')}</td>
+                    <td class="text-left text-gray-600 text-[13px]">${esc(c.party || '—')}</td>
                     <td class="text-left text-gray-600 text-[13px]">${esc(c.period || '—')}</td>
                     <td class="text-left text-gray-600 text-[13px]">${esc(remindText(c.remind))}</td>
                     <td class="text-center">
