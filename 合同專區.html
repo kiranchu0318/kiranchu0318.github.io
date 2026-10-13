@@ -159,7 +159,6 @@
                     <div><label class="block text-xs font-semibold text-text-muted mb-1.5">生效起日 <span class="text-rose-500">*</span></label><input type="date" id="period-start" class="ui-input w-full"></div>
                     <div><label class="block text-xs font-semibold text-text-muted mb-1.5">生效迄日 <span class="text-rose-500">*</span></label><input type="date" id="period-end" class="ui-input w-full"></div>
                 </div>
-                <label class="inline-flex items-center gap-1.5 text-sm text-gray-700 cursor-pointer"><input type="checkbox" id="period-longterm" onchange="document.getElementById('period-end').disabled=this.checked" class="w-4 h-4 rounded border-gray-300"> 長期（無固定迄日）</label>
             </div>
             <div class="flex justify-end gap-2.5 px-6 py-4 bg-gray-50 border-t border-gray-100">
                 <button onclick="closeEditPeriod()" class="ui-btn ui-btn-secondary">取消</button>
@@ -295,22 +294,18 @@
             const parts = (c.period || '').split('~').map(s => s.trim());
             const start = parts[0] || '';
             const end = parts[1] || '';
-            const longterm = end === '長期' || end === '';
             document.getElementById('period-start').value = /^\d{4}-\d{2}-\d{2}$/.test(start) ? start : '';
             document.getElementById('period-end').value = /^\d{4}-\d{2}-\d{2}$/.test(end) ? end : '';
-            document.getElementById('period-longterm').checked = longterm;
-            document.getElementById('period-end').disabled = longterm;
             document.getElementById('periodModal').classList.remove('hidden');
         }
         function closeEditPeriod() { document.getElementById('periodModal').classList.add('hidden'); }
         function saveEditPeriod() {
             const c = findC(editIc); if (!c) return;
             const start = document.getElementById('period-start').value;
-            const longterm = document.getElementById('period-longterm').checked;
-            const end = longterm ? '長期' : document.getElementById('period-end').value;
+            const end = document.getElementById('period-end').value;
             if (!start) { showToast('error', '請填寫生效起日'); return; }
-            if (!longterm && !end) { showToast('error', '請填寫生效迄日'); return; }
-            if (!longterm && start > end) { showToast('error', '生效起日不可晚於迄日'); return; }
+            if (!end) { showToast('error', '請填寫生效迄日'); return; }
+            if (start > end) { showToast('error', '生效起日不可晚於迄日'); return; }
             c.period = start + ' ~ ' + end;
             closeEditPeriod();
             renderTable();
