@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>資金帳戶設定</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4A90E2',
+                        'primary-light': '#EAF2FC',
+                        background: '#F8F9FB',
+                        card: '#FFFFFF',
+                        text: { main: '#1F2937', muted: '#6B7280', light: '#9CA3AF' }
+                    },
+                    fontFamily: {
+                        sans: ['"Inter"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'card': '0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03)',
+                        'modal': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: theme('colors.background'); font-family: theme('fontFamily.sans'); }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+    </style>
+    <link rel="stylesheet" href="shared-ui.css">
+</head>
+<body class="ui-page text-text-main antialiased relative">
+
+    <div class="relative mx-auto w-full space-y-6">
+
+        <header class="ui-page-header">
+            <h1 class="ui-page-title">資金帳戶設定</h1>
+        </header>
+
+        <!-- 主版面：左側公司別 + 右側該公司帳戶 -->
+        <div class="ui-card overflow-hidden flex flex-col lg:flex-row min-h-[640px]">
+
+            <!-- 左側：公司別清單 -->
+            <aside class="lg:w-64 shrink-0 border-b lg:border-b-0 lg:border-r border-gray-100 flex flex-col">
+                <div class="px-4 py-3 border-b border-gray-100">
+                    <h2 class="font-bold text-gray-900 text-sm whitespace-nowrap">公司別 <span id="company-count" class="text-text-light font-normal">(0)</span></h2>
+                </div>
+                <div class="px-3 pt-3">
+                    <div class="ui-search w-full">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="company-search" oninput="renderCompanies()" placeholder="搜尋公司別..." class="ui-input ui-search-input">
+                    </div>
+                </div>
+                <div id="company-list" class="flex-1 overflow-y-auto p-2 space-y-0.5 custom-scrollbar lg:max-h-[620px]"><!-- JS 渲染 --></div>
+            </aside>
+
+            <!-- 右側：帳戶清單 -->
+            <section class="flex-1 min-w-0 flex flex-col p-4 sm:p-6 space-y-4">
+
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                    <div class="min-w-0">
+                        <h2 id="acct-title" class="text-lg font-bold text-gray-900 truncate">—</h2>
+                        <p id="acct-subtitle" class="text-xs text-text-muted mt-0.5">請於左側選擇公司別</p>
+                    </div>
+                    <div class="flex items-center gap-2 shrink-0">
+                        <div class="ui-search w-full sm:w-60">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="text" id="acct-search" oninput="renderAccounts()" placeholder="搜尋支付方式名稱..." class="ui-input ui-search-input">
+                        </div>
+                        <button onclick="openCreate()" class="ui-btn ui-btn-primary whitespace-nowrap"><i class="fa-solid fa-plus"></i> 新增帳戶</button>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto rounded-lg border border-gray-100 custom-scrollbar">
+                    <table class="ui-table whitespace-nowrap">
+                        <thead>
+                            <tr>
+                                <th scope="col" class="text-left">支付方式名稱</th>
+                                <th scope="col" class="text-center w-24">狀態</th>
+                                <th scope="col" class="text-center w-56">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="acct-tbody"><!-- JS 渲染 --></tbody>
+                    </table>
+                </div>
+
+                <div id="acct-no-data" class="hidden py-16 text-center space-y-3">
+                    <div class="inline-flex p-4 bg-gray-50 text-gray-400 rounded-full"><i class="fa-solid fa-building-columns text-3xl"></i></div>
+                    <p class="text-sm text-text-muted font-medium">此公司別尚無資金帳戶，請點「新增帳戶」</p>
+                </div>
+
+            </section>
+        </div>
+    </div>
+
+    <!-- ============ 新增 / 編輯 帳戶彈窗 ============ -->
+    <div id="acct-modal" class="fixed inset-0 bg-black/40 z-50 flex justify-center items-center hidden p-4">
+        <div class="bg-white rounded-2xl shadow-modal w-full max-w-md overflow-hidden">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                <h3 id="acct-modal-title" class="text-base font-bold text-gray-900">新增資金帳戶</h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="px-6 py-5 space-y-4">
+
+                <div class="rounded-lg bg-gray-50 border border-gray-100 px-4 py-2.5 text-xs text-text-muted">
+                    所屬公司別：<span id="acct-modal-company" class="font-bold text-gray-800">—</span>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">支付方式名稱 <span class="text-rose-500">*</span><span class="font-normal text-text-light">（顯示於資金支付的下拉）</span></label>
+                    <input type="text" id="f-name" placeholder="例：營運戶－主帳戶" class="ui-input">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">狀態</label>
+                    <select id="f-status" class="ui-select">
+                        <option value="true">啟用</option>
+                        <option value="false">停用</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-2.5 px-6 py-4 bg-gray-50 border-t border-gray-100">
+                <button onclick="closeModal()" class="ui-btn ui-btn-secondary">取消</button>
+                <button onclick="saveAccount()" class="ui-btn ui-btn-primary">儲存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 提示消息 (Toast) -->
+    <div id="toast" class="fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+        <i id="toast-icon" class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
+        <span id="toast-text" class="text-sm font-medium">操作成功！</span>
+    </div>
+
+    <script>
+        /* ============================================================
+           資金帳戶設定
+           依公司別維護多組資金帳戶；啟用中的帳戶即為「資金支付管理 ▸ 支付方式」
+           下拉的選單來源（透過共用儲存 LS_KEY 連動）。
+           欄位：支付方式名稱 / 狀態
+           ============================================================ */
+
+        // 共用儲存鍵：資金支付管理.html 以相同鍵值讀取
+        const LS_KEY = 'hroa_fund_accounts_v2';
+
+        // 公司別（對應 組織架構管理 ▸ 公司）
+        const COMPANY_CODES = [
+            'OB-IMOT', 'OB-CYBR', 'OB-MTOH', 'OB-CWBR', 'OB-MTOT', 'OB-IMOH',
+            'Boldplay-COB', 'Boldplay-UN', 'JKL', 'SPT', 'STT', 'RB', 'TB',
+            'TDM', 'TC', 'TWS', 'TRG', 'TLC', 'TGW', 'CP', 'LXY', 'TY', '資金安排'
+        ];
+        const COMPANIES = COMPANY_CODES.map(c => ({ code: c, name: c }));
+
+        // 預設示意資料
+        const DEFAULT_ACCOUNTS = [
+            { id: 1, company: 'OB-IMOT',      name: '營運戶－主帳戶',     active: true },
+            { id: 2, company: 'OB-IMOT',      name: '薪資專戶',           active: true },
+            { id: 3, company: 'OB-IMOT',      name: '外幣戶（USD）',      active: true },
+            { id: 4, company: 'OB-IMOT',      name: '舊版支票帳戶',       active: false },
+            { id: 5, company: 'Boldplay-COB', name: 'Operating Account',  active: true },
+            { id: 6, company: 'JKL',          name: '營業口座',           active: true },
+            { id: 7, company: '資金安排',      name: '集團調撥戶',         active: true }
+        ];
+
+        let accounts = [];
+        let currentCompany = COMPANIES[0].code;
+        let editId = null;
+
+        const esc = s => String(s == null ? '' : s)
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        const companyName = (code) => (COMPANIES.find(c => c.code === code) || {}).name || code;
+
+        /* ---- 持久化（與資金支付管理共用） ---- */
+        function persist() {
+            try { localStorage.setItem(LS_KEY, JSON.stringify(accounts)); } catch (e) { /* 原型忽略 */ }
+        }
+        function loadState() {
+            try {
+                const raw = localStorage.getItem(LS_KEY);
+                accounts = raw ? JSON.parse(raw) : DEFAULT_ACCOUNTS.slice();
+            } catch (e) {
+                accounts = DEFAULT_ACCOUNTS.slice();
+            }
+            if (!Array.isArray(accounts) || !accounts.length) accounts = DEFAULT_ACCOUNTS.slice();
+        }
+
+        const ofCompany = (code) => accounts.filter(a => a.company === code);
+
+        /* ---- 左側：公司別 ---- */
+        function renderCompanies() {
+            const kw = (document.getElementById('company-search').value || '').trim().toLowerCase();
+            const list = COMPANIES.filter(c => !kw || c.name.toLowerCase().includes(kw));
+            const box = document.getElementById('company-list');
+            document.getElementById('company-count').innerText = `(${list.length})`;
+
+            if (!list.length) {
+                box.innerHTML = '<p class="px-3 py-6 text-center text-xs text-text-muted">查無符合的公司別</p>';
+                return;
+            }
+            box.innerHTML = list.map(c => {
+                const all = ofCompany(c.code);
+                const on = all.filter(a => a.active).length;
+                const sel = c.code === currentCompany;
+                const cls = sel
+                    ? 'w-full text-left px-3 py-2.5 rounded-lg bg-primary-light border border-blue-200 transition-colors'
+                    : 'w-full text-left px-3 py-2.5 rounded-lg border border-transparent hover:bg-gray-50 transition-colors';
+                return `<button onclick="selectCompany('${esc(c.code)}')" class="${cls}">
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="text-sm font-semibold truncate ${sel ? 'text-primary' : 'text-gray-700'}">${esc(c.name)}</span>
+                        <span class="shrink-0 text-[11px] px-1.5 py-0.5 rounded ${sel ? 'bg-white text-primary' : 'bg-gray-100 text-gray-500'}">${all.length}</span>
+                    </div>
+                    <div class="mt-0.5 text-[11px] ${sel ? 'text-primary/70' : 'text-text-light'}">啟用 ${on}</div>
+                </button>`;
+            }).join('');
+        }
+
+        function selectCompany(code) {
+            currentCompany = code;
+            document.getElementById('acct-search').value = '';
+            renderCompanies();
+            renderAccounts();
+        }
+
+        /* ---- 右側：帳戶清單 ---- */
+        function renderAccounts() {
+            const kw = (document.getElementById('acct-search').value || '').trim().toLowerCase();
+            const all = ofCompany(currentCompany);
+            const rows = all.filter(a => !kw || a.name.toLowerCase().includes(kw));
+
+            document.getElementById('acct-title').innerText = companyName(currentCompany);
+            document.getElementById('acct-subtitle').innerText =
+                `共 ${all.length} 組帳戶 · 啟用 ${all.filter(a => a.active).length} 組`;
+
+            const tbody = document.getElementById('acct-tbody');
+            const noData = document.getElementById('acct-no-data');
+
+            if (!rows.length) {
+                tbody.innerHTML = '';
+                tbody.parentElement.classList.add('hidden');
+                noData.classList.remove('hidden');
+                noData.querySelector('p').innerText = all.length
+                    ? '查無符合條件的帳戶'
+                    : '此公司別尚無資金帳戶，請點「新增帳戶」';
+                return;
+            }
+            tbody.parentElement.classList.remove('hidden');
+            noData.classList.add('hidden');
+
+            tbody.innerHTML = rows.map(a => {
+                const statusBadge = a.active
+                    ? '<span class="ui-badge ui-badge-success">啟用</span>'
+                    : '<span class="ui-badge bg-gray-100 text-gray-500">停用</span>';
+                const toggleBtn = a.active
+                    ? `<button onclick="toggleStatus(${a.id})" class="ui-btn ui-btn-sm text-amber-600 border border-amber-200 hover:bg-amber-50"><i class="fa-solid fa-ban"></i> 停用</button>`
+                    : `<button onclick="toggleStatus(${a.id})" class="ui-btn ui-btn-sm text-emerald-600 border border-emerald-200 hover:bg-emerald-50"><i class="fa-solid fa-circle-check"></i> 啟用</button>`;
+                return `<tr class="hover:bg-gray-50/70 transition-colors">
+                    <td class="text-left font-medium text-gray-800">${esc(a.name)}</td>
+                    <td class="text-center">${statusBadge}</td>
+                    <td class="text-center">
+                        <div class="flex items-center justify-center gap-2">
+                            <button onclick="openEdit(${a.id})" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-pen-to-square"></i> 編輯</button>
+                            ${toggleBtn}
+                        </div>
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+
+        /* ---- 狀態 ---- */
+        function toggleStatus(id) {
+            const a = accounts.find(x => x.id === id);
+            if (!a) return;
+            a.active = !a.active;
+            persist();
+            renderCompanies();
+            renderAccounts();
+            showToast(a.active ? 'success' : 'info', `已${a.active ? '啟用' : '停用'}「${a.name}」`);
+        }
+
+        /* ---- 新增 / 編輯 ---- */
+        function setForm(a) {
+            document.getElementById('f-name').value = a.name || '';
+            document.getElementById('f-status').value = String(a.active !== false);
+            document.getElementById('acct-modal-company').innerText = companyName(currentCompany);
+        }
+        function openCreate() {
+            editId = null;
+            document.getElementById('acct-modal-title').innerText = '新增資金帳戶';
+            setForm({});
+            document.getElementById('acct-modal').classList.remove('hidden');
+        }
+        function openEdit(id) {
+            const a = accounts.find(x => x.id === id);
+            if (!a) return;
+            editId = id;
+            document.getElementById('acct-modal-title').innerText = '編輯資金帳戶';
+            setForm(a);
+            document.getElementById('acct-modal').classList.remove('hidden');
+        }
+        function closeModal() { document.getElementById('acct-modal').classList.add('hidden'); }
+
+        function saveAccount() {
+            const name = document.getElementById('f-name').value.trim();
+            const active = document.getElementById('f-status').value === 'true';
+
+            if (!name) { showToast('error', '請填寫支付方式名稱'); return; }
+
+            // 同公司別內名稱不可重複
+            if (accounts.some(a => a.company === currentCompany && a.name === name && a.id !== editId)) {
+                showToast('error', `「${name}」已存在於此公司別`); return;
+            }
+
+            if (editId === null) {
+                const nextId = accounts.length ? Math.max(...accounts.map(a => a.id)) + 1 : 1;
+                accounts.push({ id: nextId, company: currentCompany, name, active });
+                showToast('success', `已新增「${name}」`);
+            } else {
+                Object.assign(accounts.find(a => a.id === editId), { name, active });
+                showToast('success', `已更新「${name}」`);
+            }
+
+            persist();
+            closeModal();
+            renderCompanies();
+            renderAccounts();
+        }
+
+        /* ---- Toast ---- */
+        function showToast(type, text) {
+            const toast = document.getElementById('toast');
+            const icon = document.getElementById('toast-icon');
+            document.getElementById('toast-text').innerText = text;
+            const base = 'fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform transition-all duration-300 border ';
+            if (type === 'error') { toast.className = base + 'border-rose-500/20'; icon.className = 'fa-solid fa-circle-xmark text-rose-400 text-base'; }
+            else if (type === 'info') { toast.className = base + 'border-blue-500/20'; icon.className = 'fa-solid fa-circle-info text-blue-400 text-base'; }
+            else { toast.className = base + 'border-emerald-500/20'; icon.className = 'fa-solid fa-circle-check text-emerald-400 text-base'; }
+            toast.style.transform = 'translateY(0)';
+            toast.style.opacity = '1';
+            clearTimeout(window.__toastTimer);
+            window.__toastTimer = setTimeout(() => {
+                toast.style.transform = 'translateY(5rem)';
+                toast.style.opacity = '0';
+            }, 2600);
+        }
+
+        document.getElementById('acct-modal').addEventListener('click', e => {
+            if (e.target === e.currentTarget) closeModal();
+        });
+
+        // 初始化
+        loadState();
+        renderCompanies();
+        renderAccounts();
+    </script>
+</body>
+</html>

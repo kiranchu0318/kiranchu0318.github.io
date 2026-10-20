@@ -132,6 +132,11 @@
                     <label class="block text-xs font-semibold text-text-muted mb-1.5">名稱 <span class="text-rose-500">*</span></label>
                     <input type="text" id="field-name" placeholder="請輸入名稱" class="ui-input">
                 </div>
+                <!-- 區域 專屬欄位：國碼 -->
+                <div id="country-field" class="hidden">
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">國碼 <span class="text-rose-500">*</span><span class="font-normal text-text-light">（ISO 3166-1 alpha-2）</span></label>
+                    <select id="field-country" class="ui-select"></select>
+                </div>
                 <!-- 公司 / 事業部中心 專屬欄位：區域（多選） -->
                 <div id="region-field" class="hidden">
                     <label class="block text-xs font-semibold text-text-muted mb-1.5">區域 <span class="text-rose-500">*</span><span class="font-normal text-text-light">（可多選）</span></label>
@@ -173,17 +178,36 @@
         // 各分頁資料庫（代碼 / 名稱 / 啟用狀態）
         const orgData = {
             region: [
-                { code: 'T1', name: 'T1', active: true },
-                { code: 'T2', name: 'T2', active: true },
-                { code: 'U', name: 'U', active: true },
-                { code: 'J', name: 'J', active: true },
-                { code: 'S', name: 'S', active: true }
+                { code: 'T1', name: 'T1', country: 'TW', active: true },
+                { code: 'T2', name: 'T2', country: 'TW', active: true },
+                { code: 'U', name: 'U', country: 'US', active: true },
+                { code: 'J', name: 'J', country: 'JP', active: true },
+                { code: 'S', name: 'S', country: 'SG', active: true }
             ],
             company: [
-                { code: 'KH-TW', name: '知為股份有限公司', regions: ['T1'], active: true },
-                { code: 'KH-US', name: 'KnowHow USA Inc.', regions: ['U'], active: true },
-                { code: 'KH-JP', name: 'ノウハウ株式会社', regions: ['J'], active: true },
-                { code: 'KH-CN', name: '知為（上海）科技有限公司', regions: ['S'], active: false }
+                { code: 'OB-IMOT', name: 'OB-IMOT', regions: [], active: true },
+                { code: 'OB-CYBR', name: 'OB-CYBR', regions: [], active: true },
+                { code: 'OB-MTOH', name: 'OB-MTOH', regions: [], active: true },
+                { code: 'OB-CWBR', name: 'OB-CWBR', regions: [], active: true },
+                { code: 'OB-MTOT', name: 'OB-MTOT', regions: [], active: true },
+                { code: 'OB-IMOH', name: 'OB-IMOH', regions: [], active: true },
+                { code: 'Boldplay-COB', name: 'Boldplay-COB', regions: [], active: true },
+                { code: 'Boldplay-UN', name: 'Boldplay-UN', regions: [], active: true },
+                { code: 'JKL', name: 'JKL', regions: [], active: true },
+                { code: 'SPT', name: 'SPT', regions: [], active: true },
+                { code: 'STT', name: 'STT', regions: [], active: true },
+                { code: 'RB', name: 'RB', regions: [], active: true },
+                { code: 'TB', name: 'TB', regions: [], active: true },
+                { code: 'TDM', name: 'TDM', regions: [], active: true },
+                { code: 'TC', name: 'TC', regions: [], active: true },
+                { code: 'TWS', name: 'TWS', regions: [], active: true },
+                { code: 'TRG', name: 'TRG', regions: [], active: true },
+                { code: 'TLC', name: 'TLC', regions: [], active: true },
+                { code: 'TGW', name: 'TGW', regions: [], active: true },
+                { code: 'CP', name: 'CP', regions: [], active: true },
+                { code: 'LXY', name: 'LXY', regions: [], active: true },
+                { code: 'TY', name: 'TY', regions: [], active: true },
+                { code: '資金安排', name: '資金安排', regions: [], active: true }
             ],
             bu: [
                 { code: 'BU01', name: '軟體事業部', regions: ['T1', 'T2'], active: true },
@@ -253,14 +277,101 @@
 
         // 公司 / 事業部中心 需顯示「區域」欄
         const hasRegion = () => activeCat === 'company' || activeCat === 'bu';
+        // 區域 需顯示「國碼」欄
+        const hasCountry = () => activeCat === 'region';
         // 區域多選選項（比照費用歸屬）
         const REGIONS = ['T1', 'T2', 'U', 'J', 'S'];
         function regionOptions() { return REGIONS; }
+
+        // 國碼：ISO 3166-1 alpha-2 正式分配代碼（249 筆，依代碼排序）
+        const ISO_COUNTRIES = [
+            ['AD', '安道爾'], ['AE', '阿拉伯聯合大公國'], ['AF', '阿富汗'], ['AG', '安地卡及巴布達'],
+            ['AI', '安吉拉'], ['AL', '阿爾巴尼亞'], ['AM', '亞美尼亞'], ['AO', '安哥拉'],
+            ['AQ', '南極洲'], ['AR', '阿根廷'], ['AS', '美屬薩摩亞'], ['AT', '奧地利'],
+            ['AU', '澳洲'], ['AW', '阿魯巴'], ['AX', '奧蘭群島'], ['AZ', '亞塞拜然'],
+            ['BA', '波士尼亞與赫塞哥維納'], ['BB', '巴貝多'], ['BD', '孟加拉'], ['BE', '比利時'],
+            ['BF', '布吉納法索'], ['BG', '保加利亞'], ['BH', '巴林'], ['BI', '蒲隆地'],
+            ['BJ', '貝南'], ['BL', '聖巴泰勒米'], ['BM', '百慕達'], ['BN', '汶萊'],
+            ['BO', '玻利維亞'], ['BQ', '荷蘭加勒比區'], ['BR', '巴西'], ['BS', '巴哈馬'],
+            ['BT', '不丹'], ['BV', '布威島'], ['BW', '波札那'], ['BY', '白俄羅斯'],
+            ['BZ', '貝里斯'], ['CA', '加拿大'], ['CC', '科科斯群島'], ['CD', '剛果民主共和國'],
+            ['CF', '中非共和國'], ['CG', '剛果共和國'], ['CH', '瑞士'], ['CI', '象牙海岸'],
+            ['CK', '庫克群島'], ['CL', '智利'], ['CM', '喀麥隆'], ['CN', '中國'],
+            ['CO', '哥倫比亞'], ['CR', '哥斯大黎加'], ['CU', '古巴'], ['CV', '維德角'],
+            ['CW', '庫拉索'], ['CX', '聖誕島'], ['CY', '賽普勒斯'], ['CZ', '捷克'],
+            ['DE', '德國'], ['DJ', '吉布地'], ['DK', '丹麥'], ['DM', '多米尼克'],
+            ['DO', '多明尼加'], ['DZ', '阿爾及利亞'], ['EC', '厄瓜多'], ['EE', '愛沙尼亞'],
+            ['EG', '埃及'], ['EH', '西撒哈拉'], ['ER', '厄利垂亞'], ['ES', '西班牙'],
+            ['ET', '衣索比亞'], ['FI', '芬蘭'], ['FJ', '斐濟'], ['FK', '福克蘭群島'],
+            ['FM', '密克羅尼西亞'], ['FO', '法羅群島'], ['FR', '法國'], ['GA', '加彭'],
+            ['GB', '英國'], ['GD', '格瑞那達'], ['GE', '喬治亞'], ['GF', '法屬圭亞那'],
+            ['GG', '根息'], ['GH', '迦納'], ['GI', '直布羅陀'], ['GL', '格陵蘭'],
+            ['GM', '甘比亞'], ['GN', '幾內亞'], ['GP', '瓜地洛普'], ['GQ', '赤道幾內亞'],
+            ['GR', '希臘'], ['GS', '南喬治亞與南桑威奇群島'], ['GT', '瓜地馬拉'], ['GU', '關島'],
+            ['GW', '幾內亞比索'], ['GY', '蓋亞那'], ['HK', '香港'], ['HM', '赫德島與麥克唐納群島'],
+            ['HN', '宏都拉斯'], ['HR', '克羅埃西亞'], ['HT', '海地'], ['HU', '匈牙利'],
+            ['ID', '印尼'], ['IE', '愛爾蘭'], ['IL', '以色列'], ['IM', '曼島'],
+            ['IN', '印度'], ['IO', '英屬印度洋領地'], ['IQ', '伊拉克'], ['IR', '伊朗'],
+            ['IS', '冰島'], ['IT', '義大利'], ['JE', '澤西'], ['JM', '牙買加'],
+            ['JO', '約旦'], ['JP', '日本'], ['KE', '肯亞'], ['KG', '吉爾吉斯'],
+            ['KH', '柬埔寨'], ['KI', '吉里巴斯'], ['KM', '葛摩'], ['KN', '聖克里斯多福及尼維斯'],
+            ['KP', '北韓'], ['KR', '南韓'], ['KW', '科威特'], ['KY', '開曼群島'],
+            ['KZ', '哈薩克'], ['LA', '寮國'], ['LB', '黎巴嫩'], ['LC', '聖露西亞'],
+            ['LI', '列支敦斯登'], ['LK', '斯里蘭卡'], ['LR', '賴比瑞亞'], ['LS', '賴索托'],
+            ['LT', '立陶宛'], ['LU', '盧森堡'], ['LV', '拉脫維亞'], ['LY', '利比亞'],
+            ['MA', '摩洛哥'], ['MC', '摩納哥'], ['MD', '摩爾多瓦'], ['ME', '蒙特內哥羅'],
+            ['MF', '法屬聖馬丁'], ['MG', '馬達加斯加'], ['MH', '馬紹爾群島'], ['MK', '北馬其頓'],
+            ['ML', '馬利'], ['MM', '緬甸'], ['MN', '蒙古'], ['MO', '澳門'],
+            ['MP', '北馬利安納群島'], ['MQ', '馬提尼克'], ['MR', '茅利塔尼亞'], ['MS', '蒙哲臘'],
+            ['MT', '馬爾他'], ['MU', '模里西斯'], ['MV', '馬爾地夫'], ['MW', '馬拉威'],
+            ['MX', '墨西哥'], ['MY', '馬來西亞'], ['MZ', '莫三比克'], ['NA', '納米比亞'],
+            ['NC', '新喀里多尼亞'], ['NE', '尼日'], ['NF', '諾福克島'], ['NG', '奈及利亞'],
+            ['NI', '尼加拉瓜'], ['NL', '荷蘭'], ['NO', '挪威'], ['NP', '尼泊爾'],
+            ['NR', '諾魯'], ['NU', '紐埃'], ['NZ', '紐西蘭'], ['OM', '阿曼'],
+            ['PA', '巴拿馬'], ['PE', '秘魯'], ['PF', '法屬玻里尼西亞'], ['PG', '巴布亞紐幾內亞'],
+            ['PH', '菲律賓'], ['PK', '巴基斯坦'], ['PL', '波蘭'], ['PM', '聖皮埃與密克隆'],
+            ['PN', '皮特肯群島'], ['PR', '波多黎各'], ['PS', '巴勒斯坦'], ['PT', '葡萄牙'],
+            ['PW', '帛琉'], ['PY', '巴拉圭'], ['QA', '卡達'], ['RE', '留尼旺'],
+            ['RO', '羅馬尼亞'], ['RS', '塞爾維亞'], ['RU', '俄羅斯'], ['RW', '盧安達'],
+            ['SA', '沙烏地阿拉伯'], ['SB', '索羅門群島'], ['SC', '塞席爾'], ['SD', '蘇丹'],
+            ['SE', '瑞典'], ['SG', '新加坡'], ['SH', '聖海蓮娜'], ['SI', '斯洛維尼亞'],
+            ['SJ', '斯瓦爾巴與揚馬延'], ['SK', '斯洛伐克'], ['SL', '獅子山'], ['SM', '聖馬利諾'],
+            ['SN', '塞內加爾'], ['SO', '索馬利亞'], ['SR', '蘇利南'], ['SS', '南蘇丹'],
+            ['ST', '聖多美普林西比'], ['SV', '薩爾瓦多'], ['SX', '荷屬聖馬丁'], ['SY', '敘利亞'],
+            ['SZ', '史瓦帝尼'], ['TC', '土克斯及凱可斯群島'], ['TD', '查德'], ['TF', '法屬南方與南極領地'],
+            ['TG', '多哥'], ['TH', '泰國'], ['TJ', '塔吉克'], ['TK', '托克勞'],
+            ['TL', '東帝汶'], ['TM', '土庫曼'], ['TN', '突尼西亞'], ['TO', '東加'],
+            ['TR', '土耳其'], ['TT', '千里達及托巴哥'], ['TV', '吐瓦魯'], ['TW', '台灣'],
+            ['TZ', '坦尚尼亞'], ['UA', '烏克蘭'], ['UG', '烏干達'], ['UM', '美國本土外小島嶼'],
+            ['US', '美國'], ['UY', '烏拉圭'], ['UZ', '烏茲別克'], ['VA', '梵蒂岡'],
+            ['VC', '聖文森及格瑞那丁'], ['VE', '委內瑞拉'], ['VG', '英屬維爾京群島'], ['VI', '美屬維爾京群島'],
+            ['VN', '越南'], ['VU', '瓦努阿圖'], ['WF', '瓦利斯與富圖納'], ['WS', '薩摩亞'],
+            ['YE', '葉門'], ['YT', '馬約特'], ['ZA', '南非'], ['ZM', '尚比亞'],
+            ['ZW', '辛巴威']
+        ];
+        const COUNTRY_NAME = Object.fromEntries(ISO_COUNTRIES);
+
+        // 國碼下拉只需建一次；編輯既有資料若代碼不在清單內，另外補一個選項以免值被清空
+        function renderCountryField(selected) {
+            const sel = document.getElementById('field-country');
+            if (!sel.dataset.ready) {
+                sel.innerHTML = '<option value="">請選擇國碼</option>' +
+                    ISO_COUNTRIES.map(([c, n]) => `<option value="${c}">${c}　${n}</option>`).join('');
+                sel.dataset.ready = '1';
+            }
+            const code = selected || '';
+            if (code && !COUNTRY_NAME[code]) {
+                sel.insertAdjacentHTML('beforeend', `<option value="${code}">${code}　（非 ISO 清單）</option>`);
+            }
+            sel.value = code;
+        }
         // 依分頁設定表頭
         function renderHead() {
-            document.getElementById('table-head').innerHTML = hasRegion()
-                ? '<th scope="col" class="text-left">名稱</th><th scope="col" class="text-left min-w-[160px]">區域</th><th scope="col">狀態</th><th scope="col" class="text-center">操作</th>'
-                : '<th scope="col" class="text-left">名稱</th><th scope="col">狀態</th><th scope="col" class="text-center">操作</th>';
+            let cols = '<th scope="col" class="text-left">名稱</th>';
+            if (hasCountry()) cols += '<th scope="col" class="text-left w-32">國碼</th>';
+            if (hasRegion()) cols += '<th scope="col" class="text-left min-w-[160px]">區域</th>';
+            cols += '<th scope="col">狀態</th><th scope="col" class="text-center">操作</th>';
+            document.getElementById('table-head').innerHTML = cols;
         }
         // 渲染區域多選 checkbox（selected 為已勾選陣列）
         function renderRegionField(selected) {
@@ -323,8 +434,12 @@
                 const regionCell = hasRegion()
                     ? `<td class="text-left"><div class="flex flex-wrap gap-1">${(r.regions && r.regions.length) ? r.regions.map(v => `<span class="ui-badge bg-teal-50 text-teal-600">${v}</span>`).join(' ') : '<span class="text-gray-300">—</span>'}</div></td>`
                     : '';
+                const countryCell = hasCountry()
+                    ? `<td class="text-left">${r.country ? `<span class="ui-badge bg-indigo-50 text-indigo-600 font-mono" title="${COUNTRY_NAME[r.country] || ''}">${r.country}</span>` : '<span class="text-gray-300">—</span>'}</td>`
+                    : '';
                 tr.innerHTML = `
                     <td class="text-left font-medium text-gray-800">${r.name}</td>
+                    ${countryCell}
                     ${regionCell}
                     <td>${statusBadge}</td>
                     <td>
@@ -355,6 +470,8 @@
             document.getElementById('modal-title').innerText = `新增${currentLabel()}`;
             document.getElementById('field-name').value = '';
             document.getElementById('field-status').value = 'true';
+            renderCountryField('');
+            document.getElementById('country-field').classList.toggle('hidden', !hasCountry());
             document.getElementById('region-field').classList.toggle('hidden', !hasRegion());
             if (hasRegion()) renderRegionField([]);
             document.getElementById('edit-modal').classList.remove('hidden');
@@ -366,6 +483,8 @@
             document.getElementById('modal-title').innerText = `編輯${currentLabel()}`;
             document.getElementById('field-name').value = rec.name;
             document.getElementById('field-status').value = String(rec.active);
+            renderCountryField(rec.country || '');
+            document.getElementById('country-field').classList.toggle('hidden', !hasCountry());
             document.getElementById('region-field').classList.toggle('hidden', !hasRegion());
             if (hasRegion()) renderRegionField(rec.regions || []);
             document.getElementById('edit-modal').classList.remove('hidden');
@@ -393,10 +512,15 @@
             }
 
             let extra = {};
+            if (hasCountry()) {
+                const country = document.getElementById('field-country').value;
+                if (!country) { showToast('error', '請選擇國碼'); return; }
+                extra = { ...extra, country };
+            }
             if (hasRegion()) {
                 const regions = Array.from(document.querySelectorAll('#field-region .field-region-chk:checked')).map(c => c.value);
                 if (!regions.length) { showToast('error', '請至少勾選一個區域'); return; }
-                extra = { regions };
+                extra = { ...extra, regions };
             }
 
             if (editIndex === -1) {

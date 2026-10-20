@@ -240,6 +240,13 @@
                             <label class="block text-gray-700 text-xs mb-1.5 font-semibold">換算後金額</label>
                             <div id="d-converted" class="flex items-center bg-[#EAF2FC] border border-blue-200 rounded px-3 py-2 text-sm text-blue-800 font-bold h-[38px]">—</div>
                         </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-gray-700 text-xs mb-1.5 font-semibold">支付方式 <span class="font-normal text-gray-400">（來源：財務管理 ▸ 資金帳戶設定）</span></label>
+                            <select id="d-payaccount" class="ui-select w-full">
+                                <option value="">— 請選擇支付方式 —</option>
+                            </select>
+                            <p id="d-payaccount-hint" class="text-[11px] text-gray-400 mt-1"></p>
+                        </div>
                     </div>
                     <div class="flex justify-end pt-1">
                         <button onclick="confirmPayment()" class="ui-btn ui-btn-primary"><i class="fa-solid fa-circle-check"></i> 確認支付資訊</button>
@@ -321,29 +328,81 @@
 
         // 費用報銷（含工作流）簽核單。實務上由「簽核」建立後同步至此；此為原型示意資料。
         var docs = [
-            { docNo: 'C-20260605-002', applicant: '101372', dept: 'RD', title: '一般費用報銷（差旅交通）', amount: 'TWD 2,000', date: '2026-06-05', signStatus: '待簽核',
+            { docNo: 'C-20260605-002', company: 'OB-IMOT', applicant: '101372', dept: 'RD', title: '一般費用報銷（差旅交通）', amount: 'TWD 2,000', date: '2026-06-05', signStatus: '待簽核',
               accountCode: '6-6300-01', accountName: '差旅_交通費', payType: '實報實銷', srcCcy: 'TWD', srcAmt: 2000, outCcy: 'TWD',
               approvals: [{ role: '部門主管', status: '待審批' }, { role: '財務人員', status: '待審批' }],
               workflow: [{ task: '發票／單據查核', owner: '財務人員', status: '待處理' }, { task: '付款排程', owner: '財務人員', status: '待處理' }, { task: '撥款', owner: '出納', status: '待處理' }] },
-            { docNo: 'C-20260603-019', applicant: 'KKKKK', dept: '財務', title: '客戶招待費報銷', amount: 'TWD 8,600', date: '2026-06-03', signStatus: '簽核中',
+            { docNo: 'C-20260603-019', company: 'OB-IMOT', applicant: 'KKKKK', dept: '財務', title: '客戶招待費報銷', amount: 'TWD 8,600', date: '2026-06-03', signStatus: '簽核中',
               accountCode: '6-2100-04', accountName: '招待_餐費', payType: '實報實銷', srcCcy: 'CNY', srcAmt: 1911, outCcy: 'TWD',
               approvals: [{ role: '部門主管', status: '已核准' }, { role: '財務主管', status: '審批中' }],
               workflow: [{ task: '發票／單據查核', owner: '財務人員', status: '處理中' }, { task: '付款排程', owner: '財務人員', status: '待處理' }, { task: '撥款', owner: '出納', status: '待處理' }] },
-            { docNo: 'C-20260530-011', applicant: 'Bertha W', dept: 'MKT', title: '行銷活動雜支報銷', amount: 'TWD 15,400', date: '2026-05-30', signStatus: '簽核完成',
+            { docNo: 'C-20260530-011', company: 'OB-IMOT', applicant: 'Bertha W', dept: 'MKT', title: '行銷活動雜支報銷', amount: 'TWD 15,400', date: '2026-05-30', signStatus: '簽核完成',
               accountCode: '5-1000-07', accountName: '廣告&行銷費', payType: '定額補貼', srcCcy: 'USD', srcAmt: 481, outCcy: 'TWD',
               approvals: [{ role: '部門主管', status: '已核准' }, { role: '財務主管', status: '已核准' }],
               workflow: [{ task: '發票／單據查核', owner: '財務人員', status: '已完成' }, { task: '付款排程', owner: '財務人員', status: '已完成' }, { task: '撥款', owner: '出納', status: '處理中' }] },
-            { docNo: 'C-20260527-006', applicant: 'Derrick', dept: 'IA1', title: '證照考試費用報銷', amount: 'TWD 4,500', date: '2026-05-27', signStatus: '簽核完成',
+            { docNo: 'C-20260527-006', company: 'Boldplay-COB', applicant: 'Derrick', dept: 'IA1', title: '證照考試費用報銷', amount: 'TWD 4,500', date: '2026-05-27', signStatus: '簽核完成',
               accountCode: '6-6200-08', accountName: '軟件', payType: '預付款', srcCcy: 'USD', srcAmt: 140, outCcy: 'USD',
               approvals: [{ role: '部門主管', status: '已核准' }, { role: '財務人員', status: '已核准' }],
               workflow: [{ task: '發票／單據查核', owner: '財務人員', status: '已完成' }, { task: '付款排程', owner: '財務人員', status: '已完成' }, { task: '撥款', owner: '出納', status: '已完成' }] },
-            { docNo: 'C-20260521-018', applicant: 'Liz G', dept: 'RD', title: '超額餐費報銷（已駁回）', amount: 'TWD 3,200', date: '2026-05-21', signStatus: '駁回',
+            { docNo: 'C-20260521-018', company: 'OB-IMOT', applicant: 'Liz G', dept: 'RD', title: '超額餐費報銷（已駁回）', amount: 'TWD 3,200', date: '2026-05-21', signStatus: '駁回',
               accountCode: '6-1200-06', accountName: '員工餐費', payType: '代墊款', srcCcy: 'TWD', srcAmt: 3200, outCcy: 'TWD',
               approvals: [{ role: '部門主管', status: '駁回' }],
               workflow: [{ task: '發票／單據查核', owner: '財務人員', status: '待處理' }] }
         ];
 
         var currentIndex = -1;
+
+        /* ====== 支付方式：來源為「財務管理 ▸ 資金帳戶設定」 ======
+           該頁以 localStorage 'hroa_fund_accounts' 共用帳戶主檔；
+           本頁依單據所屬公司別，僅列出「啟用中」之帳戶作為支付方式選項。 */
+        var FUND_LS_KEY = 'hroa_fund_accounts_v2';
+        // 公司別（對應 組織架構管理 ▸ 公司）
+        var COMPANY_CODES = [
+            'OB-IMOT', 'OB-CYBR', 'OB-MTOH', 'OB-CWBR', 'OB-MTOT', 'OB-IMOH',
+            'Boldplay-COB', 'Boldplay-UN', 'JKL', 'SPT', 'STT', 'RB', 'TB',
+            'TDM', 'TC', 'TWS', 'TRG', 'TLC', 'TGW', 'CP', 'LXY', 'TY', '資金安排'
+        ];
+        var COMPANY_NAMES = {};
+        COMPANY_CODES.forEach(function(c) { COMPANY_NAMES[c] = c; });
+        function loadFundAccounts() {
+            try {
+                var raw = localStorage.getItem(FUND_LS_KEY);
+                var arr = raw ? JSON.parse(raw) : [];
+                return Array.isArray(arr) ? arr : [];
+            } catch (e) { return []; }
+        }
+        function payOptionLabel(a) {
+            return a.name;
+        }
+        // 依公司別建立支付方式下拉；selected 為既有值（保留歷史單據已選帳戶）
+        function buildPayAccountSelect(company, selected) {
+            var sel = document.getElementById('d-payaccount');
+            var hint = document.getElementById('d-payaccount-hint');
+            var all = loadFundAccounts();
+            var list = all.filter(function(a) { return a.company === company && a.active; });
+            var html = '<option value="">— 請選擇支付方式 —</option>';
+
+            if (!all.length) {
+                hint.innerHTML = '<span class="text-amber-600">尚未設定任何資金帳戶，請先至「財務管理 ▸ 資金帳戶設定」建立。</span>';
+            } else if (!list.length) {
+                hint.innerHTML = '<span class="text-amber-600">「' + (COMPANY_NAMES[company] || company) + '」尚無啟用中的資金帳戶。</span>';
+            } else {
+                hint.innerText = '公司別：' + (COMPANY_NAMES[company] || company) + '　共 ' + list.length + ' 組可用帳戶';
+            }
+
+            html += list.map(function(a) {
+                return '<option value="' + a.id + '">' + payOptionLabel(a) + '</option>';
+            }).join('');
+
+            // 歷史單據選用之帳戶若已停用／刪除，仍補回選項以免值被清空
+            if (selected && !list.some(function(a) { return String(a.id) === String(selected); })) {
+                var old = all.filter(function(a) { return String(a.id) === String(selected); })[0];
+                html += '<option value="' + selected + '">' +
+                    (old ? payOptionLabel(old) + '（已停用）' : '（原選帳戶已刪除）') + '</option>';
+            }
+            sel.innerHTML = html;
+            sel.value = selected ? String(selected) : '';
+        }
 
         function signBadge(s) {
             var map = { '待簽核': 'ui-badge-info', '簽核中': 'ui-badge-warning', '簽核完成': 'ui-badge-success', '駁回': 'ui-badge-danger', '撤回': 'ui-badge-gray', '待補件': 'ui-badge-warning' };
@@ -493,6 +552,7 @@
             document.getElementById('d-src-amt').value = d.srcAmt || '';
             document.getElementById('d-paytype').value = d.payType || '';
             document.getElementById('d-out-ccy').value = d.outCcy || 'TWD';
+            buildPayAccountSelect(d.company, d.payAccountId);
             updatePayCalc();
 
             var approvalRows = d.approvals.map(function(a, idx) {
@@ -551,6 +611,7 @@
             d.srcCcy = srcCcy;
             d.srcAmt = srcAmt;
             d.outCcy = outCcy;
+            d.payAccountId = document.getElementById('d-payaccount').value || '';
 
             render();
             showToast('success', '已確認支付資訊：' + d.docNo + '　' + fmtAmt(outCcy, convertAmt(srcAmt, srcCcy, outCcy)));
