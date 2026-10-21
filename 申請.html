@@ -2546,6 +2546,7 @@
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">主旨 <span class="text-red-500">*</span></label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"></div>
                             <div class="col-start-1"><label class="block mb-1.5 text-[13px] text-gray-700">使用人 <span class="text-red-500">*</span></label><div class="relative applicant-combo" id="cv-applicant-combo"><input type="text" autocomplete="off" placeholder="搜尋人名 / 工號" class="applicant-input w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><div class="applicant-list hidden absolute z-30 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto text-[13px]"></div></div></div>
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">區域 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option></select></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">事業部/中心 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option></select></div>
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">部門 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇項目</option></select></div>
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">組別 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇部門</option></select></div>
                         </div>
@@ -4258,11 +4259,65 @@
                             <div class="overflow-x-auto">
                                 <table class="ui-table w-full text-[13px] whitespace-nowrap">
                                     <thead>
-                                        <tr><th class="w-24 text-left">項目</th><th class="text-left">所在地區 <span class="text-red-500">*</span></th><th class="text-left">事業部 <span class="text-red-500">*</span></th><th class="text-left">分組 <span class="text-red-500">*</span></th><th class="text-left">部門 <span class="text-red-500">*</span></th><th class="text-left">職位 <span class="text-red-500">*</span></th><th class="text-left">直屬主管 <span class="text-red-500">*</span></th></tr>
+                                        <tr><th class="w-24 text-left">項目</th><th class="text-left">區域 <span class="text-red-500">*</span></th><th class="text-left">事業部/中心 <span class="text-red-500">*</span></th><th class="text-left">公司 <span class="text-red-500">*</span></th><th class="text-left">部門 <span class="text-red-500">*</span></th><th class="text-left">組別 <span class="text-red-500">*</span></th><th class="text-left">職位 <span class="text-red-500">*</span></th><th class="text-left">直屬主管 <span class="text-red-500">*</span></th></tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr><td class="font-bold text-gray-700">異動前</td><td><input type="text" disabled class="w-full border border-gray-300 rounded px-2 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed"></td><td><input type="text" disabled class="w-full border border-gray-300 rounded px-2 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed"></td><td><input type="text" disabled class="w-full border border-gray-300 rounded px-2 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed"></td><td><input type="text" disabled class="w-full border border-gray-300 rounded px-2 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed"></td><td><input type="text" disabled class="w-full border border-gray-300 rounded px-2 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed"></td><td><input type="text" disabled class="w-full border border-gray-300 rounded px-2 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed"></td><td><input type="text" disabled class="w-full border border-gray-300 rounded px-2 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed"></td></tr>
+                                        <tr><td class="font-bold text-gray-700">異動後 <span class="text-red-500">*</span></td><td><select class="w-full border border-gray-300 rounded px-2 py-1.5 text-[13px] outline-none focus:border-blue-500"><option></option></select></td><td><select class="w-full border border-gray-300 rounded px-2 py-1.5 text-[13px] outline-none focus:border-blue-500"><option></option></select></td><td><select class="w-full border border-gray-300 rounded px-2 py-1.5 text-[13px] outline-none focus:border-blue-500"><option></option></select></td><td><select class="w-full border border-gray-300 rounded px-2 py-1.5 text-[13px] outline-none focus:border-blue-500"><option></option></select></td><td><select class="w-full border border-gray-300 rounded px-2 py-1.5 text-[13px] outline-none focus:border-blue-500"><option></option></select></td><td><select class="w-full border border-gray-300 rounded px-2 py-1.5 text-[13px] outline-none focus:border-blue-500"><option></option></select></td><td><select class="w-full border border-gray-300 rounded px-2 py-1.5 text-[13px] outline-none focus:border-blue-500"><option></option></select></td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 區塊：僱傭類型異動（參考 行政設定 → 僱傭類型）-->
+                    <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5">
+                        <div class="px-4 py-2.5 border-b border-gray-200"><h3 class="text-[#2b3b84] font-bold text-[15px]">僱傭類型異動</h3></div>
+                        <div class="p-4">
+                            <div class="overflow-x-auto">
+                                <table class="ui-table w-full text-[13px] whitespace-nowrap">
+                                    <thead>
+                                        <tr><th class="w-24 text-left">項目</th><th class="text-left">僱傭類型 <span class="text-red-500">*</span></th></tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr><td class="font-bold text-gray-700">異動前</td><td><input type="text" disabled class="w-full border border-gray-300 rounded px-2 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed"></td></tr>
+                                        <tr><td class="font-bold text-gray-700">異動後 <span class="text-red-500">*</span></td><td><select class="w-full border border-gray-300 rounded px-2 py-1.5 text-[13px] outline-none focus:border-blue-500"><option value="" disabled selected>請選擇</option><option>全職</option><option>兼職</option><option>顧問</option></select></td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 區塊：基礎薪資（參考 薪資、職級異動單 → 基本薪資）-->
+                    <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5">
+                        <div class="px-4 py-2.5 border-b border-gray-200"><h3 class="text-[#2b3b84] font-bold text-[15px]">基礎薪資</h3></div>
+                        <div class="p-4">
+                            <div class="overflow-x-auto">
+                                <table class="ui-table w-full text-[13px] whitespace-nowrap">
+                                    <thead>
+                                        <tr><th class="w-24 text-left">項目</th><th class="text-left">結算日 <span class="text-red-500">*</span></th><th class="text-left">幣別 <span class="text-red-500">*</span></th><th class="text-left">薪資 <span class="text-red-500">*</span></th><th class="text-left">支付方式 <span class="text-red-500">*</span></th><th class="text-left">薪資調整原因</th><th class="text-left">調薪幅度(%)</th></tr>
                                     </thead>
                                     <tbody>
                                         <tr><td class="font-bold text-gray-700">異動前</td><td><input type="text" disabled class="w-full border border-gray-300 rounded px-2 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed"></td><td><input type="text" disabled class="w-full border border-gray-300 rounded px-2 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed"></td><td><input type="text" disabled class="w-full border border-gray-300 rounded px-2 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed"></td><td><input type="text" disabled class="w-full border border-gray-300 rounded px-2 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed"></td><td><input type="text" disabled class="w-full border border-gray-300 rounded px-2 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed"></td><td><input type="text" disabled class="w-full border border-gray-300 rounded px-2 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed"></td></tr>
-                                        <tr><td class="font-bold text-gray-700">異動後 <span class="text-red-500">*</span></td><td><select class="w-full border border-gray-300 rounded px-2 py-1.5 text-[13px] outline-none focus:border-blue-500"><option></option></select></td><td><select class="w-full border border-gray-300 rounded px-2 py-1.5 text-[13px] outline-none focus:border-blue-500"><option></option></select></td><td><select class="w-full border border-gray-300 rounded px-2 py-1.5 text-[13px] outline-none focus:border-blue-500"><option></option></select></td><td><select class="w-full border border-gray-300 rounded px-2 py-1.5 text-[13px] outline-none focus:border-blue-500"><option></option></select></td><td><select class="w-full border border-gray-300 rounded px-2 py-1.5 text-[13px] outline-none focus:border-blue-500"><option></option></select></td><td><select class="w-full border border-gray-300 rounded px-2 py-1.5 text-[13px] outline-none focus:border-blue-500"><option></option></select></td></tr>
+                                        <tr><td class="font-bold text-gray-700">異動後 <span class="text-red-500">*</span></td><td><select class="w-full border border-gray-300 rounded px-2 py-1.5 text-[13px] outline-none focus:border-blue-500"><option></option></select></td><td><select class="w-full border border-gray-300 rounded px-2 py-1.5 text-[13px] outline-none focus:border-blue-500"><option></option></select></td><td><input type="number" step="any" class="w-full border border-gray-300 rounded px-2 py-1.5 text-[13px] outline-none focus:border-blue-500"></td><td><select class="w-full border border-gray-300 rounded px-2 py-1.5 text-[13px] outline-none focus:border-blue-500"><option value="" disabled selected>請選擇</option><option>法幣</option><option>U幣</option><option>法幣+U幣</option></select></td><td><input type="text" class="w-full border border-gray-300 rounded px-2 py-1.5 text-[13px] outline-none focus:border-blue-500"></td><td><input type="text" class="w-full border border-gray-300 rounded px-2 py-1.5 text-[13px] outline-none focus:border-blue-500"></td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 區塊：職級資訊（參考 薪資、職級異動單 → 職級）-->
+                    <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5">
+                        <div class="px-4 py-2.5 border-b border-gray-200"><h3 class="text-[#2b3b84] font-bold text-[15px]">職級資訊</h3></div>
+                        <div class="p-4">
+                            <div class="overflow-x-auto">
+                                <table class="ui-table w-full text-[13px] whitespace-nowrap">
+                                    <thead>
+                                        <tr><th class="w-24 text-left">項目</th><th class="text-left">職級 <span class="text-red-500">*</span></th></tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr><td class="font-bold text-gray-700">異動前</td><td><input type="text" disabled class="w-full border border-gray-300 rounded px-2 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed"></td></tr>
+                                        <tr><td class="font-bold text-gray-700">異動後 <span class="text-red-500">*</span></td><td><select class="w-full border border-gray-300 rounded px-2 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option><option>P1</option><option>P2</option><option>P3</option><option>P4</option><option>P5</option><option>P6</option><option>P7</option><option>P8</option><option>P9</option><option>P10</option><option>P11</option><option>P12</option><option>M1</option><option>M2</option><option>M3</option><option>M4</option><option>M5</option><option>M6</option><option>M7</option><option>M8</option><option>M9</option><option>BOSS</option></select></td></tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -7651,16 +7706,19 @@
         // 其他項目：新增一筆備註（標題 + 內容），可多筆、可移除
         // 員工一般人事異動(TA)：各員工目前配置（demo），選定員工編號後帶入各區塊「異動前」
         // 欄位順序：
-        //  hr      → 所在地區, 事業部, 分組, 部門, 職位, 直屬主管
+        //  hr      → 區域, 事業部/中心, 公司, 部門, 組別, 職位, 直屬主管
+        //  empType → 僱傭類型
+        //  salary  → 結算日, 幣別, 薪資, 支付方式, 薪資調整原因, 調薪幅度(%)
+        //  grade   → 職級
         //  bonus   → 13薪, 獎金類型
         //  welfare → 團建分類, 福利制度, 生日福利, 節日福利
         //  att     → 考勤模板, 固定上班時間, 休息時間, 休息時間打卡, 工時, 彈性上班時間, 打卡方式
         //  leave   → 套用假期模板
         const TA_EMP_DATA = {
-            '100962': { hr: ['T1', '海外事業部', 'GT', 'RD', '前端工程師', 'James（101517）'], bonus: ['Y', 'A'], welfare: ['級別 A', '勞健保 + 團體保險', '生日禮金 2,000', '三節禮金 / 禮品'], att: ['總部標準班', '09:00 ~ 18:00', '12:00 ~ 13:00', '需打卡', '8 小時', '否', '指紋 / 網頁'], leave: ['T區法幣'] },
-            '101517': { hr: ['T2', '海外事業部', 'GT', 'FIN', '財務主管', 'Daniel（100052）'], bonus: ['Y', 'B'], welfare: ['級別 B', '勞健保 + 團體保險', '生日禮金 2,000', '三節禮金 / 禮品'], att: ['免午休打卡班', '09:30 ~ 18:30', '無', '免打卡', '9 小時', '有（提前30/延後30）', '網頁'], leave: ['T區U幣'] },
-            '100064': { hr: ['THQ', '國內事業部', 'GT', 'RD', '後端工程師', 'Oliver（100962）'], bonus: ['N', 'C'], welfare: ['無', '勞健保', '生日禮金 1,000', '三節禮金'], att: ['考勤設置1', '09:00 ~ 18:00', '12:01 ~ 13:00', '免打卡', '8 小時 1 分', '否', '指紋'], leave: ['J區法幣'] },
-            '_default': { hr: ['T1', '海外事業部', 'GT', 'RD', '工程師', '—'], bonus: ['N', 'A'], welfare: ['無', '勞健保', '生日禮金 1,000', '三節禮金'], att: ['考勤設置1', '09:00 ~ 18:00', '12:00 ~ 13:00', '需打卡', '8 小時', '否', '指紋 / 網頁'], leave: ['T區法幣'] }
+            '100962': { hr: ['T1', '海外事業部', 'OB-IMOT', 'RD', 'API', '前端工程師', 'James（101517）'], empType: ['全職'], salary: ['每月 10 日', 'TWD', '65,000', '法幣', '—', '—'], grade: ['P5'], bonus: ['Y', 'A'], welfare: ['級別 A', '勞健保 + 團體保險', '生日禮金 2,000', '三節禮金 / 禮品'], att: ['總部標準班', '09:00 ~ 18:00', '12:00 ~ 13:00', '需打卡', '8 小時', '否', '指紋 / 網頁'], leave: ['T區法幣'] },
+            '101517': { hr: ['T2', '海外事業部', 'OB-IMOT', 'FIN', 'GA1', '財務主管', 'Daniel（100052）'], empType: ['全職'], salary: ['每月 10 日', 'TWD', '98,000', '法幣', '—', '—'], grade: ['M3'], bonus: ['Y', 'B'], welfare: ['級別 B', '勞健保 + 團體保險', '生日禮金 2,000', '三節禮金 / 禮品'], att: ['免午休打卡班', '09:30 ~ 18:30', '無', '免打卡', '9 小時', '有（提前30/延後30）', '網頁'], leave: ['T區U幣'] },
+            '100064': { hr: ['THQ', '國內事業部', 'OB-IMOT', 'RD', 'MIS', '後端工程師', 'Oliver（100962）'], empType: ['全職'], salary: ['每月 15 日', 'TWD', '58,000', '法幣', '—', '—'], grade: ['P4'], bonus: ['N', 'C'], welfare: ['無', '勞健保', '生日禮金 1,000', '三節禮金'], att: ['考勤設置1', '09:00 ~ 18:00', '12:01 ~ 13:00', '免打卡', '8 小時 1 分', '否', '指紋'], leave: ['J區法幣'] },
+            '_default': { hr: ['T1', '海外事業部', 'OB-IMOT', 'RD', 'API', '工程師', '—'], empType: ['全職'], salary: ['每月 10 日', 'TWD', '50,000', '法幣', '—', '—'], grade: ['P3'], bonus: ['N', 'A'], welfare: ['無', '勞健保', '生日禮金 1,000', '三節禮金'], att: ['考勤設置1', '09:00 ~ 18:00', '12:00 ~ 13:00', '需打卡', '8 小時', '否', '指紋 / 網頁'], leave: ['T區法幣'] }
         };
         // 將某員工目前配置填入 TA 彈窗各區塊的「異動前」欄位
         function taFillBefore(empId) {
@@ -7676,6 +7734,9 @@
             };
             const fill = (title, values) => { const els = beforeInputs(title); values.forEach((v, i) => { if (els[i]) els[i].value = v; }); };
             fill('人事異動資訊', d.hr);
+            fill('僱傭類型異動', d.empType);
+            fill('基礎薪資', d.salary);
+            fill('職級資訊', d.grade);
             fill('獎金異動', d.bonus);
             fill('福利異動', d.welfare);
             fill('考勤設置異動', d.att);
