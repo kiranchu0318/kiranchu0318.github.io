@@ -4232,6 +4232,13 @@
                                     <option value="是">是</option>
                                 </select>
                             </div>
+                            <div>
+                                <label class="block mb-1.5 text-[13px] text-gray-700">是否涉及薪資異動 <span class="text-red-500">*</span></label>
+                                <select onchange="pcToggleSalaryBlocks(this.value === '是')" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500">
+                                    <option value="否">否</option>
+                                    <option value="是">是</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
 
@@ -4288,8 +4295,8 @@
                         </div>
                     </div>
 
-                    <!-- 區塊：基礎薪資（參考 薪資、職級異動單 → 基本薪資）-->
-                    <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5">
+                    <!-- 區塊：基礎薪資（參考 薪資、職級異動單 → 基本薪資；選「是否涉及薪資異動＝是」後顯示）-->
+                    <div id="pc-salary-info" class="hidden bg-white border border-gray-300 rounded-md shadow-sm mb-5">
                         <div class="px-4 py-2.5 border-b border-gray-200"><h3 class="text-[#2b3b84] font-bold text-[15px]">基礎薪資</h3></div>
                         <div class="p-4">
                             <div class="overflow-x-auto">
@@ -4306,8 +4313,8 @@
                         </div>
                     </div>
 
-                    <!-- 區塊：職級資訊（參考 薪資、職級異動單 → 職級）-->
-                    <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5">
+                    <!-- 區塊：職級資訊（參考 薪資、職級異動單 → 職級；選「是否涉及薪資異動＝是」後顯示）-->
+                    <div id="pc-grade-info" class="hidden bg-white border border-gray-300 rounded-md shadow-sm mb-5">
                         <div class="px-4 py-2.5 border-b border-gray-200"><h3 class="text-[#2b3b84] font-bold text-[15px]">職級資訊</h3></div>
                         <div class="p-4">
                             <div class="overflow-x-auto">
@@ -7720,6 +7727,14 @@
             '100064': { hr: ['THQ', '國內事業部', 'OB-IMOT', 'RD', 'MIS', '後端工程師', 'Oliver（100962）'], empType: ['全職'], salary: ['每月 15 日', 'TWD', '58,000', '法幣', '—', '—'], grade: ['P4'], bonus: ['N', 'C'], welfare: ['無', '勞健保', '生日禮金 1,000', '三節禮金'], att: ['考勤設置1', '09:00 ~ 18:00', '12:01 ~ 13:00', '免打卡', '8 小時 1 分', '否', '指紋'], leave: ['J區法幣'] },
             '_default': { hr: ['T1', '海外事業部', 'OB-IMOT', 'RD', 'API', '工程師', '—'], empType: ['全職'], salary: ['每月 10 日', 'TWD', '50,000', '法幣', '—', '—'], grade: ['P3'], bonus: ['N', 'A'], welfare: ['無', '勞健保', '生日禮金 1,000', '三節禮金'], att: ['考勤設置1', '09:00 ~ 18:00', '12:00 ~ 13:00', '需打卡', '8 小時', '否', '指紋 / 網頁'], leave: ['T區法幣'] }
         };
+        // 員工一般人事異動(TA)：「是否涉及薪資異動」＝是 才顯示 基礎薪資 / 職級資訊 兩區塊
+        function pcToggleSalaryBlocks(show) {
+            ['pc-salary-info', 'pc-grade-info'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.classList.toggle('hidden', !show);
+            });
+        }
+
         // 將某員工目前配置填入 TA 彈窗各區塊的「異動前」欄位
         function taFillBefore(empId) {
             const modal = document.getElementById('hr-pc-modal');
