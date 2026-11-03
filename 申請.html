@@ -2359,28 +2359,38 @@
                             <span class="text-[13px] font-medium text-gray-700">是否緊急</span>
                         </label>
 
-                    <!-- 用印資訊 -->
-                    <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5">
-                        <div class="px-4 py-2.5 border-b border-gray-200"><h3 class="text-[#2b3b84] font-bold text-[15px]">用印資訊</h3></div>
+                    <!-- 用印資訊（可多筆，由「新增用印資訊」複製本區塊）-->
+                    <div id="st-seal-list" class="space-y-5 mb-5">
+                    <div class="st-seal-card bg-white border border-gray-300 rounded-md shadow-sm">
+                        <div class="px-4 py-2.5 border-b border-gray-200 flex justify-between items-center gap-2">
+                            <h3 class="text-[#2b3b84] font-bold text-[15px]">用印資訊 <span class="js-seal-seq ml-1 text-[12px] font-semibold text-blue-600 bg-blue-50 border border-blue-100 rounded px-1.5 py-0.5">1</span></h3>
+                            <div class="flex items-center gap-2 shrink-0">
+                                <button type="button" onclick="removeSealInfo(this)" class="js-seal-remove hidden text-[12px] text-gray-500 border border-gray-200 rounded px-2.5 py-1 hover:text-red-500 hover:border-red-200 hover:bg-red-50 flex items-center gap-1"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i>移除</button>
+                                <button type="button" onclick="addSealInfo(this)" class="text-[12px] text-blue-600 border border-blue-200 rounded px-2.5 py-1 hover:bg-blue-50 flex items-center gap-1"><i data-lucide="plus" class="w-3.5 h-3.5"></i>新增用印資訊</button>
+                            </div>
+                        </div>
                         <div class="px-4 pt-4 pb-4 grid grid-cols-5 gap-x-5 gap-y-5">
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">文件類型 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option value="" disabled selected>請選擇</option><option>合同</option><option>授權書</option><option>銀行文件</option><option>政府文件</option><option>人事文件</option><option>採購文件</option><option>財務文件</option><option>客戶文件</option><option>其他</option></select></div>
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">預計用印日期 <span class="text-red-500">*</span></label><div class="border border-gray-300 rounded px-3 py-1.5 bg-white flex items-center"><i data-lucide="calendar" class="w-4 h-4 text-gray-400"></i><input type="date" onclick="this.showPicker && this.showPicker()" class="w-full ml-2 text-[13px] outline-none bg-transparent cursor-pointer"></div></div>
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">文件名稱 <span class="text-red-500">*</span></label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500" placeholder="請輸入文件名稱"></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">用印份數 <span class="text-red-500">*</span></label><input type="number" min="1" step="1" value="1" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500" placeholder="請輸入份數"></div>
                             <div class="col-span-5"><label class="block mb-1.5 text-[13px] text-gray-700">印章種類 <span class="text-red-500">*</span><span class="font-normal text-gray-400 ml-1">（可複選）</span></label>
                                 <div class="flex flex-wrap gap-x-6 gap-y-2">
-                                    <label class="flex items-center gap-1.5 text-[13px] text-gray-700 cursor-pointer"><input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"> 公司章</label>
-                                    <label class="flex items-center gap-1.5 text-[13px] text-gray-700 cursor-pointer"><input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"> 合同章</label>
-                                    <label class="flex items-center gap-1.5 text-[13px] text-gray-700 cursor-pointer"><input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"> 財務章</label>
-                                    <label class="flex items-center gap-1.5 text-[13px] text-gray-700 cursor-pointer"><input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"> 法人章</label>
+                                    <label class="flex items-center gap-1.5 text-[13px] text-gray-700 cursor-pointer"><input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"> 公司大章</label>
+                                    <label class="flex items-center gap-1.5 text-[13px] text-gray-700 cursor-pointer"><input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"> 公司小章</label>
+                                    <label class="flex items-center gap-1.5 text-[13px] text-gray-700 cursor-pointer"><input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"> 銀行大章</label>
+                                    <label class="flex items-center gap-1.5 text-[13px] text-gray-700 cursor-pointer"><input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"> 銀行小章</label>
                                     <label class="flex items-center gap-1.5 text-[13px] text-gray-700 cursor-pointer"><input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"> 發票章</label>
-                                    <label class="flex items-center gap-1.5 text-[13px] text-gray-700 cursor-pointer"><input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"> 騎縫章</label>
-                                    <label class="flex items-center gap-1.5 text-[13px] text-gray-700 cursor-pointer"><input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"> 電子章</label>
+                                    <label class="flex items-center gap-1.5 text-[13px] text-gray-700 cursor-pointer"><input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"> 股東小章</label>
+                                    <label class="flex items-center gap-1.5 text-[13px] text-gray-700 cursor-pointer"><input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"> 甲方簽名</label>
+                                    <label class="flex items-center gap-1.5 text-[13px] text-gray-700 cursor-pointer"><input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"> 乙方簽名</label>
                                     <label class="flex items-center gap-1.5 text-[13px] text-gray-700 cursor-pointer"><input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"> 其他</label>
                                 </div>
                             </div>
                             <div class="col-span-5"><label class="block mb-1.5 text-[13px] text-gray-700">用印用途 <span class="text-red-500">*</span></label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500" placeholder="請具體說明文件用途、用印對象與使用情境（至少 20 字）"></div>
                         </div>
                     </div>
+                    </div><!-- /st-seal-list -->
 
                     <!-- 报废原因 -->
                     <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5">
@@ -3137,11 +3147,7 @@
                                             <input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500">
                                         </div>
                                         <div>
-                                            <label class="block mb-1.5 text-[13px] text-gray-700">請款單號(A單/B單)</label>
-                                            <input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500">
-                                        </div>
-                                        <div>
-                                            <label class="block mb-1.5 text-[13px] text-gray-700">報銷單號(C單)</label>
+                                            <label class="block mb-1.5 text-[13px] text-gray-700">請款單號(AB單)</label>
                                             <input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500">
                                         </div>
                                     </div>
@@ -6094,6 +6100,48 @@
             });
         })();
 
+
+        /* ====== 用印流程(ST)：用印資訊可多筆 ====== */
+        // 重新編號，並控制「移除」鈕顯示（僅一筆時不可移除）
+        function renumberSealCards() {
+            const list = document.getElementById('st-seal-list');
+            if (!list) return;
+            const cards = [...list.querySelectorAll('.st-seal-card')];
+            cards.forEach((c, i) => {
+                const seq = c.querySelector('.js-seal-seq');
+                if (seq) seq.textContent = i + 1;
+                const rm = c.querySelector('.js-seal-remove');
+                if (rm) rm.classList.toggle('hidden', cards.length <= 1);
+            });
+        }
+        // 新增一筆：複製第一筆版型後清空內容
+        function addSealInfo(btn) {
+            const list = document.getElementById('st-seal-list');
+            if (!list) return;
+            const tpl = list.querySelector('.st-seal-card');
+            if (!tpl) return;
+            const clone = tpl.cloneNode(true);
+            clone.querySelectorAll('input').forEach(el => {
+                if (el.type === 'checkbox' || el.type === 'radio') el.checked = false;
+                else el.value = (el.type === 'number') ? '1' : '';
+            });
+            clone.querySelectorAll('select').forEach(el => { el.selectedIndex = 0; });
+            list.appendChild(clone);
+            renumberSealCards();
+            if (window.lucide) lucide.createIcons();
+            clone.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+        // 移除該筆（至少保留一筆）
+        function removeSealInfo(btn) {
+            const list = document.getElementById('st-seal-list');
+            const card = btn.closest('.st-seal-card');
+            if (!list || !card) return;
+            if (list.querySelectorAll('.st-seal-card').length <= 1) return;
+            card.remove();
+            renumberSealCards();
+        }
+        renumberSealCards();
+
         /* ====== 申請人：可搜尋下拉（人名 / 工號） ====== */
         // 「是否緊急」勾選後，於下方顯示必填「緊急原因」欄位（適用所有含此 checkbox 的單子）
         (function setupUrgentReason() {
@@ -6506,7 +6554,7 @@
                 ['資產識別', [['資產編號', no], ['型號', 'MDL-' + (h * 7 % 9999)], ['序列號', 'SN' + (1000000 + h * 13)], ['歷史資產編號', '-'], ['資產名稱', pick(['MacBook Pro 14', 'iPhone 15', 'Dell U2723', 'Cisco Switch'])], ['規格', '標準規格'], ['數量', '1']]],
                 ['採購 / 財務', [['購買日期', '2024-0' + (h % 9 + 1) + '-15'], ['幣種', 'CNY'], ['價格', '¥ ' + money(price)], ['殘值', '¥ ' + money(Math.round(price * 0.3))], ['收據號碼', 'RC-' + no.slice(-6)], ['文件編號', 'DOC-' + no.slice(-4)]]],
                 ['使用 / 負責', [['使用人', 'Nick（100258）'], ['負責人', 'James']]],
-                ['關聯單據', [['物品購買申請號(PU單)', 'PU-THQ-00' + (h % 90 + 10)], ['請款單號(A單/B單)', 'B-THQ-00' + (h % 90 + 10)], ['報銷單號(C單)', 'C-THQ-00' + (h % 90 + 10)], ['維修記錄(維修單號)', '-']]],
+                ['關聯單據', [['物品購買申請號(PU單)', 'PU-THQ-00' + (h % 90 + 10)], ['請款單號(AB單)', 'B-THQ-00' + (h % 90 + 10)], ['維修記錄(維修單號)', '-']]],
                 ['費用歸屬', [['原采購單位(原費用項目)', 'GT / RD'], ['現資產所有權單位(現費用項目)', 'GT / RD']]]
             ];
             const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');
