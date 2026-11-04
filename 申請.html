@@ -417,8 +417,9 @@
                                 <div class="col-span-2"><label class="block mb-1.5 text-[13px] text-gray-700">文件編號</label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none bg-[#e9ecef] text-gray-500 cursor-not-allowed" value="自動生成" disabled></div>
                                 <div><label class="block mb-1.5 text-[13px] text-gray-700">申請日期</label><div class="border border-gray-300 rounded px-3 py-1.5 bg-white flex items-center"><i data-lucide="calendar" class="w-4 h-4 text-gray-400"></i><input type="text" class="w-full ml-2 text-[13px] outline-none" disabled></div></div>
                                 <div><label class="block mb-1 text-[13px] text-gray-700">主旨</label><input type="text" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"></div>
-                                <div><label class="block mb-1 text-[13px] text-gray-700">費用類型 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option value="">請選擇</option><option>一般费用</option><option>人力成本及猎头费</option><option>佣金返点</option><option>其他壞帳審批</option><option>區域備用金（僅限資金部使用）</option><option>员工福利及團建費</option><option>子表單B（申請費用）</option><option>差旅報銷線</option><option>應收壞帳</option><option>私帳</option><option>私帳項目審批線</option><option>績效審批線</option></select></div>
-                                <div class="col-start-1"><label class="block mb-1 text-[13px] text-gray-700">使用人 <span class="text-red-500">*</span></label><div class="relative applicant-combo" id="b-applicant-combo"><input type="text" autocomplete="off" placeholder="搜尋人名 / 工號" class="applicant-input w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><div class="applicant-list hidden absolute z-30 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto text-[13px]"></div></div></div>
+                                <div><label class="block mb-1 text-[13px] text-gray-700">費用類型 <span class="text-red-500">*</span></label><select id="b-expense-type" onchange="bOnExpenseTypeChange()" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option value="">請選擇</option><option>一般费用</option><option>人力成本及猎头费</option><option>佣金返点</option><option>其他壞帳審批</option><option>區域備用金（僅限資金部使用）</option><option>员工福利及團建費</option><option>子表單B（申請費用）</option><option>差旅報銷線</option><option>應收壞帳</option><option>私帳</option><option>私帳項目審批線</option><option>績效審批線</option></select></div>
+                                <div class="col-start-1"><label class="block mb-1 text-[13px] text-gray-700">審批流程 <span class="text-red-500">*</span></label><select id="b-approval-flow" disabled class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none disabled:bg-[#e9ecef] disabled:text-gray-500 disabled:cursor-not-allowed"><option value="">請先選擇費用類型</option></select></div>
+                                <div><label class="block mb-1 text-[13px] text-gray-700">使用人 <span class="text-red-500">*</span></label><div class="relative applicant-combo" id="b-applicant-combo"><input type="text" autocomplete="off" placeholder="搜尋人名 / 工號" class="applicant-input w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><div class="applicant-list hidden absolute z-30 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto text-[13px]"></div></div></div>
                                 <div><label class="block mb-1 text-[13px] text-gray-700">區域 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option>請選擇</option></select></div>
                                 <div><label class="block mb-1 text-[13px] text-gray-700">部門 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option>請選擇</option></select></div>
                                 <div><label class="block mb-1 text-[13px] text-gray-700">組別 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] focus:border-blue-500 outline-none"><option>請選擇</option></select></div>
@@ -6141,6 +6142,25 @@
             renumberSealCards();
         }
         renumberSealCards();
+
+
+        /* ====== 費用申請單(B)：「審批流程」選項依「費用類型」連動 ======
+           每種費用類型對應兩條流程：原流程(B) 與 PUB 流程(PUB) */
+        function bOnExpenseTypeChange() {
+            const typeEl = document.getElementById('b-expense-type');
+            const flow = document.getElementById('b-approval-flow');
+            if (!typeEl || !flow) return;
+            const type = typeEl.value;
+            if (!type) {
+                flow.innerHTML = '<option value="">請先選擇費用類型</option>';
+                flow.disabled = true;
+                return;
+            }
+            flow.disabled = false;
+            flow.innerHTML = '<option value="">請選擇</option>'
+                + ['B', 'PUB'].map(sfx => `<option>${type}(${sfx})</option>`).join('');
+        }
+        bOnExpenseTypeChange();
 
         /* ====== 申請人：可搜尋下拉（人名 / 工號） ====== */
         // 「是否緊急」勾選後，於下方顯示必填「緊急原因」欄位（適用所有含此 checkbox 的單子）
