@@ -399,8 +399,8 @@
                             <div class="min-w-0">
                                 <h4 class="font-bold text-slate-800 text-sm mb-1.5">Mobile / WhatsApp</h4>
                                 <div class="space-y-1">
-                                    <div class="flex items-center gap-2 text-sm"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span><span class="font-medium text-slate-700 font-mono">「T2」601114372701</span><span class="text-xs text-slate-400">（立即刪除）</span></div>
-                                    <div class="flex items-center gap-2 text-sm"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span><span class="font-medium text-slate-700 font-mono">「T1」0912-345-678</span><span class="text-xs text-slate-400">（資料轉移）</span></div>
+                                    <div class="flex items-center gap-2 text-sm"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span><span class="font-medium text-slate-700 font-mono">「T2」601114372701</span><span class="text-xs text-slate-400">（簽核後刪除）</span></div>
+                                    <div class="flex items-center gap-2 text-sm"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span><span class="font-medium text-slate-700 font-mono">「T1」0912-345-678</span><span class="text-xs text-slate-400">（移轉後刪除）</span></div>
                                     <div class="flex items-center gap-2 text-sm"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span><span class="font-medium text-slate-700 font-mono">「J」81-90-1234-5678</span></div>
                                     <div class="flex items-center gap-2 text-sm"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span><span class="font-medium text-slate-700 font-mono">「T2」602233445566</span></div>
                                 </div>
@@ -996,12 +996,13 @@
                 cell.innerHTML = OFFICE_FIELDS.includes(row.dataset.field) ? officeSelectHtml() : '';
             } else if (v === 'del') {
                 cell.innerHTML = '<select onchange="onAccDelMethod(this)" class="w-full border border-rose-300 rounded-md px-2 py-1.5 text-sm bg-rose-50 text-rose-700 cursor-pointer">' +
-                    '<option value="immediate">立即刪除</option><option value="transfer">資料轉移</option><option value="hold">暫時保留</option>' +
+                    '<option value="immediate">簽核後刪除</option><option value="transfer">移轉後刪除</option><option value="hold">暫時保留</option>' +
                     '</select>' +
                     '<div class="js-acc-hold-date mt-1.5 hidden">' +
                     '<label class="block text-[11px] text-gray-500 mb-1">保留至</label>' +
                     '<input type="date" onclick="this.showPicker && this.showPicker()" class="w-full border border-gray-300 rounded-md px-2 py-1.5 text-sm cursor-pointer outline-none focus:border-primary">' +
-                    '</div>';
+                    '</div>' +
+                    transferComboHtml();
             } else {
                 cell.innerHTML = '';
             }
@@ -1013,13 +1014,87 @@
             const row = cb.closest('tr');
             if (row) { row.classList.toggle('bg-emerald-50', cb.checked); row.classList.toggle('bg-gray-50/40', !cb.checked); }
         }
-        // 刪除方式選「暫時保留」時，顯示日期選擇（保留至）
+        // 刪除方式連動：「暫時保留」→ 顯示保留日期；「移轉後刪除」→ 顯示轉移對象
         function onAccDelMethod(sel) {
             const detail = sel.closest('.js-acc-detail');
-            const wrap = detail ? detail.querySelector('.js-acc-hold-date') : null;
-            if (!wrap) return;
-            wrap.classList.toggle('hidden', sel.value !== 'hold');
+            if (!detail) return;
+            const hold = detail.querySelector('.js-acc-hold-date');
+            if (hold) hold.classList.toggle('hidden', sel.value !== 'hold');
+            const xfer = detail.querySelector('.js-acc-transfer');
+            if (xfer) {
+                const show = sel.value === 'transfer';
+                xfer.classList.toggle('hidden', !show);
+                if (!show) {
+                    const input = xfer.querySelector('.js-xfer-input');
+                    const list = xfer.querySelector('.js-xfer-list');
+                    if (input) input.value = '';
+                    if (list) list.classList.add('hidden');
+                }
+            }
         }
+
+        /* ===== 移轉後刪除：轉移對象（下拉 + 可輸入文字篩選） ===== */
+        const XFER_PEOPLE = [
+            { name: 'Oliver', id: '100962' }, { name: 'James', id: '101517' },
+            { name: 'Nick', id: '100064' }, { name: 'Dev', id: '101366' },
+            { name: 'Stella', id: '100120' }, { name: 'Cora', id: '101081' },
+            { name: 'Henry', id: '100016' }, { name: 'Lucas', id: '100324' },
+            { name: 'Arthur', id: '101023' }, { name: 'Daniel', id: '100052' },
+            { name: 'William', id: '101372' }, { name: 'Thomas', id: '100344' },
+            { name: 'Emma', id: '101002' }, { name: 'Samuel', id: '101312' }
+        ];
+        const xferEsc = (v) => String(v == null ? '' : v)
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        // 清單以常規流呈現（表格外層有 overflow-x-auto，浮層會被裁切）
+        function transferComboHtml() {
+            return '<div class="js-acc-transfer mt-1.5 hidden">' +
+                '<label class="block text-[11px] text-gray-500 mb-1">轉移對象 <span class="text-rose-500">*</span></label>' +
+                '<div class="js-xfer-combo">' +
+                    '<input type="text" autocomplete="off" placeholder="搜尋姓名 / 工號" class="js-xfer-input w-full border border-gray-300 rounded-md px-2 py-1.5 text-sm outline-none focus:border-primary">' +
+                    '<div class="js-xfer-list hidden mt-1 bg-white border border-gray-200 rounded-md shadow-sm max-h-40 overflow-y-auto text-sm"></div>' +
+                '</div></div>';
+        }
+        function xferRender(input, kw) {
+            const combo = input.closest('.js-xfer-combo');
+            const list = combo ? combo.querySelector('.js-xfer-list') : null;
+            if (!list) return;
+            const k = (kw || '').trim().toLowerCase();
+            const items = XFER_PEOPLE.filter(p => !k
+                || p.name.toLowerCase().includes(k) || p.id.includes(k));
+            list.innerHTML = items.length
+                ? items.map(p => '<div class="px-2.5 py-1.5 hover:bg-blue-50 cursor-pointer" data-val="'
+                    + xferEsc(p.name) + '（' + p.id + '）">' + xferEsc(p.name)
+                    + '<span class="text-gray-400">（' + p.id + '）</span></div>').join('')
+                : '<div class="px-2.5 py-1.5 text-gray-400">查無符合的人員</div>';
+            list.classList.remove('hidden');
+        }
+        // 事件委派：各列的轉移對象欄位為動態產生，統一於 document 綁定
+        document.addEventListener('focusin', (e) => {
+            const input = e.target && e.target.closest ? e.target.closest('.js-xfer-input') : null;
+            if (input) xferRender(input, input.value);
+        });
+        document.addEventListener('input', (e) => {
+            const input = e.target && e.target.closest ? e.target.closest('.js-xfer-input') : null;
+            if (input) xferRender(input, input.value);
+        });
+        document.addEventListener('mousedown', (e) => {
+            if (!e.target || !e.target.closest) return;
+            const opt = e.target.closest('.js-xfer-list [data-val]');
+            if (opt) {
+                const combo = opt.closest('.js-xfer-combo');
+                const input = combo ? combo.querySelector('.js-xfer-input') : null;
+                if (input) input.value = opt.getAttribute('data-val');
+                const list = opt.closest('.js-xfer-list');
+                if (list) list.classList.add('hidden');
+                e.preventDefault();   // 避免 input 失焦後又被 focusin 重新展開
+                return;
+            }
+            // 點擊元件外部 → 收起清單
+            document.querySelectorAll('.js-xfer-list').forEach(l => {
+                const combo = l.closest('.js-xfer-combo');
+                if (!combo || !combo.contains(e.target)) l.classList.add('hidden');
+            });
+        });
         function onAccAttach(input) {
             const td = input.closest('td');
             const nameEl = td ? td.querySelector('.js-acc-file') : null;
