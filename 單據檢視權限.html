@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>單據檢視權限</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4A90E2',
+                        'primary-light': '#EAF2FC',
+                        background: '#F8F9FB',
+                        card: '#FFFFFF',
+                        text: { main: '#1F2937', muted: '#6B7280', light: '#9CA3AF' }
+                    },
+                    fontFamily: {
+                        sans: ['"Inter"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'card': '0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03)',
+                        'modal': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: theme('colors.background'); font-family: theme('fontFamily.sans'); }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+    </style>
+    <link rel="stylesheet" href="shared-ui.css">
+</head>
+<body class="ui-page text-text-main antialiased relative">
+
+    <div class="relative mx-auto w-full space-y-6">
+
+        <header class="ui-page-header">
+            <h1 class="ui-page-title">單據檢視權限</h1>
+        </header>
+
+        <section class="ui-card flex flex-col p-4 sm:p-6 space-y-4">
+
+            <!-- 工具列 -->
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                <div class="flex items-center gap-2">
+                    <div class="ui-search w-full sm:w-96">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="search-input" oninput="render()" placeholder="搜尋姓名 / 工號..." class="ui-input ui-search-input">
+                    </div>
+                    <button onclick="render()" class="ui-btn ui-btn-primary ui-btn-sm"><i class="fa-solid fa-magnifying-glass"></i> 查詢</button>
+                </div>
+                <button onclick="openCreate()" class="ui-btn ui-btn-primary w-full sm:w-auto"><i class="fa-solid fa-plus"></i> 新增</button>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <h2 class="text-lg font-bold text-gray-900 whitespace-nowrap">單據檢視權限列表</h2>
+                <span id="count-badge" class="bg-blue-50 text-primary text-xs px-2.5 py-1 rounded-md font-bold">0 筆資料</span>
+            </div>
+
+            <div class="overflow-x-auto rounded-lg border border-gray-100 custom-scrollbar">
+                <table class="ui-table">
+                    <thead>
+                        <tr>
+                            <th scope="col" class="text-left w-40">員工名字</th>
+                            <th scope="col" class="text-left w-28">工號</th>
+                            <th scope="col" class="text-left min-w-[420px]">無條件檢視單據</th>
+                            <th scope="col" class="text-center w-48">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="perm-tbody"><!-- 動態由 JavaScript 渲染 --></tbody>
+                </table>
+            </div>
+
+            <div id="no-data-view" class="hidden py-16 text-center space-y-3">
+                <div class="inline-flex p-4 bg-gray-50 text-gray-400 rounded-full"><i class="fa-solid fa-file-circle-check text-3xl"></i></div>
+                <p class="text-sm text-text-muted font-medium">尚未設定單據檢視權限，請點「新增」</p>
+            </div>
+
+            <div class="flex items-center justify-between pt-4 mt-auto border-t border-gray-100">
+                <span id="pagination-info" class="text-sm text-gray-500">顯示第 0 到 0 筆，共 0 筆記錄</span>
+                <div class="flex gap-1">
+                    <button class="ui-page-btn"><i class="fa-solid fa-chevron-left text-xs"></i></button>
+                    <button class="ui-page-btn is-active">1</button>
+                    <button class="ui-page-btn"><i class="fa-solid fa-chevron-right text-xs"></i></button>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- ============ 新增 / 編輯 彈窗 ============ -->
+    <div id="edit-modal" class="fixed inset-0 bg-black/40 z-50 flex justify-center items-center hidden p-4">
+        <div class="bg-white rounded-2xl shadow-modal w-full max-w-3xl max-h-[92vh] flex flex-col overflow-hidden">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 flex-shrink-0">
+                <h3 id="modal-title" class="text-base font-bold text-gray-900">新增單據檢視權限</h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="px-6 py-5 space-y-5 overflow-y-auto custom-scrollbar">
+
+                <!-- 員工（可輸入文字篩選的下拉） -->
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">員工 <span class="text-rose-500">*</span><span class="font-normal text-text-light">（可輸入姓名或工號篩選）</span></label>
+                    <div class="js-emp-combo relative">
+                        <input type="text" id="field-emp" autocomplete="off" placeholder="搜尋姓名 / 工號" class="ui-input">
+                        <div id="emp-list" class="js-emp-list hidden absolute z-20 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto text-sm"></div>
+                    </div>
+                    <p class="text-xs text-gray-400 mt-1.5">選定後將帶出該員工的姓名與工號。</p>
+                </div>
+
+                <!-- 無條件檢視單據 -->
+                <div>
+                    <div class="flex items-center justify-between gap-2 mb-2">
+                        <label class="text-xs font-semibold text-text-muted">無條件檢視單據 <span class="text-rose-500">*</span><span class="font-normal text-text-light">（可複選，值為單據代號）</span></label>
+                        <div class="flex items-center gap-2 shrink-0">
+                            <span id="doc-selected" class="text-xs font-bold text-primary">已選 0 / 0</span>
+                            <button type="button" onclick="setAllDocs(true)" class="text-[11px] text-primary border border-blue-200 rounded px-2 py-0.5 hover:bg-blue-50">全選</button>
+                            <button type="button" onclick="setAllDocs(false)" class="text-[11px] text-gray-500 border border-gray-200 rounded px-2 py-0.5 hover:bg-gray-50">清除</button>
+                        </div>
+                    </div>
+                    <div id="doc-groups" class="space-y-2.5 border border-gray-200 rounded-lg p-3 max-h-[46vh] overflow-y-auto custom-scrollbar"></div>
+                    <p class="text-xs text-amber-600 mt-1.5">勾選之單據類型，該員工可不受區域 / 部門 / 簽核關係限制，檢視全部單據。</p>
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-2.5 px-6 py-4 bg-gray-50 border-t border-gray-100 flex-shrink-0">
+                <button onclick="closeModal()" class="ui-btn ui-btn-secondary">取消</button>
+                <button onclick="saveRecord()" class="ui-btn ui-btn-primary">儲存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ 刪除確認彈窗 ============ -->
+    <div id="del-modal" class="fixed inset-0 bg-black/40 z-50 flex justify-center items-center hidden p-4">
+        <div class="bg-white rounded-2xl shadow-modal w-full max-w-md overflow-hidden">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                <h3 class="text-base font-bold text-gray-900">刪除單據檢視權限</h3>
+                <button onclick="closeDelModal()" class="text-gray-400 hover:text-gray-600 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="px-6 py-5 space-y-3">
+                <p class="text-sm text-gray-700">確定要刪除 <span id="del-target" class="font-bold text-gray-900"></span> 的單據檢視權限嗎？</p>
+                <p class="text-xs text-text-muted">刪除後該員工將回復依區域 / 部門 / 簽核關係之一般檢視範圍。</p>
+            </div>
+            <div class="flex justify-end gap-2.5 px-6 py-4 bg-gray-50 border-t border-gray-100">
+                <button onclick="closeDelModal()" class="ui-btn ui-btn-secondary">取消</button>
+                <button onclick="confirmDelete()" class="ui-btn bg-rose-500 text-white border border-rose-500 hover:bg-rose-600"><i class="fa-solid fa-trash-can"></i> 確認刪除</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 提示消息 (Toast) -->
+    <div id="toast" class="fixed bottom-5 right-5 z-[60] flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+        <i id="toast-icon" class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
+        <span id="toast-text" class="text-sm font-medium">操作成功！</span>
+    </div>
+
+    <script>
+        /* ============================================================
+           單據檢視權限
+           設定特定員工對指定單據類型具「無條件檢視」權限：
+           不受區域 / 部門 / 簽核關係限制，可檢視該類型之全部單據。
+           ============================================================ */
+
+        // 單據主檔（代號 / 名稱 / 歸屬分類；對應 申請.html 之表單清單）
+        const DOC_TYPES = [
+            { code: 'PU',    name: '請購單',              cat: '行政' },
+            { code: 'RPU',   name: '週期性請購單',        cat: '行政' },
+            { code: 'APU',   name: '資產請購單',          cat: '行政' },
+            { code: 'AN',    name: '新增資產申請',        cat: '行政' },
+            { code: 'AA',    name: '資產調撥申請',        cat: '行政' },
+            { code: 'AM',    name: '資產維修申請',        cat: '行政' },
+            { code: 'AR',    name: '資產減少申請',        cat: '行政' },
+            { code: 'ST',    name: '用印流程',            cat: '行政' },
+            { code: 'VM',    name: '供應商管理流程',      cat: '行政' },
+            { code: 'CV',    name: 'CCTV調閱',            cat: '行政' },
+            { code: 'SE',    name: '資安軟件豁免',        cat: '行政' },
+            { code: 'EAM',   name: '系統權限異動申請',    cat: '行政' },
+            { code: 'PTA',   name: '差旅申請單',          cat: '行政' },
+            { code: 'B',     name: '費用申請單',          cat: '財務' },
+            { code: 'C',     name: '費用報銷單',          cat: '財務' },
+            { code: 'PTAB',  name: '差旅費用申請單',      cat: '財務' },
+            { code: 'PTAC',  name: '差旅費用報銷單',      cat: '財務' },
+            { code: 'AB',    name: '資產費用申請單',      cat: '財務' },
+            { code: 'AC',    name: '資產費用報銷單',      cat: '財務' },
+            { code: 'RA',    name: '招聘需求單',          cat: '人事' },
+            { code: 'EA',    name: '錄用審批單',          cat: '人事' },
+            { code: 'SPCA',  name: '薪資、職級異動單',    cat: '人事' },
+            { code: 'TA',    name: '員工一般人事異動',    cat: '人事' },
+            { code: 'NR',    name: '公告發布申請',        cat: '人事' },
+            { code: 'PMO',   name: 'PMO項目立項申請',     cat: 'PMO' },
+            { code: 'PMOA',  name: 'PMO項目變更',         cat: 'PMO' },
+            { code: 'PMOS',  name: 'PMO項目終止',         cat: 'PMO' },
+            { code: 'BU',    name: '商務公告',            cat: '事業部' },
+            { code: 'IC',    name: '合同審批單',          cat: '合同' }
+        ];
+        const DOC_CATS = ['行政', '財務', '人事', 'PMO', '事業部', '合同'];
+        const DOC_NAME = Object.fromEntries(DOC_TYPES.map(d => [d.code, d.name]));
+
+        // 員工主檔（供選擇；正式版改由後端提供）
+        const EMPLOYEES = [
+            { id: '100258', name: 'Admin' },   { id: '100962', name: 'Oliver' },
+            { id: '101517', name: 'James' },   { id: '100064', name: 'Nick' },
+            { id: '101366', name: 'Dev' },     { id: '100120', name: 'Stella' },
+            { id: '101081', name: 'Cora' },    { id: '100016', name: 'Henry' },
+            { id: '100324', name: 'Lucas' },   { id: '101023', name: 'Arthur' },
+            { id: '100052', name: 'Daniel' },  { id: '101372', name: 'William' },
+            { id: '100344', name: 'Thomas' },  { id: '101002', name: 'Emma' },
+            { id: '101312', name: 'Samuel' },  { id: '100423', name: 'Henry Lin' }
+        ];
+
+        // 權限資料（示意）
+        let permList = [
+            { id: 1, empId: '101023', empName: 'Arthur', docs: ['PU', 'RPU', 'APU', 'B', 'C', 'PTAB', 'PTAC', 'IC'] },
+            { id: 2, empId: '101002', empName: 'Emma',   docs: ['B', 'C', 'AB', 'AC', 'IC'] },
+            { id: 3, empId: '100052', empName: 'Daniel', docs: ['B', 'C', 'PTAB', 'PTAC', 'AB', 'AC'] },
+            { id: 4, empId: '100016', empName: 'Henry',  docs: ['RA', 'EA', 'SPCA', 'TA', 'NR'] },
+            { id: 5, empId: '101366', empName: 'Dev',    docs: ['PMO', 'PMOA', 'PMOS'] }
+        ];
+
+        let editId = null;     // null = 新增
+        let delId = null;
+        let draftDocs = new Set();
+
+        const esc = (v) => String(v == null ? '' : v)
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+        /* ============ 列表 ============ */
+        function render() {
+            const kw = (document.getElementById('search-input').value || '').trim().toLowerCase();
+            const rows = permList.filter(r => !kw
+                || r.empName.toLowerCase().includes(kw)
+                || r.empId.includes(kw)
+                || r.docs.some(c => c.toLowerCase().includes(kw) || (DOC_NAME[c] || '').toLowerCase().includes(kw)));
+
+            const tbody = document.getElementById('perm-tbody');
+            const noData = document.getElementById('no-data-view');
+
+            if (!rows.length) {
+                tbody.innerHTML = '';
+                tbody.parentElement.classList.add('hidden');
+                noData.classList.remove('hidden');
+                noData.querySelector('p').innerText = permList.length
+                    ? '查無符合條件的資料'
+                    : '尚未設定單據檢視權限，請點「新增」';
+                document.getElementById('count-badge').innerText = '0 筆資料';
+                document.getElementById('pagination-info').innerText = '顯示第 0 到 0 筆，共 0 筆記錄';
+                return;
+            }
+            tbody.parentElement.classList.remove('hidden');
+            noData.classList.add('hidden');
+
+            tbody.innerHTML = rows.map(r => {
+                const badges = r.docs.length
+                    ? r.docs.map(c => `<span class="ui-badge bg-blue-50 text-primary font-mono" title="${esc(DOC_NAME[c] || '')}">${esc(c)}</span>`).join(' ')
+                    : '<span class="text-gray-300">—</span>';
+                return `<tr class="hover:bg-gray-50/70 transition-colors">
+                    <td class="text-left font-medium text-gray-800">${esc(r.empName)}</td>
+                    <td class="text-left font-mono text-gray-600">${esc(r.empId)}</td>
+                    <td class="text-left">
+                        <div class="flex flex-wrap items-center gap-1">${badges}</div>
+                    </td>
+                    <td class="text-center">
+                        <div class="flex items-center justify-center gap-2">
+                            <button onclick="openEdit(${r.id})" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-pen-to-square"></i> 編輯</button>
+                            <button onclick="openDelete(${r.id})" class="ui-btn ui-btn-sm text-rose-600 border border-rose-200 hover:bg-rose-50"><i class="fa-solid fa-trash-can"></i> 刪除</button>
+                        </div>
+                    </td>
+                </tr>`;
+            }).join('');
+
+            document.getElementById('count-badge').innerText = `${rows.length} 筆資料`;
+            document.getElementById('pagination-info').innerText = `顯示第 1 到 ${rows.length} 筆，共 ${rows.length} 筆記錄`;
+        }
+
+        /* ============ 單據勾選區 ============ */
+        function renderDocGroups() {
+            const box = document.getElementById('doc-groups');
+            box.innerHTML = DOC_CATS.map(cat => {
+                const items = DOC_TYPES.filter(d => d.cat === cat);
+                if (!items.length) return '';
+                return `<div class="rounded-md border border-gray-100 bg-gray-50/60 px-3 py-2">
+                    <div class="text-[11px] font-bold text-primary mb-2 flex items-center gap-1.5">
+                        <span class="inline-block w-1.5 h-1.5 rounded-full bg-primary"></span>${esc(cat)}
+                        <button type="button" onclick="setCatDocs('${esc(cat)}', true)" class="ml-1 font-normal text-[10px] text-primary/70 hover:underline">全選</button>
+                        <button type="button" onclick="setCatDocs('${esc(cat)}', false)" class="font-normal text-[10px] text-gray-400 hover:underline">清除</button>
+                    </div>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-2">
+                        ${items.map(d => `<label class="inline-flex items-center gap-1.5 text-sm text-gray-700 cursor-pointer">
+                            <input type="checkbox" class="js-doc-chk w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
+                                value="${esc(d.code)}" data-cat="${esc(cat)}" ${draftDocs.has(d.code) ? 'checked' : ''} onchange="onDocToggle(this)">
+                            <span class="font-mono text-xs font-bold text-gray-800">${esc(d.code)}</span>
+                            <span class="text-xs text-text-muted truncate">${esc(d.name)}</span>
+                        </label>`).join('')}
+                    </div>
+                </div>`;
+            }).join('');
+            refreshDocCount();
+        }
+        function onDocToggle(cb) {
+            if (cb.checked) draftDocs.add(cb.value);
+            else draftDocs.delete(cb.value);
+            refreshDocCount();
+        }
+        function refreshDocCount() {
+            document.getElementById('doc-selected').innerText = `已選 ${draftDocs.size} / ${DOC_TYPES.length}`;
+        }
+        function setAllDocs(on) {
+            draftDocs = on ? new Set(DOC_TYPES.map(d => d.code)) : new Set();
+            document.querySelectorAll('#doc-groups .js-doc-chk').forEach(cb => { cb.checked = on; });
+            refreshDocCount();
+        }
+        function setCatDocs(cat, on) {
+            DOC_TYPES.filter(d => d.cat === cat).forEach(d => { on ? draftDocs.add(d.code) : draftDocs.delete(d.code); });
+            document.querySelectorAll(`#doc-groups .js-doc-chk[data-cat="${cat}"]`).forEach(cb => { cb.checked = on; });
+            refreshDocCount();
+        }
+
+        /* ============ 員工可篩選下拉 ============ */
+        function renderEmpList(kw) {
+            const list = document.getElementById('emp-list');
+            const k = (kw || '').trim().toLowerCase();
+            const items = EMPLOYEES.filter(e => !k || e.name.toLowerCase().includes(k) || e.id.includes(k));
+            list.innerHTML = items.length
+                ? items.map(e => `<div class="px-3 py-2 hover:bg-blue-50 cursor-pointer" data-id="${esc(e.id)}" data-name="${esc(e.name)}">${esc(e.name)}<span class="text-gray-400">（${esc(e.id)}）</span></div>`).join('')
+                : '<div class="px-3 py-2 text-gray-400">查無符合的人員</div>';
+            list.classList.remove('hidden');
+        }
+        (function setupEmpCombo() {
+            const input = document.getElementById('field-emp');
+            const list = document.getElementById('emp-list');
+            input.addEventListener('focus', () => renderEmpList(input.value));
+            input.addEventListener('input', () => { input.dataset.empId = ''; renderEmpList(input.value); });
+            list.addEventListener('mousedown', (e) => {
+                const opt = e.target.closest('[data-id]');
+                if (!opt) return;
+                e.preventDefault();
+                input.value = `${opt.dataset.name}（${opt.dataset.id}）`;
+                input.dataset.empId = opt.dataset.id;
+                input.dataset.empName = opt.dataset.name;
+                list.classList.add('hidden');
+            });
+            document.addEventListener('mousedown', (e) => {
+                if (!e.target.closest || !e.target.closest('.js-emp-combo')) list.classList.add('hidden');
+            });
+        })();
+
+        /* ============ 新增 / 編輯 ============ */
+        function openCreate() {
+            editId = null;
+            draftDocs = new Set();
+            document.getElementById('modal-title').innerText = '新增單據檢視權限';
+            const input = document.getElementById('field-emp');
+            input.value = '';
+            input.dataset.empId = '';
+            input.dataset.empName = '';
+            input.readOnly = false;
+            input.classList.remove('bg-gray-50', 'text-gray-600', 'cursor-default');
+            renderDocGroups();
+            document.getElementById('emp-list').classList.add('hidden');
+            document.getElementById('edit-modal').classList.remove('hidden');
+        }
+        function openEdit(id) {
+            const rec = permList.find(r => r.id === id);
+            if (!rec) return;
+            editId = id;
+            draftDocs = new Set(rec.docs);
+            document.getElementById('modal-title').innerText = '編輯單據檢視權限';
+            const input = document.getElementById('field-emp');
+            input.value = `${rec.empName}（${rec.empId}）`;
+            input.dataset.empId = rec.empId;
+            input.dataset.empName = rec.empName;
+            // 編輯時不可更換員工（如需換人請刪除後重新新增）
+            input.readOnly = true;
+            input.classList.add('bg-gray-50', 'text-gray-600', 'cursor-default');
+            renderDocGroups();
+            document.getElementById('emp-list').classList.add('hidden');
+            document.getElementById('edit-modal').classList.remove('hidden');
+        }
+        function closeModal() { document.getElementById('edit-modal').classList.add('hidden'); }
+
+        function saveRecord() {
+            const input = document.getElementById('field-emp');
+            const empId = input.dataset.empId || '';
+            const empName = input.dataset.empName || '';
+            if (!empId) { showToast('error', '請從下拉選擇員工'); input.focus(); return; }
+            if (!draftDocs.size) { showToast('error', '請至少勾選一種單據'); return; }
+            // 同一員工僅能有一筆設定
+            const dup = permList.some(r => r.empId === empId && r.id !== editId);
+            if (dup) { showToast('error', `「${empName}（${empId}）」已有設定，請直接編輯該筆`); return; }
+
+            // 依主檔順序輸出，顯示順序一致
+            const docs = DOC_TYPES.filter(d => draftDocs.has(d.code)).map(d => d.code);
+
+            if (editId === null) {
+                const nextId = permList.length ? Math.max(...permList.map(r => r.id)) + 1 : 1;
+                permList.push({ id: nextId, empId, empName, docs });
+                showToast('success', `已新增「${empName}（${empId}）」的單據檢視權限`);
+            } else {
+                const rec = permList.find(r => r.id === editId);
+                if (rec) { rec.docs = docs; }
+                showToast('success', `已更新「${empName}（${empId}）」的單據檢視權限`);
+            }
+            closeModal();
+            render();
+        }
+
+        /* ============ 刪除 ============ */
+        function openDelete(id) {
+            const rec = permList.find(r => r.id === id);
+            if (!rec) return;
+            delId = id;
+            document.getElementById('del-target').innerText = `${rec.empName}（${rec.empId}）`;
+            document.getElementById('del-modal').classList.remove('hidden');
+        }
+        function closeDelModal() { document.getElementById('del-modal').classList.add('hidden'); delId = null; }
+        function confirmDelete() {
+            const rec = permList.find(r => r.id === delId);
+            if (!rec) { closeDelModal(); return; }
+            const label = `${rec.empName}（${rec.empId}）`;
+            permList = permList.filter(r => r.id !== delId);
+            closeDelModal();
+            render();
+            showToast('info', `已刪除「${label}」的單據檢視權限`);
+        }
+
+        /* ============ Toast ============ */
+        function showToast(type, text) {
+            const toast = document.getElementById('toast');
+            const icon = document.getElementById('toast-icon');
+            document.getElementById('toast-text').innerText = text;
+            const base = 'fixed bottom-5 right-5 z-[60] flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform transition-all duration-300 border ';
+            if (type === 'error') { toast.className = base + 'border-rose-500/20'; icon.className = 'fa-solid fa-circle-xmark text-rose-400 text-base'; }
+            else if (type === 'info') { toast.className = base + 'border-blue-500/20'; icon.className = 'fa-solid fa-circle-info text-blue-400 text-base'; }
+            else { toast.className = base + 'border-emerald-500/20'; icon.className = 'fa-solid fa-circle-check text-emerald-400 text-base'; }
+            toast.style.transform = 'translateY(0)';
+            toast.style.opacity = '1';
+            clearTimeout(window.__toastTimer);
+            window.__toastTimer = setTimeout(() => {
+                toast.style.transform = 'translateY(5rem)';
+                toast.style.opacity = '0';
+            }, 2600);
+        }
+
+        // 點擊彈窗外圍關閉
+        document.getElementById('edit-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
+        document.getElementById('del-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeDelModal(); });
+
+        // 初始化
+        render();
+    </script>
+</body>
+</html>
