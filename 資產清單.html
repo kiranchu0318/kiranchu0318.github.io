@@ -170,15 +170,18 @@
                     <thead>
                         <tr>
                             <th scope="col" class="text-left">資產編號</th>
-                            <th scope="col">類型</th>
                             <th scope="col" class="text-left">資產名稱</th>
+                            <th scope="col">資產類型</th>
                             <th scope="col" class="text-left">序列號</th>
-                            <th scope="col">區域</th>
-                            <th scope="col">項目</th>
-                            <th scope="col">部門</th>
+                            <th scope="col">管理人</th>
                             <th scope="col">使用人</th>
-                            <th scope="col">負責人</th>
-                            <th scope="col">狀態</th>
+                            <th scope="col">使用人區域</th>
+                            <th scope="col">使用人部門</th>
+                            <th scope="col">使用人組別</th>
+                            <th scope="col">資產狀態</th>
+                            <th scope="col">調撥日期</th>
+                            <th scope="col">領用日期</th>
+                            <th scope="col">領用狀態</th>
                             <th scope="col" class="text-right">殘值</th>
                             <th scope="col">類別</th>
                         </tr>
@@ -356,8 +359,27 @@
             const demo = ['使用中', '项目闲置', '行政闲置', '项目保管', '行政保管', '外借', '待出售', '已出售', '已赔付', '已销毁', '使用中', '项目保管'];
             const regions = ['T1', 'T2', 'U', 'J', 'S', 'T1', 'T2', 'U', 'J', 'S', 'T1', 'T2'];
             const cats = ['资产', '列管品', '软资产', '暂无类别', '资产', '列管品', '软资产', '暂无类别', '资产', '列管品', '软资产', '暂无类别'];
-            listDb.forEach((r, i) => { r.status = demo[i % demo.length]; r.region = regions[i % regions.length]; r.category = cats[i % cats.length]; });
+            // 使用人組別（依部門給定合理組別）
+            const teamByDept = { RD: ['API', 'MIS'], HR: ['GA1', 'GA2'], FIN: ['GA1'], IA1: ['IA-1'], MKT: ['MKT-1'] };
+            listDb.forEach((r, i) => {
+                r.status = demo[i % demo.length];
+                r.region = regions[i % regions.length];
+                r.category = cats[i % cats.length];
+                const pool = teamByDept[r.dept] || ['—'];
+                r.team = pool[i % pool.length];
+                // 調撥日期：一定有值；領用日期：僅已領用者有值
+                const mm = String((i % 12) + 1).padStart(2, '0');
+                const dd = String((i * 3) % 27 + 1).padStart(2, '0');
+                r.transferDate = `2024-${mm}-${dd}`;
+                r.claimed = i % 3 !== 2;                       // 約三分之二已領用
+                r.claimDate = r.claimed ? `2024-${mm}-${String(((i * 3) % 27) + 2).padStart(2, '0')}` : '';
+            });
         })();
+
+        // 領用狀態徽章：已領用（綠）／未領用（灰）
+        const claimBadge = (claimed) => claimed
+            ? '<span class="ui-badge ui-badge-success">已領用</span>'
+            : '<span class="ui-badge bg-gray-100 text-gray-500">未領用</span>';
 
         // 類別徽章配色
         const CATEGORY_STYLE = {
@@ -754,15 +776,18 @@
                 tr.className = 'hover:bg-gray-50/70 transition-colors';
                 tr.innerHTML = `
                     <td class="text-left"><button type="button" onclick="openAssetDetail('${r.no}')" class="font-mono font-semibold text-primary hover:underline">${r.no}</button></td>
-                    <td><span class="px-2 py-0.5 bg-blue-50 text-primary rounded text-xs font-semibold">${r.type}</span></td>
                     <td class="text-left font-medium text-gray-800">${r.name}</td>
+                    <td><span class="px-2 py-0.5 bg-blue-50 text-primary rounded text-xs font-semibold">${r.type}</span></td>
                     <td class="text-left font-mono text-gray-500 text-xs">${r.serial}</td>
-                    <td><span class="px-2 py-0.5 bg-teal-50 text-teal-600 rounded text-xs font-semibold">${r.region}</span></td>
-                    <td><span class="px-2 py-0.5 bg-violet-50 text-violet-600 rounded text-xs font-semibold">${r.project}</span></td>
-                    <td><span class="px-2 py-0.5 bg-gray-100 rounded text-xs font-semibold text-gray-700">${r.dept}</span></td>
-                    <td class="text-gray-700">${personCell(r.user, r.userId)}</td>
                     <td class="text-gray-700">${personCell(r.owner)}</td>
+                    <td class="text-gray-700">${personCell(r.user, r.userId)}</td>
+                    <td><span class="px-2 py-0.5 bg-teal-50 text-teal-600 rounded text-xs font-semibold">${r.region}</span></td>
+                    <td><span class="px-2 py-0.5 bg-gray-100 rounded text-xs font-semibold text-gray-700">${r.dept}</span></td>
+                    <td><span class="px-2 py-0.5 bg-violet-50 text-violet-600 rounded text-xs font-semibold">${r.team}</span></td>
                     <td>${statusBadge(r.status)}</td>
+                    <td class="text-gray-600">${r.transferDate || '<span class="text-gray-300">—</span>'}</td>
+                    <td class="text-gray-600">${r.claimDate || '<span class="text-gray-300">—</span>'}</td>
+                    <td>${claimBadge(r.claimed)}</td>
                     <td class="text-right font-mono text-gray-700">¥ ${fmt(r.residual)}</td>
                     <td>${categoryBadge(r.category)}</td>
                 `;
