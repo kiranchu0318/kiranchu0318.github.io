@@ -97,7 +97,7 @@
                             <th scope="col">申請日期</th>
                             <th scope="col">加班日期</th>
                             <th scope="col">加班時段</th>
-                            <th scope="col" class="text-center">時數</th>
+                            <th scope="col" class="text-center">加班時數</th>
                             <th scope="col">加班類型</th>
                             <th scope="col">補償方式</th>
                             <th scope="col" class="min-w-[180px]">事由</th>
@@ -129,16 +129,20 @@
     <div id="ot-modal" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true">
         <div class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm transition-opacity" onclick="closeModal()"></div>
         <div class="fixed inset-0 z-10 overflow-y-auto flex items-center justify-center p-4">
-            <div id="ot-panel" class="relative bg-white rounded-xl shadow-modal w-full max-w-2xl transform transition-all modal-enter flex flex-col my-8 max-h-[90vh]">
+            <div id="ot-panel" class="relative bg-white rounded-xl shadow-modal w-full max-w-[63rem] transform transition-all modal-enter flex flex-col my-8 max-h-[90vh]">
                 <div class="px-6 py-4 flex justify-between items-center border-b border-gray-100 shrink-0">
                     <h3 class="font-bold text-lg text-gray-900">新增加班申請</h3>
                     <button onclick="closeModal()" class="w-8 h-8 flex items-center justify-center bg-primary text-white rounded-md hover:bg-opacity-95 transition-colors shadow-sm"><i class="fa-solid fa-xmark text-sm"></i></button>
                 </div>
                 <div class="p-6 space-y-5 overflow-y-auto">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                        <div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                        <div class="sm:col-span-2">
                             <label class="block text-sm font-medium text-gray-700 mb-1.5">加班日期 <span class="text-red-500">*</span></label>
-                            <input type="date" id="m-date" class="ui-input">
+                            <div class="flex items-center gap-2">
+                                <input type="date" id="m-date-start" onchange="calcHours()" class="ui-input flex-1 min-w-0">
+                                <span class="text-gray-400 text-sm shrink-0">至</span>
+                                <input type="date" id="m-date-end" onchange="calcHours()" class="ui-input flex-1 min-w-0">
+                            </div>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1.5">加班類型 <span class="text-red-500">*</span></label>
@@ -157,22 +161,48 @@
                             <input type="time" id="m-end" onchange="calcHours()" class="ui-input">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1.5">加班時數</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">加班時數 <span class="font-normal text-gray-400 text-xs">（結束時間 − 起始時間）</span></label>
                             <input type="text" id="m-hours" disabled class="ui-input bg-[#e9ecef] text-gray-500 cursor-not-allowed" value="0 小時">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1.5">補償方式 <span class="text-red-500">*</span></label>
-                            <select id="m-comp" class="ui-select">
-                                <option>加班費</option>
-                                <option>補休</option>
+                            <select id="m-comp" onchange="onCompChange()" class="ui-select">
+                                <option>隔日延遲上班</option>
+                                <option>調休</option>
+                                <option>調休1日</option>
+                                <option>調休2日</option>
                             </select>
+                        </div>
+
+                        <!-- 補償方式＝隔日延遲上班 -->
+                        <div id="m-comp-delay" class="hidden sm:col-span-3">
+                            <div class="rounded-lg border border-blue-100 bg-primary-light/40 p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1.5">原上班時間 <span class="text-red-500">*</span></label>
+                                    <input type="time" id="m-orig-time" value="09:00" onchange="onCompChange()" class="ui-input">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1.5">延遲至 <span class="text-red-500">*</span></label>
+                                    <input type="time" id="m-delay-time" onchange="onCompChange()" class="ui-input">
+                                </div>
+                                <p id="m-delay-hint" class="sm:col-span-2 text-xs text-gray-400">加班次日之上班時間將延後至所填時間。</p>
+                            </div>
+                        </div>
+
+                        <!-- 補償方式＝調休 / 調休1日 / 調休2日 -->
+                        <div id="m-comp-off" class="hidden sm:col-span-3">
+                            <div class="rounded-lg border border-blue-100 bg-primary-light/40 p-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-1.5">調休日期 <span class="text-red-500">*</span></label>
+                                <input type="date" id="m-off-date" class="ui-input sm:max-w-[240px]">
+                                <p id="m-off-hint" class="text-xs text-gray-400 mt-1.5">請指定實際調休之日期。</p>
+                            </div>
                         </div>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">加班事由 <span class="text-red-500">*</span></label>
                         <textarea id="m-reason" rows="3" placeholder="請說明加班原因..." class="ui-input resize-none"></textarea>
                     </div>
-                    <p id="m-error" class="hidden text-xs text-rose-500">請完整填寫加班日期、起訖時間與事由（結束時間須晚於開始時間）。</p>
+                    <p id="m-error" class="hidden text-xs text-rose-500">請完整填寫加班日期起訖、加班時段、補償方式所需欄位與事由（加班時段之結束須晚於起始；延遲至須晚於原上班時間）。</p>
                 </div>
                 <div class="px-6 py-4 flex justify-end gap-3 border-t border-gray-100 bg-gray-50/50 rounded-b-xl shrink-0">
                     <button onclick="closeModal()" class="ui-btn ui-btn-secondary">取消</button>
@@ -203,9 +233,9 @@
                                     <div><label class="block text-gray-700 text-xs mb-1.5 font-medium">文件編號</label><input id="otv-docno" type="text" disabled class="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed font-mono"></div>
                                     <div><label class="block text-gray-700 text-xs mb-1.5 font-medium">申請時間</label><input id="otv-applytime" type="text" disabled class="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed"></div>
                                     <div class="lg:col-start-1"><label class="block text-gray-700 text-xs mb-1.5 font-medium">申請人</label><input id="otv-name" type="text" disabled class="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-sm text-gray-800 cursor-not-allowed"></div>
-                                    <div><label class="block text-gray-700 text-xs mb-1.5 font-medium">工號</label><input id="otv-empno" type="text" disabled class="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed"></div>
-                                    <div><label class="block text-gray-700 text-xs mb-1.5 font-medium">項目</label><input id="otv-project" type="text" disabled class="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed"></div>
+                                    <div><label class="block text-gray-700 text-xs mb-1.5 font-medium">事業部/中心</label><input id="otv-bu" type="text" disabled class="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed"></div>
                                     <div><label class="block text-gray-700 text-xs mb-1.5 font-medium">部門</label><input id="otv-dept" type="text" disabled class="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed"></div>
+                                    <div><label class="block text-gray-700 text-xs mb-1.5 font-medium">組別</label><input id="otv-team" type="text" disabled class="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed"></div>
                                 </div>
                             </div>
                             <!-- 加班資訊 -->
@@ -288,9 +318,9 @@
     <script>
         // 加班紀錄（申請日期 / 加班日期 / 起訖 / 時數 / 類型 / 補償 / 事由 / 狀態）
         let records = [
-            { applyDate: '2026-06-09', date: '2026-06-08', start: '18:30', end: '21:00', hours: 2.5, type: '平日加班', comp: '加班費', reason: '月底系統上線前置驗證與部署。', status: '簽核完成' },
-            { applyDate: '2026-06-12', date: '2026-06-14', start: '09:00', end: '13:00', hours: 4, type: '休息日加班', comp: '補休', reason: '配合客戶週末驗收。', status: '待簽核' },
-            { applyDate: '2026-05-28', date: '2026-05-27', start: '19:00', end: '20:30', hours: 1.5, type: '平日加班', comp: '加班費', reason: '緊急修復線上問題。', status: '駁回' }
+            { applyDate: '2026-06-09', dateStart: '2026-06-08', dateEnd: '2026-06-08', start: '18:30', end: '21:00', hours: 2.5, type: '平日加班', comp: '隔日延遲上班', origTime: '09:00', delayTime: '11:00', offDate: '', reason: '月底系統上線前置驗證與部署。', status: '簽核完成' },
+            { applyDate: '2026-06-12', dateStart: '2026-06-13', dateEnd: '2026-06-14', start: '09:00', end: '13:00', hours: 28, type: '休息日加班', comp: '調休2日', origTime: '', delayTime: '', offDate: '2026-06-22', reason: '配合客戶週末驗收（連續兩日）。', status: '待簽核' },
+            { applyDate: '2026-05-28', dateStart: '2026-05-27', dateEnd: '2026-05-27', start: '19:00', end: '20:30', hours: 1.5, type: '平日加班', comp: '調休', origTime: '', delayTime: '', offDate: '2026-06-03', reason: '緊急修復線上問題。', status: '駁回' }
         ];
 
         function statusBadge(s) {
@@ -301,6 +331,19 @@
             return '<span class="ui-badge ui-badge-gray">' + s + '</span>';
         }
         const fmtHours = h => (Number.isInteger(h) ? h : h.toFixed(1)) + ' 小時';
+        // 加班日期顯示：單日顯示一個日期，跨日顯示「起 ~ 迄」
+        const fmtDateRange = (r) => {
+            const a = r.dateStart || '', b = r.dateEnd || a;
+            if (!a) return '';
+            return (a === b) ? a : `${a} ~ ${b}`;
+        };
+        // 加班時段顯示：日期+時間 ~ 日期+時間
+        const fmtPeriod = (r) => {
+            const ds = r.dateStart || '', de = r.dateEnd || ds;
+            const st = r.start || '', en = r.end || '';
+            if (!ds || !st || !en) return '';
+            return `${ds} ${st} ~ ${de} ${en}`;
+        };
 
         function render() {
             const type = document.getElementById('filter-type').value;
@@ -310,8 +353,9 @@
             const rows = records.map((r, i) => ({ r, i })).filter(({ r }) =>
                 (!type || r.type === type) &&
                 (!status || r.status === status) &&
-                (!start || r.date >= start) &&
-                (!end || r.date <= end));
+                // 日期區間以「加班期間與查詢區間重疊」判斷
+                (!end || (r.dateStart || '') <= end) &&
+                (!start || (r.dateEnd || r.dateStart || '') >= start));
 
             const tbody = document.getElementById('ot-tbody');
             tbody.innerHTML = rows.map(({ r, i }) => {
@@ -321,11 +365,11 @@
                     : '';
                 return '<tr class="hover:bg-gray-50/70 transition-colors">' +
                     '<td class="text-gray-500">' + r.applyDate + '</td>' +
-                    '<td class="font-medium text-gray-800">' + r.date + '</td>' +
-                    '<td class="font-mono text-gray-600">' + r.start + '–' + r.end + '</td>' +
-                    '<td class="text-center font-semibold text-gray-700">' + fmtHours(r.hours) + '</td>' +
+                    '<td class="font-medium text-gray-800 whitespace-nowrap">' + fmtDateRange(r) + '</td>' +
+                    '<td class="font-mono text-gray-600 whitespace-nowrap text-[13px]">' + fmtPeriod(r) + '</td>' +
+                    '<td class="text-center font-semibold text-gray-700">' + fmtHours(recordHours(r)) + '</td>' +
                     '<td><span class="ui-badge ui-badge-info">' + r.type + '</span></td>' +
-                    '<td class="text-gray-600">' + r.comp + '</td>' +
+                    '<td class="text-gray-600 whitespace-nowrap">' + compSummary(r) + '</td>' +
                     '<td class="whitespace-normal break-words text-gray-600 text-sm">' + r.reason + '</td>' +
                     '<td class="text-center">' + statusBadge(r.status) + '</td>' +
                     '<td class="text-center"><div class="flex items-center justify-center gap-2">' +
@@ -343,14 +387,20 @@
 
         /* ===== 新增加班申請彈窗 ===== */
         function openModal(prefillDate) {
-            document.getElementById('m-date').value = prefillDate || '';
+            document.getElementById('m-date-start').value = prefillDate || '';
+            document.getElementById('m-date-end').value = prefillDate || '';
             document.getElementById('m-type').value = '平日加班';
             document.getElementById('m-start').value = '';
             document.getElementById('m-end').value = '';
             document.getElementById('m-hours').value = '0 小時';
-            document.getElementById('m-comp').value = '加班費';
+            document.getElementById('m-comp').value = '隔日延遲上班';
+            document.getElementById('m-orig-time').value = '09:00';
+            document.getElementById('m-delay-time').value = '';
+            document.getElementById('m-off-date').value = '';
+            onCompChange();
             document.getElementById('m-reason').value = '';
             document.getElementById('m-error').classList.add('hidden');
+            calcHours();
             const modal = document.getElementById('ot-modal');
             const panel = document.getElementById('ot-panel');
             modal.classList.remove('hidden');
@@ -366,34 +416,105 @@
             setTimeout(() => modal.classList.add('hidden'), 180);
         }
 
-        function diffHours(start, end) {
-            if (!start || !end) return 0;
-            const [sh, sm] = start.split(':').map(Number);
-            const [eh, em] = end.split(':').map(Number);
-            let mins = (eh * 60 + em) - (sh * 60 + sm);
-            if (mins <= 0) return 0;
-            return Math.round((mins / 60) * 100) / 100;
+        /* ===== 補償方式連動 =====
+           隔日延遲上班 → 填原上班時間與延遲至；調休 / 調休1日 / 調休2日 → 填調休日期 */
+        const isDelayComp = (v) => v === '隔日延遲上班';
+        // 調休日數（調休1日=1、調休2日=2、單純「調休」=null）
+        const offDays = (v) => {
+            const m = /^調休(\d+)日$/.exec(v || '');
+            return m ? Number(m[1]) : null;
+        };
+        // 僅「調休N日」需填調休日期；單純「調休」不需指定日期
+        const isOffComp = (v) => offDays(v) !== null;
+        function onCompChange() {
+            const v = document.getElementById('m-comp').value;
+            document.getElementById('m-comp-delay').classList.toggle('hidden', !isDelayComp(v));
+            document.getElementById('m-comp-off').classList.toggle('hidden', !isOffComp(v));
+
+            if (isDelayComp(v)) {
+                const o = document.getElementById('m-orig-time').value;
+                const d = document.getElementById('m-delay-time').value;
+                const hint = document.getElementById('m-delay-hint');
+                const mins = (o && d) ? (toMin(d) - toMin(o)) : null;
+                hint.innerText = (mins !== null && mins > 0)
+                    ? `加班次日之上班時間由 ${o} 延後至 ${d}（延後 ${fmtHours(Math.round(mins / 60 * 100) / 100)}）`
+                    : '加班次日之上班時間將延後至所填時間。';
+                hint.classList.toggle('text-primary', mins !== null && mins > 0);
+                hint.classList.toggle('text-gray-400', !(mins !== null && mins > 0));
+            }
+            if (isOffComp(v)) {
+                document.getElementById('m-off-hint').innerText =
+                    `請指定實際調休之起始日期，共調休 ${offDays(v)} 日。`;
+            }
         }
+        const toMin = (t) => {
+            if (!t || t.indexOf(':') < 0) return 0;
+            const [h, m] = t.split(':').map(Number);
+            return (h || 0) * 60 + (m || 0);
+        };
+        // 補償方式摘要（列表與詳情顯示用）
+        function compSummary(r) {
+            if (isDelayComp(r.comp)) {
+                return (r.origTime && r.delayTime) ? `${r.comp}（${r.origTime} → ${r.delayTime}）` : r.comp;
+            }
+            if (isOffComp(r.comp)) {
+                return r.offDate ? `${r.comp}（${r.offDate}）` : r.comp;
+            }
+            return r.comp || '';
+        }
+
+        // 加班時段跨距（分鐘）＝（迄日 迄時）−（起日 起時）；資料不全或迄早於起時回傳 0
+        function spanMinutes(dateStart, start, dateEnd, end) {
+            if (!dateStart || !start || !dateEnd || !end) return 0;
+            const a = new Date(`${dateStart}T${start}:00`);
+            const b = new Date(`${dateEnd}T${end}:00`);
+            if (isNaN(a) || isNaN(b)) return 0;
+            const m = Math.round((b - a) / 60000);
+            return m > 0 ? m : 0;
+        }
+        // 加班時數 ＝ 加班時段結束時間 − 加班時段起始時間
+        function spanHours(dateStart, start, dateEnd, end) {
+            return Math.round(spanMinutes(dateStart, start, dateEnd, end) / 60 * 100) / 100;
+        }
+        // 加班時數（由紀錄推算，列表與詳情共用）
+        const recordHours = (r) => spanHours(r.dateStart, r.start, r.dateEnd || r.dateStart, r.end);
+
         function calcHours() {
-            const h = diffHours(document.getElementById('m-start').value, document.getElementById('m-end').value);
-            document.getElementById('m-hours').value = fmtHours(h);
+            const ds = document.getElementById('m-date-start').value;
+            const de = document.getElementById('m-date-end').value;
+            const st = document.getElementById('m-start').value;
+            const en = document.getElementById('m-end').value;
+            document.getElementById('m-hours').value = fmtHours(spanHours(ds, st, de, en));
         }
 
         function submitOT() {
-            const date = document.getElementById('m-date').value;
+            const dateStart = document.getElementById('m-date-start').value;
+            const dateEnd = document.getElementById('m-date-end').value;
             const start = document.getElementById('m-start').value;
             const end = document.getElementById('m-end').value;
             const reason = document.getElementById('m-reason').value.trim();
-            const hours = diffHours(start, end);
-            if (!date || !start || !end || !reason || hours <= 0) {
+            const hours = spanHours(dateStart, start, dateEnd, end);
+            const comp = document.getElementById('m-comp').value;
+            const origTime = document.getElementById('m-orig-time').value;
+            const delayTime = document.getElementById('m-delay-time').value;
+            const offDate = document.getElementById('m-off-date').value;
+            // 補償方式所需欄位驗證
+            let compOk = true;
+            if (isDelayComp(comp)) compOk = !!(origTime && delayTime && toMin(delayTime) > toMin(origTime));
+            else if (isOffComp(comp)) compOk = !!offDate;
+
+            if (!dateStart || !dateEnd || !start || !end || !reason || hours <= 0 || !compOk) {
                 document.getElementById('m-error').classList.remove('hidden');
                 return;
             }
             const today = new Date().toISOString().slice(0, 10);
             records.unshift({
-                applyDate: today, date, start, end, hours,
+                applyDate: today, dateStart, dateEnd, start, end, hours,
                 type: document.getElementById('m-type').value,
-                comp: document.getElementById('m-comp').value,
+                comp,
+                origTime: isDelayComp(comp) ? origTime : '',
+                delayTime: isDelayComp(comp) ? delayTime : '',
+                offDate: isOffComp(comp) ? offDate : '',
                 reason, status: '待簽核'
             });
             closeModal();
@@ -430,17 +551,17 @@
         function viewRecord(i) {
             const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
             const r = records[i];
-            document.getElementById('otv-docno').value = 'OT-RD-100258-' + String(r.date || '').replace(/\D/g, '');
+            document.getElementById('otv-docno').value = 'OT-RD-100258-' + String(r.dateStart || '').replace(/\D/g, '');
             document.getElementById('otv-applytime').value = r.applyDate || '';
             document.getElementById('otv-name').value = OTV_APPLICANT;
-            document.getElementById('otv-empno').value = '100258';
-            document.getElementById('otv-project').value = 'GT';
+            document.getElementById('otv-bu').value = '研發事業部 (RD BU)';
             document.getElementById('otv-dept').value = 'RD';
-            document.getElementById('otv-date').value = r.date || '';
-            document.getElementById('otv-period').value = (r.start || '') + '–' + (r.end || '');
-            document.getElementById('otv-hours').value = fmtHours(r.hours);
+            document.getElementById('otv-team').value = 'API';
+            document.getElementById('otv-date').value = fmtDateRange(r);
+            document.getElementById('otv-period').value = fmtPeriod(r);
+            document.getElementById('otv-hours').value = fmtHours(recordHours(r));
             document.getElementById('otv-type').value = r.type || '';
-            document.getElementById('otv-comp').value = r.comp || '';
+            document.getElementById('otv-comp').value = compSummary(r);
             document.getElementById('otv-reason').value = r.reason || '';
             const steps = otvSteps(r.status);
             document.getElementById('otv-progress-body').innerHTML = steps.map(s => `<tr>

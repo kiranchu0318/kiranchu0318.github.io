@@ -145,6 +145,23 @@
                     <label class="block text-xs font-semibold text-text-muted mb-1.5">名稱 <span class="text-rose-500">*</span></label>
                     <input type="text" id="field-name" placeholder="請輸入名稱" class="ui-input">
                 </div>
+                <div id="email-fields" class="hidden space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-text-muted mb-1.5">區域 <span class="text-rose-500">*</span></label>
+                        <select id="field-region" class="ui-select"></select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-text-muted mb-1.5">描述</label>
+                        <textarea id="field-desc" rows="3" placeholder="請輸入描述" class="ui-input resize-y"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-text-muted mb-1.5">同為Apple ID郵箱 <span class="text-rose-500">*</span></label>
+                        <select id="field-appleid" class="ui-select">
+                            <option value="否">否</option>
+                            <option value="是">是</option>
+                        </select>
+                    </div>
+                </div>
                 <div id="benefit-fields" class="hidden space-y-4">
                     <div>
                         <label class="block text-xs font-semibold text-text-muted mb-1.5">生日福利</label>
@@ -319,10 +336,10 @@
                 { name: '軟體授權', active: true }
             ],
             emailType: [
-                { name: '@aaamail.com', active: true },
-                { name: '@bbbmail.com', active: true },
-                { name: '@cccmail.com', active: true },
-                { name: '@dddmail.com', active: true }
+                { name: '@aaamail.com', region: 'THQ', desc: '總部同仁之公司信箱網域', appleId: '是', active: true },
+                { name: '@bbbmail.com', region: 'T2', desc: 'T2 區專用網域', appleId: '否', active: true },
+                { name: '@cccmail.com', region: 'U', desc: '美國據點網域', appleId: '是', active: true },
+                { name: '@dddmail.com', region: 'J', desc: '', appleId: '否', active: true }
             ]
         };
 
@@ -353,6 +370,18 @@
 
         // 渲染列表（套用搜尋）
         const isBenefit = () => activeCat === 'benefit';
+        const isEmailType = () => activeCat === 'emailType';
+        // 郵箱類型之區域（對應 組織架構管理 ▸ 區域）
+        const EMAIL_REGIONS = ['THQ', 'T1', 'T2', 'U', 'J', 'S', 'M', 'K'];
+        // 區域下拉（單選）；既有值不在清單內時另補一個選項，避免值被清空
+        function renderRegionField(selected) {
+            const sel = document.getElementById('field-region');
+            let opts = '<option value="">請選擇區域</option>'
+                + EMAIL_REGIONS.map(v => `<option>${v}</option>`).join('');
+            if (selected && !EMAIL_REGIONS.includes(selected)) opts += `<option>${selected}</option>`;
+            sel.innerHTML = opts;
+            sel.value = selected || '';
+        }
         const isAssetType = () => activeCat === 'assetType';
         const noStatus = () => isBenefit() || isAssetType();
 
@@ -364,7 +393,9 @@
             // 依分類切換表頭（福利制度：名稱 / 生日福利 / 節日福利 三欄平分寬度 + 操作）
             document.getElementById('thead-row').innerHTML = isBenefit()
                 ? '<th scope="col" class="text-left">名稱</th><th scope="col" class="text-left">生日福利</th><th scope="col" class="text-left">節日福利</th><th scope="col" class="text-center col-action">操作</th>'
-                : '<th scope="col" class="text-left">名稱</th><th scope="col" class="text-center">操作</th>';
+                : isEmailType()
+                    ? '<th scope="col" class="text-left w-56">名稱</th><th scope="col" class="text-left w-32">區域</th><th scope="col" class="text-left">描述</th><th scope="col" class="text-center w-36">同為Apple ID郵箱</th><th scope="col" class="text-center col-action">操作</th>'
+                    : '<th scope="col" class="text-left">名稱</th><th scope="col" class="text-center">操作</th>';
             // 福利制度採固定表格佈局，讓三欄平分寬度並自動換行
             document.getElementById('cfg-table').classList.toggle('table-fixed', isBenefit());
             const rows = list.map((r, i) => ({ r, i }))
@@ -393,10 +424,19 @@
                     : (r.active
                         ? `<button onclick="toggleStatus(${i})" class="ui-btn ui-btn-sm text-amber-600 border border-amber-200 hover:bg-amber-50"><i class="fa-solid fa-ban"></i> 停用</button>`
                         : `<button onclick="toggleStatus(${i})" class="ui-btn ui-btn-sm text-emerald-600 border border-emerald-200 hover:bg-emerald-50"><i class="fa-solid fa-circle-check"></i> 啟用</button>`);
+                const regionTag = r.region
+                    ? `<span class="ui-badge bg-teal-50 text-teal-600">${r.region}</span>`
+                    : '<span class="text-gray-300">—</span>';
+                // 同為 Apple ID 郵箱：是（綠）／否（灰）
+                const appleTag = r.appleId === '是'
+                    ? '<span class="ui-badge ui-badge-success">是</span>'
+                    : '<span class="ui-badge bg-gray-100 text-gray-500">否</span>';
                 const extraCells = isBenefit()
                     ? `<td class="text-left text-gray-600 whitespace-pre-wrap break-words align-top">${r.birthday || '—'}</td><td class="text-left text-gray-600 whitespace-pre-wrap break-words align-top">${r.festival || '—'}</td>`
-                    : '';
-                const nameCls = isBenefit() ? 'text-left font-medium text-gray-800 whitespace-normal break-words align-top' : 'text-left font-medium text-gray-800';
+                    : isEmailType()
+                        ? `<td class="text-left align-top">${regionTag}</td><td class="text-left text-gray-600 whitespace-pre-wrap break-words align-top">${r.desc || '<span class="text-gray-300">—</span>'}</td><td class="text-center align-top">${appleTag}</td>`
+                        : '';
+                const nameCls = (isBenefit() || isEmailType()) ? 'text-left font-medium text-gray-800 whitespace-normal break-words align-top' : 'text-left font-medium text-gray-800';
                 tr.innerHTML = `
                     <td class="${nameCls}">${r.name}</td>
                     ${extraCells}
@@ -427,6 +467,10 @@
             editIndex = -1;
             document.getElementById('modal-title').innerText = `新增${currentLabel()}`;
             document.getElementById('field-name').value = '';
+            document.getElementById('field-desc').value = '';
+            document.getElementById('field-appleid').value = '否';
+            document.getElementById('email-fields').classList.toggle('hidden', !isEmailType());
+            if (isEmailType()) renderRegionField('');
             document.getElementById('field-birthday').value = '';
             document.getElementById('field-festival').value = '';
             document.getElementById('benefit-fields').classList.toggle('hidden', !isBenefit());
@@ -440,6 +484,10 @@
             const rec = dataStore[activeCat][i];
             document.getElementById('modal-title').innerText = `編輯${currentLabel()}`;
             document.getElementById('field-name').value = rec.name;
+            document.getElementById('field-desc').value = rec.desc || '';
+            document.getElementById('field-appleid').value = rec.appleId === '是' ? '是' : '否';
+            document.getElementById('email-fields').classList.toggle('hidden', !isEmailType());
+            if (isEmailType()) renderRegionField(rec.region || '');
             document.getElementById('field-birthday').value = rec.birthday || '';
             document.getElementById('field-festival').value = rec.festival || '';
             document.getElementById('benefit-fields').classList.toggle('hidden', !isBenefit());
@@ -471,10 +519,19 @@
                 return;
             }
 
-            const extra = isBenefit() ? {
+            let extra = isBenefit() ? {
                 birthday: document.getElementById('field-birthday').value.trim(),
                 festival: document.getElementById('field-festival').value.trim()
             } : {};
+            if (isEmailType()) {
+                const region = document.getElementById('field-region').value;
+                if (!region) { showToast('error', '請選擇區域'); return; }
+                extra = {
+                    region,
+                    desc: document.getElementById('field-desc').value.trim(),
+                    appleId: document.getElementById('field-appleid').value
+                };
+            }
             if (editIndex === -1) {
                 list.push({ name, active, ...extra });
                 showToast('success', `已新增${currentLabel()}「${name}」`);

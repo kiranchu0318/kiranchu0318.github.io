@@ -3238,6 +3238,15 @@
             { label: '門禁卡', values: ['THQ-3F'] },
             { label: '指紋', values: ['THQ-3F'] }
         ];
+        // 新增時需選網域之欄位（E-mail 與 Apple ID 皆以公司信箱網域建立）
+        const EMAIL_DOMAINS = ['ez2attain.com', 'spinnrtech.com', 'knowhow.idv.tw', 'roycetechnology.com'];
+        const DOMAIN_FIELDS = ['E-mail', 'Apple ID'];
+        const domainSelectHtml = (fieldLabel) =>
+            '<label class="block text-[11px] text-gray-500 mb-1">申請新增' +
+            (fieldLabel === 'Apple ID' ? 'Apple ID' : '信箱') + '網域</label>' +
+            '<select class="w-full border border-gray-300 rounded-md px-2 py-1.5 text-sm bg-white cursor-pointer"><option value="">請選擇網域</option>' +
+            EMAIL_DOMAINS.map(d => '<option>@' + d + '</option>').join('') + '</select>';
+
         // 門禁卡 / 指紋：異動內容以「辦公室」下拉呈現
         const OFFICE_FIELDS = ['門禁卡', '指紋'];
         const OFFICES = ['THQ-1F', 'THQ-2F', 'THQ-3F', 'THQ-B1', 'T1', 'T2'];
@@ -3334,8 +3343,10 @@
                 addTr.setAttribute('data-field', label);
                 const addDetail = OFFICE_FIELDS.includes(label)
                     ? officeSelectHtml()
-                    : '<div class="acc-add-list space-y-1.5">' + accAddItemHtml() + '</div>' +
-                      '<button type="button" onclick="addAccAddItem(this)" class="mt-1.5 inline-flex items-center gap-1 text-xs text-primary font-medium hover:underline"><i class="fa-solid fa-plus text-[10px]"></i>新增一筆</button>';
+                    : DOMAIN_FIELDS.includes(label)
+                        ? domainSelectHtml(label)   // E-mail / Apple ID：僅選網域（比照 個人資訊）
+                        : '<div class="acc-add-list space-y-1.5">' + accAddItemHtml() + '</div>' +
+                          '<button type="button" onclick="addAccAddItem(this)" class="mt-1.5 inline-flex items-center gap-1 text-xs text-primary font-medium hover:underline"><i class="fa-solid fa-plus text-[10px]"></i>新增一筆</button>';
                 addTr.innerHTML =
                     (curVals.length === 0 ? labelCell : '') +
                     '<td class="px-4 py-2.5 align-top ' + (curVals.length ? 'text-gray-300' : 'text-gray-400') + '">' + (curVals.length ? '—' : '（未綁定）') + '</td>' +

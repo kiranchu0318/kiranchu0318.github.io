@@ -532,8 +532,10 @@
                                     <th scope="col">資產編號</th>
                                     <th scope="col">資產名稱</th>
                                     <th scope="col">類型</th>
+                                    <th scope="col">調撥日期</th>
                                     <th scope="col">領用日期</th>
                                     <th scope="col" class="text-center">狀態</th>
+                                    <th scope="col" class="text-center w-28">操作</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -541,54 +543,37 @@
                                     <td class="font-mono text-slate-500">NB-2023-001</td>
                                     <td class="font-medium text-slate-800">MacBook Pro 14"</td>
                                     <td><span class="ui-badge ui-badge-info">筆電</span></td>
-                                    <td class="text-slate-600">2023-09-01</td>
+                                    <td class="text-slate-600">2024-06-15</td>
+                                    <td class="js-claim-date text-slate-600"><span class="text-slate-300">—</span></td>
                                     <td class="text-center"><span class="ui-badge ui-badge-success">使用中</span></td>
+                                    <td class="text-center"><button type="button" onclick="openTermsModal('NB-2023-001')" class="js-claim-btn ui-btn ui-btn-secondary ui-btn-sm">領用</button></td>
                                 </tr>
                                 <tr>
-                                    <td class="font-mono text-slate-500">PH-2024-014</td>
-                                    <td class="font-medium text-slate-800">iPhone 15 Pro</td>
-                                    <td><span class="ui-badge ui-badge-info">手機</span></td>
-                                    <td class="text-slate-600">2024-01-10</td>
-                                    <td class="text-center"><span class="ui-badge ui-badge-success">使用中</span></td>
-                                </tr>
+                                    <td class="font-mono text-slate-500">PH-2024-014</td><td class="font-medium text-slate-800">iPhone 15 Pro</td><td><span class="ui-badge ui-badge-info">手機</span></td><td class="text-slate-600">2024-01-10</td><td class="js-claim-date text-slate-600"><span class="text-slate-300">—</span></td><td class="text-center"><span class="ui-badge ui-badge-success">使用中</span></td><td class="text-center"><button type="button" onclick="openTermsModal('PH-2024-014')" class="js-claim-btn ui-btn ui-btn-secondary ui-btn-sm">領用</button></td></tr>
                                 <tr>
                                     <td class="font-mono text-slate-500">MN-2022-220</td>
                                     <td class="font-medium text-slate-800">Dell U2723QE 27"</td>
                                     <td><span class="ui-badge ui-badge-info">顯示器</span></td>
-                                    <td class="text-slate-600">2022-04-05</td>
+                                    <td class="text-slate-600">2023-03-20</td>
+                                    <td class="js-claim-date text-slate-600"><span class="text-slate-300">—</span></td>
                                     <td class="text-center"><span class="ui-badge ui-badge-success">使用中</span></td>
+                                    <td class="text-center"><button type="button" onclick="openTermsModal('MN-2022-220')" class="js-claim-btn ui-btn ui-btn-secondary ui-btn-sm">領用</button></td>
                                 </tr>
                                 <tr>
-                                    <td class="font-mono text-slate-500">AC-2022-031</td>
-                                    <td class="font-medium text-slate-800">員工門禁卡</td>
-                                    <td><span class="ui-badge ui-badge-info">卡證</span></td>
-                                    <td class="text-slate-600">2022-04-01</td>
-                                    <td class="text-center"><span class="ui-badge ui-badge-success">使用中</span></td>
-                                </tr>
+                                    <td class="font-mono text-slate-500">AC-2022-031</td><td class="font-medium text-slate-800">員工門禁卡</td><td><span class="ui-badge ui-badge-info">卡證</span></td><td class="text-slate-600">2022-04-01</td><td class="js-claim-date text-slate-600"><span class="text-slate-300">—</span></td><td class="text-center"><span class="ui-badge ui-badge-success">使用中</span></td><td class="text-center"><button type="button" onclick="openTermsModal('AC-2022-031')" class="js-claim-btn ui-btn ui-btn-secondary ui-btn-sm">領用</button></td></tr>
                                 <tr>
                                     <td class="font-mono text-slate-500">NB-2021-077</td>
                                     <td class="font-medium text-slate-800">ThinkPad X1 Carbon</td>
                                     <td><span class="ui-badge ui-badge-info">筆電</span></td>
-                                    <td class="text-slate-600">2021-05-12</td>
+                                    <td class="text-slate-600">2022-11-08</td>
+                                    <td class="js-claim-date text-slate-600"><span class="text-slate-300">—</span></td>
                                     <td class="text-center"><span class="ui-badge ui-badge-gray">已歸還</span></td>
+                                    <td class="text-center"><button type="button" onclick="openTermsModal('NB-2021-077')" class="js-claim-btn ui-btn ui-btn-secondary ui-btn-sm">領用</button></td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
 
-                    <!-- 領用狀態 / 領用入口 -->
-                    <div class="flex flex-col items-center gap-3 pt-2">
-                        <!-- 尚未領用：開啟條款彈窗辦理領用 -->
-                        <button type="button" id="open-terms-btn" onclick="openTermsModal()" class="ui-btn ui-btn-primary inline-flex items-center gap-1.5">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" /></svg>
-                            閱讀資產使用條款並領用
-                        </button>
-                        <!-- 已領用：以文字顯示 -->
-                        <p id="asset-claimed-text" class="hidden inline-flex items-center gap-1.5 text-sm font-semibold text-emerald-600">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4"><path fill-rule="evenodd" d="M16.704 5.29a.75.75 0 0 1 .006 1.06l-7.5 7.5a.75.75 0 0 1-1.06 0l-3.5-3.5a.75.75 0 1 1 1.06-1.06l2.97 2.97 6.97-6.97a.75.75 0 0 1 1.054.006Z" clip-rule="evenodd" /></svg>
-                            已領用
-                        </p>
-                    </div>
                 </div>
 
             </div>
@@ -913,7 +898,7 @@
         const ACCOUNT_FIELDS = [
             { label: 'Mobile / WhatsApp', values: ['0912-345-678', '0988-111-222'], regions: ['T1', 'J'] },
             { label: 'E-mail', values: ['nora.chen@company.com', 'nora.chen0812@gmail.com'], domains: true },
-            { label: 'Apple ID', values: ['nora.chen0812@icloud.com'] },
+            { label: 'Apple ID', values: ['nora.chen0812@icloud.com'], domains: true },
             { label: 'Jira', values: [] },
             { label: 'MM', values: ['nora.chen'] },
             { label: '門禁卡', values: ['THQ-3F'] },
@@ -924,9 +909,11 @@
         const regionSelectHtml = () => '<label class="block text-[11px] text-gray-500 mb-1">申請新增號碼區域</label>' +
             '<select class="w-full border border-gray-300 rounded-md px-2 py-1.5 text-sm bg-white cursor-pointer"><option value="">請選擇區域</option>' +
             NUMBER_REGIONS.map(r => '<option>' + r + '</option>').join('') + '</select>';
-        // E-mail 新增時：選擇網域
+        // E-mail / Apple ID 新增時：選擇網域
         const EMAIL_DOMAINS = ['ez2attain.com', 'spinnrtech.com', 'knowhow.idv.tw', 'roycetechnology.com'];
-        const domainSelectHtml = () => '<label class="block text-[11px] text-gray-500 mb-1">申請新增信箱網域</label>' +
+        const domainSelectHtml = (fieldLabel) =>
+            '<label class="block text-[11px] text-gray-500 mb-1">申請新增' +
+            (fieldLabel === 'Apple ID' ? 'Apple ID' : '信箱') + '網域</label>' +
             '<select class="w-full border border-gray-300 rounded-md px-2 py-1.5 text-sm bg-white cursor-pointer"><option value="">請選擇網域</option>' +
             EMAIL_DOMAINS.map(d => '<option>@' + d + '</option>').join('') + '</select>';
         // 門禁卡 / 指紋：異動內容以「辦公室」下拉呈現
@@ -971,7 +958,7 @@
                 addTr.setAttribute('data-field', label);
                 const addDetail = OFFICE_FIELDS.includes(label)
                     ? officeSelectHtml()
-                    : (f.regions ? regionSelectHtml() : (f.domains ? domainSelectHtml() : ''));
+                    : (f.regions ? regionSelectHtml() : (f.domains ? domainSelectHtml(label) : ''));
                 addTr.innerHTML =
                     (curVals.length === 0 ? labelCell : '') +
                     '<td class="px-4 py-2.5 align-top ' + (curVals.length ? 'text-gray-300' : 'text-gray-400') + '">' + (curVals.length ? '—' : '（未綁定）') + '</td>' +
@@ -1178,17 +1165,31 @@
             }, 800);
         }
 
-        /* ===== 資產領用：閱讀條款 → 啟用確認領用 ===== */
-        let termsRead = false;
-        let assetConfirmed = false;
+        /* ===== 資產領用：逐筆資產閱讀條款 → 確認領用 ===== */
+        let termsRead = false;                      // 條款已完整閱讀過（一次即可）
+        const claimedAssets = new Set();            // 已領用之資產編號
+        let pendingAsset = null;                    // 目前待領用之資產編號
+        // 當日日期（YYYY-MM-DD），領用時押上
+        const todayStr = () => {
+            const d = new Date(), pad = (n) => String(n).padStart(2, '0');
+            return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+        };
 
-        function openTermsModal() {
+        function openTermsModal(assetNo) {
+            pendingAsset = assetNo || null;
             const m = document.getElementById('terms-modal');
             m.classList.remove('hidden');
             document.body.style.overflow = 'hidden';
             // 每次開啟回到頂端，確保需滑動閱讀
             const body = document.getElementById('terms-body');
             body.scrollTop = 0;
+            // 條款已讀過者可直接確認，否則需再次滑到底
+            const btn = document.getElementById('confirm-asset-btn');
+            const tip = document.getElementById('terms-progress');
+            btn.disabled = !termsRead;
+            tip.textContent = termsRead
+                ? '✓ 已閱讀完畢，可點擊「確認領用」'
+                : '請將條款滑動至最底部以啟用領用';
         }
 
         function closeTermsModal() {
@@ -1208,12 +1209,26 @@
 
         // 確認領用：關閉彈窗，下方改以「已領用」文字顯示
         function confirmAsset() {
-            if (assetConfirmed) return;
-            assetConfirmed = true;
-            document.getElementById('open-terms-btn').classList.add('hidden');
-            document.getElementById('asset-claimed-text').classList.remove('hidden');
+            if (!pendingAsset || claimedAssets.has(pendingAsset)) { closeTermsModal(); return; }
+            claimedAssets.add(pendingAsset);
+            const btn = document.querySelector(`.js-claim-btn[onclick*="${pendingAsset}"]`);
+            const row = btn ? btn.closest('tr') : null;
+            // 押上當日日期為領用日期
+            if (row) {
+                const dateCell = row.querySelector('.js-claim-date');
+                if (dateCell) dateCell.textContent = todayStr();
+            }
+            // 將該筆資產之「領用」按鈕替換為「已領用」
+            if (btn) {
+                btn.outerHTML = '<span class="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600">' +
+                    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3.5 h-3.5"><path fill-rule="evenodd" d="M16.704 5.29a.75.75 0 0 1 .006 1.06l-7.5 7.5a.75.75 0 0 1-1.06 0l-3.5-3.5a.75.75 0 1 1 1.06-1.06l2.97 2.97 6.97-6.97a.75.75 0 0 1 1.054.006Z" clip-rule="evenodd" /></svg>已領用</span>';
+            }
+            // 分頁標籤加上已領用標記（首次領用時）
             const tab = document.getElementById('tab-btn-asset');
-            tab.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="inline-block w-4 h-4 mr-1 align-middle text-emerald-500"><path fill-rule="evenodd" d="M16.704 5.29a.75.75 0 0 1 .006 1.06l-7.5 7.5a.75.75 0 0 1-1.06 0l-3.5-3.5a.75.75 0 1 1 1.06-1.06l2.97 2.97 6.97-6.97a.75.75 0 0 1 1.054.006Z" clip-rule="evenodd" /></svg>資產';
+            if (tab && claimedAssets.size === 1) {
+                tab.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="inline-block w-4 h-4 mr-1 align-middle text-emerald-500"><path fill-rule="evenodd" d="M16.704 5.29a.75.75 0 0 1 .006 1.06l-7.5 7.5a.75.75 0 0 1-1.06 0l-3.5-3.5a.75.75 0 1 1 1.06-1.06l2.97 2.97 6.97-6.97a.75.75 0 0 1 1.054.006Z" clip-rule="evenodd" /></svg>資產';
+            }
+            pendingAsset = null;
             closeTermsModal();
         }
 
