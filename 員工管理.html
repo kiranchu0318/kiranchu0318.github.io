@@ -1713,12 +1713,6 @@
                     <!-- ========================================== -->
                     <div id="tab-asset" class="tab-content max-w-5xl mx-auto space-y-8">
                         <div>
-                            <div class="flex flex-wrap items-center gap-2 mb-4 p-3 rounded-lg bg-emerald-50 border border-emerald-100">
-                                <i class="fa-solid fa-circle-check text-emerald-500"></i>
-                                <span class="text-sm font-medium text-gray-700">確認領用狀態：</span>
-                                <span class="ui-badge ui-badge-success">已確認領用</span>
-                                <span class="text-xs text-text-muted">員工已於 2024-01-12 閱讀資產使用條款並確認領用</span>
-                            </div>
                             <div class="overflow-x-auto rounded-xl border border-slate-200">
                                 <table class="ui-table text-left">
                                     <thead>
@@ -1726,46 +1720,23 @@
                                             <th scope="col">資產編號</th>
                                             <th scope="col">資產名稱</th>
                                             <th scope="col">類型</th>
+                                            <th scope="col">調用日期</th>
                                             <th scope="col">領用日期</th>
-                                            <th scope="col" class="text-center">狀態</th>
+                                            <th scope="col" class="text-center">資產狀態</th>
+                                            <th scope="col" class="text-center">領用狀態</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <tr>
-                                            <td class="font-mono text-slate-500">NB-2023-001</td>
-                                            <td class="font-medium text-slate-800">MacBook Pro 14"</td>
-                                            <td><span class="ui-badge ui-badge-info">筆電</span></td>
-                                            <td class="text-slate-600">2023-09-01</td>
-                                            <td class="text-center"><span class="ui-badge ui-badge-success">使用中</span></td>
-                                        </tr>
+                                            <td class="font-mono text-slate-500">NB-2023-001</td><td class="font-medium text-slate-800">MacBook Pro 14"</td><td><span class="ui-badge ui-badge-info">筆電</span></td><td class="text-slate-600">2024-06-15</td><td class="text-slate-600">2023-09-01</td><td class="text-center"><span class="ui-badge ui-badge-success">使用中</span></td><td class="text-center"><span class="ui-badge ui-badge-success">已領用</span></td></tr>
                                         <tr>
-                                            <td class="font-mono text-slate-500">PH-2024-014</td>
-                                            <td class="font-medium text-slate-800">iPhone 15 Pro</td>
-                                            <td><span class="ui-badge ui-badge-info">手機</span></td>
-                                            <td class="text-slate-600">2024-01-10</td>
-                                            <td class="text-center"><span class="ui-badge ui-badge-success">使用中</span></td>
-                                        </tr>
+                                            <td class="font-mono text-slate-500">PH-2024-014</td><td class="font-medium text-slate-800">iPhone 15 Pro</td><td><span class="ui-badge ui-badge-info">手機</span></td><td class="text-slate-600">2024-01-10</td><td class="text-slate-600">2024-01-10</td><td class="text-center"><span class="ui-badge ui-badge-success">使用中</span></td><td class="text-center"><span class="ui-badge ui-badge-success">已領用</span></td></tr>
                                         <tr>
-                                            <td class="font-mono text-slate-500">MN-2022-220</td>
-                                            <td class="font-medium text-slate-800">Dell U2723QE 27"</td>
-                                            <td><span class="ui-badge ui-badge-info">顯示器</span></td>
-                                            <td class="text-slate-600">2022-04-05</td>
-                                            <td class="text-center"><span class="ui-badge ui-badge-success">使用中</span></td>
-                                        </tr>
+                                            <td class="font-mono text-slate-500">MN-2022-220</td><td class="font-medium text-slate-800">Dell U2723QE 27"</td><td><span class="ui-badge ui-badge-info">顯示器</span></td><td class="text-slate-600">2023-03-20</td><td class="text-slate-600">2022-04-05</td><td class="text-center"><span class="ui-badge ui-badge-success">使用中</span></td><td class="text-center"><span class="ui-badge ui-badge-success">已領用</span></td></tr>
                                         <tr>
-                                            <td class="font-mono text-slate-500">AC-2022-031</td>
-                                            <td class="font-medium text-slate-800">員工門禁卡</td>
-                                            <td><span class="ui-badge ui-badge-info">卡證</span></td>
-                                            <td class="text-slate-600">2022-04-01</td>
-                                            <td class="text-center"><span class="ui-badge ui-badge-success">使用中</span></td>
-                                        </tr>
+                                            <td class="font-mono text-slate-500">AC-2022-031</td><td class="font-medium text-slate-800">員工門禁卡</td><td><span class="ui-badge ui-badge-info">卡證</span></td><td class="text-slate-600">2022-04-01</td><td class="text-slate-600">2022-04-01</td><td class="text-center"><span class="ui-badge ui-badge-success">使用中</span></td><td class="text-center"><span class="ui-badge ui-badge-success">已領用</span></td></tr>
                                         <tr>
-                                            <td class="font-mono text-slate-500">NB-2021-077</td>
-                                            <td class="font-medium text-slate-800">ThinkPad X1 Carbon</td>
-                                            <td><span class="ui-badge ui-badge-info">筆電</span></td>
-                                            <td class="text-slate-600">2021-05-12</td>
-                                            <td class="text-center"><span class="ui-badge ui-badge-gray">已歸還</span></td>
-                                        </tr>
+                                            <td class="font-mono text-slate-500">NB-2021-077</td><td class="font-medium text-slate-800">ThinkPad X1 Carbon</td><td><span class="ui-badge ui-badge-info">筆電</span></td><td class="text-slate-600">2022-11-08</td><td class="text-slate-600">2021-05-12</td><td class="text-center"><span class="ui-badge ui-badge-gray">已歸還</span></td><td class="text-center"><span class="ui-badge bg-gray-100 text-gray-500">未領用</span></td></tr>
                                     </tbody>
                                 </table>
                             </div>
