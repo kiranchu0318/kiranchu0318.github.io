@@ -84,6 +84,7 @@
             <button id="tab-btn-leave" onclick="switchTab('leave')" class="px-4 py-2.5 text-sm font-medium text-gray-500 border-b-2 border-transparent -mb-px hover:text-gray-700 transition-colors">請假紀錄</button>
             <button id="tab-btn-makeup" onclick="switchTab('makeup')" class="px-4 py-2.5 text-sm font-medium text-gray-500 border-b-2 border-transparent -mb-px hover:text-gray-700 transition-colors">補卡紀錄</button>
             <button id="tab-btn-outing" onclick="switchTab('outing')" class="px-4 py-2.5 text-sm font-medium text-gray-500 border-b-2 border-transparent -mb-px hover:text-gray-700 transition-colors">外出紀錄</button>
+            <button id="tab-btn-ot" onclick="switchTab('ot')" class="px-4 py-2.5 text-sm font-medium text-gray-500 border-b-2 border-transparent -mb-px hover:text-gray-700 transition-colors">加班紀錄</button>
         </div>
 
         <!-- ============================================================ -->
@@ -595,6 +596,143 @@
             </section>
         </div>
 
+        <!-- ============================================================ -->
+        <!-- 頁籤 5：加班紀錄 (人資視角：檢視 / 篩選 / 匯出；審核於簽核中心處理) -->
+        <!-- ============================================================ -->
+        <div id="panel-ot" class="space-y-6 hidden">
+
+            <!-- 篩選台 (加班) -->
+            <div class="ui-card p-5 space-y-4">
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="relative">
+                        <label class="block text-xs font-semibold text-text-muted mb-1.5">員工搜尋 (姓名/工號)</label>
+                        <div class="relative ui-search">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="text" id="ot-search" oninput="applyOtFilters()" placeholder="輸入員工姓名或工號..." class="ui-input ui-search-input">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-text-muted mb-1.5">地區</label>
+                        <div id="ot-region-ms"></div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-text-muted mb-1.5">事業部</label>
+                        <div id="ot-bu-ms"></div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-text-muted mb-1.5">項目</label>
+                        <div id="ot-item-ms"></div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-text-muted mb-1.5">部門</label>
+                        <div id="ot-dept-ms"></div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-text-muted mb-1.5">加班類型</label>
+                        <select id="ot-type" onchange="applyOtFilters()" class="ui-select">
+                            <option value="all">全部類型</option>
+                            <option value="平日加班">平日加班</option>
+                            <option value="假日加班">假日加班</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-text-muted mb-1.5">補償方式</label>
+                        <select id="ot-comp" onchange="applyOtFilters()" class="ui-select">
+                            <option value="all">全部補償方式</option>
+                            <option value="隔日延遲上班">隔日延遲上班</option>
+                            <option value="調休">調休</option>
+                            <option value="調休1日">調休1日</option>
+                            <option value="調休2日">調休2日</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-text-muted mb-1.5">簽核狀態</label>
+                        <select id="ot-status" onchange="applyOtFilters()" class="ui-select">
+                            <option value="all">全部狀態</option>
+                            <option value="待簽核">待簽核</option>
+                            <option value="簽核完成">簽核完成</option>
+                            <option value="駁回">駁回</option>
+                            <option value="撤回">撤回</option>
+                        </select>
+                    </div>
+                    <div class="lg:col-span-2">
+                        <label class="block text-xs font-semibold text-text-muted mb-1.5">加班日期區間</label>
+                        <div class="flex items-center gap-1.5">
+                            <input type="date" id="ot-date-start" onchange="applyOtFilters()" class="ui-input flex-1 min-w-0">
+                            <span class="text-gray-400 text-xs font-medium shrink-0">至</span>
+                            <input type="date" id="ot-date-end" onchange="applyOtFilters()" class="ui-input flex-1 min-w-0">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap items-center justify-end pt-2 gap-2">
+                    <button onclick="applyOtFilters()" class="ui-btn ui-btn-primary ui-btn-sm"><i class="fa-solid fa-magnifying-glass"></i> 查詢</button>
+                    <button onclick="resetOtFilters()" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-arrows-rotate"></i> 重置</button>
+                </div>
+            </div>
+
+            <!-- 列表 (加班) -->
+            <section class="ui-card p-4 sm:p-6">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
+                    <div class="flex items-center gap-2">
+                        <h2 class="text-lg font-bold text-gray-900 whitespace-nowrap">加班紀錄列表</h2>
+                        <span id="ot-count-badge" class="bg-blue-50 text-primary text-xs px-2.5 py-1 rounded-md font-bold">0 筆資料</span>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
+                        <div class="text-xs text-text-muted flex items-center gap-2">
+                            <span class="inline-block w-2.5 h-2.5 rounded-full bg-amber-500"></span> 待簽核
+                            <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 ml-1"></span> 簽核完成
+                            <span class="inline-block w-2.5 h-2.5 rounded-full bg-rose-500 ml-1"></span> 駁回
+                        </div>
+                        <button onclick="mockExport('加班')" class="ui-btn ui-btn-secondary ui-btn-sm">
+                            <i class="fa-solid fa-download"></i> 匯出報表
+                        </button>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto rounded-lg border border-gray-100 custom-scrollbar">
+                    <table class="ui-table text-center whitespace-nowrap">
+                        <thead>
+                            <tr>
+                                <th scope="col" class="text-left">工號</th>
+                                <th scope="col" class="text-left">姓名</th>
+                                <th scope="col">地區</th>
+                                <th scope="col">事業部</th>
+                                <th scope="col">項目</th>
+                                <th scope="col">部門</th>
+                                <th scope="col">申請日期</th>
+                                <th scope="col">加班日期</th>
+                                <th scope="col" class="min-w-[260px]">加班時段</th>
+                                <th scope="col" class="text-center">加班時數</th>
+                                <th scope="col">加班類型</th>
+                                <th scope="col" class="min-w-[180px]">補償方式</th>
+                                <th scope="col" class="text-left min-w-[200px]">事由</th>
+                                <th scope="col" class="w-24">簽核狀態</th>
+                                <th scope="col" class="w-20">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ot-tbody"><!-- 動態由 JavaScript 渲染 --></tbody>
+                    </table>
+                </div>
+
+                <div id="ot-no-data-view" class="hidden py-16 text-center space-y-3">
+                    <div class="inline-flex p-4 bg-gray-50 text-gray-400 rounded-full"><i class="fa-solid fa-business-time text-3xl"></i></div>
+                    <p class="text-sm text-text-muted font-medium">查無符合條件的加班紀錄</p>
+                    <button onclick="resetOtFilters()" class="text-xs text-primary font-semibold hover:underline">清除篩選條件</button>
+                </div>
+
+                <div class="flex items-center justify-between mt-6 pt-4 border-t border-gray-100">
+                    <span id="ot-pagination-info" class="text-sm text-gray-500">顯示第 0 到 0 筆，共 0 筆記錄</span>
+                    <div class="flex gap-1">
+                        <button class="ui-page-btn"><i class="fa-solid fa-chevron-left text-xs"></i></button>
+                        <button class="ui-page-btn is-active">1</button>
+                        <button class="ui-page-btn"><i class="fa-solid fa-chevron-right text-xs"></i></button>
+                    </div>
+                </div>
+            </section>
+        </div>
+
     </div>
 
     <!-- ========================================== -->
@@ -844,6 +982,51 @@
 
     <!-- ========================================== -->
     <!-- 彈出視窗：外出詳情 Modal (僅檢視) -->
+    <!-- ========================================== -->
+    <!-- 彈出視窗：加班紀錄詳情 (僅檢視) -->
+    <!-- ========================================== -->
+    <div id="ot-modal" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true">
+        <div class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm transition-opacity" onclick="closeOtModal()"></div>
+        <div class="fixed inset-0 z-10 overflow-y-auto flex items-center justify-center p-4">
+            <div class="relative bg-white rounded-lg shadow-modal w-full max-w-[720px] transform transition-all flex flex-col my-8">
+                <div class="px-6 py-4 flex items-center justify-between border-b border-gray-100">
+                    <h3 class="text-base font-bold text-gray-900">加班紀錄詳情</h3>
+                    <button onclick="closeOtModal()" class="text-gray-400 hover:text-gray-600 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <div class="px-6 py-5 space-y-5">
+                    <div>
+                        <h4 class="text-xs font-bold text-text-muted mb-2">員工資訊</h4>
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+                            <div><div class="text-xs text-text-muted">工號</div><div id="otd-id" class="font-mono font-semibold text-gray-800"></div></div>
+                            <div><div class="text-xs text-text-muted">姓名</div><div id="otd-name" class="font-semibold text-gray-800"></div></div>
+                            <div><div class="text-xs text-text-muted">部門</div><div id="otd-dept" class="text-gray-700"></div></div>
+                            <div><div class="text-xs text-text-muted">地區 / 事業部 / 項目</div><div id="otd-org" class="text-gray-700"></div></div>
+                        </div>
+                    </div>
+                    <div class="border-t border-gray-100 pt-4">
+                        <h4 class="text-xs font-bold text-text-muted mb-2">加班資訊</h4>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm">
+                            <div><div class="text-xs text-text-muted">申請日期</div><div id="otd-applydate" class="text-gray-700"></div></div>
+                            <div><div class="text-xs text-text-muted">加班日期</div><div id="otd-date" class="text-gray-700"></div></div>
+                            <div><div class="text-xs text-text-muted">加班類型</div><div id="otd-type" class="text-gray-700"></div></div>
+                            <div class="sm:col-span-2"><div class="text-xs text-text-muted">加班時段</div><div id="otd-period" class="font-mono text-gray-700"></div></div>
+                            <div><div class="text-xs text-text-muted">加班時數</div><div id="otd-hours" class="font-semibold text-primary"></div></div>
+                            <div class="sm:col-span-2"><div class="text-xs text-text-muted">補償方式</div><div id="otd-comp" class="text-gray-700"></div></div>
+                            <div><div class="text-xs text-text-muted">簽核狀態</div><div id="otd-status"></div></div>
+                        </div>
+                    </div>
+                    <div class="border-t border-gray-100 pt-4">
+                        <h4 class="text-xs font-bold text-text-muted mb-2">加班事由</h4>
+                        <p id="otd-reason" class="text-sm text-gray-700 bg-gray-50 border border-gray-100 rounded-lg p-3 leading-relaxed"></p>
+                    </div>
+                </div>
+                <div class="px-6 py-4 flex justify-end border-t border-gray-100 bg-gray-50/50 rounded-b-lg">
+                    <button onclick="closeOtModal()" class="ui-btn ui-btn-secondary">關閉</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- ========================================== -->
     <div id="outing-modal" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true">
         <div class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm transition-opacity" onclick="closeOutingModal()"></div>
@@ -1226,6 +1409,50 @@
         attendanceDb.forEach(enrichRecord);
         makeupDb.forEach(enrichRecord);
         outingDb.forEach(enrichRecord);
+
+        /* ===== 加班紀錄（人資視角：跨員工檢視／篩選／匯出）===== */
+        let otDb = [
+            { id: "100962", name: "Oliver", dept: "RD",  applyDate: "2026-06-09", dateStart: "2026-06-08", dateEnd: "2026-06-08", start: "18:30", end: "21:00", type: "平日加班", comp: "隔日延遲上班", origTime: "09:00", delayTime: "11:00", offDate: "", reason: "月底系統上線前置驗證與部署。", status: "簽核完成" },
+            { id: "101517", name: "James", dept: "FIN", applyDate: "2026-06-12", dateStart: "2026-06-13", dateEnd: "2026-06-14", start: "09:00", end: "13:00", type: "假日加班", comp: "調休2日", origTime: "", delayTime: "", offDate: "2026-06-22", reason: "配合客戶週末驗收（連續兩日）。", status: "待簽核" },
+            { id: "101383", name: "Matthew", dept: "RD", applyDate: "2026-05-28", dateStart: "2026-05-27", dateEnd: "2026-05-27", start: "19:00", end: "20:30", type: "平日加班", comp: "調休", origTime: "", delayTime: "", offDate: "", reason: "緊急修復線上問題。", status: "駁回" },
+            { id: "100423", name: "Henry", dept: "HR",  applyDate: "2026-06-10", dateStart: "2026-06-09", dateEnd: "2026-06-09", start: "18:00", end: "22:00", type: "平日加班", comp: "調休1日", origTime: "", delayTime: "", offDate: "2026-06-19", reason: "年度薪資結算作業。", status: "簽核完成" },
+            { id: "101334", name: "Alexander", dept: "RD", applyDate: "2026-06-06", dateStart: "2026-06-06", dateEnd: "2026-06-07", start: "22:00", end: "06:00", type: "假日加班", comp: "調休2日", origTime: "", delayTime: "", offDate: "2026-06-15", reason: "機房設備夜間遷移。", status: "待簽核" },
+            { id: "101312", name: "Samuel", dept: "IA1", applyDate: "2026-06-05", dateStart: "2026-06-04", dateEnd: "2026-06-04", start: "18:00", end: "20:00", type: "平日加班", comp: "隔日延遲上班", origTime: "09:00", delayTime: "10:30", offDate: "", reason: "季度查核資料整理。", status: "簽核完成" },
+            { id: "101002", name: "Emma", dept: "IA1", applyDate: "2026-06-02", dateStart: "2026-05-31", dateEnd: "2026-05-31", start: "10:00", end: "17:00", type: "假日加班", comp: "調休1日", origTime: "", delayTime: "", offDate: "2026-06-12", reason: "內部稽核報告趕件。", status: "撤回" },
+            { id: "101122", name: "Daniel", dept: "HR", applyDate: "2026-06-11", dateStart: "2026-06-11", dateEnd: "2026-06-11", start: "18:30", end: "20:00", type: "平日加班", comp: "調休", origTime: "", delayTime: "", offDate: "", reason: "員工教育訓練場地佈置。", status: "待簽核" }
+        ];
+        otDb.forEach(enrichRecord);
+
+        // 加班時段跨距 → 時數（結束時間 − 起始時間）
+        function otSpanHours(r) {
+            const ds = r.dateStart, de = r.dateEnd || r.dateStart;
+            if (!ds || !r.start || !r.end) return 0;
+            const a = new Date(`${ds}T${r.start}:00`), b = new Date(`${de}T${r.end}:00`);
+            if (isNaN(a) || isNaN(b)) return 0;
+            const m = Math.round((b - a) / 60000);
+            return m > 0 ? Math.round(m / 60 * 100) / 100 : 0;
+        }
+        const otFmtHours = (h) => (Number.isInteger(h) ? h : h.toFixed(1)) + ' 小時';
+        // 加班日期：單日顯示一個日期，跨日顯示「起 ~ 迄」
+        const otFmtDate = (r) => {
+            const a = r.dateStart || '', b = r.dateEnd || a;
+            return a ? (a === b ? a : `${a} ~ ${b}`) : '';
+        };
+        // 加班時段：日期+時間 ~ 日期+時間
+        const otFmtPeriod = (r) => {
+            const ds = r.dateStart || '', de = r.dateEnd || ds;
+            return (ds && r.start && r.end) ? `${ds} ${r.start} ~ ${de} ${r.end}` : '';
+        };
+        // 補償方式摘要（延遲上班顯示時間、調休N日顯示調休日期）
+        const otCompSummary = (r) => {
+            if (r.comp === '隔日延遲上班') return (r.origTime && r.delayTime) ? `${r.comp}（${r.origTime} → ${r.delayTime}）` : r.comp;
+            if (/^調休\d+日$/.test(r.comp || '')) return r.offDate ? `${r.comp}（${r.offDate}）` : r.comp;
+            return r.comp || '';
+        };
+        const otStatusBadge = (st) => {
+            const map = { '待簽核': 'ui-badge-warning', '簽核完成': 'ui-badge-success', '駁回': 'ui-badge-danger', '撤回': 'ui-badge-gray' };
+            return `<span class="ui-badge ${map[st] || 'ui-badge-gray'}">${st}</span>`;
+        };
         leaveRecordsDb.forEach(enrichRecord);
 
         let activeIndex = null;
@@ -1234,9 +1461,9 @@
         // 頁籤切換 (各頁籤含各自的搜尋與列表，僅切換顯示)
         function switchTab(tab) {
             activeTab = tab;
-            const tabs = ['attendance', 'leave', 'makeup', 'outing'];
-            const panelMap = { attendance: 'panel-attendance', leave: 'panel-leave', makeup: 'panel-makeup', outing: 'panel-outing' };
-            const btnMap = { attendance: 'tab-btn-attendance', leave: 'tab-btn-leave', makeup: 'tab-btn-makeup', outing: 'tab-btn-outing' };
+            const tabs = ['attendance', 'leave', 'makeup', 'outing', 'ot'];
+            const panelMap = { attendance: 'panel-attendance', leave: 'panel-leave', makeup: 'panel-makeup', outing: 'panel-outing', ot: 'panel-ot' };
+            const btnMap = { attendance: 'tab-btn-attendance', leave: 'tab-btn-leave', makeup: 'tab-btn-makeup', outing: 'tab-btn-outing', ot: 'tab-btn-ot' };
 
             const onCls = 'px-4 py-2.5 text-sm font-semibold text-primary border-b-2 border-primary -mb-px transition-colors';
             const offCls = 'px-4 py-2.5 text-sm font-medium text-gray-500 border-b-2 border-transparent -mb-px hover:text-gray-700 transition-colors';
@@ -1253,6 +1480,7 @@
             applyLeaveFilters();
             applyMakeupFilters();
             applyOutingFilters();
+            applyOtFilters();
         };
 
         // 打卡時間格式化：補卡則在時間後加「（補卡）」
@@ -1842,6 +2070,10 @@
         const msOutBu     = createMultiSelect('out-bu-ms',     BU_OPTIONS,     '全部事業部', applyOutingFilters);
         const msOutItem   = createMultiSelect('out-item-ms',   ITEM_OPTIONS,   '全部項目', applyOutingFilters);
         const msOutDept   = createMultiSelect('out-dept-ms',   DEPT_OPTIONS,   '全部部門', applyOutingFilters);
+        const msOtRegion  = createMultiSelect('ot-region-ms',  REGION_OPTIONS, '全部地區', applyOtFilters);
+        const msOtBu      = createMultiSelect('ot-bu-ms',      BU_OPTIONS,     '全部事業部', applyOtFilters);
+        const msOtItem    = createMultiSelect('ot-item-ms',    ITEM_OPTIONS,   '全部項目', applyOtFilters);
+        const msOtDept    = createMultiSelect('ot-dept-ms',    DEPT_OPTIONS,   '全部部門', applyOtFilters);
         const msLvRegion  = createMultiSelect('lv-region-ms',  REGION_OPTIONS, '全部地區', applyLeaveFilters);
         const msLvBu      = createMultiSelect('lv-bu-ms',      BU_OPTIONS,     '全部事業部', applyLeaveFilters);
         const msLvItem    = createMultiSelect('lv-item-ms',    ITEM_OPTIONS,   '全部項目', applyLeaveFilters);
@@ -2062,6 +2294,111 @@
                 (!dateStart || r.date >= dateStart) &&
                 (!dateEnd || r.date <= dateEnd));
             renderOuting(filtered);
+        }
+
+        /* ===== 加班紀錄詳情（僅檢視） ===== */
+        function openOtDetail(index) {
+            const r = otDb[index];
+            if (!r) return;
+            const set = (id, v) => { const el = document.getElementById(id); if (el) el.innerText = v; };
+            set('otd-id', r.id);
+            set('otd-name', r.name);
+            set('otd-dept', r.dept);
+            set('otd-org', `${r.region} / ${r.bu} / ${r.item}`);
+            set('otd-applydate', r.applyDate || '—');
+            set('otd-date', otFmtDate(r));
+            set('otd-type', r.type || '—');
+            set('otd-period', otFmtPeriod(r));
+            set('otd-hours', otFmtHours(otSpanHours(r)));
+            set('otd-comp', otCompSummary(r) || '—');
+            document.getElementById('otd-status').innerHTML = otStatusBadge(r.status);
+            set('otd-reason', r.reason || '無');
+            document.getElementById('ot-modal').classList.remove('hidden');
+        }
+        function closeOtModal() { document.getElementById('ot-modal').classList.add('hidden'); }
+
+        /* ===== 加班紀錄：篩選 / 渲染 / 統計 ===== */
+        function applyOtFilters() {
+            const kw = document.getElementById('ot-search').value.toLowerCase().trim();
+            const regions = msOtRegion ? msOtRegion.getSelected() : [];
+            const bus = msOtBu ? msOtBu.getSelected() : [];
+            const items = msOtItem ? msOtItem.getSelected() : [];
+            const depts = msOtDept ? msOtDept.getSelected() : [];
+            const typeValue = document.getElementById('ot-type').value;
+            const compValue = document.getElementById('ot-comp').value;
+            const statusValue = document.getElementById('ot-status').value;
+            const dateStart = document.getElementById('ot-date-start').value;
+            const dateEnd = document.getElementById('ot-date-end').value;
+
+            const filtered = otDb.filter(r =>
+                (!kw || r.name.toLowerCase().includes(kw) || r.id.toLowerCase().includes(kw)) &&
+                (regions.length === 0 || regions.includes(r.region)) &&
+                (bus.length === 0 || bus.includes(r.bu)) &&
+                (items.length === 0 || items.includes(r.item)) &&
+                (depts.length === 0 || depts.includes(r.dept)) &&
+                (typeValue === 'all' || r.type === typeValue) &&
+                (compValue === 'all' || r.comp === compValue) &&
+                (statusValue === 'all' || r.status === statusValue) &&
+                // 日期以「加班期間與查詢區間重疊」判斷
+                (!dateEnd || (r.dateStart || '') <= dateEnd) &&
+                (!dateStart || (r.dateEnd || r.dateStart || '') >= dateStart));
+            renderOt(filtered);
+        }
+        function resetOtFilters() {
+            document.getElementById('ot-search').value = '';
+            if (msOtRegion) msOtRegion.reset();
+            if (msOtBu) msOtBu.reset();
+            if (msOtItem) msOtItem.reset();
+            if (msOtDept) msOtDept.reset();
+            document.getElementById('ot-type').value = 'all';
+            document.getElementById('ot-comp').value = 'all';
+            document.getElementById('ot-status').value = 'all';
+            document.getElementById('ot-date-start').value = '';
+            document.getElementById('ot-date-end').value = '';
+            showToast('info', '已還原加班紀錄的篩選設定');
+            applyOtFilters();
+        }
+        function renderOt(data) {
+            const tbody = document.getElementById('ot-tbody');
+            const noData = document.getElementById('ot-no-data-view');
+            tbody.innerHTML = '';
+
+            if (data.length === 0) {
+                tbody.parentElement.classList.add('hidden');
+                noData.classList.remove('hidden');
+                document.getElementById('ot-count-badge').innerText = '0 筆資料';
+                document.getElementById('ot-pagination-info').innerText = '顯示第 0 到 0 筆，共 0 筆記錄';
+                return;
+            }
+            tbody.parentElement.classList.remove('hidden');
+            noData.classList.add('hidden');
+
+            data.forEach((r) => {
+                const idx = otDb.findIndex(x => x.id === r.id && x.dateStart === r.dateStart && x.start === r.start);
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-50/70 transition-colors';
+                tr.innerHTML = `
+                    <td class="text-left font-mono font-semibold text-gray-500">${r.id}</td>
+                    <td class="text-left"><span class="font-bold text-gray-800">${r.name}</span></td>
+                    <td><span class="px-2 py-0.5 bg-orange-50 text-orange-600 rounded text-xs font-semibold">${r.region}</span></td>
+                    <td><span class="px-2 py-0.5 bg-emerald-50 text-emerald-600 rounded text-xs font-semibold">${r.bu}</span></td>
+                    <td><span class="px-2 py-0.5 bg-blue-50 text-primary rounded text-xs font-semibold">${r.item}</span></td>
+                    <td class="font-semibold text-gray-700"><span class="px-2 py-0.5 bg-gray-100 rounded text-xs">${r.dept}</span></td>
+                    <td class="text-gray-500">${r.applyDate}</td>
+                    <td class="text-gray-700 font-medium">${otFmtDate(r)}</td>
+                    <td class="font-mono text-gray-600 text-[13px]">${otFmtPeriod(r)}</td>
+                    <td class="font-semibold text-gray-800">${otFmtHours(otSpanHours(r))}</td>
+                    <td><span class="ui-badge ui-badge-info">${r.type}</span></td>
+                    <td class="text-gray-600 text-[13px]">${otCompSummary(r)}</td>
+                    <td class="text-left text-gray-600 whitespace-normal break-words max-w-[280px]">${r.reason || '—'}</td>
+                    <td>${otStatusBadge(r.status)}</td>
+                    <td><button onclick="openOtDetail(${idx})" class="ui-btn ui-btn-secondary ui-btn-sm">詳情</button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('ot-count-badge').innerText = `${data.length} 筆資料`;
+            document.getElementById('ot-pagination-info').innerText = `顯示第 1 到 ${data.length} 筆，共 ${data.length} 筆記錄`;
         }
 
         function resetOutingFilters() {

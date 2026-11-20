@@ -82,9 +82,19 @@
                     </button>
                 </div>
 
-                <div class="flex items-center gap-2">
-                    <h2 id="list-title" class="text-lg font-bold text-gray-900 whitespace-nowrap">區域列表</h2>
-                    <span id="count-badge" class="bg-blue-50 text-primary text-xs px-2.5 py-1 rounded-md font-bold">0 筆資料</span>
+                <div class="flex items-center justify-between gap-3">
+                    <div class="flex items-center gap-2 min-w-0">
+                        <h2 id="list-title" class="text-lg font-bold text-gray-900 whitespace-nowrap">區域列表</h2>
+                        <span id="count-badge" class="bg-blue-50 text-primary text-xs px-2.5 py-1 rounded-md font-bold">0 筆資料</span>
+                    </div>
+                    <label id="legacy-toggle" class="inline-flex items-center gap-2 cursor-pointer select-none shrink-0">
+                        <span class="text-xs font-medium text-text-muted whitespace-nowrap">顯示非5.0資料</span>
+                        <span class="relative inline-block w-9 h-5 shrink-0">
+                            <input type="checkbox" id="show-legacy" onchange="render()" class="peer sr-only">
+                            <span class="absolute inset-0 rounded-full bg-gray-300 peer-checked:bg-primary transition-colors"></span>
+                            <span class="absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform peer-checked:translate-x-4"></span>
+                        </span>
+                    </label>
                 </div>
 
                 <div class="overflow-x-auto rounded-lg border border-gray-100 custom-scrollbar">
@@ -142,6 +152,14 @@
                     <label class="block text-xs font-semibold text-text-muted mb-1.5">區域 <span class="text-rose-500">*</span><span class="font-normal text-text-light">（可多選）</span></label>
                     <div id="field-region" class="flex flex-wrap gap-x-4 gap-y-2 border border-gray-300 rounded-md p-3"></div>
                 </div>
+                <!-- 區域 / 事業部中心 專屬欄位：只允許總部審批 -->
+                <div id="hq-field" class="hidden">
+                    <label class="block text-xs font-semibold text-text-muted mb-1.5">只允許總部審批 <span class="text-rose-500">*</span></label>
+                    <select id="field-hq" class="ui-select">
+                        <option value="否">否</option>
+                        <option value="是">是</option>
+                    </select>
+                </div>
                 <div>
                     <label class="block text-xs font-semibold text-text-muted mb-1.5">狀態</label>
                     <select id="field-status" class="ui-select">
@@ -178,11 +196,14 @@
         // 各分頁資料庫（代碼 / 名稱 / 啟用狀態）
         const orgData = {
             region: [
-                { code: 'T1', name: 'T1', country: 'TW', active: true },
-                { code: 'T2', name: 'T2', country: 'TW', active: true },
-                { code: 'U', name: 'U', country: 'US', active: true },
-                { code: 'J', name: 'J', country: 'JP', active: true },
-                { code: 'S', name: 'S', country: 'SG', active: true }
+                { code: 'T1', name: 'T1', country: 'TW', hqOnly: '否', active: true },
+                { code: 'T2', name: 'T2', country: 'TW', hqOnly: '是', active: true },
+                { code: 'U', name: 'U', country: 'US', hqOnly: '否', active: true },
+                { code: 'J', name: 'J', country: 'JP', hqOnly: '否', active: true },
+                { code: 'S', name: 'S', country: 'SG', hqOnly: '是', active: true },
+                { code: 'M', name: 'M', country: 'MY', active: false, legacy: true },
+                { code: 'K', name: 'K', country: 'KR', active: false, legacy: true },
+                { code: 'T3', name: 'T3', country: 'TW', active: false, legacy: true }
             ],
             company: [
                 { code: 'OB-IMOT', name: 'OB-IMOT', regions: [], active: true },
@@ -207,26 +228,37 @@
                 { code: 'CP', name: 'CP', regions: [], active: true },
                 { code: 'LXY', name: 'LXY', regions: [], active: true },
                 { code: 'TY', name: 'TY', regions: [], active: true },
-                { code: '資金安排', name: '資金安排', regions: [], active: true }
+                { code: '資金安排', name: '資金安排', regions: [], active: true },
+                { code: 'OB-LEGACY', name: 'OB-LEGACY', regions: [], active: false, legacy: true },
+                { code: 'TG-OLD', name: 'TG-OLD', regions: [], active: false, legacy: true },
+                { code: 'KX', name: 'KX', regions: [], active: false, legacy: true }
             ],
             bu: [
-                { code: 'BU01', name: '軟體事業部', regions: ['T1', 'T2'], active: true },
-                { code: 'BU02', name: '硬體事業部', regions: ['T1'], active: true },
-                { code: 'BU03', name: '雲端服務事業部', regions: ['T1', 'J'], active: true },
-                { code: 'BU04', name: '行銷事業部', regions: ['T1'], active: false }
+                { code: 'BU01', name: '軟體事業部', regions: ['T1', 'T2'], hqOnly: '否', active: true },
+                { code: 'BU02', name: '硬體事業部', regions: ['T1'], hqOnly: '否', active: true },
+                { code: 'BU03', name: '雲端服務事業部', regions: ['T1', 'J'], hqOnly: '是', active: true },
+                { code: 'BU04', name: '行銷事業部', regions: ['T1'], hqOnly: '否', active: false },
+                { code: 'BU90', name: '電商事業部（舊制）', regions: ['T1'], active: false, legacy: true },
+                { code: 'BU91', name: '客服中心（舊制）', regions: ['T2'], active: false, legacy: true }
             ],
             project: [
                 { code: 'GT', name: 'GT 專案', active: true },
                 { code: 'NX', name: 'NX 新平台', active: true },
                 { code: 'AI', name: 'AI 研究專案', active: true },
-                { code: 'OLD', name: '舊版維運專案', active: false }
+                { code: 'OLD', name: '舊版維運專案', active: false },
+                { code: 'GX', name: 'GX 專案（舊制）', active: false, legacy: true },
+                { code: 'GS', name: 'GS 專案（舊制）', active: false, legacy: true },
+                { code: 'GF', name: 'GF 專案（舊制）', active: false, legacy: true }
             ],
             dept: [
                 { code: 'RD', name: '研發部', active: true },
                 { code: 'HR', name: '人資部', active: true },
                 { code: 'FIN', name: '財務部', active: true },
                 { code: 'MKT', name: '行銷部', active: true },
-                { code: 'IA1', name: '內稽部', active: false }
+                { code: 'IA1', name: '內稽部', active: false },
+                { code: 'GA1', name: '總務一組（舊制）', active: false, legacy: true },
+                { code: 'GA2', name: '總務二組（舊制）', active: false, legacy: true },
+                { code: 'MIS', name: 'MIS 組（舊制）', active: false, legacy: true }
             ],
             position: [
                 { code: 'PM', name: '專案經理', active: true },
@@ -279,6 +311,17 @@
         const hasRegion = () => activeCat === 'company' || activeCat === 'bu';
         // 區域 需顯示「國碼」欄
         const hasCountry = () => activeCat === 'region';
+        // 區域 / 事業部中心 需顯示「只允許總部審批」欄
+        const hasHqApproval = () => activeCat === 'region' || activeCat === 'bu';
+        // 具版本區分（5.0 / 非5.0）之分類：區域、公司、事業部/中心、部門、組別
+        const VERSION_CATS = ['region', 'company', 'bu', 'project', 'dept'];
+        const hasVersion = () => VERSION_CATS.includes(activeCat);
+        // 未標記 legacy 者即為 5.0 資料
+        const isLegacy = (r) => !!r.legacy;
+        const showLegacy = () => {
+            const el = document.getElementById('show-legacy');
+            return !!(el && el.checked);
+        };
         // 區域多選選項（比照費用歸屬）
         const REGIONS = ['T1', 'T2', 'U', 'J', 'S'];
         function regionOptions() { return REGIONS; }
@@ -370,6 +413,8 @@
             let cols = '<th scope="col" class="text-left">名稱</th>';
             if (hasCountry()) cols += '<th scope="col" class="text-left w-32">國碼</th>';
             if (hasRegion()) cols += '<th scope="col" class="text-left min-w-[160px]">區域</th>';
+            if (hasHqApproval()) cols += '<th scope="col" class="w-36">只允許總部審批</th>';
+            if (hasVersion()) cols += '<th scope="col" class="w-24">版本</th>';
             cols += '<th scope="col">狀態</th><th scope="col" class="text-center">操作</th>';
             document.getElementById('table-head').innerHTML = cols;
         }
@@ -393,6 +438,11 @@
         function switchCat(key) {
             activeCat = key;
             document.getElementById('search-input').value = '';
+            // 切換分類時重設版本篩選，並依分類決定是否顯示 toggle
+            const cb = document.getElementById('show-legacy');
+            if (cb) cb.checked = false;
+            const wrap = document.getElementById('legacy-toggle');
+            if (wrap) wrap.classList.toggle('hidden', !hasVersion());
             renderTabs();
             document.getElementById('list-title').innerText = `${currentLabel()}列表`;
             render();
@@ -407,7 +457,9 @@
             const list = orgData[activeCat];
             // 保留原始索引以利編輯 / 切換狀態
             const rows = list.map((r, i) => ({ r, i }))
-                .filter(({ r }) => !kw || r.name.toLowerCase().includes(kw));
+                .filter(({ r }) => !kw || r.name.toLowerCase().includes(kw))
+                // 非5.0 資料僅於開啟「顯示非5.0資料」時列出（無版本區分之分類不過濾）
+                .filter(({ r }) => !hasVersion() || showLegacy() || !isLegacy(r));
 
             tbody.innerHTML = '';
 
@@ -423,7 +475,11 @@
 
             rows.forEach(({ r, i }) => {
                 const tr = document.createElement('tr');
-                tr.className = 'hover:bg-gray-50/70 transition-colors';
+                // 非5.0 為舊系統轉入資料，唯讀：不可編輯、不可啟用，狀態固定停用
+                const readonly = hasVersion() && isLegacy(r);
+                tr.className = readonly
+                    ? 'bg-gray-50/60 text-gray-400'
+                    : 'hover:bg-gray-50/70 transition-colors';
                 const statusBadge = r.active
                     ? '<span class="ui-badge ui-badge-success mx-auto">啟用</span>'
                     : '<span class="ui-badge mx-auto bg-gray-100 text-gray-500">停用</span>';
@@ -437,17 +493,33 @@
                 const countryCell = hasCountry()
                     ? `<td class="text-left">${r.country ? `<span class="ui-badge bg-indigo-50 text-indigo-600 font-mono" title="${COUNTRY_NAME[r.country] || ''}">${r.country}</span>` : '<span class="text-gray-300">—</span>'}</td>`
                     : '';
-                tr.innerHTML = `
-                    <td class="text-left font-medium text-gray-800">${r.name}</td>
-                    ${countryCell}
-                    ${regionCell}
-                    <td>${statusBadge}</td>
-                    <td>
+                // 只允許總部審批：是（琥珀）／否（灰）
+                const hqCell = hasHqApproval()
+                    ? `<td>${r.hqOnly === '是'
+                        ? '<span class="ui-badge bg-amber-50 text-amber-600 mx-auto">是</span>'
+                        : '<span class="ui-badge bg-gray-100 text-gray-500 mx-auto">否</span>'}</td>`
+                    : '';
+                const versionCell = hasVersion()
+                    ? `<td>${isLegacy(r)
+                        ? '<span class="ui-badge bg-amber-50 text-amber-600 mx-auto">非5.0</span>'
+                        : '<span class="ui-badge bg-sky-50 text-sky-600 mx-auto">5.0</span>'}</td>`
+                    : '';
+                const actionCell = readonly
+                    ? `<td><span class="inline-flex items-center gap-1.5 text-xs text-gray-400" title="非5.0 為舊系統轉入資料，僅供檢視"><i class="fa-solid fa-lock"></i>唯讀</span></td>`
+                    : `<td>
                         <div class="flex items-center justify-center gap-2">
                             <button onclick="openEdit(${i})" class="ui-btn ui-btn-secondary ui-btn-sm"><i class="fa-solid fa-pen-to-square"></i> 編輯</button>
                             ${toggleBtn}
                         </div>
-                    </td>
+                    </td>`;
+                tr.innerHTML = `
+                    <td class="text-left font-medium ${readonly ? 'text-gray-500' : 'text-gray-800'}">${r.name}</td>
+                    ${countryCell}
+                    ${regionCell}
+                    ${hqCell}
+                    ${versionCell}
+                    <td>${statusBadge}</td>
+                    ${actionCell}
                 `;
                 tbody.appendChild(tr);
             });
@@ -459,6 +531,10 @@
         // 切換啟用 / 停用
         function toggleStatus(i) {
             const rec = orgData[activeCat][i];
+            if (hasVersion() && isLegacy(rec)) {   // 非5.0 唯讀，不可啟停用
+                showToast('error', '非5.0 資料為唯讀，不可變更狀態');
+                return;
+            }
             rec.active = !rec.active;
             showToast(rec.active ? 'success' : 'info', `已${rec.active ? '啟用' : '停用'}「${rec.name}」`);
             render();
@@ -473,11 +549,18 @@
             renderCountryField('');
             document.getElementById('country-field').classList.toggle('hidden', !hasCountry());
             document.getElementById('region-field').classList.toggle('hidden', !hasRegion());
+            document.getElementById('hq-field').classList.toggle('hidden', !hasHqApproval());
+            document.getElementById('field-hq').value = '否';
             if (hasRegion()) renderRegionField([]);
             document.getElementById('edit-modal').classList.remove('hidden');
         }
 
         function openEdit(i) {
+            const rec0 = orgData[activeCat][i];
+            if (hasVersion() && isLegacy(rec0)) {   // 非5.0 唯讀，不可編輯
+                showToast('error', '非5.0 資料為唯讀，不可編輯');
+                return;
+            }
             editIndex = i;
             const rec = orgData[activeCat][i];
             document.getElementById('modal-title').innerText = `編輯${currentLabel()}`;
@@ -486,6 +569,8 @@
             renderCountryField(rec.country || '');
             document.getElementById('country-field').classList.toggle('hidden', !hasCountry());
             document.getElementById('region-field').classList.toggle('hidden', !hasRegion());
+            document.getElementById('hq-field').classList.toggle('hidden', !hasHqApproval());
+            document.getElementById('field-hq').value = rec.hqOnly === '是' ? '是' : '否';
             if (hasRegion()) renderRegionField(rec.regions || []);
             document.getElementById('edit-modal').classList.remove('hidden');
         }
@@ -521,6 +606,9 @@
                 const regions = Array.from(document.querySelectorAll('#field-region .field-region-chk:checked')).map(c => c.value);
                 if (!regions.length) { showToast('error', '請至少勾選一個區域'); return; }
                 extra = { ...extra, regions };
+            }
+            if (hasHqApproval()) {
+                extra = { ...extra, hqOnly: document.getElementById('field-hq').value };
             }
 
             if (editIndex === -1) {
@@ -566,6 +654,8 @@
 
         // 初始化
         window.onload = function () {
+            const wrap = document.getElementById('legacy-toggle');
+            if (wrap) wrap.classList.toggle('hidden', !hasVersion());
             renderTabs();
             render();
         };
