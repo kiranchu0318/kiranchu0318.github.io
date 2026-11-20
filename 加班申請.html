@@ -68,8 +68,7 @@
                         <select id="filter-type" onchange="render()" class="ui-select">
                             <option value="">所有加班類型</option>
                             <option>平日加班</option>
-                            <option>休息日加班</option>
-                            <option>國定假日加班</option>
+                            <option>假日加班</option>
                         </select>
                     </div>
                     <div class="relative w-full sm:w-40">
@@ -148,8 +147,7 @@
                             <label class="block text-sm font-medium text-gray-700 mb-1.5">加班類型 <span class="text-red-500">*</span></label>
                             <select id="m-type" class="ui-select">
                                 <option>平日加班</option>
-                                <option>休息日加班</option>
-                                <option>國定假日加班</option>
+                                <option>假日加班</option>
                             </select>
                         </div>
                         <div>
@@ -319,7 +317,7 @@
         // 加班紀錄（申請日期 / 加班日期 / 起訖 / 時數 / 類型 / 補償 / 事由 / 狀態）
         let records = [
             { applyDate: '2026-06-09', dateStart: '2026-06-08', dateEnd: '2026-06-08', start: '18:30', end: '21:00', hours: 2.5, type: '平日加班', comp: '隔日延遲上班', origTime: '09:00', delayTime: '11:00', offDate: '', reason: '月底系統上線前置驗證與部署。', status: '簽核完成' },
-            { applyDate: '2026-06-12', dateStart: '2026-06-13', dateEnd: '2026-06-14', start: '09:00', end: '13:00', hours: 28, type: '休息日加班', comp: '調休2日', origTime: '', delayTime: '', offDate: '2026-06-22', reason: '配合客戶週末驗收（連續兩日）。', status: '待簽核' },
+            { applyDate: '2026-06-12', dateStart: '2026-06-13', dateEnd: '2026-06-14', start: '09:00', end: '13:00', hours: 28, type: '假日加班', comp: '調休2日', origTime: '', delayTime: '', offDate: '2026-06-22', reason: '配合客戶週末驗收（連續兩日）。', status: '待簽核' },
             { applyDate: '2026-05-28', dateStart: '2026-05-27', dateEnd: '2026-05-27', start: '19:00', end: '20:30', hours: 1.5, type: '平日加班', comp: '調休', origTime: '', delayTime: '', offDate: '2026-06-03', reason: '緊急修復線上問題。', status: '駁回' }
         ];
 
