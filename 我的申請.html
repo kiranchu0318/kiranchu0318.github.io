@@ -461,14 +461,25 @@
       // 電子表單假資料 (包含不同狀態)
       const allMockData = [
         ...storedApps,
-        { oa: '行政', location: 'THQ', type: 'HR', docNo: 'HR-THQ-000007', title: '人員帳號異動申請', applicant: 'Nick', amounts: ['—'], date: '2026-06-13 10:00:00', approver: 'James', refNo: '-', status: '待簽核', kind: 'account' , workStatus: '未派工' },
+        { oa: '行政', location: 'THQ', type: 'AR', docNo: 'AR-THQ-000005', title: '資產減少申請', applicant: 'Nick', project: 'GT', dept: 'RD', amounts: ['TWD 1,200'], date: '2026-06-18 14:20:00', approver: 'James', refNo: '-', status: '簽核完成', workStatus: '已完成',
+          remark: '該筆電已屆滿使用年限且主機板故障，維修報價高於殘值，建議報廢處理。',
+          ar: {
+            subject: '研發部筆電報廢（NB-2021-077）', user: 'Nick（100258）', region: 'THQ', dept: 'RD', team: 'API',
+            reason: '正常報廢',
+            assetNo: 'NB-2021-077', assetName: 'ThinkPad X1 Carbon', assetCat: '笔电-非蘋果笔电', serial: 'PF2ABCDE',
+            assetUser: 'Nick（100258）', assetStatus: '已歸還',
+            buyPrice: '42,000', buyDate: '2021-05-12', currency: 'TWD',
+            residualDate: '2026-06-30', residualAmount: '1,200',
+            files: ['筆電故障檢測報告.pdf', '維修報價單.pdf']
+          } },
+        { oa: '行政', location: 'THQ', type: 'HR', docNo: 'HR-THQ-000007', title: '人員帳號異動申請', applicant: 'Nick', amounts: ['—'], date: '2026-06-13 10:00:00', approver: 'James', refNo: '-', status: '待補件', remark: '申請新增 Apple ID 與門禁卡，並刪除已停用之舊門號。相關資料已附於附件。', supplement: '請補附主管核可之門禁卡申請單，並說明舊門號停用日期；Apple ID 需另附資安同意書。', kind: 'account' , workStatus: '未派工' },
         { oa: '行政', location: 'THQ', type: 'HR', docNo: 'HR_THQ-000001', label: 'HR_THQ-000001_招聘需求單', title: '招聘需求單', applicant: 'Nick', project: 'GT', dept: 'RD', amounts: ['—'], date: '2026-06-02 10:30:00', approver: 'James', refNo: '-', status: '簽核完成', kind: 'recruit', workStatus: '已完成' },
         { oa: '行政', location: 'THQ', type: 'HR', docNo: 'HR_THQ-000001', label: 'HR_THQ-000001_錄用審批單', title: '錄用審批單', applicant: 'Nick', project: 'GT', dept: 'RD', amounts: ['—'], date: '2026-06-03 11:00:00', approver: 'James', refNo: '-', status: '簽核完成', kind: 'hire', workStatus: '已完成' },
-        { oa: '財務', location: 'THQ', type: 'B',  docNo: 'B-THQ-000003',  title: 'B-THQ-000003',  applicant: 'Nick', amounts: ['TWD 8,000', 'CNY 2137.09'],        date: '2026-05-30 15:36:45', approver: 'James', refNo: '-', status: '待簽核' , workStatus: '未派工' },
+        { oa: '財務', location: 'THQ', type: 'B',  docNo: 'B-THQ-000003',  title: 'B-THQ-000003',  applicant: 'Nick', amounts: ['TWD 8,000', 'CNY 2137.09'],        date: '2026-05-30 15:36:45', approver: 'James', refNo: '-', status: '待補件', remark: '本次費用為部門季度教育訓練之場地與講師費用，發票已於 5/30 取得並掃描上傳。', supplement: '發票金額與申請金額不符（差額 TWD 500），請補附差額說明或更正申請金額；另請補附講師合約。' , workStatus: '未派工' },
         { oa: '合同', location: 'THQ', type: 'IC', docNo: 'IC-THQ-000002', title: 'IC-THQ-000002', applicant: 'Nick', amounts: ['TWD 2,000,000', 'CNY 427407.40'], date: '2026-05-20 15:36:45', approver: 'James', refNo: '-', status: '簽核完成' , workStatus: '已完成' },
         { oa: '行政', location: 'THQ', type: 'PU', docNo: 'PU-THQ-000003', title: 'PU-THQ-000003', applicant: 'Nick', amounts: ['TWD 8,000', 'CNY 2137.09'],        date: '2026-05-12 15:36:45', approver: 'James', refNo: '-', status: '簽核完成' , workStatus: '未派工', urgent: true },
         { oa: '行政', location: 'THQ', type: 'PU', docNo: 'PU-THQ-000002', title: 'PU-THQ-000002', applicant: 'Nick', amounts: ['TWD 2,000,000', 'CNY 427407.40'], date: '2026-04-30 12:36:10', approver: 'James', refNo: '-', status: '簽核完成' , workStatus: '處理中' },
-        { oa: '財務', location: 'THQ', type: 'C',  docNo: 'C-THQ-000001',  title: 'C-THQ-000001',  applicant: 'Nick', amounts: ['TWD 2,000', 'CNY 451.47'],          date: '2026-04-26 19:00:45', approver: 'James', refNo: '-', status: '待簽核' , workStatus: '未派工' },
+        { oa: '財務', location: 'THQ', type: 'C',  docNo: 'C-THQ-000001',  title: 'C-THQ-000001',  applicant: 'Nick', amounts: ['TWD 2,000', 'CNY 451.47'],          date: '2026-04-26 19:00:45', approver: 'James', refNo: '-', status: '待簽核', remark: '辦公室用品採購（文具、碳粉匣），單據兩張併為一筆報銷。' , workStatus: '未派工' },
         { oa: '行政', location: 'THQ', type: 'PU', docNo: 'PU-THQ-000001', title: 'PU-THQ-000001', applicant: 'Nick', amounts: ['TWD 2,000', 'CNY 451.47'],          date: '2026-04-25 19:00:45', approver: 'James', refNo: '-', status: '簽核完成' , workStatus: '已完成' },
         // 差旅系列（PTA / PTAB / PTAC）demo
         { oa: '行政', location: 'THQ', type: 'PTA',  docNo: 'PTA-THQ-000001',  title: 'PTA-THQ-000001',  applicant: 'Nick', project: 'GT', dept: 'RD', amounts: ['CNY 12,000.00'], date: '2026-06-20 10:00:00', approver: 'James', refNo: '-', status: '簽核完成',   workStatus: '已完成' },
@@ -489,6 +500,47 @@
         const target = allMockData.find(r => r.type === openType && r.status !== '模板' && r.status !== '草稿');
         if (target) { setModalRow(target); setIsModalOpen(true); }
       }, []);
+
+      // 由「資產減少申請 (AR)」往下開立費用單：彈窗切換為新單（草稿，關聯原 AR 單號）
+      const openNextDoc = (type) => {
+        const src = modalRow;
+        if (!src) return;
+        const now = new Date();
+        const pad = (n) => String(n).padStart(2, '0');
+        setModalRow({
+          oa: '財務', location: src.location || 'THQ', type,
+          docNo: '自動生成',
+          title: type === 'B' ? '費用申請單' : '費用報銷單',
+          applicant: src.applicant, project: src.project, dept: src.dept,
+          amounts: src.amounts || ['—'],
+          date: `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:00`,
+          approver: '-', refNo: src.docNo, status: '草稿', workStatus: '未派工',
+          fromDocNo: src.docNo,
+          remark: buildRemarkFromAr(src)
+        });
+      };
+
+      // 由 AR 單帶入備註：減少原因 + 資產報廢信息
+      const buildRemarkFromAr = (src) => {
+        const a = src.ar;
+        if (!a) return '';
+        const lines = [
+          `減少原因：${a.reason || '—'}`,
+          '',
+          '【資產報廢信息】',
+          `資產編號：${a.assetNo || '—'}`,
+          `資產名稱：${a.assetName || '—'}`,
+          `資產分類：${a.assetCat || '—'}`,
+          `序列號：${a.serial || '—'}`,
+          `使用人：${a.assetUser || '—'}`,
+          `狀態：${a.assetStatus || '—'}`,
+          `購買價格：${a.currency || ''} ${a.buyPrice || '—'}`.trim(),
+          `購買日期：${a.buyDate || '—'}`,
+          `殘值清算日期：${a.residualDate || '—'}`,
+          `殘值金額：${a.currency || ''} ${a.residualAmount || '—'}`.trim()
+        ];
+        return lines.join('\n');
+      };
 
       // 費用報銷明細「目的（科目）→ 科目（子科目）」階層清單
       const expenseCategories = [
@@ -590,7 +642,7 @@
       // 依據當前頁籤過濾資料
       const displayData = allMockData.filter(item => {
         if (activeTab === '申請中') {
-          return ['待簽核', '簽核完成', '駁回', '撤回'].includes(item.status);
+          return ['待簽核', '待補件', '簽核完成', '駁回', '撤回'].includes(item.status);
         } else if (activeTab === '臨時保存') {
           return item.status === '草稿';
         } else if (activeTab === '模板保存') {
@@ -608,6 +660,9 @@
         }
         if (status === '駁回') {
           return <span className="ui-badge ui-badge-danger">駁回</span>;
+        }
+        if (status === '待補件') {
+          return <span className="ui-badge ui-badge-warning">待補件</span>;
         }
         if (status === '草稿') {
           return <span className="ui-badge ui-badge-gray">草稿</span>;
@@ -772,7 +827,7 @@
                               className={`${row.urgent ? 'text-[#CE0000]' : 'text-[#4A90E2]'} hover:underline font-medium text-left`}
                             >
                               {row.urgent && <span className="text-[#CE0000]">緊急_</span>}
-                              {row.label ? row.label : row.docNo ? (row.docNo === 'C-THQ-000001' ? `${row.docNo}_辦公室用品費用報銷` : `${row.docNo}_${({ B: '一般費用', C: '費用報銷', IC: '內部合同', PU: '請購', HR: '人員帳號異動', SA: '用印申請' })[row.type] || '申請'}`) : `${row.type}-GT-GT-${row.location}-AAA H-${row.date.slice(0,10).replace(/-/g,'')}-${String(idx+1).padStart(2,'0')}`}
+                              {row.label ? row.label : row.docNo ? (row.docNo === 'C-THQ-000001' ? `${row.docNo}_辦公室用品費用報銷` : `${row.docNo}_${({ B: '一般費用', C: '費用報銷', IC: '內部合同', PU: '請購', HR: '人員帳號異動', SA: '用印申請', AR: '資產減少申請' })[row.type] || '申請'}`) : `${row.type}-GT-GT-${row.location}-AAA H-${row.date.slice(0,10).replace(/-/g,'')}-${String(idx+1).padStart(2,'0')}`}
                             </button>
                           </td>
                           <td>
@@ -873,7 +928,7 @@
                 {/* 彈窗標題與關閉按鈕 */}
                 <div className="bg-[#EEF2F6] px-6 py-3.5 flex items-center justify-between border-b border-gray-200 flex-shrink-0">
                   <div className="flex items-center gap-2">
-                    <span className="font-bold text-gray-800 text-base">{modalRow?.kind === 'account' ? '人員帳號異動申請單' : modalRow?.kind === 'recruit' ? '招聘需求單' : modalRow?.kind === 'hire' ? '錄用審批單' : `${({ B: '費用申請單', C: '費用報銷單', IC: '內部合同審批單', PU: '請購申請單', SA: '用印申請單', PTA: '差旅申請單', PTAB: '差旅費用申請單', PTAC: '差旅費用報銷單' })[modalRow?.type] || '費用申請單'}(${modalRow?.type || 'B'})`}</span>
+                    <span className="font-bold text-gray-800 text-base">{modalRow?.kind === 'account' ? '人員帳號異動申請單' : modalRow?.kind === 'recruit' ? '招聘需求單' : modalRow?.kind === 'hire' ? '錄用審批單' : `${({ B: '費用申請單', C: '費用報銷單', IC: '內部合同審批單', PU: '請購申請單', SA: '用印申請單', PTA: '差旅申請單', PTAB: '差旅費用申請單', PTAC: '差旅費用報銷單', AR: '資產減少申請' })[modalRow?.type] || '費用申請單'}(${modalRow?.type || 'B'})`}</span>
                     {modalRow?.kind === 'recruit' && (
                       <span className="inline-flex items-center text-[13px] font-semibold text-[#2b6cb0] bg-blue-50 border border-blue-200 rounded px-2 py-0.5">關聯錄用 1／2 · 剩餘名額 1</span>
                     )}
@@ -1173,7 +1228,7 @@
                         </>
                       )}
 
-                      {modalRow?.kind !== 'account' && modalRow?.kind !== 'recruit' && modalRow?.docNo === 'C-THQ-000001' && (
+                      {modalRow?.kind !== 'account' && modalRow?.kind !== 'recruit' && (modalRow?.docNo === 'C-THQ-000001' || modalRow?.type === 'C') && (
                         <>
                       {/* 基本資訊卡片（C 樣式） */}
                       <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-5">
@@ -1704,6 +1759,80 @@
                         </>
                       )}
 
+                      {/* 資產減少申請 (AR)：基本信息 + 資產報廢信息（比照 申請.html AR 單）*/}
+                      {modalRow?.type === 'AR' && (
+                        <>
+                          <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-5">
+                            <div className="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2">基本信息</div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-5 gap-y-4">
+                              <div><label className={roLabel}>文件編號</label><input type="text" disabled value={modalRow?.docNo || ''} className={roCell + ' font-mono'} /></div>
+                              <div><label className={roLabel}>申請日期</label><input type="text" disabled value={modalRow?.date || ''} className={roCell} /></div>
+                              <div><label className={roLabel}>主旨</label><input type="text" disabled value={modalRow?.ar?.subject || ''} className={roCell} /></div>
+                              <div><label className={roLabel}>使用人</label><input type="text" disabled value={modalRow?.ar?.user || ''} className={roCell} /></div>
+                              <div><label className={roLabel}>區域</label><input type="text" disabled value={modalRow?.ar?.region || ''} className={roCell} /></div>
+                              <div><label className={roLabel}>部門</label><input type="text" disabled value={modalRow?.ar?.dept || ''} className={roCell} /></div>
+                              <div><label className={roLabel}>組別</label><input type="text" disabled value={modalRow?.ar?.team || ''} className={roCell} /></div>
+                              <div><label className={roLabel}>減少原因</label><input type="text" disabled value={modalRow?.ar?.reason || ''} className={roCell} /></div>
+                            </div>
+                          </div>
+
+                          <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-5">
+                            <div className="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2">資產報廢信息</div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-5 gap-y-4">
+                              <div><label className={roLabel}>資產編號</label><input type="text" disabled value={modalRow?.ar?.assetNo || ''} className={roCell + ' font-mono'} /></div>
+                              <div><label className={roLabel}>資產名稱</label><input type="text" disabled value={modalRow?.ar?.assetName || ''} className={roCell} /></div>
+                              <div><label className={roLabel}>資產分類</label><input type="text" disabled value={modalRow?.ar?.assetCat || ''} className={roCell} /></div>
+                              <div><label className={roLabel}>序列號</label><input type="text" disabled value={modalRow?.ar?.serial || ''} className={roCell + ' font-mono'} /></div>
+                              <div><label className={roLabel}>使用人</label><input type="text" disabled value={modalRow?.ar?.assetUser || ''} className={roCell} /></div>
+                              <div><label className={roLabel}>狀態</label><input type="text" disabled value={modalRow?.ar?.assetStatus || ''} className={roCell} /></div>
+                              <div><label className={roLabel}>購買價格</label><input type="text" disabled value={modalRow?.ar?.buyPrice || ''} className={roCell + ' text-right'} /></div>
+                              <div><label className={roLabel}>購買日期</label><input type="text" disabled value={modalRow?.ar?.buyDate || ''} className={roCell} /></div>
+                              <div><label className={roLabel}>幣種</label><input type="text" disabled value={modalRow?.ar?.currency || ''} className={roCell} /></div>
+                              <div><label className={roLabel}>殘值清算日期</label><input type="text" disabled value={modalRow?.ar?.residualDate || ''} className={roCell} /></div>
+                              <div><label className={roLabel}>殘值金額</label><input type="text" disabled value={modalRow?.ar?.residualAmount || ''} className={roCell + ' text-right'} /></div>
+                            </div>
+                          </div>
+
+                          <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-3">
+                            <div className="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2">附件</div>
+                            {(modalRow?.ar?.files || []).length > 0
+                              ? <ul className="space-y-1">
+                                  {(modalRow.ar.files).map((f, i) => (
+                                    <li key={i} className="flex items-center gap-2 px-3 py-2 bg-white border border-gray-200 rounded-lg text-[13px] text-gray-700">
+                                      <span className="text-rose-500 shrink-0 text-[11px] font-bold border border-rose-200 bg-rose-50 rounded px-1">PDF</span>
+                                      <span className="truncate">{f}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              : <p className="text-sm text-gray-400 italic">無附件</p>}
+                          </div>
+                        </>
+                      )}
+
+                      {/* 補件說明（簽核人退回補件時填寫之要求事項，唯讀檢視）*/}
+                      <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+                        <div className="bg-amber-50 px-6 py-3.5 border-b border-amber-200">
+                          <span className="font-bold text-amber-700 text-[15px]">補件說明</span>
+                        </div>
+                        <div className="p-6">
+                          {modalRow?.supplement
+                            ? <p className="text-sm text-gray-700 bg-amber-50 border border-amber-200 rounded p-3 leading-relaxed whitespace-pre-wrap break-words">{modalRow.supplement}</p>
+                            : <p className="text-sm text-gray-400 italic">無補件說明</p>}
+                        </div>
+                      </div>
+
+                      {/* 備註（申請人填寫之內容，唯讀檢視）*/}
+                      <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+                        <div className="bg-[#EEF2F6] px-6 py-3.5 border-b border-gray-200">
+                          <span className="font-bold text-[#1A237E] text-[15px]">備註</span>
+                        </div>
+                        <div className="p-6">
+                          {modalRow?.remark
+                            ? <p className="text-sm text-gray-700 bg-[#EAECEF] border border-gray-300 rounded p-3 leading-relaxed whitespace-pre-wrap break-words">{modalRow.remark}</p>
+                            : <p className="text-sm text-gray-400 italic">無備註</p>}
+                        </div>
+                      </div>
+
                       {/* 審批線詳情表格區塊 */}
                       <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
                         <div className="bg-[#EEF2F6] px-6 py-3.5 flex items-center justify-between border-b border-gray-200">
@@ -1930,6 +2059,18 @@
                           <div className="flex flex-wrap gap-3">
                             <button onClick={() => setIsModalOpen(false)} className="ui-btn ui-btn-primary">開立費用申請單 (B)</button>
                             <button onClick={() => setIsModalOpen(false)} className="ui-btn ui-btn-secondary">開立費用報銷單 (C)</button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* 下一步：資產減少申請（AR）簽核完成 → 可開立 B / C（比照請購單 PU）*/}
+                      {modalRow?.type === 'AR' && modalRow?.status === '簽核完成' && (
+                        <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-4">
+                          <div className="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2">下一步</div>
+                          <p className="text-sm text-gray-600">此單據已可進行下一步，請選擇要開立的單據類型：</p>
+                          <div className="flex flex-wrap gap-3">
+                            <button onClick={() => openNextDoc('B')} className="ui-btn ui-btn-primary">開立費用申請單 (B)</button>
+                            <button onClick={() => openNextDoc('C')} className="ui-btn ui-btn-secondary">開立費用報銷單 (C)</button>
                           </div>
                         </div>
                       )}
