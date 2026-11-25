@@ -2247,8 +2247,8 @@
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">組別 <span class="text-red-500">*</span></label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>請選擇</option></select></div>
                         </div>
                         <div class="px-4 pb-4 grid grid-cols-5 gap-x-5 gap-y-5">
-                            <div><label class="block mb-1.5 text-[13px] text-gray-700">公告分類 <span class="text-red-500">*</span></label><select id="bu-category" onchange="buCategoryChange(this.value)" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option value="" disabled selected>請選擇</option><option>一般公告</option><option>重要公告</option><option>壞帳公告</option><option>賠付公告</option><option>佣金</option><option>返點</option><option>合同公告</option></select></div>
-                            <div><label class="block mb-1.5 text-[13px] text-gray-700">公告類別 <span class="text-red-500">*</span></label><select id="bu-subcategory" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option value="" disabled selected>請先選擇公告分類</option></select></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">審批線清單 <span class="text-red-500">*</span></label><select id="bu-category" onchange="buCategoryChange(this.value)" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option value="" disabled selected>請選擇</option><option>一般公告</option><option>重要公告</option><option>壞帳公告</option><option>賠付公告</option><option>佣金申請</option><option>返點申請</option><option>合同公告</option></select></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">類別 <span class="text-red-500">*</span></label><select id="bu-subcategory" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option value="" disabled selected>請先選擇審批線清單</option></select></div>
                             <div><label class="block mb-1.5 text-[13px] text-gray-700">貨幣</label><select class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>CNY</option><option>TWD</option><option>USD</option></select></div>
                             <div class="col-span-2"><label class="block mb-1.5 text-[13px] text-gray-700">關聯合同審批單 (IC)</label><div class="flex h-[38px]"><input type="text" class="flex-1 min-w-0 border border-gray-300 rounded-l px-3 text-[13px] focus:border-blue-500 outline-none" placeholder="請輸入 IC 單號，例：IC-THQ-000001"><button type="button" class="bg-[#4A90E2] text-white px-3 rounded-r hover:bg-blue-600 transition-colors"><i data-lucide="search" class="w-4 h-4"></i></button></div></div>
                         </div>
@@ -6547,14 +6547,14 @@
             lend.classList.toggle('hidden', !show);
             if (!show) lend.value = '';
         }
-        // 商務公告 (BU)：公告分類 → 公告類別 連動
+        // 商務公告 (BU)：審批線清單 → 類別 連動
         const BU_CATEGORY_MAP = {
             '一般公告': ['一般點位調整', '一般階梯交收', '統一交收', '模式調整', '商務調整', '其他公告'],
             '重要公告': ['重要點位調整', '重要階梯交收', '減免交收', '報價權', '其他公告'],
             '壞帳公告': ['壞帳'],
             '賠付公告': ['賠付'],
-            '佣金': ['佣金'],
-            '返點': ['返點'],
+            '佣金申請': ['佣金及其他'],
+            '返點申請': ['返點'],
             '合同公告': ['合同']
         };
         function buCategoryChange(cat) {

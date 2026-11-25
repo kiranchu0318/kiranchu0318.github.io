@@ -160,9 +160,11 @@
                             <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500"></span> 已審核
                             <span class="inline-block w-2.5 h-2.5 rounded-full bg-rose-500 ml-1"></span> 已提交
                         </div>
-                        <button onclick="mockExport('出勤')" class="ui-btn ui-btn-secondary ui-btn-sm">
-                            <i class="fa-solid fa-download"></i> 匯出報表
+                        <div class="relative inline-block">
+                        <button onclick="toggleExportMenu(event, this, '出勤', 'attendance')" class="ui-btn ui-btn-secondary ui-btn-sm">
+                            <i class="fa-solid fa-download"></i> 匯出報表 <i class="fa-solid fa-chevron-down text-[10px] ml-1"></i>
                         </button>
+                        </div>
                     </div>
                 </div>
 
@@ -297,9 +299,11 @@
                             <span class="ui-badge ui-badge-info">請假</span>
                             <span class="ui-badge ui-badge-purple">銷假</span>
                         </div>
-                        <button onclick="mockExport('請假／銷假')" class="ui-btn ui-btn-secondary ui-btn-sm">
-                            <i class="fa-solid fa-download"></i> 匯出報表
+                        <div class="relative inline-block">
+                        <button onclick="toggleExportMenu(event, this, '請假／銷假', 'leave')" class="ui-btn ui-btn-secondary ui-btn-sm">
+                            <i class="fa-solid fa-download"></i> 匯出報表 <i class="fa-solid fa-chevron-down text-[10px] ml-1"></i>
                         </button>
+                        </div>
                     </div>
                 </div>
 
@@ -437,9 +441,11 @@
                             <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 ml-1"></span> 完成
                             <span class="inline-block w-2.5 h-2.5 rounded-full bg-rose-500 ml-1"></span> 駁回
                         </div>
-                        <button onclick="mockExport('補卡')" class="ui-btn ui-btn-secondary ui-btn-sm">
-                            <i class="fa-solid fa-download"></i> 匯出報表
+                        <div class="relative inline-block">
+                        <button onclick="toggleExportMenu(event, this, '補卡', 'makeup')" class="ui-btn ui-btn-secondary ui-btn-sm">
+                            <i class="fa-solid fa-download"></i> 匯出報表 <i class="fa-solid fa-chevron-down text-[10px] ml-1"></i>
                         </button>
+                        </div>
                     </div>
                 </div>
 
@@ -552,9 +558,11 @@
                             <span class="inline-block w-2.5 h-2.5 rounded-full bg-amber-500"></span> 外出中
                             <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 ml-1"></span> 已返回
                         </div>
-                        <button onclick="mockExport('外出')" class="ui-btn ui-btn-secondary ui-btn-sm">
-                            <i class="fa-solid fa-download"></i> 匯出報表
+                        <div class="relative inline-block">
+                        <button onclick="toggleExportMenu(event, this, '外出', 'outing')" class="ui-btn ui-btn-secondary ui-btn-sm">
+                            <i class="fa-solid fa-download"></i> 匯出報表 <i class="fa-solid fa-chevron-down text-[10px] ml-1"></i>
                         </button>
+                        </div>
                     </div>
                 </div>
 
@@ -683,9 +691,11 @@
                             <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 ml-1"></span> 簽核完成
                             <span class="inline-block w-2.5 h-2.5 rounded-full bg-rose-500 ml-1"></span> 駁回
                         </div>
-                        <button onclick="mockExport('加班')" class="ui-btn ui-btn-secondary ui-btn-sm">
-                            <i class="fa-solid fa-download"></i> 匯出報表
+                        <div class="relative inline-block">
+                        <button onclick="toggleExportMenu(event, this, '加班', 'ot')" class="ui-btn ui-btn-secondary ui-btn-sm">
+                            <i class="fa-solid fa-download"></i> 匯出報表 <i class="fa-solid fa-chevron-down text-[10px] ml-1"></i>
                         </button>
+                        </div>
                     </div>
                 </div>
 
@@ -2063,6 +2073,7 @@
         }
 
         function renderTable(data) {
+            exportRows.attendance = data || [];   // 記錄篩選後資料，供匯出排序使用
             const tbody = document.getElementById('attendance-tbody');
             const noDataView = document.getElementById('no-data-view');
             tbody.innerHTML = '';
@@ -2157,6 +2168,7 @@
 
         // 渲染補卡紀錄列表
         function renderMakeup(data) {
+            exportRows.makeup = data || [];   // 記錄篩選後資料，供匯出排序使用
             const tbody = document.getElementById('makeup-tbody');
             const noData = document.getElementById('makeup-no-data-view');
             tbody.innerHTML = '';
@@ -2213,6 +2225,7 @@
 
         // 渲染外出紀錄列表
         function renderOuting(data) {
+            exportRows.outing = data || [];   // 記錄篩選後資料，供匯出排序使用
             const tbody = document.getElementById('outing-tbody');
             const noData = document.getElementById('outing-no-data-view');
             tbody.innerHTML = '';
@@ -2424,6 +2437,7 @@
         }
         // 渲染 請假 / 銷假 紀錄列表
         function renderLeave(data) {
+            exportRows.leave = data || [];   // 記錄篩選後資料，供匯出排序使用
             const tbody = document.getElementById('leave-tbody');
             const noData = document.getElementById('leave-no-data-view');
             tbody.innerHTML = '';
@@ -2723,6 +2737,7 @@
             applyOtFilters();
         }
         function renderOt(data) {
+            exportRows.ot = data || [];   // 記錄篩選後資料，供匯出排序使用
             const tbody = document.getElementById('ot-tbody');
             const noData = document.getElementById('ot-no-data-view');
             tbody.innerHTML = '';
@@ -2935,9 +2950,64 @@
             setTimeout(() => modal.classList.add('hidden'), 200);
         }
 
-        function mockExport(name) {
-            showToast('success', `${name || '出勤'}報表已開始匯出，請稍候下載。`);
+        /* ===== 匯出報表：先選排序方式，再匯出 =====
+           排序只影響匯出內容的列順序，不改變畫面上的列表 */
+        const EXPORT_SORTS = [
+            { key: 'date-asc',      label: '依日期從舊到新排序' },
+            { key: 'date-desc',     label: '依日期從新到舊排序' },
+            { key: 'emp-date-desc', label: '依員工按日期新到舊排序' },
+            { key: 'emp-date-asc',  label: '依員工按日期舊到新排序' }
+        ];
+        // 各頁籤的日期欄位不同，匯出排序時以此取值
+        const EXPORT_DATE_FIELD = { attendance: 'date', leave: 'appDate', makeup: 'makeupDate', outing: 'date', ot: 'dateStart' };
+        // 畫面上「篩選後」的資料，於各 render 時記錄，作為匯出來源
+        const exportRows = { attendance: [], leave: [], makeup: [], outing: [], ot: [] };
+
+        function sortForExport(rows, sortKey, tabKey) {
+            const field = EXPORT_DATE_FIELD[tabKey] || 'date';
+            const d = (r) => r[field] || '';
+            const byDateAsc = (a, b) => d(a) < d(b) ? -1 : (d(a) > d(b) ? 1 : 0);
+            const byId = (a, b) => String(a.id || '').localeCompare(String(b.id || ''));
+            const list = rows.slice();
+            if (sortKey === 'date-asc')  return list.sort(byDateAsc);
+            if (sortKey === 'date-desc') return list.sort((a, b) => -byDateAsc(a, b));
+            // 依員工：先以工號分組，組內再依日期排序
+            if (sortKey === 'emp-date-asc')  return list.sort((a, b) => byId(a, b) || byDateAsc(a, b));
+            if (sortKey === 'emp-date-desc') return list.sort((a, b) => byId(a, b) || -byDateAsc(a, b));
+            return list;
         }
+
+        let exportMenuEl = null;
+        let exportMenuOwner = '';
+        function closeExportMenu() {
+            if (exportMenuEl) { exportMenuEl.remove(); exportMenuEl = null; exportMenuOwner = ''; }
+        }
+        function toggleExportMenu(ev, btn, name, tabKey) {
+            ev.stopPropagation();
+            if (exportMenuOwner === tabKey) { closeExportMenu(); return; }
+            closeExportMenu();
+            const menu = document.createElement('div');
+            menu.className = 'absolute right-0 mt-1 w-56 bg-white border border-gray-200 rounded-lg shadow-lg z-40 py-1';
+            menu.onclick = (e) => e.stopPropagation();
+            menu.innerHTML = EXPORT_SORTS.map(o =>
+                `<button type="button" onclick="runExport('${name}','${tabKey}','${o.key}')" class="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-primary-light/60 hover:text-primary whitespace-nowrap">${o.label}</button>`
+            ).join('');
+            btn.parentElement.appendChild(menu);
+            exportMenuEl = menu;
+            exportMenuOwner = tabKey;
+        }
+        function runExport(name, tabKey, sortKey) {
+            closeExportMenu();
+            const opt = EXPORT_SORTS.find(o => o.key === sortKey);
+            const rows = sortForExport(exportRows[tabKey] || [], sortKey, tabKey);
+            mockExport(name, opt ? opt.label : '', rows.length);
+        }
+        function mockExport(name, sortLabel, count) {
+            const n = (count === undefined) ? '' : `，共 ${count} 筆`;
+            showToast('success', `${name || '出勤'}報表已開始匯出（${sortLabel || '預設排序'}${n}），請稍候下載。`);
+        }
+        // 點擊頁面其他位置關閉下拉
+        document.addEventListener('click', closeExportMenu);
 
         // Toast 提示控制
         function showToast(type, text) {

@@ -466,7 +466,7 @@
         { id: 'oa', label: 'OA 類型', type: 'multi', options: ['商務', '合同', '財務', '行政', 'PMO'] },
         { id: 'project', label: '項目', type: 'multi', options: ['GT'] },
         { id: 'location', label: '地點', type: 'multi', options: ['T1', 'T2', 'THQ', 'T3', 'T4'] },
-        { id: 'docType', label: '單據類型', type: 'multi', options: ['新增資產申請 (ASSETS)', '費用申請單 (B)', '商務公告(BU)', '費用報銷單 (C)', '內部合同審批單 (IC)'] },
+        { id: 'docType', label: '單據類型', type: 'multi', options: ['新增資產申請 (ASSETS)', '費用申請單 (B)', '商務公告(BU)', '費用報銷單 (C)', 'CCTV調閱 (CV)', '內部合同審批單 (IC)'] },
       ];
 
       // 請假/補卡簽核：專屬篩選器設定
@@ -744,7 +744,22 @@
         { oa: '財務', location: 'THQ', type: 'C',  docNo: 'C-THQ-000001',  label: 'C-THQ-000001_辦公室用品費用報銷(有B單)', applicant: 'Oliver', signature: 'Oliver', amounts: ['TWD 2,000', 'CNY 451.47'],          date: '2026-04-26 19:00:45', approver: 'James', refNo: '-', status: '待我簽核', isGreen: false, workStatus: '未派工' },
         { oa: '財務', location: 'THQ', type: 'C',  docNo: 'C-THQ-000002',  applicant: 'Dev', signature: 'Dev', amounts: ['TWD 3,500', 'CNY 789.25'],          date: '2026-05-18 10:22:30', approver: 'James', refNo: '-', status: '待我簽核', isGreen: false, workStatus: '處理中' },
         { oa: '行政', location: 'THQ', type: 'PU', docNo: 'PU-THQ-000001', applicant: 'Oliver', signature: 'Oliver', amounts: ['TWD 2,000', 'CNY 451.47'],          date: '2026-04-25 19:00:45', approver: 'James', refNo: '-', status: '簽核完成', isGreen: true, workStatus: '已完成' },
+        { oa: '行政', location: 'THQ', type: 'CV', docNo: 'CV-THQ-000001', label: 'CV-THQ-000001_CCTV調閱', applicant: 'Nick', signature: 'Nick', project: 'GT', dept: 'RD', amounts: ['-'], date: '2026-06-16 11:05:00', approver: 'James', refNo: '-', status: '待我簽核', isGreen: false, workStatus: '未派工' },
       ];
+
+      // CCTV調閱(CV) 內容 demo（比照 申請.html CCTV調閱 (CV) 彈窗欄位：主旨 / 使用人 / 區域 / 事業部中心 / 部門 / 組別 / 備註 / 附件）
+      const CV_DETAIL = {
+        'CV-THQ-000001': {
+          subject: '機房門禁影像調閱（6/14 夜間）',
+          user: 'Nick（101372）',
+          region: 'THQ',
+          bu: '研發事業部 (RD BU)',
+          dept: 'RD',
+          team: 'API',
+          note: '調閱事由：6/14（日）22:00 ~ 6/15（一）02:00 機房伺服器遭不當斷電，需調閱 B1 機房門口與機櫃區影像以釐清進出人員。\n調閱範圍：B1 機房門口（CAM-B1-03）、機櫃區（CAM-B1-07）。\n調閱用途：事故原因調查與內部稽核紀錄，不對外提供。',
+          files: ['機房斷電事故報告.pdf', '門禁刷卡紀錄.xlsx']
+        }
+      };
 
       // 合同審批單(IC) 內容 demo（比照 申請.html 合同審批單 (IC) 彈窗欄位）
       const IC_DETAIL = {
@@ -929,7 +944,7 @@
                                 className={`${row.urgent ? 'text-[#CE0000]' : 'text-[#4A90E2]'} hover:underline font-medium text-left`}
                               >
                                 {row.urgent && <span className="text-[#CE0000]">緊急_</span>}
-                                {row.label ? row.label : row.docNo === 'C-THQ-000001' ? `${row.docNo}_辦公室用品費用報銷(費用會計範例)` : row.docNo === 'C-THQ-000002' ? `${row.docNo}_辦公室用品費用報銷(資金支付範例)` : `${row.docNo}_${({ B: '一般費用', C: '費用報銷', IC: '內部合同', PU: '請購', HR: '人員帳號異動', SA: '用印申請' })[row.type] || '申請'}`}
+                                {row.label ? row.label : row.docNo === 'C-THQ-000001' ? `${row.docNo}_辦公室用品費用報銷(費用會計範例)` : row.docNo === 'C-THQ-000002' ? `${row.docNo}_辦公室用品費用報銷(資金支付範例)` : `${row.docNo}_${({ B: '一般費用', C: '費用報銷', IC: '內部合同', PU: '請購', HR: '人員帳號異動', SA: '用印申請', CV: 'CCTV調閱' })[row.type] || '申請'}`}
                               </button>
                             </td>
                             <td>{row.applicant}</td>
@@ -1373,7 +1388,7 @@
 
                 {/* 彈窗標題與關閉按鈕 */}
                 <div className="bg-[#EEF2F6] px-6 py-3.5 flex items-center justify-between border-b border-gray-200 flex-shrink-0">
-                  <span className="font-bold text-gray-800 text-base">{`${({ B: '費用申請單', C: '費用報銷單', IC: '內部合同審批單', PU: '請購申請單', HR: '員工帳號異動申請單' })[modalRow?.type] || '費用申請單'}(${modalRow?.type || 'B'})`}</span>
+                  <span className="font-bold text-gray-800 text-base">{`${({ B: '費用申請單', C: '費用報銷單', IC: '內部合同審批單', PU: '請購申請單', HR: '員工帳號異動申請單', CV: 'CCTV調閱' })[modalRow?.type] || '費用申請單'}(${modalRow?.type || 'B'})`}</span>
                   <button
                     onClick={closeOrBackModal}
                     className="bg-[#3F51B5] hover:bg-blue-800 text-white p-1 rounded transition-colors"
@@ -1417,7 +1432,7 @@
                           </div>
                           <div>
                             <label className="block text-gray-700 text-xs mb-1.5 font-medium">{['C-THQ-000001', 'C-THQ-000002'].includes(modalRow?.docNo) ? '目的' : '主旨'}</label>
-                            <input type="text" disabled value={modalRow ? (['C-THQ-000001', 'C-THQ-000002'].includes(modalRow.docNo) ? '辦公室用品費用報銷' : modalRow.type === 'AUTH' ? '系統權限異動申請' : modalRow.type === 'IC' ? (IC_DETAIL[modalRow.docNo]?.subject || '合同審批單') : `${modalRow.oa || ''}申請單`) : ''} className="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-sm text-gray-800 font-medium" />
+                            <input type="text" disabled value={modalRow ? (['C-THQ-000001', 'C-THQ-000002'].includes(modalRow.docNo) ? '辦公室用品費用報銷' : modalRow.type === 'AUTH' ? '系統權限異動申請' : modalRow.type === 'CV' ? (CV_DETAIL[modalRow.docNo]?.subject || 'CCTV調閱') : modalRow.type === 'IC' ? (IC_DETAIL[modalRow.docNo]?.subject || '合同審批單') : `${modalRow.oa || ''}申請單`) : ''} className="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-sm text-gray-800 font-medium" />
                           </div>
                           <div className="lg:col-start-1">
                             <label className="block text-gray-700 text-xs mb-1.5 font-medium">申請人</label>
@@ -1693,6 +1708,31 @@
                       </>
                       )}
 
+                      {/* CCTV調閱(CV)：比照 申請.html CCTV調閱 (CV) 彈窗內容 */}
+                      {modalRow?.type === 'CV' && (() => {
+                        const cv = CV_DETAIL[modalRow.docNo] || {};
+                        return (
+                          <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-4">
+                            <div className="text-[#2b3b84] font-bold text-[15px] border-b border-gray-100 pb-2">備註</div>
+                            <div className="text-sm text-gray-700 bg-gray-50 border border-gray-200 rounded-lg p-3 leading-relaxed whitespace-pre-line min-h-[80px]">{cv.note || '—'}</div>
+                            <div>
+                              <div className="text-xs font-semibold text-gray-500 mb-2">附件</div>
+                              {(cv.files || []).length > 0 ? (
+                                <ul className="space-y-1">
+                                  {(cv.files || []).map((n, i) => (
+                                    <li key={i} className="flex items-center gap-2 bg-gray-50 border border-gray-100 rounded px-3 py-1.5 text-xs text-gray-700">
+                                      <span className="text-gray-400">📎</span><span className="truncate">{n}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              ) : (
+                                <div className="text-xs text-gray-400">無附件</div>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })()}
+
                       {/* 費用報銷卡片（C-THQ-000001 專用） */}
                       {['C-THQ-000001', 'C-THQ-000002'].includes(modalRow?.docNo) && (
                       <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-5">
@@ -1763,8 +1803,8 @@
                       </div>
                       )}
 
-                      {/* 費用申請明細 / 費用報銷明細卡片（HR / AUTH / IC 不顯示）*/}
-                      {modalRow?.type !== 'HR' && modalRow?.type !== 'AUTH' && modalRow?.type !== 'IC' && (
+                      {/* 費用申請明細 / 費用報銷明細卡片（HR / AUTH / IC / CV 不顯示）*/}
+                      {modalRow?.type !== 'HR' && modalRow?.type !== 'AUTH' && modalRow?.type !== 'IC' && modalRow?.type !== 'CV' && (
                       <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-5">
                         <div className="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2">{['C-THQ-000001', 'C-THQ-000002'].includes(modalRow?.docNo) ? '費用報銷明細' : '費用申請明細'}</div>
                         {['C-THQ-000001', 'C-THQ-000002'].includes(modalRow?.docNo) ? (
@@ -2045,8 +2085,8 @@
 
                     </div>
 
-                    {/* 懸浮總計金額（參考申請.html 請購單 PU 浮動區塊；HR / AUTH / IC 不涉及金額明細，故不顯示）*/}
-                    {modalRow?.type !== 'HR' && modalRow?.type !== 'AUTH' && modalRow?.type !== 'IC' && modalRow?.amounts && (
+                    {/* 懸浮總計金額（參考申請.html 請購單 PU 浮動區塊；HR / AUTH / IC / CV 不涉及金額明細，故不顯示）*/}
+                    {modalRow?.type !== 'HR' && modalRow?.type !== 'AUTH' && modalRow?.type !== 'IC' && modalRow?.type !== 'CV' && modalRow?.amounts && (
                       <div className="absolute right-6 bottom-[88px] z-30 bg-white border border-gray-200 rounded-xl shadow-xl px-5 py-3 min-w-[210px]">
                         <div className="text-[11px] text-gray-400 font-medium">總計金額</div>
                         <div className="flex items-baseline gap-1.5">
