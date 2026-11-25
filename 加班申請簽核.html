@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>加班申請簽核</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4A90E2',
+                        'primary-light': '#EAF2FC',
+                        background: '#F8F9FB',
+                        card: '#FFFFFF',
+                        text: { main: '#1F2937', muted: '#6B7280', light: '#9CA3AF' }
+                    },
+                    fontFamily: { sans: ['"Inter"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'] },
+                    boxShadow: {
+                        'card': '0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03)',
+                        'modal': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: theme('colors.background'); font-family: theme('fontFamily.sans'); }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .modal-enter { opacity: 0; transform: scale(0.95); }
+        .modal-enter-active { opacity: 1; transform: scale(1); transition: opacity 200ms ease-out, transform 200ms ease-out; }
+    </style>
+    <link rel="stylesheet" href="shared-ui.css">
+</head>
+
+<body class="ui-page text-text-main antialiased relative">
+
+    <div class="mx-auto w-full space-y-6 md:space-y-8">
+
+        <!-- 頁面標題區塊 -->
+        <header class="ui-page-header">
+            <div class="flex items-center gap-3">
+                <h1 class="ui-page-title">加班申請簽核</h1>
+                <span id="manager-label" class="text-sm text-text-muted"></span>
+            </div>
+        </header>
+
+        <section class="ui-card p-4 md:p-6">
+
+            <!-- 篩選列（比照 請假簽核：狀態 / 項目 / 部門，多選，未選代表全部） -->
+            <div id="filter-bar" class="bg-[#F8F9FB] p-3 rounded border border-gray-200 flex flex-wrap gap-4 items-center"></div>
+
+            <!-- 搜尋與日期列（比照 請假簽核） -->
+            <div class="flex flex-wrap items-center justify-between gap-4 py-3">
+                <div class="flex flex-1 min-w-[200px] max-w-md gap-3">
+                    <div class="ui-search flex-1">
+                        <i class="fa-solid fa-magnifying-glass text-gray-400 text-xs"></i>
+                        <input type="text" id="filter-kw" oninput="render()" placeholder="請輸入關鍵字" class="ui-input ui-search-input">
+                    </div>
+                    <div class="w-[120px]">
+                        <input type="text" id="filter-empno" oninput="render()" placeholder="搜尋工號" class="ui-input">
+                    </div>
+                </div>
+                <div class="flex flex-wrap items-center gap-2">
+                    <!-- 日期輸入以固定寬度容器包住：.ui-input 為 width:100%，直接放在 flex 容器會被壓縮而跑版 -->
+                    <div class="flex items-center gap-2 shrink-0">
+                        <div class="w-[150px]"><input type="date" id="filter-start" onchange="render()" class="ui-input cursor-pointer"></div>
+                        <span class="text-gray-400 text-sm shrink-0">~</span>
+                        <div class="w-[150px]"><input type="date" id="filter-end" onchange="render()" class="ui-input cursor-pointer"></div>
+                    </div>
+                    <div class="flex items-center gap-2 shrink-0">
+                        <button onclick="render()" class="ui-btn ui-btn-primary">搜尋</button>
+                        <button onclick="resetFilters()" class="ui-btn ui-btn-secondary">重設</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 列表標題 -->
+            <div class="flex items-center gap-2 mb-3">
+                <h2 class="text-lg font-semibold text-gray-800 whitespace-nowrap">加班申請單</h2>
+                <span id="count-badge" class="bg-blue-50 text-primary text-xs px-2.5 py-1 rounded-md font-bold">0 筆</span>
+            </div>
+
+            <!-- 批次簽核工具列 -->
+            <div id="batch-bar" class="hidden items-center justify-between gap-3 mb-4 px-4 py-3 bg-primary-light/60 border border-blue-100 rounded-lg">
+                <span id="batch-info" class="text-sm font-medium text-gray-700">已選取 0 筆</span>
+                <div class="flex items-center gap-2">
+                    <button onclick="clearSelection()" class="ui-btn ui-btn-secondary ui-btn-sm">取消選取</button>
+                    <button onclick="openAct(selectedDocNos())" class="ui-btn ui-btn-primary ui-btn-sm"><i class="fa-solid fa-pen-to-square"></i> 一鍵審批</button>
+                </div>
+            </div>
+
+            <!-- 表格 -->
+            <div id="table-wrap" class="overflow-x-auto rounded-lg border border-gray-100">
+                <table class="ui-table whitespace-nowrap">
+                    <thead>
+                        <tr>
+                            <th scope="col" class="text-center w-12">
+                                <input type="checkbox" id="check-all" onchange="toggleSelectAll(this.checked)" class="w-4 h-4 accent-primary cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+                            </th>
+                            <th scope="col" class="text-left">文件編號</th>
+                            <th scope="col" class="text-left">項目</th>
+                            <th scope="col" class="text-left">部門</th>
+                            <th scope="col" class="text-left">工號</th>
+                            <th scope="col" class="text-left">姓名</th>
+                            <th scope="col" class="text-left">申請時間</th>
+                            <th scope="col" class="text-left">加班時段</th>
+                            <th scope="col" class="text-left">加班時數</th>
+                            <th scope="col" class="text-left">加班類型</th>
+                            <th scope="col" class="text-left">補償方式</th>
+                            <th scope="col" class="text-left">狀態</th>
+                            <th scope="col" class="text-left">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ot-tbody"></tbody>
+                </table>
+            </div>
+
+            <div id="no-data-view" class="hidden py-16 text-center space-y-3">
+                <div class="inline-flex p-4 bg-gray-50 text-gray-400 rounded-full"><i class="fa-solid fa-business-time text-3xl"></i></div>
+                <p class="text-sm text-text-muted font-medium">目前沒有待簽核項目</p>
+            </div>
+
+            <div class="flex items-center justify-between mt-6 pt-4 border-t border-gray-100">
+                <span id="pagination-info" class="text-sm text-gray-500">共 0 筆記錄</span>
+                <div class="flex gap-1">
+                    <button class="ui-page-btn"><i class="fa-solid fa-chevron-left text-xs"></i></button>
+                    <button class="ui-page-btn is-active">1</button>
+                    <button class="ui-page-btn"><i class="fa-solid fa-chevron-right text-xs"></i></button>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- ============ 加班申請單 檢視彈窗（主管簽核）============ -->
+    <div id="ot-view-modal" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true">
+        <div class="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm" onclick="closeOtView()"></div>
+        <div class="fixed inset-0 z-10 flex items-center justify-center p-4">
+            <div class="bg-[#F0F2F5] rounded-xl shadow-2xl w-full max-w-[1430px] h-[90vh] flex flex-col overflow-hidden text-left">
+                <!-- 標題列 -->
+                <div class="bg-[#EEF2F6] px-6 py-3.5 flex items-center justify-between border-b border-gray-200 flex-shrink-0">
+                    <span class="font-bold text-gray-800 text-base">加班申請單</span>
+                    <button onclick="closeOtView()" class="bg-[#3F51B5] hover:bg-blue-800 text-white w-8 h-8 flex items-center justify-center rounded transition-colors"><i class="fa-solid fa-xmark text-sm"></i></button>
+                </div>
+                <div class="flex-1 flex flex-col lg:flex-row overflow-hidden">
+                    <!-- 左側 -->
+                    <div class="flex-1 min-w-0 flex flex-col overflow-hidden">
+                        <div class="flex-1 overflow-y-auto p-6 space-y-6">
+                            <!-- 基本資訊 -->
+                            <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-5">
+                                <div class="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2">基本資訊</div>
+                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                                    <div><label class="block text-gray-700 text-xs mb-1.5 font-medium">文件編號</label><input id="otv-docno" type="text" disabled class="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed font-mono"></div>
+                                    <div><label class="block text-gray-700 text-xs mb-1.5 font-medium">申請時間</label><input id="otv-applytime" type="text" disabled class="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed"></div>
+                                    <div class="lg:col-start-1"><label class="block text-gray-700 text-xs mb-1.5 font-medium">申請人</label><input id="otv-name" type="text" disabled class="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-sm text-gray-800 cursor-not-allowed"></div>
+                                    <div><label class="block text-gray-700 text-xs mb-1.5 font-medium">事業部/中心</label><input id="otv-bu" type="text" disabled class="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed"></div>
+                                    <div><label class="block text-gray-700 text-xs mb-1.5 font-medium">部門</label><input id="otv-dept" type="text" disabled class="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed"></div>
+                                    <div><label class="block text-gray-700 text-xs mb-1.5 font-medium">組別</label><input id="otv-team" type="text" disabled class="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed"></div>
+                                    <div><label class="block text-gray-700 text-xs mb-1.5 font-medium">人員假期政策</label><input id="otv-policy" type="text" disabled class="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed"></div>
+                                </div>
+                            </div>
+                            <!-- 加班日當日考勤紀錄（獨立區塊，來源：考勤管理 ▸ 出勤紀錄，唯讀） -->
+                            <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-5">
+                                <div class="flex items-center gap-2 border-b border-gray-100 pb-2">
+                                    <span class="text-[#1A237E] font-bold text-[15px]">加班日當日考勤紀錄</span>
+                                    <span id="otv-att-date" class="text-xs text-gray-400"></span>
+                                    <span id="otv-att-status" class="ml-auto"></span>
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                                    <div><label class="block text-gray-700 text-xs mb-1.5 font-medium">上班打卡時間</label><input id="otv-att-ci" type="text" disabled class="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm font-mono text-gray-700 cursor-not-allowed"></div>
+                                    <div><label class="block text-gray-700 text-xs mb-1.5 font-medium">下班打卡時間</label><input id="otv-att-co" type="text" disabled class="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm font-mono text-gray-700 cursor-not-allowed"></div>
+                                    <div><label class="block text-gray-700 text-xs mb-1.5 font-medium">打卡方式（上班/下班）</label><input id="otv-att-method" type="text" disabled class="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed"></div>
+                                    <div><label class="block text-gray-700 text-xs mb-1.5 font-medium">打卡地點（上班/下班）</label><input id="otv-att-loc" type="text" disabled class="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed"></div>
+                                    <div><label class="block text-gray-700 text-xs mb-1.5 font-medium">當日工時</label><input id="otv-att-work" type="text" disabled class="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed"></div>
+                                    <div><label class="block text-gray-700 text-xs mb-1.5 font-medium">關聯單號1</label><input id="otv-att-ref1" type="text" disabled class="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm font-mono text-gray-700 cursor-not-allowed"></div>
+                                    <div><label class="block text-gray-700 text-xs mb-1.5 font-medium">關聯單號2</label><input id="otv-att-ref2" type="text" disabled class="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm font-mono text-gray-700 cursor-not-allowed"></div>
+                                </div>
+                            </div>
+                            <!-- 加班資訊 -->
+                            <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-5">
+                                <div class="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2">加班資訊</div>
+                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                                    <div><label class="block text-gray-700 text-xs mb-1.5 font-medium">起始日期</label><input id="otv-date-start" type="text" disabled class="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-sm text-gray-800 cursor-not-allowed"></div>
+                                    <div><label class="block text-gray-700 text-xs mb-1.5 font-medium">起始時間</label><input id="otv-time-start" type="text" disabled class="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-sm font-mono text-gray-800 cursor-not-allowed"></div>
+                                    <div><label class="block text-gray-700 text-xs mb-1.5 font-medium">結束日期</label><input id="otv-date-end" type="text" disabled class="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-sm text-gray-800 cursor-not-allowed"></div>
+                                    <div><label class="block text-gray-700 text-xs mb-1.5 font-medium">結束時間</label><input id="otv-time-end" type="text" disabled class="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-sm font-mono text-gray-800 cursor-not-allowed"></div>
+                                    <div><label class="block text-gray-700 text-xs mb-1.5 font-medium">加班時數</label><input id="otv-hours" type="text" disabled class="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-sm text-gray-800 cursor-not-allowed"></div>
+                                    <div><label class="block text-gray-700 text-xs mb-1.5 font-medium">加班類型</label><input id="otv-type" type="text" disabled class="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-sm text-gray-800 cursor-not-allowed"></div>
+                                    <div><label class="block text-gray-700 text-xs mb-1.5 font-medium">補償方式</label><input id="otv-comp" type="text" disabled class="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-sm text-gray-800 cursor-not-allowed"></div>
+                                </div>
+                                <div>
+                                    <label class="block text-gray-700 text-xs mb-1.5 font-medium">加班事由</label>
+                                    <textarea id="otv-reason" disabled class="w-full bg-white border border-gray-200 rounded px-3 py-2 text-sm text-gray-800 h-20 resize-none cursor-not-allowed"></textarea>
+                                </div>
+                                <div>
+                                    <label class="block text-gray-700 text-xs mb-1.5 font-medium">附件</label>
+                                    <ul id="otv-files" class="space-y-1"></ul>
+                                </div>
+                            </div>
+                            <!-- 主管簽核參考：當月累計加班 -->
+                            <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-4">
+                                <div class="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2">簽核參考</div>
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                    <div><label class="block text-gray-700 text-xs mb-1.5 font-medium">本單加班時數</label><input id="otv-ref-this" type="text" disabled class="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-sm text-gray-800 cursor-not-allowed"></div>
+                                    <div><label class="block text-gray-700 text-xs mb-1.5 font-medium">當月已核准加班時數</label><input id="otv-ref-month" type="text" disabled class="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-sm text-gray-800 cursor-not-allowed"></div>
+                                    <div><label class="block text-gray-700 text-xs mb-1.5 font-medium">核准後當月累計</label><input id="otv-ref-total" type="text" disabled class="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-sm font-semibold text-gray-800 cursor-not-allowed"></div>
+                                </div>
+                                <p id="otv-ref-warn" class="hidden text-xs text-rose-500"></p>
+                            </div>
+                            <!-- 審批進度追蹤 -->
+                            <div class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+                                <div class="bg-[#EEF2F6] px-6 py-3.5 flex items-center justify-between border-b border-gray-200">
+                                    <span class="font-bold text-[#1A237E] text-[15px]">審批進度追蹤</span>
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-xs font-semibold text-[#1A237E]">顯示審批意見與附件</span>
+                                        <button id="otv-op-toggle" onclick="otvToggleOpinions()" class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none bg-gray-300">
+                                            <span id="otv-op-knob" class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform translate-x-1"></span>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="p-6 space-y-6">
+                                    <div class="overflow-x-auto border border-gray-100 rounded-lg">
+                                        <table class="w-full text-left text-xs border-collapse whitespace-nowrap">
+                                            <thead>
+                                                <tr class="border-b border-gray-200 bg-gray-50 text-gray-700 font-bold">
+                                                    <th class="px-3 py-1.5 text-center w-12">序號</th>
+                                                    <th class="px-3 py-1.5 text-center w-20">審批狀態</th>
+                                                    <th class="px-3 py-1.5 text-center w-14">條件</th>
+                                                    <th class="px-3 py-1.5">職稱</th>
+                                                    <th class="px-3 py-1.5">簽名</th>
+                                                    <th class="px-3 py-1.5">ID</th>
+                                                    <th class="px-3 py-1.5 w-40">審批時間</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="otv-progress-body" class="divide-y divide-gray-100 font-medium"></tbody>
+                                        </table>
+                                    </div>
+                                    <div id="otv-opinions" class="hidden space-y-2.5 border-t border-gray-100 pt-4">
+                                        <div class="text-xs font-semibold text-gray-500">審批意見與附件</div>
+                                        <div id="otv-opinions-body" class="space-y-2.5"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- 底部按鈕 -->
+                        <div class="bg-[#F8F9FA] border-t border-gray-200 px-6 py-4 flex justify-center gap-3 flex-shrink-0 shadow-[0_-2px_8px_rgba(0,0,0,0.04)]">
+                            <button onclick="closeOtView()" class="ui-btn ui-btn-secondary">關閉</button>
+                            <button id="otv-btn-act" onclick="openAct([viewingDocNo])" class="ui-btn ui-btn-primary"><i class="fa-solid fa-pen-to-square"></i> 審批</button>
+                        </div>
+                    </div>
+                    <!-- 右側：審批流程 -->
+                    <div class="w-full lg:w-[320px] bg-white border-t lg:border-t-0 lg:border-l border-gray-200 overflow-y-auto flex flex-col flex-shrink-0">
+                        <div class="bg-[#0097A7] text-white px-4 py-3.5 font-bold text-sm tracking-wide">審批流程</div>
+                        <div id="otv-flow" class="p-4 flex-1 overflow-y-auto"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ 審批彈窗（核准 / 駁回）============ -->
+    <div id="act-modal" class="fixed inset-0 z-[60] hidden" role="dialog" aria-modal="true">
+        <div class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm transition-opacity" onclick="closeAct()"></div>
+        <div class="fixed inset-0 z-10 overflow-y-auto flex items-center justify-center p-4">
+            <div id="act-panel" class="relative bg-white rounded-xl shadow-modal w-full max-w-lg transform transition-all modal-enter flex flex-col my-8 max-h-[90vh]">
+                <div class="px-6 py-4 flex justify-between items-center border-b border-gray-100 shrink-0">
+                    <h3 class="font-bold text-lg text-gray-900">審批加班申請</h3>
+                    <button onclick="closeAct()" class="w-8 h-8 flex items-center justify-center bg-primary text-white rounded-md hover:bg-opacity-95 transition-colors shadow-sm"><i class="fa-solid fa-xmark text-sm"></i></button>
+                </div>
+                <div class="p-6 space-y-5 overflow-y-auto">
+                    <div id="act-summary" class="rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-gray-700 space-y-1"></div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">簽核結果 <span class="text-red-500">*</span></label>
+                        <div class="flex items-center gap-5">
+                            <label class="flex items-center gap-2 cursor-pointer text-sm text-gray-700">
+                                <input type="radio" name="act-result" value="approve" checked onchange="onActResultChange()" class="w-4 h-4 accent-primary cursor-pointer"> 核准
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer text-sm text-gray-700">
+                                <input type="radio" name="act-result" value="reject" onchange="onActResultChange()" class="w-4 h-4 accent-rose-600 cursor-pointer"> 駁回
+                            </label>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">
+                            審批意見 <span id="act-required" class="hidden text-red-500">*</span>
+                            <span id="act-optional" class="font-normal text-gray-400 text-xs">（選填）</span>
+                        </label>
+                        <textarea id="act-opinion" rows="4" class="ui-input resize-none" placeholder="請輸入審批意見..."></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">簽核人員</label>
+                        <input type="text" id="act-approver" disabled class="ui-input bg-[#e9ecef] text-gray-500 cursor-not-allowed">
+                    </div>
+                    <p id="act-error" class="hidden text-xs text-rose-500">駁回時必須填寫審批意見，請說明駁回原因。</p>
+                </div>
+                <div class="px-6 py-4 flex justify-end gap-3 border-t border-gray-100 bg-gray-50/50 rounded-b-xl shrink-0">
+                    <button onclick="closeAct()" class="ui-btn ui-btn-secondary">取消</button>
+                    <button id="act-submit" onclick="submitAct()" class="ui-btn ui-btn-primary"><i class="fa-solid fa-check"></i> 確認核准</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="fixed bottom-5 right-5 z-[70] flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-modal transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+        <i id="toast-icon" class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
+        <span id="toast-text" class="text-sm font-medium">操作成功！</span>
+    </div>
+
+    <script>
+        /* ===== 當前簽核人（直屬主管視角）===== */
+        const MANAGER = { id: '101517', name: 'James', title: '直屬主管' };
+        const managerLabel = () => `${MANAGER.name}（${MANAGER.id}）`;
+
+        /* ===== 加班申請單（欄位比照 加班申請.html，另加申請人組織與簽核結果）===== */
+        let docs = [
+            { docNo: 'OT-THQ-000012', id: '100962', name: 'Oliver', project: 'GT', bu: '研發事業部 (RD BU)', dept: 'RD', team: 'API', policy: '行政人員週休二日',
+              applyDate: '2026-06-12', dateStart: '2026-06-13', dateEnd: '2026-06-14', start: '09:00', end: '13:00',
+              type: '假日加班', comp: '加班費', files: ['客戶驗收排程表.xlsx', '主管同意信件.pdf'],
+              reason: '配合客戶週末驗收（連續兩日），需全程支援環境與資料比對。', status: '待簽核', actAt: '', opinion: '' },
+            { docNo: 'OT-THQ-000013', id: '101334', name: 'Alexander', project: 'GT', bu: '研發事業部 (RD BU)', dept: 'RD', team: 'INFRA', policy: '生產線隔週休二日',
+              applyDate: '2026-06-06', dateStart: '2026-06-06', dateEnd: '2026-06-07', start: '22:00', end: '06:00',
+              type: '假日加班', comp: '加班費', files: ['機房遷移作業計畫.pdf'],
+              reason: '機房設備夜間遷移，須於非營業時間執行以降低服務中斷風險。', status: '待簽核', actAt: '', opinion: '' },
+            { docNo: 'OT-THQ-000014', id: '101122', name: 'Daniel', project: 'GT', bu: '管理中心 (ADM)', dept: 'HR', team: 'HRBP', policy: '行政人員週休二日',
+              applyDate: '2026-06-11', dateStart: '2026-06-11', dateEnd: '2026-06-11', start: '18:30', end: '20:00',
+              type: '平日加班', comp: '補休', files: ['訓練場地佈置照片.jpg'],
+              reason: '員工教育訓練場地佈置與器材測試。', status: '待簽核', actAt: '', opinion: '' },
+            { docNo: 'OT-THQ-000015', id: '100423', name: 'Henry', project: 'GT', bu: '管理中心 (ADM)', dept: 'HR', team: 'C&B', policy: '行政人員週休二日',
+              applyDate: '2026-06-10', dateStart: '2026-06-09', dateEnd: '2026-06-09', start: '18:00', end: '22:00',
+              type: '平日加班', comp: '補休', files: ['薪資結算工作清單.xlsx'],
+              reason: '年度薪資結算作業，須於結算截止日前完成核對。', status: '未簽核', actAt: '', opinion: '' },
+            { docNo: 'OT-THQ-000016', id: '101383', name: 'Matthew', project: 'GT', bu: '研發事業部 (RD BU)', dept: 'RD', team: 'WEB', policy: '行政人員週休二日',
+              applyDate: '2026-06-15', dateStart: '2026-06-15', dateEnd: '2026-06-15', start: '19:00', end: '21:30',
+              type: '平日加班', comp: '補休', files: ['版本上線檢核表.pdf'],
+              reason: '版本上線後監控與回歸測試。', status: '簽核中(7)', actAt: '', opinion: '' },
+            { docNo: 'OT-THQ-000011', id: '100962', name: 'Oliver', project: 'GT', bu: '研發事業部 (RD BU)', dept: 'RD', team: 'API', policy: '行政人員週休二日',
+              applyDate: '2026-06-09', dateStart: '2026-06-08', dateEnd: '2026-06-08', start: '18:30', end: '21:00',
+              type: '平日加班', comp: '補休', files: ['加班證明_0608.pdf', '部署紀錄截圖.png'],
+              reason: '月底系統上線前置驗證與部署。', status: '簽核完成', actAt: '2026-06-09 10:20', opinion: '已確認，同意本次加班。' },
+            { docNo: 'OT-THQ-000010', id: '101312', name: 'Samuel', project: 'GT', bu: '稽核中心 (IA)', dept: 'IA1', team: 'IA-A', policy: '行政人員週休二日',
+              applyDate: '2026-06-05', dateStart: '2026-06-04', dateEnd: '2026-06-04', start: '18:00', end: '20:00',
+              type: '平日加班', comp: '補休', files: ['查核資料清單.xlsx'],
+              reason: '季度查核資料整理。', status: '簽核完成', actAt: '2026-06-05 09:40', opinion: '同意，請於次月前完成補休。' },
+            { docNo: 'OT-THQ-000009', id: '101383', name: 'Matthew', project: 'GT', bu: '研發事業部 (RD BU)', dept: 'RD', team: 'WEB', policy: '行政人員週休二日',
+              applyDate: '2026-05-28', dateStart: '2026-05-27', dateEnd: '2026-05-27', start: '19:00', end: '20:30',
+              type: '平日加班', comp: '補休', files: ['異常告警通知.pdf'],
+              reason: '緊急修復線上問題。', status: '駁回', actAt: '2026-05-28 11:05', opinion: '事前未取得主管同意，請改以事後補登加班並補附同意憑證。' },
+            { docNo: 'OT-THQ-000008', id: '101002', name: 'Emma', project: 'GT', bu: '稽核中心 (IA)', dept: 'IA1', team: 'IA-B', policy: '行政人員週休二日',
+              applyDate: '2026-06-02', dateStart: '2026-05-31', dateEnd: '2026-05-31', start: '10:00', end: '17:00',
+              type: '假日加班', comp: '加班費', files: ['稽核報告草稿.docx'],
+              reason: '內部稽核報告趕件。', status: '撤回', actAt: '2026-06-02 16:30', opinion: '' }
+        ];
+
+        /* ===== 出勤紀錄（欄位比照 考勤管理.html 的 attendanceDb：ci / co / loc / method / status）===== */
+        const ATT_DB = [
+            { id: '100962', date: '2026-06-13', ci: '08:55', co: '13:05', ciMethod: 'WIFI', coMethod: 'WIFI', ciLoc: '台北總部辦公室', coLoc: '台北總部辦公室', status: '正常', refNo1: '', refNo2: '' },
+            { id: '101334', date: '2026-06-06', ci: '21:50', co: '06:10', coNextDay: true, ciMethod: 'GPS', coMethod: 'WIFI', ciLoc: '台北總部辦公室', coLoc: '台北總部辦公室', status: '正常', refNo1: '', refNo2: '' },
+            { id: '101122', date: '2026-06-11', ci: '09:05', co: '--:--', ciMethod: 'GPS', coMethod: '', ciLoc: '台北總部辦公室', coLoc: '', status: '異常', refNo1: '補-20260611-007', refNo2: '' },
+            { id: '100423', date: '2026-06-09', ci: '08:50', co: '22:05', ciMethod: 'WIFI', coMethod: 'WIFI', ciLoc: '台北總部辦公室', coLoc: '台北總部辦公室', status: '正常', refNo1: '', refNo2: '' },
+            { id: '101383', date: '2026-06-15', ci: '08:58', co: '21:35', ciMethod: 'WIFI', coMethod: 'GPS', ciLoc: '日本辦公室', coLoc: '台北總部辦公室', status: '正常', refNo1: '', refNo2: '' },
+            { id: '100962', date: '2026-06-08', ci: '08:52', co: '21:10', ciMethod: 'WIFI', coMethod: 'WIFI', ciLoc: '台北總部辦公室', coLoc: '台北總部辦公室', status: '正常', refNo1: '', refNo2: '' },
+            { id: '101312', date: '2026-06-04', ci: '08:40', co: '20:05', ciMethod: 'WIFI', coMethod: 'WIFI', ciLoc: '台北總部辦公室', coLoc: '台北總部辦公室', status: '正常', refNo1: '假-20260604-009', refNo2: '外-20260604-003' },
+            { id: '101383', date: '2026-05-27', ci: '08:58', co: '20:40', ciMethod: 'WIFI', coMethod: 'WIFI', ciLoc: '日本辦公室', coLoc: '日本辦公室', status: '異常', refNo1: '假-20260527-014', refNo2: '補-20260527-005' }
+        ];
+        /* 當日工時（計算方式比照 考勤管理.html）：
+           在勤跨距 = 下班 − 上班（跨日加 24 小時）；跨距超過 6 小時扣除 1 小時休息 */
+        const ATT_STD_REST_MIN = 60;
+        const ATT_REST_MIN_SPAN = 6 * 60;
+        const attToMin = (v) => {
+            if (!v || v === '--:--' || v.indexOf(':') < 0) return null;
+            const p = v.split(':'), h = parseInt(p[0], 10), m = parseInt(p[1], 10);
+            return (isNaN(h) || isNaN(m)) ? null : h * 60 + m;
+        };
+        function attWorkMin(a) {
+            const s = attToMin(a && a.ci), e = attToMin(a && a.co);
+            if (s === null || e === null) return null;
+            let span = e - s;
+            if (span < 0) span += 24 * 60;
+            return Math.max(0, span - (span > ATT_REST_MIN_SPAN ? ATT_STD_REST_MIN : 0));
+        }
+        const attFmtWorkMin = (min) => min === null ? '無法計算' : `${Math.floor(min / 60)} 小時 ${min % 60} 分`;
+        // 上班/下班並列顯示；缺值以「—」補位，避免只剩單側時看不出缺哪一邊
+        const attPair = (a, b) => `${a || '—'} / ${b || '—'}`;
+        // 以「申請人工號 + 加班起始日」對應當日出勤紀錄；查無資料回傳 null
+        const findAtt = (r) => ATT_DB.find(a => a.id === r.id && a.date === (r.dateStart || '')) || null;
+        const attStatusBadge = (st) => st === '正常'
+            ? '<span class="ui-badge ui-badge-success">正常</span>'
+            : '<span class="ui-badge ui-badge-danger">' + esc(st) + '</span>';
+
+        /* ===== 顯示用小工具（與 加班申請.html 一致）===== */
+        const esc = (t) => String(t == null ? '' : t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        const fmtHours = h => (Number.isInteger(h) ? h : h.toFixed(1)) + ' 小時';
+        // 加班時段顯示：日期+時間 ~ 日期+時間
+        const fmtPeriod = (r) => {
+            const ds = r.dateStart || '', de = r.dateEnd || ds;
+            const st = r.start || '', en = r.end || '';
+            if (!ds || !st || !en) return '';
+            return `${ds} ${st} ~ ${de} ${en}`;
+        };
+        // 加班時段跨距（分鐘）＝（迄日 迄時）−（起日 起時）
+        function spanMinutes(dateStart, start, dateEnd, end) {
+            if (!dateStart || !start || !dateEnd || !end) return 0;
+            const a = new Date(`${dateStart}T${start}:00`);
+            const b = new Date(`${dateEnd}T${end}:00`);
+            if (isNaN(a) || isNaN(b)) return 0;
+            const m = Math.round((b - a) / 60000);
+            return m > 0 ? m : 0;
+        }
+        function spanHours(dateStart, start, dateEnd, end) {
+            return Math.round(spanMinutes(dateStart, start, dateEnd, end) / 60 * 100) / 100;
+        }
+        const recordHours = (r) => spanHours(r.dateStart, r.start, r.dateEnd || r.dateStart, r.end);
+        const compSummary = (r) => r.comp || '';
+        // 狀態標籤（比照 請假簽核）
+        function statusBadge(s) {
+            if (s === '未簽核') return '<span class="ui-badge ui-badge-gray">未簽核</span>';
+            if (s === '待簽核') return '<span class="ui-badge ui-badge-warning">待簽核</span>';
+            if (/^簽核中/.test(s)) return '<span class="ui-badge ui-badge-info">' + esc(s) + '</span>';
+            if (s === '簽核完成') return '<span class="ui-badge ui-badge-success">簽核完成</span>';
+            if (s === '駁回') return '<span class="ui-badge ui-badge-danger">駁回</span>';
+            if (s === '待補件') return '<span class="ui-badge ui-badge-warning">待補件</span>';
+            return '<span class="ui-badge ui-badge-gray">' + esc(s) + '</span>';
+        }
+        // 僅「待簽核」之單據可由本人簽核（比照 請假簽核）
+        const canApprove = (r) => r.status === '待簽核';
+        const findDoc = (docNo) => docs.find(d => d.docNo === docNo);
+
+        /* ===== 篩選器（狀態 / 項目 / 部門，多選；未選代表全部）===== */
+        const FILTER_CONFIGS = [
+            { id: 'status', label: '狀態', wide: true, options: ['未簽核', '待簽核', '簽核中(7)', '簽核完成', '撤回', '駁回', 'CC', '待補件'] },
+            { id: 'project', label: '項目', options: ['GT'] },
+            { id: 'dept', label: '部門', options: Array.from(new Set(docs.map(d => d.dept))).sort() }
+        ];
+        const DEFAULT_STATUS = ['未簽核', '待簽核', '簽核中(7)'];
+        let filterState = { status: DEFAULT_STATUS.slice(), project: [], dept: [] };
+        let openDropdown = null;
+        let selected = new Set();
+        const selectedDocNos = () => Array.from(selected);
+
+        function renderFilterBar() {
+            document.getElementById('filter-bar').innerHTML = FILTER_CONFIGS.map(f => {
+                const picked = filterState[f.id];
+                const chips = picked.length
+                    ? picked.slice(0, 3).map(opt => `<span class="inline-flex items-center gap-1 bg-[#F0F2F5] text-gray-700 px-1.5 py-0.5 rounded-sm text-[11px] border border-gray-200 max-w-full">
+                            <span class="truncate">${esc(opt)}</span>
+                            <span onclick="removeFilterOption('${f.id}', '${esc(opt)}', event)" class="hover:text-rose-500 hover:bg-gray-200 rounded-full px-0.5 transition-colors cursor-pointer flex-shrink-0"><i class="fa-solid fa-xmark text-[9px]"></i></span>
+                        </span>`).join('')
+                        + (picked.length > 3 ? `<span class="inline-flex items-center bg-[#E8EEF9] text-primary px-1.5 py-0.5 rounded-sm text-[11px] border border-[#cddcf5] font-medium flex-shrink-0">+${picked.length - 3}</span>` : '')
+                    : '<span class="text-gray-700">全部</span>';
+                const isOpen = openDropdown === f.id;
+                return `<div class="flex items-center gap-2 flex-1 min-w-[180px] ${f.wide ? 'lg:min-w-[280px]' : ''}">
+                    <span class="whitespace-nowrap text-xs text-gray-600 font-medium w-16 text-right">${esc(f.label)}</span>
+                    <div class="relative flex-1" onclick="event.stopPropagation()">
+                        <button onclick="toggleDropdown('${f.id}', event)" title="${esc(picked.join('、'))}"
+                            class="w-full flex items-center justify-between bg-white border rounded px-2.5 py-1.5 text-[13px] transition-colors shadow-sm min-h-[32px] ${isOpen ? 'border-primary ring-1 ring-primary' : 'border-gray-300 hover:border-primary'}">
+                            <div class="flex-1 flex flex-wrap gap-1 items-center overflow-hidden">${chips}</div>
+                            <i class="fa-solid fa-chevron-down text-gray-400 text-[10px] flex-shrink-0 ml-1.5 ${isOpen ? 'rotate-180' : ''}"></i>
+                        </button>
+                        ${isOpen ? `<div id="fd-${f.id}" class="absolute top-full mt-1 left-0 w-full min-w-[200px] ${f.wide ? 'md:w-[350px]' : ''} bg-white border border-gray-200 rounded shadow-lg z-50 py-1">
+                            <div onclick="toggleSelectAllOptions('${f.id}')" class="px-3 py-1.5 text-[13px] text-[#4CAF50] font-medium cursor-pointer hover:bg-gray-50 transition-colors">Select All</div>
+                            <div class="h-px bg-gray-100 my-1"></div>
+                            <div class="max-h-48 overflow-y-auto">
+                                ${f.options.map(opt => `<label data-opt="${esc(opt)}" class="flex items-center px-3 py-1.5 hover:bg-gray-50 cursor-pointer gap-2.5">
+                                    <input type="checkbox" ${picked.includes(opt) ? 'checked' : ''} onchange="toggleFilterOption('${f.id}', '${esc(opt)}')" class="w-3.5 h-3.5 accent-primary">
+                                    <span class="text-[13px] text-gray-700">${esc(opt)}</span>
+                                </label>`).join('')}
+                            </div>
+                            <div class="p-1.5 border-t border-gray-100 mt-1">
+                                <input type="text" oninput="filterOptionList('${f.id}', this.value)" placeholder="請輸入關鍵字" class="w-full border border-gray-300 rounded p-1 text-[13px] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
+                            </div>
+                        </div>` : ''}
+                    </div>
+                </div>`;
+            }).join('');
+        }
+        function toggleDropdown(id, ev) {
+            if (ev) ev.stopPropagation();
+            openDropdown = (openDropdown === id) ? null : id;
+            renderFilterBar();
+        }
+        function toggleFilterOption(id, opt) {
+            const arr = filterState[id];
+            const i = arr.indexOf(opt);
+            if (i >= 0) arr.splice(i, 1); else arr.push(opt);
+            renderFilterBar();
+            render();
+        }
+        function removeFilterOption(id, opt, ev) {
+            if (ev) ev.stopPropagation();
+            filterState[id] = filterState[id].filter(o => o !== opt);
+            renderFilterBar();
+            render();
+        }
+        function toggleSelectAllOptions(id) {
+            const cfg = FILTER_CONFIGS.find(f => f.id === id);
+            filterState[id] = (filterState[id].length === cfg.options.length) ? [] : cfg.options.slice();
+            renderFilterBar();
+            render();
+        }
+        // 下拉內關鍵字：直接隱藏不符的選項，避免重繪造成輸入游標跳離
+        function filterOptionList(id, kw) {
+            const k = (kw || '').trim().toLowerCase();
+            document.querySelectorAll(`#fd-${id} [data-opt]`).forEach(el => {
+                el.classList.toggle('hidden', !!k && !el.dataset.opt.toLowerCase().includes(k));
+            });
+        }
+        function resetFilters() {
+            filterState = { status: DEFAULT_STATUS.slice(), project: [], dept: [] };
+            openDropdown = null;
+            document.getElementById('filter-kw').value = '';
+            document.getElementById('filter-empno').value = '';
+            document.getElementById('filter-start').value = '';
+            document.getElementById('filter-end').value = '';
+            renderFilterBar();
+            render();
+        }
+
+        /* ===== 列表 ===== */
+        function matchFilters(r) {
+            const kw = document.getElementById('filter-kw').value.trim().toLowerCase();
+            const empNo = document.getElementById('filter-empno').value.trim().toLowerCase();
+            const start = document.getElementById('filter-start').value;
+            const end = document.getElementById('filter-end').value;
+            // 多選篩選：未選代表全部
+            if (filterState.status.length && !filterState.status.includes(r.status)) return false;
+            if (filterState.project.length && !filterState.project.includes(r.project)) return false;
+            if (filterState.dept.length && !filterState.dept.includes(r.dept)) return false;
+            if (empNo && !(r.id || '').toLowerCase().includes(empNo)) return false;
+            if (kw) {
+                const hay = [r.name, r.docNo, r.reason, r.type, r.comp, r.team].join(' ').toLowerCase();
+                if (!hay.includes(kw)) return false;
+            }
+            // 日期區間以「加班期間與查詢區間重疊」判斷
+            if (end && (r.dateStart || '') > end) return false;
+            if (start && (r.dateEnd || r.dateStart || '') < start) return false;
+            return true;
+        }
+
+        function render() {
+            const rows = docs.filter(matchFilters);
+            const approvable = rows.filter(canApprove);
+
+            // 選取僅保留仍在畫面上且可簽核的單
+            const visible = new Set(approvable.map(r => r.docNo));
+            selectedDocNos().forEach(no => { if (!visible.has(no)) selected.delete(no); });
+
+            document.getElementById('ot-tbody').innerHTML = rows.map(r => {
+                // 僅「待簽核」提供勾選與審批（比照 請假簽核）
+                const checkCell = canApprove(r)
+                    ? `<td class="text-center"><input type="checkbox" onchange="toggleRow('${r.docNo}', this.checked)" ${selected.has(r.docNo) ? 'checked' : ''} class="w-4 h-4 accent-primary cursor-pointer"></td>`
+                    : '<td class="text-center"></td>';
+                const actBtn = canApprove(r)
+                    ? `<button onclick="openAct(['${r.docNo}'])" class="ui-btn ui-btn-secondary ui-btn-sm">審批</button>`
+                    : '';
+                return '<tr class="hover:bg-gray-50/70 transition-colors">' +
+                    checkCell +
+                    '<td class="text-left font-mono text-gray-600 text-[13px]">' + esc(r.docNo) + '</td>' +
+                    '<td class="text-left text-gray-600">' + esc(r.project) + '</td>' +
+                    '<td class="text-left text-gray-600">' + esc(r.dept) + '</td>' +
+                    '<td class="text-left font-mono text-gray-600">' + esc(r.id) + '</td>' +
+                    '<td class="text-left font-medium text-gray-800">' + esc(r.name) + '</td>' +
+                    '<td class="text-left text-gray-500">' + esc(r.applyDate) + '</td>' +
+                    '<td class="text-left font-mono text-gray-600 text-[13px]">' + esc(fmtPeriod(r)) + '</td>' +
+                    '<td class="text-left font-semibold text-gray-700">' + fmtHours(recordHours(r)) + '</td>' +
+                    '<td class="text-left"><span class="ui-badge ui-badge-info">' + esc(r.type) + '</span></td>' +
+                    '<td class="text-left text-gray-600">' + esc(compSummary(r)) + '</td>' +
+                    '<td class="text-left">' + statusBadge(r.status) + '</td>' +
+                    '<td class="text-left"><div class="flex items-center justify-start gap-2">' +
+                        `<button onclick="openOtView('${r.docNo}')" class="ui-btn ui-btn-secondary ui-btn-sm">檢視</button>` +
+                        actBtn +
+                    '</div></td>' +
+                    '</tr>';
+            }).join('');
+
+            document.getElementById('count-badge').innerText = rows.length + ' 筆';
+            document.getElementById('pagination-info').innerText = '共 ' + rows.length + ' 筆記錄';
+            document.getElementById('no-data-view').classList.toggle('hidden', rows.length > 0);
+            document.getElementById('table-wrap').classList.toggle('hidden', rows.length === 0);
+
+            const checkAll = document.getElementById('check-all');
+            checkAll.disabled = approvable.length === 0;
+            checkAll.checked = approvable.length > 0 && approvable.every(r => selected.has(r.docNo));
+            updateBatchBar();
+        }
+
+        function toggleRow(docNo, on) {
+            if (on) selected.add(docNo); else selected.delete(docNo);
+            render();
+        }
+        function toggleSelectAll(on) {
+            const approvable = docs.filter(matchFilters).filter(canApprove);
+            if (on) approvable.forEach(r => selected.add(r.docNo));
+            else approvable.forEach(r => selected.delete(r.docNo));
+            render();
+        }
+        function clearSelection() {
+            selected.clear();
+            render();
+        }
+        function updateBatchBar() {
+            const bar = document.getElementById('batch-bar');
+            const n = selected.size;
+            bar.classList.toggle('hidden', n === 0);
+            bar.classList.toggle('flex', n > 0);
+            if (!n) return;
+            const totalMins = selectedDocNos().reduce((sum, no) => {
+                const r = findDoc(no);
+                return sum + (r ? spanMinutes(r.dateStart, r.start, r.dateEnd || r.dateStart, r.end) : 0);
+            }, 0);
+            document.getElementById('batch-info').innerText =
+                `已選取 ${n} 筆，合計 ${fmtHours(Math.round(totalMins / 60 * 100) / 100)}`;
+        }
+
+        /* ===== 加班申請單 檢視彈窗 ===== */
+        let viewingDocNo = '';
+        let otvOpinionsOn = false;
+
+        // 當月已核准加班時數（同一申請人、同一加班月份、狀態為簽核完成）
+        function approvedMonthHours(r) {
+            const month = (r.dateStart || '').slice(0, 7);
+            return docs.filter(d => d.id === r.id && d.status === '簽核完成' && (d.dateStart || '').slice(0, 7) === month)
+                .reduce((sum, d) => sum + recordHours(d), 0);
+        }
+        const MONTH_OT_LIMIT = 46; // 參考上限：單月加班 46 小時
+
+        function otvSteps(r) {
+            const submit = { seq: '1', title: '提交申請', status: '已審批', sign: `${r.name}（${r.id}）`, who: r.id, at: `${r.applyDate} 09:00` };
+            const mgr = { seq: '2', title: '直屬主管', status: '審批中', sign: '-', who: '-', at: '-' };
+            const hr = { seq: '3', title: '人資審核', status: '待審批', sign: '-', who: '-', at: '-' };
+            if (r.status === '簽核完成') {
+                return [submit,
+                    { ...mgr, status: '已審批', sign: MANAGER.name, who: MANAGER.id, at: r.actAt || '-' },
+                    { ...hr, status: '已審批', sign: 'Emma', who: '101002', at: r.actAt || '-' }];
+            }
+            if (r.status === '駁回') {
+                return [submit, { ...mgr, status: '已駁回', sign: MANAGER.name, who: MANAGER.id, at: r.actAt || '-' }, hr];
+            }
+            if (/^簽核中/.test(r.status)) {
+                return [submit, { ...mgr, status: '已審批', sign: MANAGER.name, who: MANAGER.id, at: r.actAt || '-' }, { ...hr, status: '審批中' }];
+            }
+            if (r.status === '撤回' || r.status === '未簽核') {
+                return [submit, { ...mgr, status: '待審批' }, hr];
+            }
+            return [submit, mgr, hr];
+        }
+        function otvBadgeClass(s) { return s === '審批中' ? 'ui-badge-info' : (s === '待審批' ? 'ui-badge-gray' : (s === '已駁回' ? 'ui-badge-danger' : 'ui-badge-success')); }
+        function otvToggleOpinions() {
+            otvOpinionsOn = !otvOpinionsOn;
+            document.getElementById('otv-opinions').classList.toggle('hidden', !otvOpinionsOn);
+            const tgl = document.getElementById('otv-op-toggle');
+            tgl.classList.toggle('bg-[#3F51B5]', otvOpinionsOn); tgl.classList.toggle('bg-gray-300', !otvOpinionsOn);
+            const knob = document.getElementById('otv-op-knob');
+            knob.classList.toggle('translate-x-6', otvOpinionsOn); knob.classList.toggle('translate-x-1', !otvOpinionsOn);
+        }
+        function closeOtView() {
+            document.getElementById('ot-view-modal').classList.add('hidden');
+            viewingDocNo = '';
+        }
+
+        function openOtView(docNo) {
+            const r = findDoc(docNo);
+            if (!r) return;
+            viewingDocNo = docNo;
+
+            document.getElementById('otv-docno').value = r.docNo;
+            document.getElementById('otv-applytime').value = r.applyDate || '';
+            document.getElementById('otv-name').value = `${r.name}（${r.id}）`;
+            document.getElementById('otv-bu').value = r.bu || '';
+            document.getElementById('otv-dept').value = r.dept || '';
+            document.getElementById('otv-team').value = r.team || '';
+            document.getElementById('otv-policy').value = r.policy || '';
+            // 加班日當日考勤紀錄
+            const att = findAtt(r);
+            document.getElementById('otv-att-date').innerText = r.dateStart ? `（${r.dateStart}）` : '';
+            document.getElementById('otv-att-ci').value = att ? att.ci : '無紀錄';
+            document.getElementById('otv-att-co').value = att ? (att.co + (att.coNextDay ? '（次日）' : '')) : '無紀錄';
+            document.getElementById('otv-att-method').value = att ? attPair(att.ciMethod, att.coMethod) : '— / —';
+            document.getElementById('otv-att-loc').value = att ? attPair(att.ciLoc, att.coLoc) : '— / —';
+            document.getElementById('otv-att-work').value = att ? attFmtWorkMin(attWorkMin(att)) : '無紀錄';
+            document.getElementById('otv-att-ref1').value = att ? (att.refNo1 || '無') : '無';
+            document.getElementById('otv-att-ref2').value = att ? (att.refNo2 || '無') : '無';
+            document.getElementById('otv-att-status').innerHTML = att
+                ? attStatusBadge(att.status)
+                : '<span class="ui-badge ui-badge-gray">無當日出勤紀錄</span>';
+
+            document.getElementById('otv-date-start').value = r.dateStart || '';
+            document.getElementById('otv-time-start').value = r.start || '';
+            document.getElementById('otv-date-end').value = r.dateEnd || r.dateStart || '';
+            document.getElementById('otv-time-end').value = r.end || '';
+            document.getElementById('otv-hours').value = fmtHours(recordHours(r));
+            document.getElementById('otv-type').value = r.type || '';
+            document.getElementById('otv-comp').value = compSummary(r);
+            document.getElementById('otv-reason').value = r.reason || '';
+
+            const vFiles = r.files || [];
+            document.getElementById('otv-files').innerHTML = vFiles.length
+                ? vFiles.map(n => `<li class="flex items-center gap-2 bg-gray-50 border border-gray-100 rounded px-3 py-1.5 text-xs text-gray-700"><i class="fa-solid fa-paperclip text-gray-400"></i><span class="truncate">${esc(n)}</span></li>`).join('')
+                : '<li class="text-xs text-gray-400">無附件</li>';
+
+            // 簽核參考：本單時數 / 當月已核准 / 核准後累計
+            const thisH = recordHours(r);
+            const monthH = approvedMonthHours(r);
+            const totalH = Math.round((monthH + (r.status === '簽核完成' ? 0 : thisH)) * 100) / 100;
+            document.getElementById('otv-ref-this').value = fmtHours(thisH);
+            document.getElementById('otv-ref-month').value = fmtHours(Math.round(monthH * 100) / 100);
+            document.getElementById('otv-ref-total').value = fmtHours(totalH);
+            const warn = document.getElementById('otv-ref-warn');
+            warn.classList.toggle('hidden', totalH <= MONTH_OT_LIMIT);
+            warn.innerText = `核准後當月累計 ${fmtHours(totalH)}，已超過參考上限 ${MONTH_OT_LIMIT} 小時，請確認是否仍予核准。`;
+
+            // 審批進度與意見
+            const steps = otvSteps(r);
+            document.getElementById('otv-progress-body').innerHTML = steps.map(s => `<tr>
+                    <td class="px-3 py-1.5 text-center font-bold text-gray-800">${s.seq}</td>
+                    <td class="px-3 py-1.5 text-center"><span class="ui-badge ${otvBadgeClass(s.status)}">${s.status}</span></td>
+                    <td class="px-3 py-1.5 text-center text-gray-500">${s.seq === '1' ? '—' : '串聯'}</td>
+                    <td class="px-3 py-1.5 text-gray-800">${esc(s.title)}</td>
+                    <td class="px-3 py-1.5 text-gray-800">${esc(s.sign)}</td>
+                    <td class="px-3 py-1.5 text-gray-600 font-mono">${esc(s.who)}</td>
+                    <td class="px-3 py-1.5 text-gray-400">${esc(s.at)}</td></tr>`).join('');
+
+            document.getElementById('otv-opinions-body').innerHTML = steps.map(s => {
+                let body;
+                if (s.seq === '1') {
+                    body = `${esc(r.reason || '')}<ul class="mt-2 space-y-1">${vFiles.map(n => `<li class="flex items-center gap-2 bg-white border border-gray-100 rounded px-3 py-1.5 text-xs text-gray-700"><i class="fa-solid fa-paperclip text-gray-400"></i><span class="truncate">${esc(n)}</span></li>`).join('')}</ul>`;
+                } else if (s.status === '已審批' || s.status === '已駁回') {
+                    body = esc(r.opinion || (s.status === '已駁回' ? '加班事由不足，請補充說明。' : '已確認，同意本次加班。'));
+                } else {
+                    body = '<span class="italic text-gray-400">尚未審批</span>';
+                }
+                return `<div class="flex items-start gap-3"><div class="w-20 shrink-0 text-xs font-bold text-gray-700">${esc(s.title)}<div class="font-normal text-gray-400 mt-0.5">${s.sign !== '-' ? esc(s.sign) : '—'}</div></div><div class="flex-1 text-sm text-gray-700 bg-gray-50 border border-gray-100 rounded-lg p-3">${body}</div></div>`;
+            }).join('');
+
+            document.getElementById('otv-flow').innerHTML = steps.map((s, idx, arr) => {
+                const done = s.status === '已審批', active = s.status === '審批中', rej = s.status === '已駁回';
+                const line = idx < arr.length - 1 ? `<span class="absolute left-[15px] top-8 -bottom-0 w-0.5 ${done ? 'bg-emerald-300' : 'bg-gray-200'}"></span>` : '';
+                const circle = done ? 'bg-emerald-500 text-white' : active ? 'bg-[#4A90E2] text-white ring-4 ring-blue-100' : rej ? 'bg-rose-500 text-white' : 'bg-gray-200 text-gray-500';
+                const sub = (s.sign && s.sign !== '-') ? esc(s.sign) : '—';
+                const tag = done ? '<span class="ml-1 text-emerald-600 font-medium">· 已審批</span>' : active ? '<span class="ml-1 text-[#4A90E2] font-medium">· 審批中</span>' : rej ? '<span class="ml-1 text-rose-600 font-medium">· 已駁回</span>' : '';
+                return `<div class="relative flex gap-3 pb-6 last:pb-0">${line}<div class="relative z-10 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${circle}">${done ? '✓' : rej ? '✕' : s.seq}</div><div class="pt-1 min-w-0"><div class="text-sm font-bold text-gray-800 whitespace-nowrap">${esc(s.title)}</div><div class="text-xs text-gray-400 mt-0.5 whitespace-nowrap">${sub}${tag}</div></div></div>`;
+            }).join('');
+
+            // 非「待簽核」之單據僅供檢視
+            document.getElementById('otv-btn-act').classList.toggle('hidden', !canApprove(r));
+
+            otvOpinionsOn = false;
+            document.getElementById('otv-opinions').classList.add('hidden');
+            const tgl = document.getElementById('otv-op-toggle'); tgl.classList.remove('bg-[#3F51B5]'); tgl.classList.add('bg-gray-300');
+            const knob = document.getElementById('otv-op-knob'); knob.classList.remove('translate-x-6'); knob.classList.add('translate-x-1');
+            document.getElementById('ot-view-modal').classList.remove('hidden');
+        }
+
+        /* ===== 審批動作（核准 / 駁回；駁回必填意見）===== */
+        let actTargets = [];
+        const actMode = () => (document.querySelector('input[name="act-result"]:checked') || {}).value || 'approve';
+
+        function openAct(docNos) {
+            // 僅處理仍為「待簽核」之單據
+            actTargets = (docNos || []).map(findDoc).filter(r => r && canApprove(r));
+            if (!actTargets.length) {
+                showToast('error', '沒有可簽核的單據');
+                return;
+            }
+            document.querySelector('input[name="act-result"][value="approve"]').checked = true;
+            document.getElementById('act-opinion').value = '';
+            document.getElementById('act-approver').value = `${managerLabel()}・${MANAGER.title}`;
+            document.getElementById('act-error').classList.add('hidden');
+            onActResultChange();
+
+            const totalMins = actTargets.reduce((sum, r) => sum + spanMinutes(r.dateStart, r.start, r.dateEnd || r.dateStart, r.end), 0);
+            document.getElementById('act-summary').innerHTML =
+                `<div class="font-semibold text-gray-800">本次共 ${actTargets.length} 筆，合計 ${fmtHours(Math.round(totalMins / 60 * 100) / 100)}</div>` +
+                actTargets.map(r => `<div class="text-xs text-gray-600"><span class="font-mono">${esc(r.docNo)}</span>　${esc(r.name)}（${esc(r.id)}）　${esc(fmtPeriod(r))}　${fmtHours(recordHours(r))}　${esc(r.comp)}</div>`).join('');
+
+            const modal = document.getElementById('act-modal');
+            const panel = document.getElementById('act-panel');
+            modal.classList.remove('hidden');
+            void modal.offsetWidth;
+            panel.classList.remove('modal-enter');
+            panel.classList.add('modal-enter-active');
+        }
+        // 切換簽核結果：駁回時意見必填，送出鈕改為紅色
+        function onActResultChange() {
+            const reject = actMode() === 'reject';
+            document.getElementById('act-required').classList.toggle('hidden', !reject);
+            document.getElementById('act-optional').classList.toggle('hidden', reject);
+            document.getElementById('act-opinion').placeholder = reject ? '請說明駁回原因...' : '請輸入審批意見...';
+            document.getElementById('act-error').classList.add('hidden');
+            const btn = document.getElementById('act-submit');
+            btn.innerHTML = reject ? '<i class="fa-solid fa-ban"></i> 確認駁回' : '<i class="fa-solid fa-check"></i> 確認核准';
+            btn.classList.toggle('ui-btn-primary', !reject);
+            btn.classList.toggle('bg-rose-600', reject);
+            btn.classList.toggle('text-white', reject);
+            btn.classList.toggle('hover:bg-rose-700', reject);
+        }
+        function closeAct() {
+            const modal = document.getElementById('act-modal');
+            const panel = document.getElementById('act-panel');
+            panel.classList.remove('modal-enter-active');
+            panel.classList.add('modal-enter');
+            setTimeout(() => modal.classList.add('hidden'), 180);
+        }
+        function submitAct() {
+            const reject = actMode() === 'reject';
+            const opinion = document.getElementById('act-opinion').value.trim();
+            // 駁回必須填寫審批意見
+            if (reject && !opinion) {
+                document.getElementById('act-error').classList.remove('hidden');
+                return;
+            }
+            const now = new Date();
+            const pad = (n) => String(n).padStart(2, '0');
+            const stamp = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+            const n = actTargets.length;
+            actTargets.forEach(r => {
+                r.status = reject ? '駁回' : '簽核完成';
+                r.actAt = stamp;
+                r.opinion = opinion;
+            });
+            actTargets = [];
+            selected.clear();
+            closeAct();
+            closeOtView();
+            render();
+            showToast(reject ? 'info' : 'success', reject ? `已駁回 ${n} 筆加班申請` : `已核准 ${n} 筆加班申請`);
+        }
+
+        /* ===== Toast ===== */
+        function showToast(type, text) {
+            const toast = document.getElementById('toast');
+            const icon = document.getElementById('toast-icon');
+            document.getElementById('toast-text').innerText = text;
+            icon.className = type === 'success' ? 'fa-solid fa-circle-check text-emerald-400 text-base'
+                : type === 'error' ? 'fa-solid fa-circle-xmark text-rose-400 text-base'
+                : 'fa-solid fa-circle-info text-blue-400 text-base';
+            toast.style.transform = 'translateY(0)'; toast.style.opacity = '1';
+            clearTimeout(window.__t);
+            window.__t = setTimeout(() => { toast.style.transform = 'translateY(5rem)'; toast.style.opacity = '0'; }, 2400);
+        }
+
+        /* ===== 初始化 ===== */
+        document.getElementById('manager-label').innerText = `簽核人：${managerLabel()}・${MANAGER.title}`;
+        // 點擊頁面其他位置關閉篩選下拉
+        document.addEventListener('click', () => {
+            if (openDropdown !== null) { openDropdown = null; renderFilterBar(); }
+        });
+        renderFilterBar();
+        render();
+    </script>
+</body>
+</html>

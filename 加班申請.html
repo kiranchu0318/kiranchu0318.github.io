@@ -134,15 +134,8 @@
                     <button onclick="closeModal()" class="w-8 h-8 flex items-center justify-center bg-primary text-white rounded-md hover:bg-opacity-95 transition-colors shadow-sm"><i class="fa-solid fa-xmark text-sm"></i></button>
                 </div>
                 <div class="p-6 space-y-5 overflow-y-auto">
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
-                        <div class="sm:col-span-2">
-                            <label class="block text-sm font-medium text-gray-700 mb-1.5">加班日期 <span class="text-red-500">*</span></label>
-                            <div class="flex items-center gap-2">
-                                <input type="date" id="m-date-start" onchange="calcHours()" class="ui-input flex-1 min-w-0">
-                                <span class="text-gray-400 text-sm shrink-0">至</span>
-                                <input type="date" id="m-date-end" onchange="calcHours()" class="ui-input flex-1 min-w-0">
-                            </div>
-                        </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-5">
+                        <!-- 第一排：加班類型 / 補償方式 -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1.5">加班類型 <span class="text-red-500">*</span></label>
                             <select id="m-type" class="ui-select">
@@ -151,56 +144,56 @@
                             </select>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1.5">開始時間 <span class="text-red-500">*</span></label>
-                            <input type="time" id="m-start" onchange="calcHours()" class="ui-input">
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">補償方式 <span class="text-red-500">*</span></label>
+                            <select id="m-comp" class="ui-select">
+                                <option>補休</option>
+                                <option>加班費</option>
+                            </select>
+                        </div>
+                        <!-- 第二排：起始日期 / 起始時間 -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">起始日期 <span class="text-red-500">*</span></label>
+                            <input type="date" id="m-date-start" onchange="calcHours()" class="ui-input">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">起始時間 <span class="text-red-500">*</span></label>
+                            <input type="time" id="m-start" step="1800" onchange="calcHours()" class="ui-input">
+                        </div>
+                        <!-- 第三排：結束日期 / 結束時間 -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">結束日期 <span class="text-red-500">*</span></label>
+                            <input type="date" id="m-date-end" onchange="calcHours()" class="ui-input">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1.5">結束時間 <span class="text-red-500">*</span></label>
-                            <input type="time" id="m-end" onchange="calcHours()" class="ui-input">
+                            <input type="time" id="m-end" step="1800" onchange="calcHours()" class="ui-input">
                         </div>
+                        <!-- 第四排：加班時數（由起訖日期時間自動計算） -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1.5">加班時數 <span class="font-normal text-gray-400 text-xs">（結束時間 − 起始時間）</span></label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">加班時數</label>
                             <input type="text" id="m-hours" disabled class="ui-input bg-[#e9ecef] text-gray-500 cursor-not-allowed" value="0 小時">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1.5">補償方式 <span class="text-red-500">*</span></label>
-                            <select id="m-comp" onchange="onCompChange()" class="ui-select">
-                                <option>隔日延遲上班</option>
-                                <option>調休</option>
-                                <option>調休1日</option>
-                                <option>調休2日</option>
-                            </select>
-                        </div>
-
-                        <!-- 補償方式＝隔日延遲上班 -->
-                        <div id="m-comp-delay" class="hidden sm:col-span-3">
-                            <div class="rounded-lg border border-blue-100 bg-primary-light/40 p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1.5">原上班時間 <span class="text-red-500">*</span></label>
-                                    <input type="time" id="m-orig-time" value="09:00" onchange="onCompChange()" class="ui-input">
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1.5">延遲至 <span class="text-red-500">*</span></label>
-                                    <input type="time" id="m-delay-time" onchange="onCompChange()" class="ui-input">
-                                </div>
-                                <p id="m-delay-hint" class="sm:col-span-2 text-xs text-gray-400">加班次日之上班時間將延後至所填時間。</p>
-                            </div>
-                        </div>
-
-                        <!-- 補償方式＝調休 / 調休1日 / 調休2日 -->
-                        <div id="m-comp-off" class="hidden sm:col-span-3">
-                            <div class="rounded-lg border border-blue-100 bg-primary-light/40 p-4">
-                                <label class="block text-sm font-medium text-gray-700 mb-1.5">調休日期 <span class="text-red-500">*</span></label>
-                                <input type="date" id="m-off-date" class="ui-input sm:max-w-[240px]">
-                                <p id="m-off-hint" class="text-xs text-gray-400 mt-1.5">請指定實際調休之日期。</p>
-                            </div>
+                            <p id="m-unit-hint" class="text-xs text-gray-400 mt-1.5">加班申請以 30 分鐘為單位。</p>
                         </div>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">加班事由 <span class="text-red-500">*</span></label>
                         <textarea id="m-reason" rows="3" placeholder="請說明加班原因..." class="ui-input resize-none"></textarea>
                     </div>
-                    <p id="m-error" class="hidden text-xs text-rose-500">請完整填寫加班日期起訖、加班時段、補償方式所需欄位與事由（加班時段之結束須晚於起始；延遲至須晚於原上班時間）。</p>
+                    <!-- 附件（必填，至少一份） -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">附件 <span class="text-red-500">*</span></label>
+                        <p class="text-xs text-gray-500 mb-1.5">註：附件提交申請人於事前經直屬主管同意之憑證文件。</p>
+                        <input type="file" id="m-files" class="hidden" multiple onchange="addFiles(this.files); this.value = '';">
+                        <div id="m-dropzone" onclick="document.getElementById('m-files').click()"
+                             class="border-2 border-dashed border-gray-300 rounded-lg py-5 flex flex-col items-center justify-center gap-2 text-gray-400 cursor-pointer hover:border-[#4A90E2] hover:text-[#4A90E2] transition-colors">
+                            <i class="fa-solid fa-cloud-arrow-up text-2xl"></i>
+                            <div class="text-[13px]"><span class="text-[#4A90E2] font-medium">點擊上傳</span> 或將檔案拖曳至此</div>
+                            <div class="text-xs text-gray-400">支援多檔上傳，請檢附加班證明文件</div>
+                        </div>
+                        <ul id="m-file-list" class="mt-2 space-y-1"></ul>
+                        <p id="m-file-hint" class="hidden text-xs text-gray-400 mt-1.5"></p>
+                    </div>
+                    <p id="m-error" class="hidden text-xs text-rose-500">請完整填寫加班起始／結束之日期與時間、加班事由並上傳附件（結束須晚於起始、加班時數須為 30 分鐘之整數倍）。</p>
                 </div>
                 <div class="px-6 py-4 flex justify-end gap-3 border-t border-gray-100 bg-gray-50/50 rounded-b-xl shrink-0">
                     <button onclick="closeModal()" class="ui-btn ui-btn-secondary">取消</button>
@@ -234,14 +227,17 @@
                                     <div><label class="block text-gray-700 text-xs mb-1.5 font-medium">事業部/中心</label><input id="otv-bu" type="text" disabled class="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed"></div>
                                     <div><label class="block text-gray-700 text-xs mb-1.5 font-medium">部門</label><input id="otv-dept" type="text" disabled class="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed"></div>
                                     <div><label class="block text-gray-700 text-xs mb-1.5 font-medium">組別</label><input id="otv-team" type="text" disabled class="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed"></div>
+                                    <div><label class="block text-gray-700 text-xs mb-1.5 font-medium">人員假期政策</label><input id="otv-policy" type="text" disabled class="w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed"></div>
                                 </div>
                             </div>
                             <!-- 加班資訊 -->
                             <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-5">
                                 <div class="text-[#1A237E] font-bold text-[15px] border-b border-gray-100 pb-2">加班資訊</div>
                                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                                    <div><label class="block text-gray-700 text-xs mb-1.5 font-medium">加班日期</label><input id="otv-date" type="text" disabled class="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-sm text-gray-800 cursor-not-allowed"></div>
-                                    <div><label class="block text-gray-700 text-xs mb-1.5 font-medium">加班時段</label><input id="otv-period" type="text" disabled class="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-sm text-gray-800 cursor-not-allowed"></div>
+                                    <div><label class="block text-gray-700 text-xs mb-1.5 font-medium">起始日期</label><input id="otv-date-start" type="text" disabled class="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-sm text-gray-800 cursor-not-allowed"></div>
+                                    <div><label class="block text-gray-700 text-xs mb-1.5 font-medium">起始時間</label><input id="otv-time-start" type="text" disabled class="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-sm font-mono text-gray-800 cursor-not-allowed"></div>
+                                    <div><label class="block text-gray-700 text-xs mb-1.5 font-medium">結束日期</label><input id="otv-date-end" type="text" disabled class="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-sm text-gray-800 cursor-not-allowed"></div>
+                                    <div><label class="block text-gray-700 text-xs mb-1.5 font-medium">結束時間</label><input id="otv-time-end" type="text" disabled class="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-sm font-mono text-gray-800 cursor-not-allowed"></div>
                                     <div><label class="block text-gray-700 text-xs mb-1.5 font-medium">加班時數</label><input id="otv-hours" type="text" disabled class="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-sm text-gray-800 cursor-not-allowed"></div>
                                     <div><label class="block text-gray-700 text-xs mb-1.5 font-medium">加班類型</label><input id="otv-type" type="text" disabled class="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-sm text-gray-800 cursor-not-allowed"></div>
                                     <div><label class="block text-gray-700 text-xs mb-1.5 font-medium">補償方式</label><input id="otv-comp" type="text" disabled class="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-sm text-gray-800 cursor-not-allowed"></div>
@@ -252,9 +248,7 @@
                                 </div>
                                 <div>
                                     <label class="block text-gray-700 text-xs mb-1.5 font-medium">附件</label>
-                                    <ul class="space-y-1">
-                                        <li class="flex items-center gap-2 bg-gray-50 border border-gray-100 rounded px-3 py-1.5 text-xs text-gray-700"><span class="text-gray-400">📎</span><span class="truncate">加班證明.pdf</span></li>
-                                    </ul>
+                                    <ul id="otv-files" class="space-y-1"></ul>
                                 </div>
                             </div>
                             <!-- 審批進度追蹤 -->
@@ -316,9 +310,9 @@
     <script>
         // 加班紀錄（申請日期 / 加班日期 / 起訖 / 時數 / 類型 / 補償 / 事由 / 狀態）
         let records = [
-            { applyDate: '2026-06-09', dateStart: '2026-06-08', dateEnd: '2026-06-08', start: '18:30', end: '21:00', hours: 2.5, type: '平日加班', comp: '隔日延遲上班', origTime: '09:00', delayTime: '11:00', offDate: '', reason: '月底系統上線前置驗證與部署。', status: '簽核完成' },
-            { applyDate: '2026-06-12', dateStart: '2026-06-13', dateEnd: '2026-06-14', start: '09:00', end: '13:00', hours: 28, type: '假日加班', comp: '調休2日', origTime: '', delayTime: '', offDate: '2026-06-22', reason: '配合客戶週末驗收（連續兩日）。', status: '待簽核' },
-            { applyDate: '2026-05-28', dateStart: '2026-05-27', dateEnd: '2026-05-27', start: '19:00', end: '20:30', hours: 1.5, type: '平日加班', comp: '調休', origTime: '', delayTime: '', offDate: '2026-06-03', reason: '緊急修復線上問題。', status: '駁回' }
+            { applyDate: '2026-06-09', dateStart: '2026-06-08', dateEnd: '2026-06-08', start: '18:30', end: '21:00', hours: 2.5, type: '平日加班', comp: '補休', files: ['加班證明_0608.pdf', '部署紀錄截圖.png'], reason: '月底系統上線前置驗證與部署。', status: '簽核完成' },
+            { applyDate: '2026-06-12', dateStart: '2026-06-13', dateEnd: '2026-06-14', start: '09:00', end: '13:00', hours: 28, type: '假日加班', comp: '加班費', files: ['客戶驗收排程表.xlsx'], reason: '配合客戶週末驗收（連續兩日）。', status: '待簽核' },
+            { applyDate: '2026-05-28', dateStart: '2026-05-27', dateEnd: '2026-05-27', start: '19:00', end: '20:30', hours: 1.5, type: '平日加班', comp: '補休', files: ['異常告警通知.pdf'], reason: '緊急修復線上問題。', status: '駁回' }
         ];
 
         function statusBadge(s) {
@@ -383,6 +377,48 @@
             tbody.parentElement.classList.toggle('hidden', rows.length === 0);
         }
 
+        /* ===== 附件（必填）=====
+           以記憶體陣列保存本次選取的檔案；提交時至少需有一筆 */
+        let pendingFiles = [];
+        const fmtFileSize = (bytes) => {
+            if (!bytes && bytes !== 0) return '';
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / 1024 / 1024).toFixed(1) + ' MB';
+        };
+        const escFile = (t) => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        function addFiles(fileList) {
+            Array.from(fileList || []).forEach(f => {
+                // 同名同大小視為重複選取，不重覆加入
+                if (pendingFiles.some(x => x.name === f.name && x.size === f.size)) return;
+                pendingFiles.push({ name: f.name, size: f.size });
+            });
+            renderFileList();
+        }
+        function removeFile(i) {
+            pendingFiles.splice(i, 1);
+            renderFileList();
+        }
+        function renderFileList() {
+            document.getElementById('m-file-list').innerHTML = pendingFiles.map((f, i) =>
+                `<li class="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded px-3 py-1.5 text-xs text-gray-700">
+                    <i class="fa-solid fa-paperclip text-gray-400"></i>
+                    <span class="truncate flex-1">${escFile(f.name)}</span>
+                    <span class="text-gray-400 shrink-0">${fmtFileSize(f.size)}</span>
+                    <button type="button" onclick="removeFile(${i})" class="text-rose-500 hover:text-rose-600 shrink-0" title="移除"><i class="fa-solid fa-xmark"></i></button>
+                </li>`).join('');
+            markFileState(pendingFiles.length > 0 ? 'ok' : 'idle');
+        }
+        // state: idle（尚未上傳）/ ok（已有附件）/ error（提交時未上傳）
+        function markFileState(state) {
+            const zone = document.getElementById('m-dropzone');
+            const hint = document.getElementById('m-file-hint');
+            zone.classList.toggle('border-rose-400', state === 'error');
+            zone.classList.toggle('border-gray-300', state !== 'error');
+            hint.innerText = state === 'ok' ? `已選取 ${pendingFiles.length} 份附件。` : '';
+            hint.classList.toggle('hidden', state !== 'ok');
+        }
+
         /* ===== 新增加班申請彈窗 ===== */
         function openModal(prefillDate) {
             document.getElementById('m-date-start').value = prefillDate || '';
@@ -391,12 +427,11 @@
             document.getElementById('m-start').value = '';
             document.getElementById('m-end').value = '';
             document.getElementById('m-hours').value = '0 小時';
-            document.getElementById('m-comp').value = '隔日延遲上班';
-            document.getElementById('m-orig-time').value = '09:00';
-            document.getElementById('m-delay-time').value = '';
-            document.getElementById('m-off-date').value = '';
-            onCompChange();
+            document.getElementById('m-comp').value = '補休';
             document.getElementById('m-reason').value = '';
+            pendingFiles = [];
+            document.getElementById('m-files').value = '';
+            renderFileList();
             document.getElementById('m-error').classList.add('hidden');
             calcHours();
             const modal = document.getElementById('ot-modal');
@@ -414,50 +449,8 @@
             setTimeout(() => modal.classList.add('hidden'), 180);
         }
 
-        /* ===== 補償方式連動 =====
-           隔日延遲上班 → 填原上班時間與延遲至；調休 / 調休1日 / 調休2日 → 填調休日期 */
-        const isDelayComp = (v) => v === '隔日延遲上班';
-        // 調休日數（調休1日=1、調休2日=2、單純「調休」=null）
-        const offDays = (v) => {
-            const m = /^調休(\d+)日$/.exec(v || '');
-            return m ? Number(m[1]) : null;
-        };
-        // 僅「調休N日」需填調休日期；單純「調休」不需指定日期
-        const isOffComp = (v) => offDays(v) !== null;
-        function onCompChange() {
-            const v = document.getElementById('m-comp').value;
-            document.getElementById('m-comp-delay').classList.toggle('hidden', !isDelayComp(v));
-            document.getElementById('m-comp-off').classList.toggle('hidden', !isOffComp(v));
-
-            if (isDelayComp(v)) {
-                const o = document.getElementById('m-orig-time').value;
-                const d = document.getElementById('m-delay-time').value;
-                const hint = document.getElementById('m-delay-hint');
-                const mins = (o && d) ? (toMin(d) - toMin(o)) : null;
-                hint.innerText = (mins !== null && mins > 0)
-                    ? `加班次日之上班時間由 ${o} 延後至 ${d}（延後 ${fmtHours(Math.round(mins / 60 * 100) / 100)}）`
-                    : '加班次日之上班時間將延後至所填時間。';
-                hint.classList.toggle('text-primary', mins !== null && mins > 0);
-                hint.classList.toggle('text-gray-400', !(mins !== null && mins > 0));
-            }
-            if (isOffComp(v)) {
-                document.getElementById('m-off-hint').innerText =
-                    `請指定實際調休之起始日期，共調休 ${offDays(v)} 日。`;
-            }
-        }
-        const toMin = (t) => {
-            if (!t || t.indexOf(':') < 0) return 0;
-            const [h, m] = t.split(':').map(Number);
-            return (h || 0) * 60 + (m || 0);
-        };
-        // 補償方式摘要（列表與詳情顯示用）
+        // 補償方式摘要（列表與詳情顯示用）：補休 / 加班費，皆無附帶欄位
         function compSummary(r) {
-            if (isDelayComp(r.comp)) {
-                return (r.origTime && r.delayTime) ? `${r.comp}（${r.origTime} → ${r.delayTime}）` : r.comp;
-            }
-            if (isOffComp(r.comp)) {
-                return r.offDate ? `${r.comp}（${r.offDate}）` : r.comp;
-            }
             return r.comp || '';
         }
 
@@ -474,6 +467,9 @@
         function spanHours(dateStart, start, dateEnd, end) {
             return Math.round(spanMinutes(dateStart, start, dateEnd, end) / 60 * 100) / 100;
         }
+        // 加班申請以 30 分鐘為單位：跨距須為 30 分鐘之整數倍
+        const OT_UNIT_MIN = 30;
+        const isValidOtUnit = (mins) => mins > 0 && mins % OT_UNIT_MIN === 0;
         // 加班時數（由紀錄推算，列表與詳情共用）
         const recordHours = (r) => spanHours(r.dateStart, r.start, r.dateEnd || r.dateStart, r.end);
 
@@ -482,7 +478,22 @@
             const de = document.getElementById('m-date-end').value;
             const st = document.getElementById('m-start').value;
             const en = document.getElementById('m-end').value;
-            document.getElementById('m-hours').value = fmtHours(spanHours(ds, st, de, en));
+            const mins = spanMinutes(ds, st, de, en);
+            const field = document.getElementById('m-hours');
+            field.value = fmtHours(spanHours(ds, st, de, en));
+
+            // 單位檢核：非 30 分鐘整數倍時即時提示
+            const hint = document.getElementById('m-unit-hint');
+            const bad = mins > 0 && !isValidOtUnit(mins);
+            field.classList.toggle('text-rose-600', bad);
+            field.classList.toggle('text-gray-500', !bad);
+            if (hint) {
+                hint.innerText = bad
+                    ? `加班申請以 30 分鐘為單位，目前為 ${mins} 分鐘，請調整起訖時間。`
+                    : '加班申請以 30 分鐘為單位。';
+                hint.classList.toggle('text-rose-600', bad);
+                hint.classList.toggle('text-gray-400', !bad);
+            }
         }
 
         function submitOT() {
@@ -493,15 +504,12 @@
             const reason = document.getElementById('m-reason').value.trim();
             const hours = spanHours(dateStart, start, dateEnd, end);
             const comp = document.getElementById('m-comp').value;
-            const origTime = document.getElementById('m-orig-time').value;
-            const delayTime = document.getElementById('m-delay-time').value;
-            const offDate = document.getElementById('m-off-date').value;
-            // 補償方式所需欄位驗證
-            let compOk = true;
-            if (isDelayComp(comp)) compOk = !!(origTime && delayTime && toMin(delayTime) > toMin(origTime));
-            else if (isOffComp(comp)) compOk = !!offDate;
 
-            if (!dateStart || !dateEnd || !start || !end || !reason || hours <= 0 || !compOk) {
+            const mins = spanMinutes(dateStart, start, dateEnd, end);
+            // 附件為必填：至少一份
+            const filesOk = pendingFiles.length > 0;
+            markFileState(filesOk ? 'ok' : 'error');
+            if (!dateStart || !dateEnd || !start || !end || !reason || hours <= 0 || !isValidOtUnit(mins) || !filesOk) {
                 document.getElementById('m-error').classList.remove('hidden');
                 return;
             }
@@ -510,9 +518,7 @@
                 applyDate: today, dateStart, dateEnd, start, end, hours,
                 type: document.getElementById('m-type').value,
                 comp,
-                origTime: isDelayComp(comp) ? origTime : '',
-                delayTime: isDelayComp(comp) ? delayTime : '',
-                offDate: isOffComp(comp) ? offDate : '',
+                files: pendingFiles.map(f => f.name),
                 reason, status: '待簽核'
             });
             closeModal();
@@ -528,6 +534,8 @@
         }
         /* ===== 加班申請單 檢視彈窗（比照 請假申請單）===== */
         const OTV_APPLICANT = 'Dev（100258）';
+        // 申請人所適用之休假規則模板（來源：假期管理 ▸ 休假規則模板）
+        const OTV_LEAVE_POLICY = '行政人員週休二日';
         let otvOpinionsOn = false;
         function otvSteps(status) {
             const submit = { seq: '1', title: '提交申請', status: '已審批', sign: OTV_APPLICANT };
@@ -555,12 +563,19 @@
             document.getElementById('otv-bu').value = '研發事業部 (RD BU)';
             document.getElementById('otv-dept').value = 'RD';
             document.getElementById('otv-team').value = 'API';
-            document.getElementById('otv-date').value = fmtDateRange(r);
-            document.getElementById('otv-period').value = fmtPeriod(r);
+            document.getElementById('otv-policy').value = r.policy || OTV_LEAVE_POLICY;
+            document.getElementById('otv-date-start').value = r.dateStart || '';
+            document.getElementById('otv-time-start').value = r.start || '';
+            document.getElementById('otv-date-end').value = r.dateEnd || r.dateStart || '';
+            document.getElementById('otv-time-end').value = r.end || '';
             document.getElementById('otv-hours').value = fmtHours(recordHours(r));
             document.getElementById('otv-type').value = r.type || '';
             document.getElementById('otv-comp').value = compSummary(r);
             document.getElementById('otv-reason').value = r.reason || '';
+            const vFiles = r.files || [];
+            document.getElementById('otv-files').innerHTML = vFiles.length
+                ? vFiles.map(n => `<li class="flex items-center gap-2 bg-gray-50 border border-gray-100 rounded px-3 py-1.5 text-xs text-gray-700"><i class="fa-solid fa-paperclip text-gray-400"></i><span class="truncate">${esc(n)}</span></li>`).join('')
+                : '<li class="text-xs text-gray-400">無附件</li>';
             const steps = otvSteps(r.status);
             document.getElementById('otv-progress-body').innerHTML = steps.map(s => `<tr>
                     <td class="px-3 py-1.5 text-center font-bold text-gray-800">${s.seq}</td>
@@ -572,7 +587,7 @@
                     <td class="px-3 py-1.5 text-gray-400">${(s.status === '已審批' || s.status === '已駁回') ? esc(r.applyDate || '') + ' 10:00' : '-'}</td></tr>`).join('');
             document.getElementById('otv-opinions-body').innerHTML = steps.map(s => {
                 const body = s.seq === '1'
-                    ? `${esc(r.reason || '依專案需求提出加班申請。')}<ul class="mt-2 space-y-1"><li class="flex items-center gap-2 bg-white border border-gray-100 rounded px-3 py-1.5 text-xs text-gray-700"><span class="text-gray-400">📎</span><span class="truncate">加班證明.pdf</span></li></ul>`
+                    ? `${esc(r.reason || '依專案需求提出加班申請。')}<ul class="mt-2 space-y-1">${(r.files || []).map(n => `<li class="flex items-center gap-2 bg-white border border-gray-100 rounded px-3 py-1.5 text-xs text-gray-700"><i class="fa-solid fa-paperclip text-gray-400"></i><span class="truncate">${esc(n)}</span></li>`).join('')}</ul>`
                     : (s.status === '已審批' ? '已確認，同意本次加班。' : (s.status === '已駁回' ? '加班事由不足，請補充說明。' : '<span class="italic text-gray-400">尚未審批</span>'));
                 return `<div class="flex items-start gap-3"><div class="w-20 shrink-0 text-xs font-bold text-gray-700">${s.title}<div class="font-normal text-gray-400 mt-0.5">${s.sign !== '-' ? esc(s.sign) : '—'}</div></div><div class="flex-1 text-sm text-gray-700 bg-gray-50 border border-gray-100 rounded-lg p-3">${body}</div></div>`;
             }).join('');
@@ -603,6 +618,21 @@
             clearTimeout(window.__t);
             window.__t = setTimeout(() => { toast.style.transform = 'translateY(5rem)'; toast.style.opacity = '0'; }, 2400);
         }
+
+        // 附件拖放
+        (function () {
+            const zone = document.getElementById('m-dropzone');
+            if (!zone) return;
+            ['dragenter', 'dragover'].forEach(ev => zone.addEventListener(ev, (e) => {
+                e.preventDefault();
+                zone.classList.add('border-[#4A90E2]', 'text-[#4A90E2]');
+            }));
+            ['dragleave', 'drop'].forEach(ev => zone.addEventListener(ev, (e) => {
+                e.preventDefault();
+                zone.classList.remove('border-[#4A90E2]', 'text-[#4A90E2]');
+            }));
+            zone.addEventListener('drop', (e) => addFiles(e.dataTransfer && e.dataTransfer.files));
+        })();
 
         render();
     </script>
