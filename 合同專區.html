@@ -21,6 +21,9 @@
         ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .tab-btn { padding: 0.5rem 1rem; font-size: 0.875rem; font-weight: 600; color: #6B7280; border-bottom: 2px solid transparent; cursor: pointer; white-space: nowrap; }
+        .tab-btn:hover { color: #4A90E2; }
+        .tab-btn.is-active { color: #4A90E2; border-bottom-color: #4A90E2; }
     </style>
     <link rel="stylesheet" href="shared-ui.css">
 </head>
@@ -32,6 +35,137 @@
         </header>
 
         <section class="ui-card flex flex-col p-4 sm:p-6 space-y-4">
+
+            <!-- 頁籤 -->
+            <div class="flex items-center gap-1 border-b border-gray-200">
+                <button id="tab-btn-mgmt" onclick="switchTab('mgmt')" class="tab-btn is-active">合同總覽</button>
+                <button id="tab-btn-files" onclick="switchTab('files')" class="tab-btn">合同檔案清單</button>
+            </div>
+
+            <!-- ===== 頁籤 1：合同總覽 ===== -->
+            <div id="panel-mgmt" class="flex flex-col space-y-4">
+
+                <!-- 統計卡 -->
+                <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
+                    <div class="bg-white border border-gray-200 rounded-xl shadow-card p-4 flex items-start gap-3">
+                        <span class="shrink-0 w-9 h-9 rounded-lg bg-blue-50 text-primary flex items-center justify-center"><i class="fa-regular fa-file-lines"></i></span>
+                        <div class="min-w-0">
+                            <div class="text-xs text-text-muted">合同總數</div>
+                            <div id="st-total" class="text-2xl font-bold text-gray-900 leading-tight">0</div>
+                            <div class="text-[11px] text-text-light mt-0.5">全部合同數量</div>
+                        </div>
+                    </div>
+                    <div class="bg-white border border-gray-200 rounded-xl shadow-card p-4 flex items-start gap-3">
+                        <span class="shrink-0 w-9 h-9 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center"><i class="fa-regular fa-circle-check"></i></span>
+                        <div class="min-w-0">
+                            <div class="text-xs text-text-muted">生效中</div>
+                            <div id="st-active" class="text-2xl font-bold text-emerald-600 leading-tight">0</div>
+                            <div id="st-active-sub" class="text-[11px] text-text-light mt-0.5">占比 0%</div>
+                        </div>
+                    </div>
+                    <div class="bg-white border border-gray-200 rounded-xl shadow-card p-4 flex items-start gap-3">
+                        <span class="shrink-0 w-9 h-9 rounded-lg bg-amber-50 text-amber-500 flex items-center justify-center"><i class="fa-regular fa-clock"></i></span>
+                        <div class="min-w-0">
+                            <div class="text-xs text-text-muted">即將到期</div>
+                            <div id="st-soon" class="text-2xl font-bold text-amber-500 leading-tight">0</div>
+                            <div class="text-[11px] text-text-light mt-0.5">30 天內到期</div>
+                        </div>
+                    </div>
+                    <div class="bg-white border border-gray-200 rounded-xl shadow-card p-4 flex items-start gap-3">
+                        <span class="shrink-0 w-9 h-9 rounded-lg bg-rose-50 text-rose-500 flex items-center justify-center"><i class="fa-solid fa-triangle-exclamation"></i></span>
+                        <div class="min-w-0">
+                            <div class="text-xs text-text-muted">已過期</div>
+                            <div id="st-expired" class="text-2xl font-bold text-rose-500 leading-tight">0</div>
+                            <div class="text-[11px] text-text-light mt-0.5">已超過到期日</div>
+                        </div>
+                    </div>
+                    <div class="bg-white border border-gray-200 rounded-xl shadow-card p-4 flex items-start gap-3">
+                        <span class="shrink-0 w-9 h-9 rounded-lg bg-sky-50 text-sky-500 flex items-center justify-center"><i class="fa-solid fa-rotate"></i></span>
+                        <div class="min-w-0">
+                            <div class="text-xs text-text-muted">需續約</div>
+                            <div id="st-renew" class="text-2xl font-bold text-gray-900 leading-tight">0</div>
+                            <div class="text-[11px] text-text-light mt-0.5">待續約的評估</div>
+                        </div>
+                    </div>
+                    <div class="bg-white border border-gray-200 rounded-xl shadow-card p-4 flex items-start gap-3">
+                        <span class="shrink-0 w-9 h-9 rounded-lg bg-amber-50 text-amber-500 flex items-center justify-center"><i class="fa-solid fa-yen-sign"></i></span>
+                        <div class="min-w-0">
+                            <div class="text-xs text-text-muted">合同總金額</div>
+                            <div id="st-amount" class="text-xl font-bold text-gray-900 leading-tight whitespace-nowrap">TWD 0</div>
+                            <div id="st-amount-sub" class="text-[11px] text-text-light mt-0.5 whitespace-nowrap">已付款 0 ｜ 未付款 0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 篩選列 -->
+                <div class="flex flex-wrap items-center gap-3">
+                    <div class="ui-search w-full sm:w-72">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="m-search" oninput="renderMgmt()" placeholder="搜尋合同編號、名稱、供應商…" class="ui-input ui-search-input">
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-semibold text-text-muted whitespace-nowrap">合同狀態</span>
+                        <div class="w-32"><select id="m-status" onchange="renderMgmt()" class="ui-select"><option value="">全部</option><option>生效中</option><option>即將到期</option><option>已過期</option><option>需續約</option></select></div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-semibold text-text-muted whitespace-nowrap">繳付周期</span>
+                        <div class="w-32"><select id="m-cycle" onchange="renderMgmt()" class="ui-select"><option value="">全部</option><option>分期</option><option>一次性</option></select></div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-semibold text-text-muted whitespace-nowrap">到期時間</span>
+                        <div class="w-36"><select id="m-due" onchange="renderMgmt()" class="ui-select"><option value="">全部</option><option value="30">30 天內到期</option><option value="90">90 天內到期</option><option value="expired">已過期</option><option value="none">無到期日</option></select></div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-semibold text-text-muted whitespace-nowrap">續約提醒</span>
+                        <div class="w-32"><select id="m-renew" onchange="renderMgmt()" class="ui-select"><option value="">全部</option><option value="on">已設定</option><option value="alert">提醒中</option><option value="off">未設定</option></select></div>
+                    </div>
+                    <button onclick="exportOverview()" class="ui-btn ui-btn-secondary ui-btn-sm ml-auto"><i class="fa-solid fa-download"></i> 匯出</button>
+                </div>
+
+                <!-- 清單 -->
+                <div class="overflow-x-auto rounded-lg border border-gray-100">
+                    <table class="ui-table whitespace-nowrap">
+                        <thead>
+                            <tr>
+                                <th class="text-center w-10"><input type="checkbox" id="m-check-all" onchange="mToggleAll(this.checked)" class="w-4 h-4 accent-primary cursor-pointer"></th>
+                                <th class="text-left w-56">合同編號</th>
+                                <th class="text-left w-48">合同文件名稱</th>
+                                <th class="text-left w-44">供應商 / 對方主體</th>
+                                <th class="text-right w-36">合同總金額</th>
+                                <th class="text-right w-32">已付款金額</th>
+                                <th class="text-right w-32">未付款金額</th>
+                                <th class="text-left w-28">已付 / 總期數</th>
+                                <th class="text-left w-40">付款進度</th>
+                                <th class="text-center w-24">繳付周期</th>
+                                <th class="text-left w-52">生效期間</th>
+                                <th class="text-left w-36">到期提醒</th>
+                                <th class="text-center w-24">合同狀態</th>
+                                <th class="text-left w-36">續約提醒</th>
+                                <th class="text-left w-28">下次付款日</th>
+                                <th class="text-center w-16">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="m-tbody"></tbody>
+                    </table>
+                </div>
+
+                <div id="m-no-data" class="hidden py-16 text-center space-y-3">
+                    <div class="inline-flex p-4 bg-gray-50 text-gray-400 rounded-full"><i class="fa-solid fa-file-contract text-3xl"></i></div>
+                    <p class="text-sm text-text-muted font-medium">查無符合條件的合同</p>
+                </div>
+
+                <div class="flex items-center justify-between pt-1">
+                    <span id="m-page-info" class="text-sm text-gray-500">共 0 筆記錄</span>
+                    <div class="flex gap-1">
+                        <button class="ui-page-btn"><i class="fa-solid fa-chevron-left text-xs"></i></button>
+                        <button class="ui-page-btn is-active">1</button>
+                        <button class="ui-page-btn"><i class="fa-solid fa-chevron-right text-xs"></i></button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== 頁籤 2：合同檔案清單 ===== -->
+            <div id="panel-files" class="hidden flex flex-col space-y-4">
             <!-- 工具列 -->
             <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
                 <div class="flex flex-wrap items-center gap-2">
@@ -67,6 +201,7 @@
             <div id="no-data" class="hidden py-16 text-center space-y-3">
                 <div class="inline-flex p-4 bg-gray-50 text-gray-400 rounded-full"><i class="fa-solid fa-file-contract text-3xl"></i></div>
                 <p class="text-sm text-text-muted font-medium">查無符合條件的合同</p>
+            </div>
             </div>
         </section>
     </div>
@@ -222,6 +357,162 @@
         };
         let current = null;
 
+        /* ====== 頁籤切換 ====== */
+        function switchTab(tab) {
+            const map = { mgmt: 'panel-mgmt', files: 'panel-files' };
+            Object.keys(map).forEach(k => {
+                document.getElementById(map[k]).classList.toggle('hidden', k !== tab);
+                document.getElementById('tab-btn-' + k).classList.toggle('is-active', k === tab);
+            });
+        }
+
+        /* ====== 頁籤 1：合同總覽 ======
+           資料欄位：合同編號 / 文件名稱 / 供應商 / 總金額 / 已付 / 未付 / 期數 / 繳付周期 /
+                     生效期間 / 到期提醒 / 合同狀態 / 續約提醒 / 下次付款日 */
+        const TODAY = '2026-11-01';   // 原型基準日（配合示意資料；正式版改用當日日期）
+        const overviewDb = [
+            { ic: 'T2-IC-Young D-261014-01', docName: 'Test 合約', vendor: 'Test', currency: 'TWD',
+              total: 2400000, paid: 1200000, paidTerms: 3, totalTerms: 12, cycle: '分期',
+              start: '2026-10-01', end: '2027-09-30', remind: '到期前 3、6 個月', remindAlert: false,
+              status: '生效中', renewDate: '2027-07-01', renewAlert: true, nextPay: '2026-11-01' },
+            { ic: 'T2-IC-Young D-261007-01', docName: '', vendor: '1', currency: 'TWD',
+              total: 500000, paid: 500000, paidTerms: 1, totalTerms: 1, cycle: '一次性',
+              start: '', end: '', remind: '', remindAlert: false,
+              status: '生效中', renewDate: '', renewAlert: false, nextPay: '' },
+            { ic: 'T2-IC-Simonlee GT-261026-01', docName: '客戶伴手禮一批採購合約', vendor: '樺桃諮詢', currency: 'TWD',
+              total: 1200000, paid: 600000, paidTerms: 2, totalTerms: 4, cycle: '分期',
+              start: '2026-10-28', end: '2026-11-02', remind: '到期前 30 天', remindAlert: true,
+              status: '即將到期', renewDate: '2026-11-15', renewAlert: true, nextPay: '2026-11-15' },
+            { ic: 'T2-IC-Lily L-260924-01', docName: '', vendor: 'NUEIP 系統商', currency: 'TWD',
+              total: 2860000, paid: 1430000, paidTerms: 5, totalTerms: 12, cycle: '分期',
+              start: '2026-08-01', end: '2027-07-31', remind: '', remindAlert: false,
+              status: '生效中', renewDate: '2027-06-01', renewAlert: false, nextPay: '2026-12-01' },
+            { ic: 'T1-IC-Simonlee GT-261022-01', docName: 'ABCD辦公室租屋合約', vendor: 'XXOO銀行（股）公司', currency: 'TWD',
+              total: 5000000, paid: 2500000, paidTerms: 12, totalTerms: 24, cycle: '分期',
+              start: '2026-10-22', end: '2026-10-31', remind: '到期前 1 個月', remindAlert: true,
+              status: '已過期', renewDate: '', renewAlert: false, nextPay: '2026-11-01' },
+            { ic: 'T1-IC-admin-261026-01', docName: 'TestTest', vendor: 'Test2', currency: 'TWD',
+              total: 900000, paid: 320000, paidTerms: 8, totalTerms: 12, cycle: '分期',
+              start: '2026-11-26', end: '長期', remind: '', remindAlert: false,
+              status: '需續約', renewDate: '2026-12-01', renewAlert: true, nextPay: '2026-12-01' }
+        ];
+        const money = (n) => Number(n || 0).toLocaleString('en-US');
+        const unpaid = (c) => Math.max(0, (c.total || 0) - (c.paid || 0));
+        // 付款進度以「已付期數 / 總期數」計算
+        const payPct = (c) => c.totalTerms ? Math.round((c.paidTerms / c.totalTerms) * 100) : 0;
+        const periodText = (c) => c.start ? `${c.start} ~ ${c.end || '長期'}` : '';
+        const ovStatusBadge = (st) => {
+            const map = { '生效中': 'bg-emerald-50 text-emerald-600', '即將到期': 'bg-amber-50 text-amber-600',
+                          '已過期': 'bg-rose-50 text-rose-600', '需續約': 'bg-sky-50 text-sky-600' };
+            return `<span class="inline-block px-2.5 py-1 rounded-md text-xs font-semibold ${map[st] || 'bg-gray-100 text-gray-600'}">${esc(st)}</span>`;
+        };
+        // 距到期日天數；無迄日或長期回傳 null
+        function daysToEnd(c) {
+            if (!c.end || c.end === '長期') return null;
+            const d = Math.round((new Date(c.end + 'T00:00:00') - new Date(TODAY + 'T00:00:00')) / 86400000);
+            return isNaN(d) ? null : d;
+        }
+
+        function renderMgmt() {
+            const kw = (document.getElementById('m-search').value || '').trim().toLowerCase();
+            const st = document.getElementById('m-status').value;
+            const cycle = document.getElementById('m-cycle').value;
+            const due = document.getElementById('m-due').value;
+            const renew = document.getElementById('m-renew').value;
+
+            const list = overviewDb.filter(c => {
+                if (kw && ![c.ic, c.docName, c.vendor].join(' ').toLowerCase().includes(kw)) return false;
+                if (st && c.status !== st) return false;
+                if (cycle && c.cycle !== cycle) return false;
+                if (due) {
+                    const d = daysToEnd(c);
+                    if (due === 'none' && d !== null) return false;
+                    if (due === 'expired' && !(d !== null && d < 0)) return false;
+                    if (due === '30' && !(d !== null && d >= 0 && d <= 30)) return false;
+                    if (due === '90' && !(d !== null && d >= 0 && d <= 90)) return false;
+                }
+                if (renew === 'on' && !c.renewDate) return false;
+                if (renew === 'off' && c.renewDate) return false;
+                if (renew === 'alert' && !(c.renewDate && c.renewAlert)) return false;
+                return true;
+            });
+
+            document.getElementById('m-tbody').innerHTML = list.map(c => {
+                const pct = payPct(c);
+                const bar = pct >= 100 ? 'bg-emerald-500' : 'bg-primary';
+                const renewCell = c.renewDate
+                    ? `<span class="inline-flex items-center gap-1.5 text-[13px] ${c.renewAlert ? 'text-rose-500 font-semibold' : 'text-gray-400'}"><i class="fa-regular fa-bell"></i>${esc(c.renewDate)}</span>`
+                    : '<span class="text-gray-300">—</span>';
+                return `
+                <tr class="hover:bg-gray-50/70 transition-colors">
+                    <td class="text-center"><input type="checkbox" class="m-row-chk w-4 h-4 accent-primary cursor-pointer" value="${esc(c.ic)}" onchange="mSyncAll()"></td>
+                    <td class="text-left"><button onclick="openOverview('${esc(c.ic)}')" class="font-semibold text-primary hover:underline">${esc(c.ic)}</button></td>
+                    <td class="text-left text-gray-800 text-[13px]">${c.docName ? esc(c.docName) : '<span class="text-gray-300">—</span>'}</td>
+                    <td class="text-left text-gray-600 text-[13px]">${c.vendor ? esc(c.vendor) : '<span class="text-gray-300">—</span>'}</td>
+                    <td class="text-right text-gray-800 text-[13px] font-medium tabular-nums">${esc(c.currency)} ${money(c.total)}</td>
+                    <td class="text-right text-gray-700 text-[13px] tabular-nums">${money(c.paid)}</td>
+                    <td class="text-right text-gray-700 text-[13px] tabular-nums">${money(unpaid(c))}</td>
+                    <td class="text-left text-gray-700 text-[13px] tabular-nums">${c.paidTerms} / ${c.totalTerms} 期</td>
+                    <td class="text-left">
+                        <div class="flex items-center gap-2">
+                            <div class="flex-1 min-w-[72px] h-2 rounded-full bg-gray-200 overflow-hidden"><div class="h-full rounded-full ${bar}" style="width:${pct}%"></div></div>
+                            <span class="text-[13px] text-gray-600 tabular-nums w-10 text-right">${pct}%</span>
+                        </div>
+                    </td>
+                    <td class="text-center"><span class="inline-block px-2 py-0.5 rounded text-xs font-medium ${c.cycle === '一次性' ? 'bg-indigo-50 text-indigo-600' : 'bg-blue-50 text-primary'}">${esc(c.cycle)}</span></td>
+                    <td class="text-left text-gray-600 text-[13px]">${periodText(c) ? esc(periodText(c)) : '<span class="text-gray-300">—</span>'}</td>
+                    <td class="text-left text-[13px] ${c.remindAlert ? 'text-amber-600 font-semibold' : 'text-gray-600'}">${c.remind ? esc(c.remind) : '<span class="text-gray-300">—</span>'}</td>
+                    <td class="text-center">${ovStatusBadge(c.status)}</td>
+                    <td class="text-left">${renewCell}</td>
+                    <td class="text-left text-gray-600 text-[13px]">${c.nextPay ? esc(c.nextPay) : '<span class="text-gray-300">—</span>'}</td>
+                    <td class="text-center"><button onclick="openOverview('${esc(c.ic)}')" title="更多" class="w-8 h-8 rounded-md border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors"><i class="fa-solid fa-ellipsis"></i></button></td>
+                </tr>`;
+            }).join('');
+
+            document.getElementById('m-page-info').innerText = '共 ' + list.length + ' 筆記錄';
+            const empty = list.length === 0;
+            document.getElementById('m-no-data').classList.toggle('hidden', !empty);
+            document.getElementById('m-tbody').parentElement.parentElement.classList.toggle('hidden', empty);
+            document.getElementById('m-check-all').checked = false;
+            renderOverviewStats();
+        }
+
+        // 統計卡：以全部合同計算，不受篩選影響
+        function renderOverviewStats() {
+            const all = overviewDb;
+            const total = all.length;
+            const active = all.filter(c => c.status === '生效中').length;
+            const sum = all.reduce((a, c) => a + (c.total || 0), 0);
+            const paid = all.reduce((a, c) => a + (c.paid || 0), 0);
+            const set = (id, v) => { const el = document.getElementById(id); if (el) el.innerText = v; };
+            set('st-total', total);
+            set('st-active', active);
+            set('st-active-sub', '占比 ' + (total ? Math.round(active / total * 100) : 0) + '%');
+            set('st-soon', all.filter(c => c.status === '即將到期').length);
+            set('st-expired', all.filter(c => c.status === '已過期').length);
+            set('st-renew', all.filter(c => c.status === '需續約').length);
+            set('st-amount', 'TWD ' + money(sum));
+            set('st-amount-sub', '已付款 ' + money(paid) + ' ｜ 未付款 ' + money(sum - paid));
+        }
+
+        function mToggleAll(on) {
+            document.querySelectorAll('#m-tbody .m-row-chk').forEach(cb => { cb.checked = on; });
+        }
+        function mSyncAll() {
+            const all = Array.from(document.querySelectorAll('#m-tbody .m-row-chk'));
+            document.getElementById('m-check-all').checked = all.length > 0 && all.every(cb => cb.checked);
+        }
+        // 合同編號／操作：優先開啟既有合同審批單彈窗，查無對應單據則提示
+        function openOverview(ic) {
+            if (findC(ic)) { openView(ic); return; }
+            showToast('success', '檢視合同「' + ic + '」（示意）');
+        }
+        function exportOverview() {
+            const n = document.querySelectorAll('#m-tbody .m-row-chk:checked').length;
+            showToast('success', n ? ('已開始匯出所選 ' + n + ' 筆合同，請稍候下載。') : '合同總覽已開始匯出，請稍候下載。');
+        }
+
+        /* ====== 頁籤 2：合同檔案清單 ====== */
         function renderTable() {
             const kw = (document.getElementById('f-search').value || '').trim().toLowerCase();
             const list = contracts.filter(c =>
@@ -309,6 +600,7 @@
             c.period = start + ' ~ ' + end;
             closeEditPeriod();
             renderTable();
+            renderMgmt();
             showToast('success', '已更新「' + editIc + '」的生效期間');
         }
 
@@ -328,6 +620,7 @@
             c.remind = Array.from(document.querySelectorAll('#remind-opts .remind-chk:checked')).map(x => parseInt(x.value, 10)).sort((a, b) => a - b);
             closeEditRemind();
             renderTable();
+            renderMgmt();
             showToast('success', '已更新「' + editIc + '」的到期提醒');
         }
 
@@ -342,6 +635,7 @@
             clearTimeout(window.__t); window.__t = setTimeout(() => { toast.style.transform = 'translateY(5rem)'; toast.style.opacity = '0'; }, 2600);
         }
 
+        renderMgmt();
         renderTable();
     </script>
 </body>

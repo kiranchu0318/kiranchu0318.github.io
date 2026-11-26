@@ -2564,6 +2564,24 @@
                         </div>
                     </div>
 
+                    <!-- CCTV 調閱申請資料 -->
+                    <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5">
+                        <div class="px-4 py-2.5 border-b border-gray-200"><h3 class="text-[#2b3b84] font-bold text-[15px]">CCTV 調閱申請資料</h3></div>
+                        <div class="px-4 pt-4 grid grid-cols-5 gap-x-5 gap-y-5 mb-4">
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">調閱開始日期 <span class="text-red-500">*</span></label><input type="date" id="cv-date-start" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">調閱結束日期 <span class="text-red-500">*</span></label><input type="date" id="cv-date-end" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">開始時間 <span class="text-red-500">*</span></label><input type="time" id="cv-time-start" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">結束時間 <span class="text-red-500">*</span></label><input type="time" id="cv-time-end" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">預計操作人 <span class="text-red-500">*</span></label><div class="relative applicant-combo" id="cv-operator-combo"><input type="text" autocomplete="off" placeholder="搜尋人名 / 工號" class="applicant-input w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><div class="applicant-list hidden absolute z-30 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto text-[13px]"></div></div></div>
+                            <div class="col-start-1"><label class="block mb-1.5 text-[13px] text-gray-700">是否申請匯出 <span class="text-red-500">*</span></label><select id="cv-export" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>否</option><option>是</option></select></div>
+                            <div><label class="block mb-1.5 text-[13px] text-gray-700">是否申請對外提供 <span class="text-red-500">*</span></label><select id="cv-external" onchange="cvExternalChange(this.value)" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"><option>否</option><option>是</option></select></div>
+                            <!-- 僅「是否申請對外提供＝是」時顯示 -->
+                            <div id="cv-receiver-wrap" class="hidden"><label class="block mb-1.5 text-[13px] text-gray-700">預計提供對象 <span class="text-red-500">*</span></label><input type="text" id="cv-receiver" placeholder="如：轄區警局、委任律師" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"></div>
+                            <div id="cv-purpose-wrap" class="hidden col-span-2"><label class="block mb-1.5 text-[13px] text-gray-700">提供用途 <span class="text-red-500">*</span></label><input type="text" id="cv-purpose" placeholder="如：刑事案件報案佐證、保險理賠" class="w-full border border-gray-300 rounded px-3 py-1.5 text-[13px] outline-none focus:border-blue-500"></div>
+                            <div class="col-span-5"><label class="block mb-1.5 text-[13px] text-gray-700">調閱原因 <span class="text-red-500">*</span></label><textarea id="cv-reason" rows="3" placeholder="請說明調閱事由、調閱範圍（攝影機位置／編號）與調閱用途…" class="w-full border border-gray-300 rounded px-3 py-2 text-[13px] outline-none focus:border-blue-500 resize-y"></textarea></div>
+                        </div>
+                    </div>
+
                     <!-- 備註 -->
                     <div class="bg-white border border-gray-300 rounded-md shadow-sm mb-5">
                         <div class="px-4 py-2.5 border-b border-gray-200"><h3 class="text-[#2b3b84] font-bold text-[15px]">備註</h3></div>
@@ -6557,6 +6575,21 @@
             '返點申請': ['返點'],
             '合同公告': ['合同']
         };
+        /* CCTV調閱 (CV)：是否申請對外提供＝是 → 顯示 預計提供對象 / 提供用途；否則隱藏並清空 */
+        function cvExternalChange(v) {
+            const show = v === '是';
+            ['cv-receiver-wrap', 'cv-purpose-wrap'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.classList.toggle('hidden', !show);
+            });
+            if (!show) {
+                // 隱藏時清空，避免殘值被一併送出
+                ['cv-receiver', 'cv-purpose'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.value = '';
+                });
+            }
+        }
         function buCategoryChange(cat) {
             const sub = document.getElementById('bu-subcategory');
             if (!sub) return;

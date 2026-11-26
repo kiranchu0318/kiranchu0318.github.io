@@ -756,7 +756,18 @@
           bu: '研發事業部 (RD BU)',
           dept: 'RD',
           team: 'API',
-          note: '調閱事由：6/14（日）22:00 ~ 6/15（一）02:00 機房伺服器遭不當斷電，需調閱 B1 機房門口與機櫃區影像以釐清進出人員。\n調閱範圍：B1 機房門口（CAM-B1-03）、機櫃區（CAM-B1-07）。\n調閱用途：事故原因調查與內部稽核紀錄，不對外提供。',
+          // CCTV 調閱申請資料（欄位比照 申請.html CCTV調閱 (CV) 彈窗）
+          dateStart: '2026-06-14',
+          dateEnd: '2026-06-15',
+          timeStart: '22:00',
+          timeEnd: '02:00',
+          needExport: '是',
+          needExternal: '是',
+          receiver: '瑞安機電股份有限公司（設備鑑定單位）',
+          purpose: '設備故障責任鑑定與保險理賠佐證',
+          operator: 'Oliver（100962）',
+          reason: '調閱事由：6/14（日）22:00 ~ 6/15（一）02:00 機房伺服器遭不當斷電，需調閱 B1 機房門口與機櫃區影像以釐清進出人員與設備操作過程。\n調閱範圍：B1 機房門口（CAM-B1-03）、機櫃區（CAM-B1-07）。\n調閱用途：事故原因調查、內部稽核紀錄，並提供設備鑑定單位作為責任釐清依據。',
+          note: '影像保留期限為 30 日，請於 7/14 前完成調閱與匯出；匯出檔案僅提供鑑定單位，不得轉作其他用途。',
           files: ['機房斷電事故報告.pdf', '門禁刷卡紀錄.xlsx']
         }
       };
@@ -1711,7 +1722,34 @@
                       {/* CCTV調閱(CV)：比照 申請.html CCTV調閱 (CV) 彈窗內容 */}
                       {modalRow?.type === 'CV' && (() => {
                         const cv = CV_DETAIL[modalRow.docNo] || {};
+                        const roInp = "w-full bg-[#EAECEF] border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 cursor-not-allowed";
+                        const cvField = (label, value, span) => (
+                          <div className={span || ''}>
+                            <label className="block text-gray-700 text-xs mb-1.5 font-medium">{label}</label>
+                            <input type="text" disabled value={value || '—'} className={roInp} />
+                          </div>
+                        );
                         return (
+                          <>
+                          <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-5">
+                            <div className="text-[#2b3b84] font-bold text-[15px] border-b border-gray-100 pb-2">CCTV 調閱申請資料</div>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-x-5 gap-y-4">
+                              {cvField('調閱開始日期', cv.dateStart)}
+                              {cvField('調閱結束日期', cv.dateEnd)}
+                              {cvField('開始時間', cv.timeStart)}
+                              {cvField('結束時間', cv.timeEnd)}
+                              {cvField('預計操作人', cv.operator)}
+                              {cvField('是否申請匯出', cv.needExport)}
+                              {cvField('是否申請對外提供', cv.needExternal)}
+                              {/* 僅「是否申請對外提供＝是」時顯示（與 申請.html 一致） */}
+                              {cv.needExternal === '是' && cvField('預計提供對象', cv.receiver)}
+                              {cv.needExternal === '是' && cvField('提供用途', cv.purpose, 'lg:col-span-2')}
+                            </div>
+                            <div>
+                              <label className="block text-gray-700 text-xs mb-1.5 font-medium">調閱原因</label>
+                              <div className="text-sm text-gray-700 bg-gray-50 border border-gray-200 rounded-lg p-3 leading-relaxed whitespace-pre-line min-h-[80px]">{cv.reason || '—'}</div>
+                            </div>
+                          </div>
                           <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-4">
                             <div className="text-[#2b3b84] font-bold text-[15px] border-b border-gray-100 pb-2">備註</div>
                             <div className="text-sm text-gray-700 bg-gray-50 border border-gray-200 rounded-lg p-3 leading-relaxed whitespace-pre-line min-h-[80px]">{cv.note || '—'}</div>
@@ -1730,6 +1768,7 @@
                               )}
                             </div>
                           </div>
+                          </>
                         );
                       })()}
 
