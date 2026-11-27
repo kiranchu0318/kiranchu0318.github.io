@@ -127,7 +127,6 @@
                     <table class="ui-table whitespace-nowrap">
                         <thead>
                             <tr>
-                                <th class="text-center w-10"><input type="checkbox" id="m-check-all" onchange="mToggleAll(this.checked)" class="w-4 h-4 accent-primary cursor-pointer"></th>
                                 <th class="text-left w-56">合同編號</th>
                                 <th class="text-left w-48">合同文件名稱</th>
                                 <th class="text-left w-44">供應商 / 對方主體</th>
@@ -445,7 +444,6 @@
                     : '<span class="text-gray-300">—</span>';
                 return `
                 <tr class="hover:bg-gray-50/70 transition-colors">
-                    <td class="text-center"><input type="checkbox" class="m-row-chk w-4 h-4 accent-primary cursor-pointer" value="${esc(c.ic)}" onchange="mSyncAll()"></td>
                     <td class="text-left"><button onclick="openOverview('${esc(c.ic)}')" class="font-semibold text-primary hover:underline">${esc(c.ic)}</button></td>
                     <td class="text-left text-gray-800 text-[13px]">${c.docName ? esc(c.docName) : '<span class="text-gray-300">—</span>'}</td>
                     <td class="text-left text-gray-600 text-[13px]">${c.vendor ? esc(c.vendor) : '<span class="text-gray-300">—</span>'}</td>
@@ -473,7 +471,6 @@
             const empty = list.length === 0;
             document.getElementById('m-no-data').classList.toggle('hidden', !empty);
             document.getElementById('m-tbody').parentElement.parentElement.classList.toggle('hidden', empty);
-            document.getElementById('m-check-all').checked = false;
             renderOverviewStats();
         }
 
@@ -495,21 +492,15 @@
             set('st-amount-sub', '已付款 ' + money(paid) + ' ｜ 未付款 ' + money(sum - paid));
         }
 
-        function mToggleAll(on) {
-            document.querySelectorAll('#m-tbody .m-row-chk').forEach(cb => { cb.checked = on; });
-        }
-        function mSyncAll() {
-            const all = Array.from(document.querySelectorAll('#m-tbody .m-row-chk'));
-            document.getElementById('m-check-all').checked = all.length > 0 && all.every(cb => cb.checked);
-        }
         // 合同編號／操作：優先開啟既有合同審批單彈窗，查無對應單據則提示
         function openOverview(ic) {
             if (findC(ic)) { openView(ic); return; }
             showToast('success', '檢視合同「' + ic + '」（示意）');
         }
         function exportOverview() {
-            const n = document.querySelectorAll('#m-tbody .m-row-chk:checked').length;
-            showToast('success', n ? ('已開始匯出所選 ' + n + ' 筆合同，請稍候下載。') : '合同總覽已開始匯出，請稍候下載。');
+            // 無勾選功能，改以目前篩選結果為匯出範圍
+            const n = document.querySelectorAll('#m-tbody tr').length;
+            showToast('success', '合同總覽已開始匯出（共 ' + n + ' 筆），請稍候下載。');
         }
 
         /* ====== 頁籤 2：合同檔案清單 ====== */
