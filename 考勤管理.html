@@ -259,6 +259,7 @@
                             <option value="喪假">喪假</option>
                             <option value="公假">公假</option>
                             <option value="補休">補休</option>
+                            <option value="加班補休">加班補休</option>
                         </select>
                     </div>
                     <div>
@@ -1608,6 +1609,7 @@
         // 請假 / 銷假 紀錄資料庫 (人資視角)
         let leaveRecordsDb = [
             { id: "100423", name: "Henry",     dept: "HR",  appDate: "2026-06-09", docType: "請假", leaveType: "特休", start: "2026-06-12 09:00", end: "2026-06-12 18:00", hours: 8,  reason: "家庭旅遊，事先排定特休。",        docNo: "假-20260609-023", status: "完成" },
+            { id: "100962", name: "Oliver",    dept: "RD",  appDate: "2026-06-16", docType: "請假", leaveType: "加班補休", start: "2026-06-19 09:00", end: "2026-06-19 11:30", hours: 2.5, reason: "6/8 平日加班 2.5 小時，依加班單 加-20260609-031 申請補休。", docNo: "假-20260616-027", status: "完成" },
             { id: "101122", name: "Daniel",    dept: "HR",  appDate: "2026-06-08", docType: "請假", leaveType: "病假", start: "2026-06-10 09:00", end: "2026-06-10 13:00", hours: 4,  reason: "感冒就醫，附診斷證明。",          docNo: "假-20260608-019", status: "完成" },
             { id: "101383", name: "Matthew",   dept: "RD",  appDate: "2026-06-09", docType: "銷假", leaveType: "特休", start: "2026-06-10 09:00", end: "2026-06-10 18:00", hours: 8,  reason: "原訂特休取消，當日正常出勤。",    docNo: "銷-20260610-018", status: "完成" },
             { id: "101334", name: "Alexander", dept: "RD",  appDate: "2026-06-05", docType: "請假", leaveType: "事假", start: "2026-06-06 14:00", end: "2026-06-06 18:00", hours: 4,  reason: "處理個人事務。",                  docNo: "假-20260605-011", status: "審批中" },

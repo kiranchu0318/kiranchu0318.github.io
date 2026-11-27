@@ -1058,7 +1058,7 @@
                       <ChevronDown size={15} strokeWidth={2.5} className={`shrink-0 text-gray-400 transition-transform ${ccOpen ? '' : '-rotate-90'}`} />
                       <span className="text-[15px] font-medium text-gray-800">抄送記帳</span>
                       {/* 收起時仍顯示已設定筆數，不必展開就知道有無設定 */}
-                      <span className="text-[13px] text-gray-400 truncate">· {ccOpen ? '簽核完成後抄送，設定的角色僅能記帳匯出' : (ccRoles.length ? '已設定 ' + ccRoles.length + ' 個角色' : '尚未設定')}</span>
+                      <span className="text-[13px] text-gray-400 truncate">· {ccOpen ? '設定的角色僅能記帳匯出，無法檢視單據內容' : (ccRoles.length ? '已設定 ' + ccRoles.length + ' 個角色' : '尚未設定')}</span>
                     </button>
                     {ccOpen && (
                       <button onClick={addCcRole} className="ui-btn ui-btn-secondary ui-btn-sm shrink-0">

@@ -116,6 +116,7 @@
                             <option>事假</option>
                             <option>病假</option>
                             <option>補休</option>
+                            <option>加班補休</option>
                         </select>
                     </div>
                     
@@ -224,6 +225,26 @@
                             <td class="text-center">
                                 <div class="flex items-center justify-center gap-2">
                                     <button onclick="openViewModal(this)" class="ui-btn ui-btn-secondary ui-btn-sm">檢視</button>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- 第 5 列 -->
+                        <tr data-apply-date="2026/06/16" data-leave-type="加班補休" data-reason="6/8 平日加班 2.5 小時，依加班單申請補休" data-period="2026/06/19 09:00 - 2026/06/19 11:30" data-amount="2.5 小時">
+                            <td class="font-medium text-gray-900">2026/06/16</td>
+                            <td>
+                                <span class="ui-badge ui-badge-warning">加班補休</span>
+                            </td>
+                            <td>6/8 平日加班 2.5 小時，依加班單申請補休</td>
+                            <td>2026/06/19 09:00 - 2026/06/19 11:30</td>
+                            <td class="text-center text-gray-900">2.5 小時</td>
+                            <td class="text-center">
+                                <span class="ui-badge ui-badge-success">完成</span>
+                            </td>
+                            <td class="text-center">
+                                <div class="flex items-center justify-center gap-2">
+                                    <button onclick="openViewModal(this)" class="ui-btn ui-btn-secondary ui-btn-sm">檢視</button>
+                                    <button class="ui-btn ui-btn-secondary ui-btn-sm js-cancel-btn" onclick="openCancelModal(this)">銷假</button>
                                 </div>
                             </td>
                         </tr>
